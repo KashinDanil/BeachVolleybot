@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../src/config/config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use BeachVolleybot\security\TgBotValidator;
+use BeachVolleybot\webhook\IncomingMessageDTO;
 use TelegramBot\Api\BotApi;
 use BeachVolleybot\App;
 
@@ -18,5 +19,6 @@ if (!$tgBotValidator->validate()) {
 }
 
 $bot = new BotApi(TG_BOT_ACCESS_TOKEN);
-$app = new App($bot, $_POST);
+$incomingMessageDTO = new IncomingMessageDTO(file_get_contents('php://input'));
+$app = new App($bot, $incomingMessageDTO);
 $app->run();
