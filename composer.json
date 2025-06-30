@@ -1,0 +1,12 @@
+{
+    "require": {
+        "telegram-bot/api": "^2.5",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "BeachVolleybot\\": "src/"
+        }
+    }
+}
