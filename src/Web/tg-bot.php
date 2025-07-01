@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../src/Config/config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Security\TgBotValidator;
 use BeachVolleybot\Webhook\IncomingMessageDTO;
 use TelegramBot\Api\BotApi;
@@ -14,6 +15,7 @@ $securityToken = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? $argv[1] ??
 
 $tgBotValidator = new TgBotValidator($securityToken);
 if (!$tgBotValidator->validate()) {
+    Logger::logUnauthorizedAccessAttempt();
     http_response_code(403);
     exit('Forbidden');
 }
@@ -21,6 +23,7 @@ if (!$tgBotValidator->validate()) {
 $bot = new BotApi(TG_BOT_ACCESS_TOKEN);
 $payload = file_get_contents('php://input');
 if (empty($payload)) {
+    Logger::logWeb('No payload received');
     http_response_code(400);
     exit('Bad Request: No payload received');
 }
