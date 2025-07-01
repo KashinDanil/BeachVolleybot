@@ -20,7 +20,7 @@ if (!$tgBotValidator->validate()) {
 
 $bot = new BotApi(TG_BOT_ACCESS_TOKEN);
 $payload = file_get_contents('php://input');
-if ($payload === false) {
+if (empty($payload)) {
     http_response_code(400);
     exit('Bad Request: No payload received');
 }
