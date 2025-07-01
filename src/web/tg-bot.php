@@ -10,7 +10,7 @@ use BeachVolleybot\webhook\IncomingMessageDTO;
 use TelegramBot\Api\BotApi;
 use BeachVolleybot\App;
 
-$securityToken = $_GET['token'] ?? $argv[1] ?? '';
+$securityToken = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? $argv[1] ?? '';
 
 $tgBotValidator = new TgBotValidator($securityToken);
 if (!$tgBotValidator->validate()) {
@@ -19,6 +19,13 @@ if (!$tgBotValidator->validate()) {
 }
 
 $bot = new BotApi(TG_BOT_ACCESS_TOKEN);
-$incomingMessageDTO = new IncomingMessageDTO(file_get_contents('php://input'));
+$payload = file_get_contents('php://input');
+if ($payload === false) {
+    http_response_code(400);
+    exit('Bad Request: No payload received');
+}
+
+$payload = json_decode($payload, true);
+$incomingMessageDTO = new IncomingMessageDTO($payload);
 $app = new App($bot, $incomingMessageDTO);
 $app->run();

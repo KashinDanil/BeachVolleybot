@@ -7,7 +7,7 @@ namespace BeachVolleybot\webhook;
 readonly class IncomingMessageDTO
 {
     public function __construct(
-        public string $payload,
+        private readonly array $payload,
     ) {
     }
 }
