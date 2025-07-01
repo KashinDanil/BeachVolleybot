@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\webhook;
+namespace BeachVolleybot\Webhook;
 
 readonly class IncomingMessageDTO
 {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../src/config/config.php';
+require_once __DIR__ . '/../../src/Config/config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-use BeachVolleybot\security\TgBotValidator;
-use BeachVolleybot\webhook\IncomingMessageDTO;
+use BeachVolleybot\Security\TgBotValidator;
+use BeachVolleybot\Webhook\IncomingMessageDTO;
 use TelegramBot\Api\BotApi;
 use BeachVolleybot\App;
 

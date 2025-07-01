@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\security;
+namespace BeachVolleybot\Security;
 
 readonly class TgBotValidator
 {

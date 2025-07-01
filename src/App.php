@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot;
 
-use BeachVolleybot\webhook\IncomingMessageDTO;
+use BeachVolleybot\Webhook\IncomingMessageDTO;
 use TelegramBot\Api\BotApi;
 
 class App
