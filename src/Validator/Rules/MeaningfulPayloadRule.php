@@ -14,7 +14,7 @@ readonly class MeaningfulPayloadRule implements RuleInterface
 
     public function isValid(): bool
     {
-        return !empty($payload)
+        return !empty($this->payload)
             && is_string($this->payload)
             && json_validate($this->payload);
     }
