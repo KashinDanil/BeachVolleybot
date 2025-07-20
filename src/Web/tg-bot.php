@@ -18,8 +18,8 @@ use TelegramBot\Api\BotApi;
 $inputStrategy = InputStrategyFactory::getStrategy();
 $validator = new Validator(
     [
-        new TelegramSecretTokenRule($inputStrategy->getSecretToken()),
         new PostRequestRule(),
+        new TelegramSecretTokenRule($inputStrategy->getSecretToken()),
         new MeaningfulPayloadRule($inputStrategy->getPayload()),
     ]
 );
