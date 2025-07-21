@@ -6,18 +6,27 @@ namespace BeachVolleybot\Common\InputStrategy;
 
 class CliInputStrategy extends InputStrategy
 {
+    private const string PARAMS_PATTERN = '/--([^=]+)=(.*)/';
+
     public function __construct()
     {
+        $params = $this->getParams();
+        $this->secretToken = $params['secretToken'] ?? '';
+        $this->payload = $params['payload'] ?? '';
+    }
+
+    private function getParams(): array
+    {
         global $argv;
+
         array_shift($argv);
         $params = [];
         foreach ($argv as $arg) {
-            if (preg_match('/--([^=]+)=(.*)/', $arg, $matches)) {
+            if (preg_match(self::PARAMS_PATTERN, $arg, $matches)) {
                 $params[$matches[1]] = $matches[2];
             }
         }
 
-        $this->secretToken = $params['secretToken'] ?? '';
-        $this->payload = $params['payload'] ?? '';
+        return $params;
     }
 }
