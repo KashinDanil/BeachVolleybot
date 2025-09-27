@@ -10,21 +10,20 @@ readonly class PostRequestRule implements RuleInterface
 {
     private const string ALLOWED_METHOD = 'POST';
 
+    public function __construct(private ?string $requestMethod)
+    {
+    }
+
     public function isValid(): bool
     {
-        return self::ALLOWED_METHOD === $this->getRequestMethod();
+        return self::ALLOWED_METHOD === $this->requestMethod;
     }
 
     public function getError(): ValidationError
     {
         return new ValidationError(
             'Invalid request method. Only POST requests are allowed',
-            ['method' => $this->getRequestMethod()]
+            ['method' => $this->requestMethod]
         );
-    }
-
-    private function getRequestMethod(): ?string
-    {
-        return $_SERVER['REQUEST_METHOD'] ?? null;
     }
 }

@@ -8,9 +8,9 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use BeachVolleybot\App;
 use BeachVolleybot\Common\InputStrategy\InputStrategyFactory;
 use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Validator\Rules\MeaningfulPayloadRule;
+use BeachVolleybot\Validator\Rules\ValidPayloadRule;
 use BeachVolleybot\Validator\Rules\PostRequestRule;
-use BeachVolleybot\Validator\Rules\TelegramSecretTokenRule;
+use BeachVolleybot\Validator\Rules\AppSecretTokenRule;
 use BeachVolleybot\Validator\Validator;
 use BeachVolleybot\Webhook\IncomingMessageDTO;
 use TelegramBot\Api\BotApi;
@@ -18,9 +18,9 @@ use TelegramBot\Api\BotApi;
 $inputStrategy = InputStrategyFactory::getStrategy();
 $validator = new Validator(
     [
-        new PostRequestRule(),
-        new TelegramSecretTokenRule($inputStrategy->getSecretToken()),
-        new MeaningfulPayloadRule($inputStrategy->getPayload()),
+        new PostRequestRule($inputStrategy->getRequestMethod()),
+        new AppSecretTokenRule($inputStrategy->getSecretToken()),
+        new ValidPayloadRule($inputStrategy->getPayload()),
     ]
 );
 $validationResult = $validator->validate();

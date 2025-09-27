@@ -6,12 +6,12 @@ namespace BeachVolleybot\Common\InputStrategy;
 
 class InputStrategyFactory
 {
-    public static function getStrategy(): InputStrategy
+    public static function getStrategy(): AbstractInputStrategy
     {
-        if (php_sapi_name() === 'cli') {
-            return new CliInputStrategy();
+        if (PHP_SAPI === 'cli') {
+            return new CliAbstractInputStrategy();
         }
 
-        return new WebInputStrategy();
+        return new WebAbstractInputStrategy();
     }
 }

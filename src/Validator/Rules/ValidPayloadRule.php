@@ -6,7 +6,7 @@ namespace BeachVolleybot\Validator\Rules;
 
 use BeachVolleybot\Errors\ValidationError;
 
-readonly class MeaningfulPayloadRule implements RuleInterface
+readonly class ValidPayloadRule implements RuleInterface
 {
     public function __construct(private string|bool $payload)
     {

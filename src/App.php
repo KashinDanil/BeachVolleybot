@@ -7,11 +7,11 @@ namespace BeachVolleybot;
 use BeachVolleybot\Webhook\IncomingMessageDTO;
 use TelegramBot\Api\BotApi;
 
-class App
+readonly class App
 {
     public function __construct(
-        private readonly BotApi $bot,
-        private readonly IncomingMessageDTO $incomingMessage,
+        private BotApi $bot,
+        private IncomingMessageDTO $incomingMessage,
     ) {
     }
 

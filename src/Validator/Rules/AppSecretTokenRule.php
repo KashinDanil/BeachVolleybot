@@ -6,7 +6,7 @@ namespace BeachVolleybot\Validator\Rules;
 
 use BeachVolleybot\Errors\ValidationError;
 
-readonly class TelegramSecretTokenRule implements RuleInterface
+readonly class AppSecretTokenRule implements RuleInterface
 {
     public function __construct(private string $token)
     {
@@ -14,7 +14,7 @@ readonly class TelegramSecretTokenRule implements RuleInterface
 
     public function isValid(): bool
     {
-        return password_verify($this->token, TG_BOT_WEBHOOK_TOKEN_HASH);
+        return password_verify($this->token, APP_TOKEN_HASH);
     }
 
     public function getError(): ValidationError

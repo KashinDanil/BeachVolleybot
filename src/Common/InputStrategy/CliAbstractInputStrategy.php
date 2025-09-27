@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Common\InputStrategy;
 
-class CliInputStrategy extends InputStrategy
+class CliAbstractInputStrategy extends AbstractInputStrategy
 {
     private const string PARAMS_PATTERN = '/--([^=]+)=(.*)/';
 
@@ -28,5 +28,10 @@ class CliInputStrategy extends InputStrategy
         }
 
         return $params;
+    }
+
+    public function getRequestMethod(): ?string
+    {
+        return 'POST'; //Emulate POST request so CLI runs pass the same validators and flow as webhook requests.
     }
 }
