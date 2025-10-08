@@ -9,9 +9,9 @@ class InputStrategyFactory
     public static function getStrategy(): AbstractInputStrategy
     {
         if (PHP_SAPI === 'cli') {
-            return new CliAbstractInputStrategy();
+            return new CliInputStrategy();
         }
 
-        return new WebAbstractInputStrategy();
+        return new WebInputStrategy();
     }
 }

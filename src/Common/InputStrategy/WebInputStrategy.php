@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Common\InputStrategy;
 
-class WebAbstractInputStrategy extends AbstractInputStrategy
+class WebInputStrategy extends AbstractInputStrategy
 {
     public function __construct()
     {
