@@ -8,6 +8,8 @@ use BeachVolleybot\Errors\ValidationError;
 
 readonly class AppSecretTokenRule implements RuleInterface
 {
+    private const string ERROR_MESSAGE = 'Provided token is invalid';
+
     public function __construct(private string $token)
     {
     }
@@ -19,9 +21,6 @@ readonly class AppSecretTokenRule implements RuleInterface
 
     public function getError(): ValidationError
     {
-        return new ValidationError(
-            'Provided token is invalid',
-            ['secret_token' => $this->token]
-        );
+        return new ValidationError(self::ERROR_MESSAGE, ['secret_token' => $this->token]);
     }
 }

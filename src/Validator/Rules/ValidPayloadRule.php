@@ -8,6 +8,8 @@ use BeachVolleybot\Errors\ValidationError;
 
 readonly class ValidPayloadRule implements RuleInterface
 {
+    private const string ERROR_MESSAGE = 'Invalid payload';
+
     public function __construct(private string|bool $payload)
     {
     }
@@ -21,9 +23,6 @@ readonly class ValidPayloadRule implements RuleInterface
 
     public function getError(): ValidationError
     {
-        return new ValidationError(
-            'Wrong payload',
-            ['payload' => $this->payload]
-        );
+        return new ValidationError(self::ERROR_MESSAGE, ['payload' => $this->payload]);
     }
 }

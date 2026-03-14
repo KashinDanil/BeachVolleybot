@@ -1,3 +1,4 @@
 /src/Config/
 /vendor/
 /.idea/
+/src/Localization/translations/missing.json

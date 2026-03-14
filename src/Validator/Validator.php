@@ -44,7 +44,7 @@ final readonly class Validator
             }
         }
 
-        if ($errors !== []) {
+        if (!empty($errors)) {
             return State::error(new MultiError($errors));
         }
 

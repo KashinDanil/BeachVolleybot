@@ -9,6 +9,7 @@ use BeachVolleybot\Errors\ValidationError;
 readonly class PostRequestRule implements RuleInterface
 {
     private const string ALLOWED_METHOD = 'POST';
+    private const string ERROR_MESSAGE = 'Invalid request method. Only POST requests are allowed';
 
     public function __construct(private ?string $requestMethod)
     {
@@ -21,9 +22,6 @@ readonly class PostRequestRule implements RuleInterface
 
     public function getError(): ValidationError
     {
-        return new ValidationError(
-            'Invalid request method. Only POST requests are allowed',
-            ['request_method' => $this->requestMethod]
-        );
+        return new ValidationError(self::ERROR_MESSAGE, ['request_method' => $this->requestMethod]);
     }
 }
