@@ -17,23 +17,8 @@ class Logger
     public static function log(string $message, string $logFile = self::APP_LOG_FILE): void
     {
         $filepath = self::BASE_LOG_DIR . '/' . $logFile;
-
-        self::ensureDirectory($filepath);
-
         $content = sprintf('[%s] %s%s', date('c'), $message, PHP_EOL);
         file_put_contents($filepath, $content, FILE_APPEND | LOCK_EX);
-    }
-
-    private static function ensureDirectory(string $filePath): void
-    {
-        $dir = dirname($filePath);
-        if (is_dir($dir)) {
-            return;
-        }
-
-        if (!mkdir($dir, 0777, true) && !is_dir($dir)) {
-            throw new RuntimeException(sprintf('Failed to create directory "%s"', $dir));
-        }
     }
 
     public static function logWeb(string $message): void
