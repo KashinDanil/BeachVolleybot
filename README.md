@@ -1,3 +1,5 @@
+> **Warning:** This project is wildly and unnecessarily overcomplicated for what it does. Proceed with humility.
+
 ## Overview
 
 This project was created to address a common frustration: _manually copying participant lists, adding names, and reposting them in group chats_. This workflow is inconvenient and error-prone, especially when **multiple people attempt to join simultaneously**, which can lead to **concurrency issues**.
