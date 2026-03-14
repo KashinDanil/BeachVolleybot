@@ -20,3 +20,45 @@ Despite this constraint, the system remains **reliable and concurrency-aware**, 
 ## Architecture
 
 The architecture is designed with **future scalability in mind**. While the current implementation avoids external infrastructure, it can be **easily migrated to a traditional stack** if needed.
+
+## Setup
+
+Follow these steps to configure the project locally.
+
+### 1. Install dependencies
+
+Run Composer to install the required PHP dependencies:
+
+```bash
+composer install
+```
+
+### 2. Grant write permissions to the logs folder
+
+Make sure the application can write to the `logs` directory:
+
+```bash
+chmod 775 logs
+```
+
+### 3. Update configuration constants
+
+Open the following file:
+
+```php
+src/Config/config.php
+```
+
+Replace the constants with your actual values.
+
+- #### `TG_BOT_ACCESS_TOKEN` - This value is provided by **Telegram BotFather** after creating your bot.
+
+- #### `APP_TOKEN_HASH` - This value should contain a hash of your webhook secret token.
+
+Generate it with the following command:
+
+```bash
+php -r 'echo password_hash("TELEGRAM_BOT_API_SECRET_TOKEN", PASSWORD_DEFAULT), PHP_EOL;'
+```
+
+Replace `TELEGRAM_BOT_API_SECRET_TOKEN` in the command with a `secret_token` that you [configure Telegram to send](https://core.telegram.org/bots/api#setwebhook) in the `X-Telegram-Bot-Api-Secret-Token` header to your server as an extra safety measure.
