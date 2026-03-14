@@ -23,7 +23,7 @@ $validator = new Validator(
         new ValidPayloadRule($inputStrategy->getPayload()),
     ]
 );
-$validationResult = $validator->validate();
+$validationResult = $validator->validateAll();
 if (!$validationResult->isSuccess()) {
     Logger::logUnauthorizedAccessAttempt($validationResult->getError());
 

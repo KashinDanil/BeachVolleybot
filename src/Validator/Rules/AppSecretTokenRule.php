@@ -21,7 +21,7 @@ readonly class AppSecretTokenRule implements RuleInterface
     {
         return new ValidationError(
             'Provided token is invalid',
-            ['token' => $this->token]
+            ['secret_token' => $this->token]
         );
     }
 }

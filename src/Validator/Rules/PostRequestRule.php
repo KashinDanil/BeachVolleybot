@@ -23,7 +23,7 @@ readonly class PostRequestRule implements RuleInterface
     {
         return new ValidationError(
             'Invalid request method. Only POST requests are allowed',
-            ['method' => $this->requestMethod]
+            ['request_method' => $this->requestMethod]
         );
     }
 }
