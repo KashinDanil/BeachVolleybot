@@ -14,20 +14,14 @@ final class Translator
     /** @var array<string, string[]>|null Missing translation keyed by language value. Null means not yet loaded from the disk. */
     private static ?array $missingTranslation = null;
 
-    private const string MISSING_TRANSLATIONS_FILE = __DIR__ . '/translations/missing.json';
+    private const string BASE_TRANSLATIONS_PATH = __DIR__ . '/translations/';
+    private const string MISSING_TRANSLATIONS_FILE = self::BASE_TRANSLATIONS_PATH . 'missing.json';
 
     private const Language DEFAULT_LANGUAGE = Language::EN;
 
     public function __construct(private readonly Language $language)
     {
-        if ($this->isDefaultLanguage()) {
-            return;
-        }
-
-        if (!isset(self::$translationCache[$language->value])) {
-            $file = __DIR__ . '/translations/' . $language->value . '.php';
-            self::$translationCache[$language->value] = file_exists($file) ? require $file : [];
-        }
+        $this->ensureTranslationCacheLoaded();
     }
 
     public static function getInstance(): self
@@ -43,6 +37,18 @@ final class Translator
     public static function setLanguage(Language $language): void
     {
         self::setInstance(new self($language));
+    }
+
+    private function ensureTranslationCacheLoaded(): void
+    {
+        if ($this->isDefaultLanguage()) {
+            return;
+        }
+
+        if (!isset(self::$translationCache[$this->language->value])) {
+            $file = self::BASE_TRANSLATIONS_PATH . $this->language->value . '.php';
+            self::$translationCache[$this->language->value] = file_exists($file) ? require $file : [];
+        }
     }
 
     public function isDefaultLanguage(): bool
