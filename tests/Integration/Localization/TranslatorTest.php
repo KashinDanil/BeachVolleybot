@@ -49,9 +49,15 @@ final class TranslatorTest extends TestCase
 
     public function testTranslateFallsBackToEnglishForMissingKey(): void
     {
-        Translator::setLanguage(Language::RU);
+        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
+        $translator = $this->translatorWithFile(Language::RU, $tmpFile);
+        Translator::setInstance($translator);
 
-        $this->assertSame('Unknown key', Translator::translate('Unknown key'));
+        try {
+            $this->assertSame('Unknown key', Translator::translate('Unknown key'));
+        } finally {
+            @unlink($tmpFile);
+        }
     }
 
     public function testGetInstanceReturnsEnByDefault(): void
@@ -84,12 +90,17 @@ final class TranslatorTest extends TestCase
 
     public function testTrackMissingDoesNotThrow(): void
     {
-        $translator = new Translator(Language::RU);
+        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
+        $translator = $this->translatorWithFile(Language::RU, $tmpFile);
 
-        $translator->trackMissing('Some untranslated string');
+        try {
+            $translator->trackMissing('Some untranslated string');
 
-        // no exception thrown
-        $this->assertTrue(true);
+            // no exception thrown
+            $this->assertTrue(true);
+        } finally {
+            @unlink($tmpFile);
+        }
     }
 
     public function testMissingTranslationIsWrittenToFile(): void
