@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Localization;
 
-final class Translator
+class Translator
 {
     private static ?self $instance = null;
 
@@ -49,6 +49,11 @@ final class Translator
             $file = self::BASE_TRANSLATIONS_PATH . $this->language->value . '.php';
             self::$translationCache[$this->language->value] = file_exists($file) ? require $file : [];
         }
+    }
+
+    protected function getMissingTranslationsFile(): string
+    {
+        return self::MISSING_TRANSLATIONS_FILE;
     }
 
     public function isDefaultLanguage(): bool
@@ -96,7 +101,7 @@ final class Translator
             // Silent fallback: translation errors must never crash the app.
             $encoded = json_encode(self::$missingTranslation, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             if (false !== $encoded) {
-                @file_put_contents(self::MISSING_TRANSLATIONS_FILE, $encoded);
+                @file_put_contents($this->getMissingTranslationsFile(), $encoded);
             }
         }
     }
@@ -109,9 +114,9 @@ final class Translator
 
         self::$missingTranslation = [];
 
-        if (file_exists(self::MISSING_TRANSLATIONS_FILE)) {
+        if (file_exists($this->getMissingTranslationsFile())) {
             // Silent fallback: corrupt file is treated as empty rather than crashing the app.
-            self::$missingTranslation = json_decode(@file_get_contents(self::MISSING_TRANSLATIONS_FILE), true) ?? [];
+            self::$missingTranslation = json_decode(@file_get_contents($this->getMissingTranslationsFile()), true) ?? [];
         }
     }
 }

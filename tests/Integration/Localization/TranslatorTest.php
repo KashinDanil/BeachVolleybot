@@ -1,0 +1,155 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BeachVolleybot\Tests\Integration\Localization;
+
+use BeachVolleybot\Localization\Language;
+use BeachVolleybot\Localization\Translator;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\TestCase;
+
+#[AllowMockObjectsWithoutExpectations]
+final class TranslatorTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        Translator::reset();
+    }
+
+    protected function tearDown(): void
+    {
+        Translator::reset();
+    }
+
+    public function testTranslateReturnsOriginalTextForDefaultLanguage(): void
+    {
+        $this->assertSame('Hello', Translator::translate('Hello'));
+    }
+
+    public function testIsDefaultLanguageReturnsTrueForEn(): void
+    {
+        $this->assertTrue((new Translator(Language::EN))->isDefaultLanguage());
+    }
+
+    public function testIsDefaultLanguageReturnsFalseForRu(): void
+    {
+        $this->assertFalse((new Translator(Language::RU))->isDefaultLanguage());
+    }
+
+    public function testTranslateReturnsTranslatedStringForRu(): void
+    {
+        Translator::setLanguage(Language::RU);
+
+        $this->assertSame(
+            'Некорректные данные запроса',
+            Translator::translate('Invalid payload'),
+        );
+    }
+
+    public function testTranslateFallsBackToEnglishForMissingKey(): void
+    {
+        Translator::setLanguage(Language::RU);
+
+        $this->assertSame('Unknown key', Translator::translate('Unknown key'));
+    }
+
+    public function testGetInstanceReturnsEnByDefault(): void
+    {
+        $this->assertTrue(Translator::getInstance()->isDefaultLanguage());
+    }
+
+    public function testSetInstanceReplacesSingleton(): void
+    {
+        $translator = new Translator(Language::RU);
+        Translator::setInstance($translator);
+
+        $this->assertSame($translator, Translator::getInstance());
+    }
+
+    public function testSetLanguageUpdatesSingleton(): void
+    {
+        Translator::setLanguage(Language::RU);
+
+        $this->assertFalse(Translator::getInstance()->isDefaultLanguage());
+    }
+
+    public function testResetRestoresDefaultSingleton(): void
+    {
+        Translator::setLanguage(Language::RU);
+        Translator::reset();
+
+        $this->assertTrue(Translator::getInstance()->isDefaultLanguage());
+    }
+
+    public function testTrackMissingDoesNotThrow(): void
+    {
+        $translator = new Translator(Language::RU);
+
+        $translator->trackMissing('Some untranslated string');
+
+        // no exception thrown
+        $this->assertTrue(true);
+    }
+
+    public function testMissingTranslationIsWrittenToFile(): void
+    {
+        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
+        $translator = $this->translatorWithFile(Language::RU, $tmpFile);
+        Translator::setInstance($translator);
+
+        try {
+            Translator::translate('This key does not exist');
+
+            $written = json_decode(file_get_contents($tmpFile), true);
+            $this->assertContains('This key does not exist', $written[Language::RU->value]);
+        } finally {
+            @unlink($tmpFile);
+        }
+    }
+
+    public function testMissingTranslationIsNotTrackedTwice(): void
+    {
+        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
+        $translator = $this->translatorWithFile(Language::RU, $tmpFile);
+        Translator::setInstance($translator);
+
+        try {
+            Translator::translate('Duplicate key');
+            Translator::translate('Duplicate key');
+
+            $written     = json_decode(file_get_contents($tmpFile), true);
+            $occurrences = array_count_values($written[Language::RU->value]);
+            $this->assertSame(1, $occurrences['Duplicate key']);
+        } finally {
+            @unlink($tmpFile);
+        }
+    }
+
+    public function testMissingTranslationIsNotTrackedForDefaultLanguage(): void
+    {
+        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
+        $translator = $this->translatorWithFile(Language::EN, $tmpFile);
+        Translator::setInstance($translator);
+
+        try {
+            Translator::translate('Any English text');
+
+            $this->assertSame('', file_get_contents($tmpFile));
+        } finally {
+            @unlink($tmpFile);
+        }
+    }
+
+    private function translatorWithFile(Language $language, string $file): Translator
+    {
+        $translator = $this->getMockBuilder(Translator::class)
+            ->setConstructorArgs([$language])
+            ->onlyMethods(['getMissingTranslationsFile'])
+            ->getMock();
+
+        $translator->method('getMissingTranslationsFile')->willReturn($file);
+
+        return $translator;
+    }
+}
