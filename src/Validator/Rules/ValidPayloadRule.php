@@ -10,14 +10,13 @@ readonly class ValidPayloadRule implements RuleInterface
 {
     private const string ERROR_MESSAGE = 'Invalid payload';
 
-    public function __construct(private string|bool $payload)
+    public function __construct(private string $payload)
     {
     }
 
     public function isValid(): bool
     {
         return !empty($this->payload)
-            && is_string($this->payload)
             && json_validate($this->payload);
     }
 
