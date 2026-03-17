@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Queue;
 
 use JsonException;
-use BeachVolleybot\Queue\Exception\CorruptedQueueException;
-use BeachVolleybot\Queue\Exception\QueueException;
+use BeachVolleybot\Queue\Exceptions\CorruptedQueueException;
+use BeachVolleybot\Queue\Exceptions\QueueException;
 
 /**
  * Low-level file I/O for a single queue.

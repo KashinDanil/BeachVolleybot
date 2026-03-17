@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Queue\Exception;
+namespace BeachVolleybot\Queue\Exceptions;
 
 use RuntimeException;
 

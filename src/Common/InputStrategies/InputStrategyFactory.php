@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Common\InputStrategy;
+namespace BeachVolleybot\Common\InputStrategies;
 
 class InputStrategyFactory
 {

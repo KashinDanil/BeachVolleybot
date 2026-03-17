@@ -14,7 +14,7 @@ class Translator
     /** @var array<string, string[]>|null Missing translation keyed by language value. Null means not yet loaded from the disk. */
     private static ?array $missingTranslation = null;
 
-    private const string BASE_TRANSLATIONS_PATH = __DIR__ . '/translations/';
+    private const string BASE_TRANSLATIONS_PATH = __DIR__ . '/Translations/';
     private const string MISSING_TRANSLATIONS_FILE = self::BASE_TRANSLATIONS_PATH . 'missing.json';
 
     private const Language DEFAULT_LANGUAGE = Language::EN;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Queue;
 
-use BeachVolleybot\Queue\Exception\QueueException;
+use BeachVolleybot\Queue\Exceptions\QueueException;
 
 final class FileLock
 {

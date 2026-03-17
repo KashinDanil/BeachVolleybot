@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../src/Config/config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use BeachVolleybot\App;
-use BeachVolleybot\Common\InputStrategy\InputStrategyFactory;
+use BeachVolleybot\Common\InputStrategies\InputStrategyFactory;
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Validator\Rules\ValidPayloadRule;
 use BeachVolleybot\Validator\Rules\PostRequestRule;
