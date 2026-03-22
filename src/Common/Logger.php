@@ -11,11 +11,16 @@ class Logger
     private const string APP_LOG_FILE = 'app.log';
     private const string WEB_LOG_FILE = 'web.log';
 
-    public static function log(string $message, string $logFile = self::APP_LOG_FILE): void
+    private static function log(string $message, string $logFile): void
     {
         $filepath = BASE_LOG_DIR . '/' . $logFile;
         $content = sprintf('[%s] %s%s', date('c'), $message, PHP_EOL);
         file_put_contents($filepath, $content, FILE_APPEND | LOCK_EX);
+    }
+
+    public static function logApp(string $message): void
+    {
+        self::log($message, self::APP_LOG_FILE);
     }
 
     public static function logWeb(string $message): void
