@@ -35,15 +35,7 @@ Run Composer to install the required PHP dependencies:
 composer install
 ```
 
-### 2. Grant write permissions to the logs folder
-
-Make sure the application can write to the `logs` directory:
-
-```bash
-chmod 775 logs
-```
-
-### 3. Update configuration constants
+### 2. Update configuration constants
 
 Open the following file:
 
@@ -56,6 +48,7 @@ Replace the constants with your actual values.
 - #### `TG_BOT_ACCESS_TOKEN` - This value is provided by **Telegram BotFather** after creating your bot.
 
 - #### `APP_TOKEN_HASH` - This value should contain a hash of your webhook secret token.
+- #### `BASE_LOG_DIR` - The absolute path to the directory where log files will be stored.
 
 Generate it with the following command:
 

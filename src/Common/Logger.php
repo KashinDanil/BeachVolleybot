@@ -5,18 +5,15 @@ declare(strict_types=1);
 namespace BeachVolleybot\Common;
 
 use BeachVolleybot\Errors\ErrorInterface;
-use RuntimeException;
 
 class Logger
 {
-    private const string BASE_LOG_DIR = __DIR__ . '/../../logs';
-
     private const string APP_LOG_FILE = 'app.log';
     private const string WEB_LOG_FILE = 'web.log';
 
     public static function log(string $message, string $logFile = self::APP_LOG_FILE): void
     {
-        $filepath = self::BASE_LOG_DIR . '/' . $logFile;
+        $filepath = BASE_LOG_DIR . '/' . $logFile;
         $content = sprintf('[%s] %s%s', date('c'), $message, PHP_EOL);
         file_put_contents($filepath, $content, FILE_APPEND | LOCK_EX);
     }
