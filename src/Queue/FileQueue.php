@@ -20,7 +20,7 @@ final class FileQueue implements QueueInterface
         string $queueName,
         string $baseDir = '',
     ) {
-        $dir = '' !== $baseDir ? $baseDir : dirname(__DIR__, 2) . '/bin/queues';
+        $dir = '' !== $baseDir ? $baseDir : BASE_QUEUE_DIR;
         $queueFileName = $dir . '/' . $queueName . '.queue';
         $this->lock    = new FileLock(lockFile: $queueFileName . '.lock');
         $this->storage = new QueueStorage(dataFile: $queueFileName . '.data', pointerFile: $queueFileName . '.pointer');
