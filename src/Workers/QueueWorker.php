@@ -40,6 +40,14 @@ abstract class QueueWorker extends Worker
                 } else {
                     $this->verboseEcho('-');
                 }
+
+                if ($this->stopSignalReceived()) {
+                    break 2;
+                }
+            }
+
+            if ($this->stopSignalReceived()) {
+                break;
             }
         }
     }
