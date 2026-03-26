@@ -4,27 +4,23 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Workers;
 
-use BeachVolleybot\Queue\FileQueue;
-use BeachVolleybot\Queue\QueueMessage;
+use BeachVolleybot\Queue\Processors\QueueProcessorInterface;
+use BeachVolleybot\Queue\QueueInterface;
 
 abstract class QueueWorker extends Worker
 {
     private const int MESSAGES_PER_QUEUE = 10;
 
-    private readonly string $queuesDir;
+    /**
+     * @return QueueInterface[]
+     */
+    abstract protected function getQueues(): array;
 
-    public function __construct(string $queuesDir = '', bool $verbose = false)
-    {
-        parent::__construct($verbose);
-        $this->queuesDir = '' !== $queuesDir ? $queuesDir : BASE_QUEUE_DIR;
-    }
-
-    abstract protected function processMessage(string $queueName, QueueMessage $message): bool;
+    abstract protected function getProcessor(): QueueProcessorInterface;
 
     protected function tick(): void
     {
-        foreach ($this->getQueues() as $queueName) {
-            $queue = new FileQueue($queueName, $this->queuesDir);
+        foreach ($this->getQueues() as $queue) {
             $processed = 0;
 
             while ($processed < self::MESSAGES_PER_QUEUE && !$queue->isEmpty()) {
@@ -34,7 +30,7 @@ abstract class QueueWorker extends Worker
                     break;
                 }
 
-                if ($this->processMessage($queueName, $message)) {
+                if ($this->getProcessor()->processMessage($message)) {
                     $processed++;
                     $this->verboseEcho('+');
                 } else {
@@ -50,20 +46,5 @@ abstract class QueueWorker extends Worker
                 break;
             }
         }
-    }
-
-    /**
-     * @return string[]
-     */
-    private function getQueues(): array
-    {
-        $files = glob($this->queuesDir . '/*.queue.data') ?: [];
-        $queueNames = [];
-
-        foreach ($files as $file) {
-            $queueNames[] = basename($file, '.queue.data');
-        }
-
-        return $queueNames;
     }
 }
