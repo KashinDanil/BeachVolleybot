@@ -4,8 +4,45 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "10be584122d009009b31f9749c8f02bd",
+    "content-hash": "7c0717877c0a6cfd16a7b8d235c6ca26",
     "packages": [
+        {
+            "name": "danil-kashin/localization",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/KashinDanil/Localization.git",
+                "reference": "fd462b187781aa94e5bb313d599b9e07b5885420"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/KashinDanil/Localization/zipball/fd462b187781aa94e5bb313d599b9e07b5885420",
+                "reference": "fd462b187781aa94e5bb313d599b9e07b5885420",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.5"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^12.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "DanilKashin\\Localization\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "A PHP localization package for managing translations",
+            "support": {
+                "issues": "https://github.com/KashinDanil/Localization/issues",
+                "source": "https://github.com/KashinDanil/Localization/tree/v1.0.0"
+            },
+            "time": "2026-04-01T16:55:00+00:00"
+        },
         {
             "name": "telegram-bot/api",
             "version": "v2.5.0",

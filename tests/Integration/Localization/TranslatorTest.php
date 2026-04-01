@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Localization;
 
-use BeachVolleybot\Localization\Language;
 use BeachVolleybot\Localization\Translator;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use DanilKashin\Localization\Language;
 use PHPUnit\Framework\TestCase;
 
-#[AllowMockObjectsWithoutExpectations]
 final class TranslatorTest extends TestCase
 {
     protected function setUp(): void
@@ -49,9 +47,8 @@ final class TranslatorTest extends TestCase
 
     public function testTranslateFallsBackToEnglishForMissingKey(): void
     {
-        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
-        $translator = $this->translatorWithFile(Language::RU, $tmpFile);
-        Translator::setInstance($translator);
+        $tmpFile = tempnam(sys_get_temp_dir(), 'bvb_missing_');
+        Translator::setInstance(new Translator(Language::RU, $tmpFile));
 
         try {
             $this->assertSame('Unknown key', Translator::translate('Unknown key'));
@@ -88,32 +85,16 @@ final class TranslatorTest extends TestCase
         $this->assertTrue(Translator::getInstance()->isDefaultLanguage());
     }
 
-    public function testTrackMissingDoesNotThrow(): void
-    {
-        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
-        $translator = $this->translatorWithFile(Language::RU, $tmpFile);
-
-        try {
-            $translator->trackMissing('Some untranslated string');
-
-            // no exception thrown
-            $this->assertTrue(true);
-        } finally {
-            @unlink($tmpFile);
-        }
-    }
-
     public function testMissingTranslationIsWrittenToFile(): void
     {
-        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
-        $translator = $this->translatorWithFile(Language::RU, $tmpFile);
-        Translator::setInstance($translator);
+        $tmpFile = tempnam(sys_get_temp_dir(), 'bvb_missing_');
+        Translator::setInstance(new Translator(Language::RU, $tmpFile));
 
         try {
             Translator::translate('This key does not exist');
 
             $written = json_decode(file_get_contents($tmpFile), true);
-            $this->assertContains('This key does not exist', $written[Language::RU->value]);
+            $this->assertContains('This key does not exist', $written[Language::RU]);
         } finally {
             @unlink($tmpFile);
         }
@@ -121,16 +102,15 @@ final class TranslatorTest extends TestCase
 
     public function testMissingTranslationIsNotTrackedTwice(): void
     {
-        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
-        $translator = $this->translatorWithFile(Language::RU, $tmpFile);
-        Translator::setInstance($translator);
+        $tmpFile = tempnam(sys_get_temp_dir(), 'bvb_missing_');
+        Translator::setInstance(new Translator(Language::RU, $tmpFile));
 
         try {
             Translator::translate('Duplicate key');
             Translator::translate('Duplicate key');
 
             $written     = json_decode(file_get_contents($tmpFile), true);
-            $occurrences = array_count_values($written[Language::RU->value]);
+            $occurrences = array_count_values($written[Language::RU]);
             $this->assertSame(1, $occurrences['Duplicate key']);
         } finally {
             @unlink($tmpFile);
@@ -139,9 +119,8 @@ final class TranslatorTest extends TestCase
 
     public function testMissingTranslationIsNotTrackedForDefaultLanguage(): void
     {
-        $tmpFile    = tempnam(sys_get_temp_dir(), 'bvb_missing_');
-        $translator = $this->translatorWithFile(Language::EN, $tmpFile);
-        Translator::setInstance($translator);
+        $tmpFile = tempnam(sys_get_temp_dir(), 'bvb_missing_');
+        Translator::setInstance(new Translator(Language::EN, $tmpFile));
 
         try {
             Translator::translate('Any English text');
@@ -150,17 +129,5 @@ final class TranslatorTest extends TestCase
         } finally {
             @unlink($tmpFile);
         }
-    }
-
-    private function translatorWithFile(Language $language, string $file): Translator
-    {
-        $translator = $this->getMockBuilder(Translator::class)
-            ->setConstructorArgs([$language])
-            ->onlyMethods(['getMissingTranslationsFile'])
-            ->getMock();
-
-        $translator->method('getMissingTranslationsFile')->willReturn($file);
-
-        return $translator;
     }
 }

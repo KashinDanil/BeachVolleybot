@@ -1,9 +1,0 @@
-<?php
-
-declare(strict_types=1);
-
-return [
-    'Provided token is invalid' => 'El token proporcionado no es válido',
-    'Invalid request method. Only POST requests are allowed' => 'Método de solicitud inválido. Solo se permiten solicitudes POST',
-    'Invalid payload' => 'Carga de datos incorrecta',
-];
