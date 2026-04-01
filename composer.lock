@@ -4,8 +4,86 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7c0717877c0a6cfd16a7b8d235c6ca26",
+    "content-hash": "518954fe1e838a97ef1beff40c585a9f",
     "packages": [
+        {
+            "name": "danil-kashin/file-lock",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/KashinDanil/FileLock.git",
+                "reference": "e7e84aeded4e2377db0f2825ee2075016279db58"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/KashinDanil/FileLock/zipball/e7e84aeded4e2377db0f2825ee2075016279db58",
+                "reference": "e7e84aeded4e2377db0f2825ee2075016279db58",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^13.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "DanilKashin\\FileLock\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "File-based exclusive locking via flock().",
+            "support": {
+                "issues": "https://github.com/KashinDanil/FileLock/issues",
+                "source": "https://github.com/KashinDanil/FileLock/tree/v1.0.0"
+            },
+            "time": "2026-03-29T23:13:12+00:00"
+        },
+        {
+            "name": "danil-kashin/file-queue",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/KashinDanil/FileQueue.git",
+                "reference": "0ca4a7fae62f306fbba9f44ed94743b5b7f31ae8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/KashinDanil/FileQueue/zipball/0ca4a7fae62f306fbba9f44ed94743b5b7f31ae8",
+                "reference": "0ca4a7fae62f306fbba9f44ed94743b5b7f31ae8",
+                "shasum": ""
+            },
+            "require": {
+                "danil-kashin/file-lock": "^1.0",
+                "danil-kashin/worker": "^1.0",
+                "ext-json": "*",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "ext-posix": "*",
+                "phpunit/phpunit": "^13.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "DanilKashin\\FileQueue\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "A simple, file-based FIFO queue that keeps messages in order across restarts.",
+            "support": {
+                "issues": "https://github.com/KashinDanil/FileQueue/issues",
+                "source": "https://github.com/KashinDanil/FileQueue/tree/v1.0.1"
+            },
+            "time": "2026-03-30T20:40:50+00:00"
+        },
         {
             "name": "danil-kashin/localization",
             "version": "v1.0.0",
@@ -42,6 +120,48 @@
                 "source": "https://github.com/KashinDanil/Localization/tree/v1.0.0"
             },
             "time": "2026-04-01T16:55:00+00:00"
+        },
+        {
+            "name": "danil-kashin/worker",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/KashinDanil/Worker.git",
+                "reference": "f6f518a61c29849f2f3383ccf30a5682eb9da8af"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/KashinDanil/Worker/zipball/f6f518a61c29849f2f3383ccf30a5682eb9da8af",
+                "reference": "f6f518a61c29849f2f3383ccf30a5682eb9da8af",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pcntl": "*",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "ext-posix": "*",
+                "phpunit/phpunit": "^13.0"
+            },
+            "bin": [
+                "bin/run_worker"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "DanilKashin\\Worker\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "Abstract tick-based worker with signal handling support.",
+            "support": {
+                "issues": "https://github.com/KashinDanil/Worker/issues",
+                "source": "https://github.com/KashinDanil/Worker/tree/v1.0.1"
+            },
+            "time": "2026-03-29T23:21:57+00:00"
         },
         {
             "name": "telegram-bot/api",
