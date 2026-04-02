@@ -10,4 +10,9 @@ readonly class IncomingMessageDTO
         private array $payload,
     ) {
     }
+
+    public function getPayload(): array
+    {
+        return $this->payload;
+    }
 }

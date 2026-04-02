@@ -10,9 +10,9 @@ use DanilKashin\FileQueue\Workers\FileQueueWorker as VendorFileQueueWorker;
 
 final class FileQueueWorker extends VendorFileQueueWorker
 {
-    public function __construct(string $queuesDir = BASE_QUEUE_DIR)
+    public function __construct(string $queuesDir = BASE_QUEUE_DIR, ?int $maxTicks = null)
     {
-        parent::__construct($queuesDir);
+        parent::__construct($queuesDir, $maxTicks);
     }
 
     protected function processMessage(QueueMessage $message): bool
