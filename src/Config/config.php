@@ -6,3 +6,5 @@ const TG_BOT_ACCESS_TOKEN = 'XXX';
 const APP_TOKEN_HASH = 'XXX';
 const BASE_LOG_DIR = 'XXX';
 const BASE_QUEUE_DIR = 'XXX';
+const QUEUE_CLASS = \DanilKashin\FileQueue\Queue\FileQueue::class;
+const VERBOSE_LOGGING = false;

@@ -18,7 +18,7 @@ readonly class App
 
     public function run(): void
     {
-        Logger::logApp(sprintf('Received message: %s' . PHP_EOL, json_encode($this->incomingMessage->getPayload())));
+        Logger::logVerbose(sprintf('Received message: %s' . PHP_EOL, json_encode($this->incomingMessage->getPayload())));
         echo 'Hello, Beach Volleybot!';
     }
 }

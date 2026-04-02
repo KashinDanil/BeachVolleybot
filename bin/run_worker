@@ -1,0 +1,7 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../src/Config/config.php';
+require __DIR__ . '/../vendor/danil-kashin/worker/bin/run_worker';

@@ -2,5 +2,5 @@
 /vendor/
 /.idea/
 /logs/
-/bin/
+/bin/*
 !/bin/run_worker
