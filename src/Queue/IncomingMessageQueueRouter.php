@@ -10,11 +10,8 @@ use DanilKashin\FileQueue\Queue\QueueMessage;
 
 readonly class IncomingMessageQueueRouter
 {
-    private const string NEW_GAME_COMMAND = '/new_game';
-    private const string NEW_GAME_QUEUE   = 'new_game';
-
-    private const string EDIT_GAME_COMMAND_PREFIX = '/eg';
-    private const string EDIT_GAME_QUEUE_PREFIX   = 'edit_game_';
+    private const string GAME_QUEUE_PREFIX = 'game_';
+    private const array ALLOWED_CHAT_TYPES = ['group'];
 
     /** @var class-string<QueueInterface> */
     private string $queueClass;
@@ -43,6 +40,15 @@ readonly class IncomingMessageQueueRouter
 
     private function resolveQueueName(array $payload): ?string
     {
+        if (isset($payload['chosen_inline_result'])) {
+            $inlineMessageId = $payload['chosen_inline_result']['inline_message_id'] ?? null;
+            if (null === $inlineMessageId) {
+                return $this->skip('Chosen inline result missing inline_message_id', $payload);
+            }
+
+            return self::GAME_QUEUE_PREFIX . $inlineMessageId;
+        }
+
         if (isset($payload['callback_query'])) {
             return $this->resolveCallbackQueryQueue($payload['callback_query']);
         }
@@ -56,42 +62,26 @@ readonly class IncomingMessageQueueRouter
 
     private function resolveMessageQueue(array $message): ?string
     {
-        if (isset($message['reply_to_message']['via_bot'])) {
-            return self::EDIT_GAME_QUEUE_PREFIX . $message['reply_to_message']['message_id'];
+        if (!in_array($message['chat']['type'] ?? null, self::ALLOWED_CHAT_TYPES, true)) {
+            return $this->skip('Not a group message', $message);
         }
 
-        $text = $message['text'] ?? null;
-
-        if (null === $text || !str_starts_with($text, '/')) {
-            return $this->skip('Not a command message', $message);
+        if (!isset($message['reply_to_message']['via_bot'])) {
+            return $this->skip('Not a reply to a via_bot message', $message);
         }
 
-        if (str_starts_with($text, self::NEW_GAME_COMMAND)) {
-            return self::NEW_GAME_QUEUE;
-        }
-
-        return $this->skip('Unrecognized command', $message);
+        return self::GAME_QUEUE_PREFIX . $message['chat']['id'] . '_' . $message['reply_to_message']['message_id'];
     }
 
     private function resolveCallbackQueryQueue(array $callbackQuery): ?string
     {
-        $data = $callbackQuery['data'] ?? null;
-        if (null === $data) {
-            return $this->skip('Callback query missing data', $callbackQuery);
+        $inlineMessageId = $callbackQuery['inline_message_id'] ?? null;
+
+        if (null === $inlineMessageId) {
+            return $this->skip('Callback query missing inline_message_id', $callbackQuery);
         }
 
-        $messageId = $callbackQuery['message']['message_id']
-            ?? $callbackQuery['inline_message_id']
-            ?? null;
-        if (null === $messageId) {
-            return $this->skip('Callback query missing message_id and inline_message_id', $callbackQuery);
-        }
-
-        if (str_starts_with($data, self::EDIT_GAME_COMMAND_PREFIX)) {
-            return self::EDIT_GAME_QUEUE_PREFIX . $messageId;
-        }
-
-        return $this->skip('Unrecognized callback command', $callbackQuery);
+        return self::GAME_QUEUE_PREFIX . $inlineMessageId;
     }
 
     private function skip(string $reason, array $context): null

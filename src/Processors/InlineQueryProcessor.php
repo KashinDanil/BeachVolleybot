@@ -33,8 +33,8 @@ class InlineQueryProcessor extends AbstractUpdateProcessor
                 ['text' => '+🏐', 'callback_data' => '/eg_+b'],
             ],
             [
-                ['text' => '-Net', 'callback_data' => '/eg_-n'],
-                ['text' => '+Net', 'callback_data' => '/eg_+n'],
+                ['text' => '-🕸️', 'callback_data' => '/eg_-n'],
+                ['text' => '+🕸️', 'callback_data' => '/eg_+n'],
             ],
         ]);
 

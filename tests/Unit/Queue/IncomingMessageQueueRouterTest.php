@@ -22,76 +22,95 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR);
     }
 
-    public function testNewGameCommandRoutesToNewGameQueue(): void
+    public function testChosenInlineResultRoutesToGameQueue(): void
     {
-        $this->router->route($this->messagePayload('/new_game Friday 18:00'));
+        $this->router->route($this->chosenInlineResultPayload('inline_msg_abc'));
 
-        $this->assertEnqueuedOnce('new_game');
+        $this->assertEnqueuedOnce('game_inline_msg_abc');
     }
 
-    public function testNewGameCommandWithoutTextRoutesToNewGameQueue(): void
+    public function testChosenInlineResultWithoutInlineMessageIdIsSkipped(): void
     {
-        $this->router->route($this->messagePayload('/new_game'));
-
-        $this->assertEnqueuedOnce('new_game');
-    }
-
-    public function testCallbackQueryWithEgCommandRoutesToEditGameQueue(): void
-    {
-        $this->router->route($this->callbackQueryPayload('/eg_join', 42));
-
-        $this->assertEnqueuedOnce('edit_game_42');
-    }
-
-    public function testCallbackQueryUsesMessageIdInQueueName(): void
-    {
-        $this->router->route($this->callbackQueryPayload('/eg_leave', 99));
-
-        $this->assertEnqueuedOnce('edit_game_99');
-    }
-
-    public function testUnrecognizedMessageCommandIsSkipped(): void
-    {
-        $this->router->route($this->messagePayload('/unknown_command'));
-
-        $this->assertNothingEnqueued();
-    }
-
-    public function testNonCommandMessageIsSkipped(): void
-    {
-        $this->router->route($this->messagePayload('just a regular text'));
-
-        $this->assertNothingEnqueued();
-    }
-
-    public function testMessageWithoutTextIsSkipped(): void
-    {
-        $payload = ['message' => ['message_id' => 1, 'chat' => ['id' => 123]]];
+        $payload = [
+            'chosen_inline_result' => [
+                'result_id' => 'new_game_123',
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
+                'query' => 'Test game',
+            ],
+        ];
 
         $this->router->route($payload);
 
         $this->assertNothingEnqueued();
     }
 
-    public function testCallbackQueryWithUnrecognizedCommandIsSkipped(): void
+    public function testCallbackQueryRoutesToGameQueueByInlineMessageId(): void
     {
-        $this->router->route($this->callbackQueryPayload('/unknown', 42));
+        $this->router->route($this->callbackQueryPayload('/eg_+p', 'inline_msg_abc'));
 
-        $this->assertNothingEnqueued();
+        $this->assertEnqueuedOnce('game_inline_msg_abc');
     }
 
-    public function testCallbackQueryWithoutMessageIdIsSkipped(): void
+    public function testCallbackQueryWithoutInlineMessageIdIsSkipped(): void
     {
-        $payload = ['callback_query' => ['data' => '/eg_join']];
+        $payload = ['callback_query' => ['data' => '/eg_+p']];
 
         $this->router->route($payload);
 
         $this->assertNothingEnqueued();
     }
 
-    public function testCallbackQueryWithoutDataIsSkipped(): void
+    public function testReplyToViaBotMessageRoutesToGameQueue(): void
     {
-        $payload = ['callback_query' => ['message' => ['message_id' => 42]]];
+        $this->router->route($this->replyToViaBotPayload(chatId: -5127803306, repliedMessageId: 53));
+
+        $this->assertEnqueuedOnce('game_-5127803306_53');
+    }
+
+    public function testNonGroupMessageIsSkipped(): void
+    {
+        $payload = [
+            'message' => [
+                'message_id' => 54,
+                'chat' => ['id' => 123, 'type' => 'private'],
+                'reply_to_message' => [
+                    'message_id' => 53,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'],
+                ],
+            ],
+        ];
+
+        $this->router->route($payload);
+
+        $this->assertNothingEnqueued();
+    }
+
+    public function testNonReplyGroupMessageIsSkipped(): void
+    {
+        $payload = [
+            'message' => [
+                'message_id' => 54,
+                'text' => 'just a message',
+                'chat' => ['id' => 123, 'type' => 'group'],
+            ],
+        ];
+
+        $this->router->route($payload);
+
+        $this->assertNothingEnqueued();
+    }
+
+    public function testReplyToNonViaBotMessageIsSkipped(): void
+    {
+        $payload = [
+            'message' => [
+                'message_id' => 54,
+                'chat' => ['id' => 123, 'type' => 'group'],
+                'reply_to_message' => [
+                    'message_id' => 53,
+                ],
+            ],
+        ];
 
         $this->router->route($payload);
 
@@ -107,7 +126,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
     public function testEnqueuedPayloadMatchesInput(): void
     {
-        $payload = $this->messagePayload('/new_game Friday');
+        $payload = $this->chosenInlineResultPayload('inline_msg_abc');
 
         $this->router->route($payload);
 
@@ -116,30 +135,47 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
     public function testQueueReceivesCorrectBaseDir(): void
     {
-        $this->router->route($this->messagePayload('/new_game'));
+        $this->router->route($this->chosenInlineResultPayload('inline_msg_abc'));
 
         $this->assertSame(self::BASE_DIR, SpyQueue::$instances[0]->baseDir);
     }
 
-    private function messagePayload(string $text, int $messageId = 1): array
+    private function chosenInlineResultPayload(string $inlineMessageId): array
     {
         return [
             'update_id' => 100,
-            'message' => [
-                'message_id' => $messageId,
-                'text' => $text,
-                'chat' => ['id' => 123],
+            'chosen_inline_result' => [
+                'result_id' => 'new_game_123',
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
+                'query' => 'Test game',
+                'inline_message_id' => $inlineMessageId,
             ],
         ];
     }
 
-    private function callbackQueryPayload(string $data, int $messageId): array
+    private function callbackQueryPayload(string $data, string $inlineMessageId): array
     {
         return [
             'update_id' => 100,
             'callback_query' => [
                 'data' => $data,
-                'message' => ['message_id' => $messageId],
+                'inline_message_id' => $inlineMessageId,
+            ],
+        ];
+    }
+
+    private function replyToViaBotPayload(int $chatId, int $repliedMessageId): array
+    {
+        return [
+            'update_id' => 100,
+            'message' => [
+                'message_id' => 54,
+                'text' => '12:00',
+                'chat' => ['id' => $chatId, 'type' => 'group'],
+                'reply_to_message' => [
+                    'message_id' => $repliedMessageId,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'],
+                ],
             ],
         ];
     }
