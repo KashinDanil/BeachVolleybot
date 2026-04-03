@@ -1,9 +1,12 @@
 CREATE TABLE IF NOT EXISTS games (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    inline_message_id TEXT NOT NULL UNIQUE,
+    inline_message_id TEXT UNIQUE,
+    chat_id INTEGER,
+    message_id INTEGER,
     title TEXT NOT NULL,
     created_by INTEGER NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    CHECK (inline_message_id IS NOT NULL OR (chat_id IS NOT NULL AND message_id IS NOT NULL))
 );
 
 CREATE TABLE IF NOT EXISTS participants (

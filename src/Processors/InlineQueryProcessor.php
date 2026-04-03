@@ -17,7 +17,7 @@ class InlineQueryProcessor extends AbstractUpdateProcessor
         $from = $inlineQuery->from;
 
         $visibleName = htmlspecialchars($from->firstName, ENT_QUOTES);
-        $hiddenUserLink = '<a href="https://a.com#' . htmlspecialchars(json_encode([['number' => 1, 'id' => $from->id]]), ENT_QUOTES) . '">&#8203;</a>';
+        $hiddenUserLink = '<a href="https://a.com#' . htmlspecialchars(json_encode(['iq' => $inlineQuery->id, 'p' => [['number' => 1, 'id' => $from->id]]]), ENT_QUOTES) . '">&#8203;</a>';
 
         $messageText = htmlspecialchars($inlineQuery->query, ENT_QUOTES)
             . "\n\n1. " . $visibleName

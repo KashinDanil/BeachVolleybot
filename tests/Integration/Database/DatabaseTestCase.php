@@ -28,15 +28,28 @@ abstract class DatabaseTestCase extends TestCase
     }
 
     protected function createGame(
-        string $inlineMessageId = 'msg_1',
         string $title = 'Friday Game',
         int $createdBy = 100,
+        ?string $inlineMessageId = 'msg_1',
+        ?int $chatId = null,
+        ?int $messageId = null,
     ): int {
-        $this->db->insert('games', [
-            'inline_message_id' => $inlineMessageId,
+        $data = [
             'title' => $title,
             'created_by' => $createdBy,
-        ]);
+        ];
+
+        if (null !== $inlineMessageId) {
+            $data['inline_message_id'] = $inlineMessageId;
+        }
+        if (null !== $chatId) {
+            $data['chat_id'] = $chatId;
+        }
+        if (null !== $messageId) {
+            $data['message_id'] = $messageId;
+        }
+
+        $this->db->insert('games', $data);
 
         return (int) $this->db->id();
     }

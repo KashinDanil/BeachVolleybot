@@ -11,13 +11,29 @@ readonly class GameRepository extends AbstractRepository
         return 'games';
     }
 
-    public function create(string $inlineMessageId, string $title, int $createdBy): int
-    {
-        $this->db->insert($this->table(), [
-            'inline_message_id' => $inlineMessageId,
+    public function create(
+        string $title,
+        int $createdBy,
+        ?string $inlineMessageId = null,
+        ?int $chatId = null,
+        ?int $messageId = null,
+    ): int {
+        $data = [
             'title' => $title,
             'created_by' => $createdBy,
-        ]);
+        ];
+
+        if (null !== $inlineMessageId) {
+            $data['inline_message_id'] = $inlineMessageId;
+        }
+        if (null !== $chatId) {
+            $data['chat_id'] = $chatId;
+        }
+        if (null !== $messageId) {
+            $data['message_id'] = $messageId;
+        }
+
+        $this->db->insert($this->table(), $data);
 
         return (int) $this->db->id();
     }
@@ -25,6 +41,14 @@ readonly class GameRepository extends AbstractRepository
     public function findByInlineMessageId(string $inlineMessageId): ?array
     {
         return $this->db->get($this->table(), '*', ['inline_message_id' => $inlineMessageId]) ?: null;
+    }
+
+    public function findByChatAndMessageId(int $chatId, int $messageId): ?array
+    {
+        return $this->db->get($this->table(), '*', [
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+        ]) ?: null;
     }
 
     public function findByCreatedBy(int $createdBy): array

@@ -46,7 +46,7 @@ readonly class IncomingMessageQueueRouter
                 return $this->skip('Chosen inline result missing inline_message_id', $payload);
             }
 
-            return self::GAME_QUEUE_PREFIX . $inlineMessageId;
+            return $this->gameQueueName($inlineMessageId);
         }
 
         if (isset($payload['callback_query'])) {
@@ -66,11 +66,15 @@ readonly class IncomingMessageQueueRouter
             return $this->skip('Not a group message', $message);
         }
 
+        if (isset($message['via_bot'])) {
+            return $this->gameQueueName($message['chat']['id'] . '_' . $message['message_id']);
+        }
+
         if (!isset($message['reply_to_message']['via_bot'])) {
             return $this->skip('Not a reply to a via_bot message', $message);
         }
 
-        return self::GAME_QUEUE_PREFIX . $message['chat']['id'] . '_' . $message['reply_to_message']['message_id'];
+        return $this->gameQueueName($message['chat']['id'] . '_' . $message['reply_to_message']['message_id']);
     }
 
     private function resolveCallbackQueryQueue(array $callbackQuery): ?string
@@ -81,7 +85,12 @@ readonly class IncomingMessageQueueRouter
             return $this->skip('Callback query missing inline_message_id', $callbackQuery);
         }
 
-        return self::GAME_QUEUE_PREFIX . $inlineMessageId;
+        return $this->gameQueueName($inlineMessageId);
+    }
+
+    private function gameQueueName(string $queueId): string
+    {
+        return self::GAME_QUEUE_PREFIX . $queueId;
     }
 
     private function skip(string $reason, array $context): null
