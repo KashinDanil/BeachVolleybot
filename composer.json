@@ -5,7 +5,10 @@
     "ext-json": "*",
     "ext-pcntl": "*",
     "danil-kashin/localization": "^1.0",
-    "danil-kashin/file-queue": "^1.0"
+    "danil-kashin/file-queue": "^1.0",
+    "ext-sqlite3": "*",
+    "catfan/medoo": "^2.2",
+    "ext-pdo": "*"
   },
   "autoload": {
     "psr-4": {

@@ -24,7 +24,15 @@ Run Composer to install the required PHP dependencies:
 composer install
 ```
 
-### 2. Update configuration constants
+### 2. Run database migrations
+
+```bash
+php bin/migrate
+```
+
+This creates the SQLite database at `db/beach_volleybot.sqlite` and applies all pending migrations.
+
+### 3. Update configuration constants
 
 Open the following file:
 

@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../src/Config/config.php';
+
+use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Database\Migrator;
+
+$migrator = new Migrator(
+    migrationsDir: __DIR__ . '/../migrations',
+    db: Connection::get(),
+);
+
+try {
+    $migrator->run();
+} catch (Throwable $e) {
+    fprintf(STDERR, "\033[31m  Error: %s\033[0m" . PHP_EOL, $e->getMessage());
+    exit(1);
+}

@@ -4,8 +4,84 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "518954fe1e838a97ef1beff40c585a9f",
+    "content-hash": "12e568ec689b61891c3610b2deff032b",
     "packages": [
+        {
+            "name": "catfan/medoo",
+            "version": "v2.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/catfan/Medoo.git",
+                "reference": "0a9653a8b99b0853c3dbef3d661d4b359b9686b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/catfan/Medoo/zipball/0a9653a8b99b0853c3dbef3d661d4b359b9686b7",
+                "reference": "0a9653a8b99b0853c3dbef3d661d4b359b9686b7",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pdo": "*",
+                "php": ">=7.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.0"
+            },
+            "suggest": {
+                "ext-pdo_dblib": "For MSSQL or Sybase database on Linux/UNIX platform",
+                "ext-pdo_mysql": "For MySQL or MariaDB database",
+                "ext-pdo_oci": "For Oracle database",
+                "ext-pdo_pqsql": "For PostgreSQL database",
+                "ext-pdo_sqlite": "For SQLite database",
+                "ext-pdo_sqlsrv": "For MSSQL database on both Window/Liunx platform"
+            },
+            "type": "framework",
+            "autoload": {
+                "psr-4": {
+                    "Medoo\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Angel Lai",
+                    "email": "angel@medoo.in"
+                }
+            ],
+            "description": "The lightweight PHP database framework to accelerate development",
+            "homepage": "https://medoo.in",
+            "keywords": [
+                "database",
+                "database library",
+                "lightweight",
+                "mariadb",
+                "mssql",
+                "mysql",
+                "oracle",
+                "php framework",
+                "postgresql",
+                "sql",
+                "sqlite"
+            ],
+            "support": {
+                "issues": "https://github.com/catfan/Medoo/issues",
+                "source": "https://github.com/catfan/Medoo"
+            },
+            "funding": [
+                {
+                    "url": "https://paypal.me/AngelaonLai",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://opencollective.com/medoo",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2026-02-03T08:34:27+00:00"
+        },
         {
             "name": "danil-kashin/file-lock",
             "version": "v1.0.0",
@@ -464,16 +540,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "13.0.2",
+            "version": "14.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "2ea1bcdad040326c02edd6519cc9d1c5a9f6c87e"
+                "reference": "24f1d7300e54e910197ee65e83d27a1e4bdc917e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/2ea1bcdad040326c02edd6519cc9d1c5a9f6c87e",
-                "reference": "2ea1bcdad040326c02edd6519cc9d1c5a9f6c87e",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/24f1d7300e54e910197ee65e83d27a1e4bdc917e",
+                "reference": "24f1d7300e54e910197ee65e83d27a1e4bdc917e",
                 "shasum": ""
             },
             "require": {
@@ -484,13 +560,14 @@
                 "php": ">=8.4",
                 "phpunit/php-text-template": "^6.0",
                 "sebastian/complexity": "^6.0",
-                "sebastian/environment": "^9.0",
+                "sebastian/environment": "^9.1",
+                "sebastian/git-state": "^1.0",
                 "sebastian/lines-of-code": "^5.0",
                 "sebastian/version": "^7.0",
                 "theseer/tokenizer": "^2.0.1"
             },
             "require-dev": {
-                "phpunit/phpunit": "^13.0"
+                "phpunit/phpunit": "^13.1"
             },
             "suggest": {
                 "ext-pcov": "PHP extension that provides line coverage",
@@ -499,7 +576,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "13.0.x-dev"
+                    "dev-main": "14.0.x-dev"
                 }
             },
             "autoload": {
@@ -528,7 +605,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
                 "security": "https://github.com/sebastianbergmann/php-code-coverage/security/policy",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/13.0.2"
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/14.0.0"
             },
             "funding": [
                 {
@@ -548,7 +625,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-04-01T14:12:38+00:00"
+            "time": "2026-04-03T05:11:05+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -845,16 +922,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "13.0.6",
+            "version": "13.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "9e426f7282c313c9138eeb9f25461e1a6be1e647"
+                "reference": "97f27488f84718f8e7f9a2a31b5ca9f20698b06f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/9e426f7282c313c9138eeb9f25461e1a6be1e647",
-                "reference": "9e426f7282c313c9138eeb9f25461e1a6be1e647",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/97f27488f84718f8e7f9a2a31b5ca9f20698b06f",
+                "reference": "97f27488f84718f8e7f9a2a31b5ca9f20698b06f",
                 "shasum": ""
             },
             "require": {
@@ -868,7 +945,7 @@
                 "phar-io/manifest": "^2.0.4",
                 "phar-io/version": "^3.2.1",
                 "php": ">=8.4.1",
-                "phpunit/php-code-coverage": "^13.0.1",
+                "phpunit/php-code-coverage": "^14.0",
                 "phpunit/php-file-iterator": "^7.0.0",
                 "phpunit/php-invoker": "^7.0.0",
                 "phpunit/php-text-template": "^6.0.0",
@@ -878,6 +955,7 @@
                 "sebastian/diff": "^8.0.0",
                 "sebastian/environment": "^9.1.0",
                 "sebastian/exporter": "^8.0.0",
+                "sebastian/git-state": "^1.0",
                 "sebastian/global-state": "^9.0.0",
                 "sebastian/object-enumerator": "^8.0.0",
                 "sebastian/recursion-context": "^8.0.0",
@@ -891,7 +969,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "13.0-dev"
+                    "dev-main": "13.1-dev"
                 }
             },
             "autoload": {
@@ -923,7 +1001,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.0.6"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.1.0"
             },
             "funding": [
                 {
@@ -931,7 +1009,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-03-31T06:44:39+00:00"
+            "time": "2026-04-03T05:29:00+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -1408,6 +1486,75 @@
                 }
             ],
             "time": "2026-02-06T04:44:28+00:00"
+        },
+        {
+            "name": "sebastian/git-state",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sebastianbergmann/git-state.git",
+                "reference": "792a952e0eba55b6960a48aeceb9f371aad1f76b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sebastianbergmann/git-state/zipball/792a952e0eba55b6960a48aeceb9f371aad1f76b",
+                "reference": "792a952e0eba55b6960a48aeceb9f371aad1f76b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^13.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Sebastian Bergmann",
+                    "email": "sebastian@phpunit.de",
+                    "role": "lead"
+                }
+            ],
+            "description": "Library for describing the state of a Git checkout",
+            "homepage": "https://github.com/sebastianbergmann/git-state",
+            "support": {
+                "issues": "https://github.com/sebastianbergmann/git-state/issues",
+                "security": "https://github.com/sebastianbergmann/git-state/security/policy",
+                "source": "https://github.com/sebastianbergmann/git-state/tree/1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sebastianbergmann",
+                    "type": "github"
+                },
+                {
+                    "url": "https://liberapay.com/sebastianbergmann",
+                    "type": "liberapay"
+                },
+                {
+                    "url": "https://thanks.dev/u/gh/sebastianbergmann",
+                    "type": "thanks_dev"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/sebastian/git-state",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-03-21T12:54:28+00:00"
         },
         {
             "name": "sebastian/global-state",
@@ -2013,7 +2160,9 @@
     "platform": {
         "ext-curl": "*",
         "ext-json": "*",
-        "ext-pcntl": "*"
+        "ext-pcntl": "*",
+        "ext-sqlite3": "*",
+        "ext-pdo": "*"
     },
     "platform-dev": {
         "ext-posix": "*"

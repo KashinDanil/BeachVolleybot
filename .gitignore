@@ -2,5 +2,7 @@
 /vendor/
 /.idea/
 /logs/
+/db/*.sqlite
 /bin/*
 !/bin/run_worker
+!/bin/migrate
