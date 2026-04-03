@@ -56,6 +56,10 @@ readonly class IncomingMessageQueueRouter
 
     private function resolveMessageQueue(array $message): ?string
     {
+        if (isset($message['reply_to_message']['via_bot'])) {
+            return self::EDIT_GAME_QUEUE_PREFIX . $message['reply_to_message']['message_id'];
+        }
+
         $text = $message['text'] ?? null;
 
         if (null === $text || !str_starts_with($text, '/')) {
@@ -71,14 +75,16 @@ readonly class IncomingMessageQueueRouter
 
     private function resolveCallbackQueryQueue(array $callbackQuery): ?string
     {
-        $messageId = $callbackQuery['message']['message_id'] ?? null;
-        if (null === $messageId) {
-            return $this->skip('Callback query missing message_id', $callbackQuery);
-        }
-
         $data = $callbackQuery['data'] ?? null;
         if (null === $data) {
             return $this->skip('Callback query missing data', $callbackQuery);
+        }
+
+        $messageId = $callbackQuery['message']['message_id']
+            ?? $callbackQuery['inline_message_id']
+            ?? null;
+        if (null === $messageId) {
+            return $this->skip('Callback query missing message_id and inline_message_id', $callbackQuery);
         }
 
         if (str_starts_with($data, self::EDIT_GAME_COMMAND_PREFIX)) {
