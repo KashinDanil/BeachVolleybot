@@ -12,7 +12,7 @@ class Translator
 {
     private static ?self $instance = null;
 
-    private const string TRANSLATIONS_PATH = __DIR__ . '/../../bin/localization';
+    private const string TRANSLATIONS_PATH = __DIR__ . '/../../localization';
     private const string MISSING_TRANSLATIONS_FILE = self::TRANSLATIONS_PATH . '/missing.json';
     private const string DEFAULT_LANGUAGE = Language::EN;
 
