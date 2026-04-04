@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game;
 
+use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\Player;
@@ -17,24 +18,37 @@ readonly class GameBuilder
      * @param list<array<string, mixed>> $slotRows
      * @param list<array<string, mixed>> $gamePlayerRows
      * @param list<array<string, mixed>> $playerRows
+     * @param list<class-string<GameAddOnInterface>> $addOns
      */
     public function __construct(
         private array $gameRow,
         private array $slotRows,
         private array $gamePlayerRows,
         private array $playerRows,
+        private array $addOns = GAME_ADD_ONS,
     ) {
     }
 
     public function build(): GameInterface
     {
-        return new Game(
-            gameId: (int)$this->gameRow['game_id'],
-            inlineQueryId: (string)$this->gameRow['inline_query_id'],
-            inlineMessageId: (string)$this->gameRow['inline_message_id'],
-            title: (string)$this->gameRow['title'],
-            players: $this->buildPlayers(),
+        return $this->applyAddOns(
+            new Game(
+                gameId: (int)$this->gameRow['game_id'],
+                inlineQueryId: (string)$this->gameRow['inline_query_id'],
+                inlineMessageId: (string)$this->gameRow['inline_message_id'],
+                title: (string)$this->gameRow['title'],
+                players: $this->buildPlayers(),
+            )
         );
+    }
+
+    private function applyAddOns(GameInterface $game): GameInterface
+    {
+        foreach ($this->addOns as $addOnClass) {
+            $game = new $addOnClass()->transform($game);
+        }
+
+        return $game;
     }
 
     /** @return PlayerInterface[] */
