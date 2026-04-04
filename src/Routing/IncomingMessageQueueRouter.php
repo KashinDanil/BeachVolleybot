@@ -66,10 +66,6 @@ readonly class IncomingMessageQueueRouter
             return $this->skip('Not a group message', $message);
         }
 
-        if (isset($message['via_bot'])) {
-            return $this->gameQueueName($message['chat']['id'] . '_' . $message['message_id']);
-        }
-
         if (!isset($message['reply_to_message']['via_bot'])) {
             return $this->skip('Not a reply to a via_bot message', $message);
         }
