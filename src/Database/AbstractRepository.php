@@ -22,6 +22,16 @@ abstract readonly class AbstractRepository
         return $this->db->get($this->table(), '*', [$this->primaryKeyColumn() => $id]) ?: null;
     }
 
+    /** @return list<array<string, mixed>> */
+    public function findByIds(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        return $this->db->select($this->table(), '*', [$this->primaryKeyColumn() => $ids]);
+    }
+
     public function delete(int $id): bool
     {
         $result = $this->db->delete($this->table(), [$this->primaryKeyColumn() => $id]);
