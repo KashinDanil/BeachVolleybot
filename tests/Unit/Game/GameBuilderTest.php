@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Game;
 
 use BeachVolleybot\Game\GameBuilder;
-use BeachVolleybot\Game\GameInterface;
 use BeachVolleybot\Game\MessageBuilders\DefaultMessageBuilder;
+use BeachVolleybot\Game\Models\GameInterface;
 use PHPUnit\Framework\TestCase;
 
 final class GameBuilderTest extends TestCase

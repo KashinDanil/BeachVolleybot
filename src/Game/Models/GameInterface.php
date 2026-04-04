@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Game;
+namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Game\MessageBuilders\MessageBuilderInterface;
 

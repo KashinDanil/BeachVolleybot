@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Game;
+namespace BeachVolleybot\Game\Models;
 
 readonly class Player implements PlayerInterface
 {

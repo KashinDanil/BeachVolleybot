@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game;
 
+use BeachVolleybot\Game\Models\Game;
+use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Game\Models\Player;
+use BeachVolleybot\Game\Models\PlayerInterface;
+
 readonly class GameBuilder
 {
     private const string PROFILE_URL_PREFIX = 'https://t.me/';

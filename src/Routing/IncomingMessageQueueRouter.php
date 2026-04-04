@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Queue;
+namespace BeachVolleybot\Routing;
 
 use BeachVolleybot\Common\Logger;
 use DanilKashin\FileQueue\Queue\QueueInterface;

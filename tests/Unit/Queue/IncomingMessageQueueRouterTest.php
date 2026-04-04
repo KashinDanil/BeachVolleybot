@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Queue;
 
-use BeachVolleybot\Queue\IncomingMessageQueueRouter;
+use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
 use PHPUnit\Framework\TestCase;
 

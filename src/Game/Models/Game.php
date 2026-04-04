@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Game;
+namespace BeachVolleybot\Game\Models;
 
+use BeachVolleybot\Common\TimeExtractor;
 use BeachVolleybot\Game\MessageBuilders\DefaultMessageBuilder;
 use BeachVolleybot\Game\MessageBuilders\MessageBuilderInterface;
 use RuntimeException;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\MessageBuilders;
 
-use BeachVolleybot\Game\GameInterface;
-use BeachVolleybot\Game\PlayerInterface;
+use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
 
 readonly class DefaultMessageBuilder implements MessageBuilderInterface

@@ -9,6 +9,7 @@ use BeachVolleybot\Database\GamePlayerRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\PlayerRepository;
+use BeachVolleybot\Game\Models\GameInterface;
 use RuntimeException;
 
 final class GameFactory
