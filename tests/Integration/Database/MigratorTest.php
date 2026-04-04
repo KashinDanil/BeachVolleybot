@@ -25,10 +25,14 @@ final class MigratorTest extends TestCase
             'database' => ':memory:',
             'error' => PDO::ERRMODE_EXCEPTION,
         ]);
+
+        ob_start();
     }
 
     protected function tearDown(): void
     {
+        ob_end_clean();
+
         foreach (glob($this->migrationsDir . '/*') ?: [] as $file) {
             @unlink($file);
         }
