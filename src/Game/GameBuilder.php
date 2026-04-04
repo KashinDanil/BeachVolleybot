@@ -70,6 +70,7 @@ readonly class GameBuilder
     private function buildPlayer(array $slot, array $gamePlayerRow, array $playerRow): Player
     {
         return new Player(
+            telegramUserId: (int)$slot['telegram_user_id'],
             number: (string)$slot['position'],
             name: Player::buildName($playerRow['first_name'], $playerRow['last_name'] ?? null),
             link: Player::buildLink($playerRow['username'] ?? null),

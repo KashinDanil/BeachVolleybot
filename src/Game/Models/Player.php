@@ -9,6 +9,7 @@ readonly class Player implements PlayerInterface
     private const string PROFILE_URL_PREFIX = 'https://t.me/';
 
     public function __construct(
+        private int $telegramUserId,
         private string $number,
         private string $name,
         private ?string $link,
@@ -30,6 +31,11 @@ readonly class Player implements PlayerInterface
         }
 
         return self::PROFILE_URL_PREFIX . $username;
+    }
+
+    public function getTelegramUserId(): int
+    {
+        return $this->telegramUserId;
     }
 
     public function getNumber(): string

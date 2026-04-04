@@ -6,6 +6,8 @@ namespace BeachVolleybot\Game\Models;
 
 interface PlayerInterface
 {
+    public function getTelegramUserId(): int;
+
     public function getNumber(): string;
 
     public function getName(): string;
