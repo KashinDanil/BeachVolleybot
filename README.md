@@ -30,14 +30,14 @@ composer install
 php bin/migrate
 ```
 
-This creates the SQLite database at `db/beach_volleybot.sqlite` and applies all pending migrations.
+This creates the SQLite database at `db/data/beach_volleybot.sqlite` and applies all pending migrations.
 
 ### 3. Update configuration constants
 
 Open the following file:
 
 ```php
-src/Config/config.php
+config/config.php
 ```
 
 Replace the constants with your actual values.

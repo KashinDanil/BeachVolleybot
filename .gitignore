@@ -1,8 +1,9 @@
-/src/Config/
+/config/
 /vendor/
 /.idea/
 /logs/
-/db/
+/db/data/*
+/db/migrations
 /bin/*
 !/bin/run_worker
 !/bin/migrate

@@ -23,7 +23,7 @@ abstract class DatabaseTestCase extends TestCase
             ],
         ]);
 
-        $schema = file_get_contents(__DIR__ . '/../../../migrations/001_create_games_and_participants.sql');
+        $schema = file_get_contents(__DIR__ . '/../../../db/migrations/001_create_games_and_participants.sql');
         $this->db->pdo->exec($schema);
     }
 
