@@ -39,7 +39,7 @@ class InlineQueryProcessor extends AbstractUpdateProcessor
         ]);
 
         $article = new Article(
-            id: 'new_game_' . $inlineQuery->id,
+            id: $inlineQuery->id,
             title: 'Create new game',
             description: $inlineQuery->query,
             inputMessageContent: new Text($messageText, 'HTML'),

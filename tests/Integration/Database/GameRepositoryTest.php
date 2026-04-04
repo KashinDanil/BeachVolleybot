@@ -18,14 +18,14 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testCreateReturnsId(): void
     {
-        $id = $this->repository->create('Friday Game', 100, 'msg_1');
+        $id = $this->repository->create('Friday Game', 100, 'msg_1', 'query_1');
 
         $this->assertSame(1, $id);
     }
 
     public function testFindByIdReturnsGame(): void
     {
-        $id = $this->repository->create('Friday Game', 100, 'msg_1');
+        $id = $this->repository->create('Friday Game', 100, 'msg_1', 'query_1');
 
         $game = $this->repository->findById($id);
 
@@ -41,7 +41,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testFindByInlineMessageId(): void
     {
-        $this->repository->create('Saturday Game', 100, 'msg_42');
+        $this->repository->create('Saturday Game', 100, 'msg_42', 'query_42');
 
         $game = $this->repository->findByInlineMessageId('msg_42');
 
@@ -55,7 +55,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testDeleteRemovesGame(): void
     {
-        $id = $this->repository->create('Friday Game', 100, 'msg_1');
+        $id = $this->repository->create('Friday Game', 100, 'msg_1', 'query_1');
 
         $this->assertTrue($this->repository->delete($id));
         $this->assertNull($this->repository->findById($id));

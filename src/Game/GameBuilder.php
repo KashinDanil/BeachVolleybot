@@ -26,6 +26,7 @@ readonly class GameBuilder
     {
         return new Game(
             gameId: (int)$this->gameRow['game_id'],
+            inlineQueryId: (string)$this->gameRow['inline_query_id'],
             inlineMessageId: (string)$this->gameRow['inline_message_id'],
             title: (string)$this->gameRow['title'],
             players: $this->buildPlayers(),

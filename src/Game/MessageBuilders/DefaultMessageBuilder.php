@@ -17,7 +17,7 @@ readonly class DefaultMessageBuilder implements MessageBuilderInterface
 
     //Shortcuts are used as callback_data is limited to 64 bytes
     private const string KEY_ACTION  = 'a';
-    private const string KEY_GAME_ID = 'g';
+    private const string KEY_INLINE_QUERY_ID = 'q';
 
     private const string ACTION_ADD_PLAYER    = 'ap';
     private const string ACTION_REMOVE_PLAYER = 'rp';
@@ -36,11 +36,9 @@ readonly class DefaultMessageBuilder implements MessageBuilderInterface
 
     private function buildKeyboard(GameInterface $game): array
     {
-        $gameId = $game->getGameId();
-
         return [
-            [ // The first button is the meta-button — it carries the game ID, needed when a callback arrives on an inline message
-                $this->buildButton('Sign Out', $this->buildCallbackData(self::ACTION_REMOVE_PLAYER, $gameId)),
+            [ // The first button is the meta-button — it carries the inline query ID, needed when a callback arrives on an inline message
+                $this->buildButton('Sign Out', $this->buildCallbackData(self::ACTION_REMOVE_PLAYER, $game->getInlineQueryId())),
                 $this->buildButton('Sign Up', $this->buildCallbackData(self::ACTION_ADD_PLAYER)),
             ],
             [
@@ -59,12 +57,12 @@ readonly class DefaultMessageBuilder implements MessageBuilderInterface
         return ['text' => $text, 'callback_data' => $callbackData];
     }
 
-    private function buildCallbackData(string $action, ?int $gameId = null): string
+    private function buildCallbackData(string $action, ?string $inlineQueryId = null): string
     {
         $payload = [self::KEY_ACTION => $action];
 
-        if (null !== $gameId) {
-            $payload[self::KEY_GAME_ID] = $gameId;
+        if (null !== $inlineQueryId) {
+            $payload[self::KEY_INLINE_QUERY_ID] = $inlineQueryId;
         }
 
         return json_encode($payload, JSON_THROW_ON_ERROR);

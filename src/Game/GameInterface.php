@@ -10,6 +10,8 @@ interface GameInterface
 {
     public function getGameId(): int;
 
+    public function getInlineQueryId(): string;
+
     public function getInlineMessageId(): string;
 
     public function getTitle(): string;

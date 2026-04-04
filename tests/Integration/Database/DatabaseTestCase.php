@@ -31,11 +31,13 @@ abstract class DatabaseTestCase extends TestCase
         string $title = 'Friday Game',
         int $createdBy = 100,
         string $inlineMessageId = 'msg_1',
+        string $inlineQueryId = 'query_1',
     ): int {
         $this->db->insert('games', [
             'title' => $title,
             'created_by' => $createdBy,
             'inline_message_id' => $inlineMessageId,
+            'inline_query_id' => $inlineQueryId,
         ]);
 
         return (int) $this->db->id();

@@ -16,12 +16,13 @@ readonly class GameRepository extends AbstractRepository
         return 'game_id';
     }
 
-    public function create(string $title, int $createdBy, string $inlineMessageId): int
+    public function create(string $title, int $createdBy, string $inlineMessageId, string $inlineQueryId): int
     {
         $this->db->insert($this->table(), [
             'title' => $title,
             'created_by' => $createdBy,
             'inline_message_id' => $inlineMessageId,
+            'inline_query_id' => $inlineQueryId,
         ]);
 
         return (int) $this->db->id();

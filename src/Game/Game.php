@@ -13,6 +13,7 @@ readonly class Game implements GameInterface
     /** @param PlayerInterface[] $players */
     public function __construct(
         private int $gameId,
+        private string $inlineQueryId,
         private string $inlineMessageId,
         private string $title,
         private array $players,
@@ -23,6 +24,11 @@ readonly class Game implements GameInterface
     public function getGameId(): int
     {
         return $this->gameId;
+    }
+
+    public function getInlineQueryId(): string
+    {
+        return $this->inlineQueryId;
     }
 
     public function getInlineMessageId(): string

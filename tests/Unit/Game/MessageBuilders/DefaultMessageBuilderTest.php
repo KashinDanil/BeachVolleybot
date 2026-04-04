@@ -321,19 +321,19 @@ final class DefaultMessageBuilderTest extends TestCase
 
     // --- Keyboard: callback data ---
 
-    public function testMetaButtonContainsGameId(): void
+    public function testMetaButtonContainsInlineQueryId(): void
     {
-        $game = $this->game('Game 18:00', [], gameId: 42);
+        $game = $this->game('Game 18:00', [], inlineQueryId: 'q_42');
         $keyboard = $this->builder->build($game)->keyboard;
 
         $data = json_decode($keyboard[0][0]['callback_data'], true, flags: JSON_THROW_ON_ERROR);
 
-        $this->assertSame(42, $data['g']);
+        $this->assertSame('q_42', $data['q']);
     }
 
-    public function testNonMetaButtonsDoNotContainGameId(): void
+    public function testNonMetaButtonsDoNotContainInlineQueryId(): void
     {
-        $game = $this->game('Game 18:00', [], gameId: 42);
+        $game = $this->game('Game 18:00', [], inlineQueryId: 'q_42');
         $keyboard = $this->builder->build($game)->keyboard;
 
         $nonMetaButtons = [
@@ -344,7 +344,7 @@ final class DefaultMessageBuilderTest extends TestCase
 
         foreach ($nonMetaButtons as $button) {
             $data = json_decode($button['callback_data'], true, flags: JSON_THROW_ON_ERROR);
-            $this->assertArrayNotHasKey('g', $data);
+            $this->assertArrayNotHasKey('q', $data);
         }
     }
 
@@ -395,9 +395,11 @@ final class DefaultMessageBuilderTest extends TestCase
         ?string $footer = null,
         string $gameTime = '18:00',
         int $gameId = 1,
+        string $inlineQueryId = 'query_1',
     ): GameInterface {
         $game = $this->createStub(GameInterface::class);
         $game->method('getGameId')->willReturn($gameId);
+        $game->method('getInlineQueryId')->willReturn($inlineQueryId);
         $game->method('getTitle')->willReturn($header);
         $game->method('getPlayers')->willReturn($players);
         $game->method('getFooter')->willReturn($footer);

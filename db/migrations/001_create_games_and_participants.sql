@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS games (
     -- SQLite's INTEGER is already 64-bit; AUTOINCREMENT requires this exact keyword
     game_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    inline_query_id VARCHAR NOT NULL UNIQUE,
     inline_message_id VARCHAR NOT NULL UNIQUE,
     title TEXT NOT NULL,
     created_by BIGINT NOT NULL,
