@@ -14,7 +14,7 @@ readonly class Game implements GameInterface
     public function __construct(
         private int $gameId,
         private string $inlineMessageId,
-        private string $header,
+        private string $title,
         private array $players,
         private MessageBuilderInterface $messageBuilder = new DefaultMessageBuilder(),
     ) {
@@ -30,17 +30,17 @@ readonly class Game implements GameInterface
         return $this->inlineMessageId;
     }
 
-    public function getHeader(): string
+    public function getTitle(): string
     {
-        return $this->header;
+        return $this->title;
     }
 
     public function getTime(): string
     {
-        $time = TimeExtractor::extract($this->header);
+        $time = TimeExtractor::extract($this->title);
 
         if (null === $time) {
-            throw new RuntimeException("Time not found in header: $this->header");
+            throw new RuntimeException("Time not found in title: $this->title");
         }
 
         return $time;

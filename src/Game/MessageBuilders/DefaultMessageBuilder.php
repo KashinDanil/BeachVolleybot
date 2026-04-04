@@ -73,7 +73,7 @@ readonly class DefaultMessageBuilder implements MessageBuilderInterface
     private function buildText(GameInterface $game): string
     {
         $sections = array_filter([
-            $game->getHeader(),
+            $game->getTitle(),
             $this->buildPlayerList($game),
             $game->getFooter(),
         ]);

@@ -398,7 +398,7 @@ final class DefaultMessageBuilderTest extends TestCase
     ): GameInterface {
         $game = $this->createStub(GameInterface::class);
         $game->method('getGameId')->willReturn($gameId);
-        $game->method('getHeader')->willReturn($header);
+        $game->method('getTitle')->willReturn($header);
         $game->method('getPlayers')->willReturn($players);
         $game->method('getFooter')->willReturn($footer);
         $game->method('getTime')->willReturn($gameTime);

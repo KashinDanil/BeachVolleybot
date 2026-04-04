@@ -12,7 +12,7 @@ interface GameInterface
 
     public function getInlineMessageId(): string;
 
-    public function getHeader(): string;
+    public function getTitle(): string;
 
     public function getTime(): string;
 
