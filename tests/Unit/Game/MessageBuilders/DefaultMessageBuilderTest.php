@@ -145,48 +145,48 @@ final class DefaultMessageBuilderTest extends TestCase
         $this->assertStringNotContainsString("+1", $text);
     }
 
-    // --- Text: ball emoji ---
+    // --- Text: volleyball emoji ---
 
-    public function testZeroBallsShowsNoEmoji(): void
+    public function testZeroVolleyballsShowsNoEmoji(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', ball: 0),
+            $this->player('1', 'Alice', volleyball: 0),
         ]);
 
         $this->assertStringNotContainsString('🏐', $this->builder->build($game)->text);
     }
 
-    public function testOneBallShowsSingleEmoji(): void
+    public function testOneVolleyballShowsSingleEmoji(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', ball: 1),
+            $this->player('1', 'Alice', volleyball: 1),
         ]);
 
         $this->assertStringContainsString('1. Alice 🏐', $this->builder->build($game)->text);
     }
 
-    public function testTwoBallsShowsTwoEmojis(): void
+    public function testTwoVolleyballsShowsTwoEmojis(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', ball: 2),
+            $this->player('1', 'Alice', volleyball: 2),
         ]);
 
         $this->assertStringContainsString('🏐🏐', $this->builder->build($game)->text);
     }
 
-    public function testThreeBallsShowsCompactFormat(): void
+    public function testThreeVolleyballsShowsCompactFormat(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', ball: 3),
+            $this->player('1', 'Alice', volleyball: 3),
         ]);
 
         $this->assertStringContainsString('🏐x3', $this->builder->build($game)->text);
     }
 
-    public function testFiveBallsShowsCompactFormat(): void
+    public function testFiveVolleyballsShowsCompactFormat(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', ball: 5),
+            $this->player('1', 'Alice', volleyball: 5),
         ]);
 
         $this->assertStringContainsString('🏐x5', $this->builder->build($game)->text);
@@ -266,7 +266,7 @@ final class DefaultMessageBuilderTest extends TestCase
     public function testFullPlayerLineWithAllAttributes(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', link: 'https://t.me/alice', ball: 1, net: 2, time: '19:00'),
+            $this->player('1', 'Alice', link: 'https://t.me/alice', volleyball: 1, net: 2, time: '19:00'),
         ]);
 
         $this->assertStringContainsString(
@@ -338,8 +338,10 @@ final class DefaultMessageBuilderTest extends TestCase
 
         $nonMetaButtons = [
             $keyboard[0][1],
-            $keyboard[1][0], $keyboard[1][1],
-            $keyboard[2][0], $keyboard[2][1],
+            $keyboard[1][0],
+            $keyboard[1][1],
+            $keyboard[2][0],
+            $keyboard[2][1],
         ];
 
         foreach ($nonMetaButtons as $button) {
@@ -374,7 +376,7 @@ final class DefaultMessageBuilderTest extends TestCase
         string $number = '1',
         string $name = 'Player',
         ?string $link = null,
-        int $ball = 0,
+        int $volleyball = 0,
         int $net = 0,
         ?string $time = null,
     ): PlayerInterface {
@@ -382,7 +384,7 @@ final class DefaultMessageBuilderTest extends TestCase
         $player->method('getNumber')->willReturn($number);
         $player->method('getName')->willReturn($name);
         $player->method('getLink')->willReturn($link);
-        $player->method('getBall')->willReturn($ball);
+        $player->method('getVolleyball')->willReturn($volleyball);
         $player->method('getNet')->willReturn($net);
         $player->method('getTime')->willReturn($time);
 

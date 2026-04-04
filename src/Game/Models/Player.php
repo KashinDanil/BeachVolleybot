@@ -10,7 +10,7 @@ readonly class Player implements PlayerInterface
         private string $number,
         private string $name,
         private ?string $link,
-        private int $ball,
+        private int $volleyball,
         private int $net,
         private ?string $time,
     ) {
@@ -31,9 +31,9 @@ readonly class Player implements PlayerInterface
         return $this->link;
     }
 
-    public function getBall(): int
+    public function getVolleyball(): int
     {
-        return $this->ball;
+        return $this->volleyball;
     }
 
     public function getNet(): int

@@ -45,18 +45,18 @@ readonly class GamePlayerRepository
         return 0 < $result->rowCount();
     }
 
-    public function incrementBall(int $gameId, int $telegramUserId): void
+    public function incrementVolleyball(int $gameId, int $telegramUserId): void
     {
-        $this->db->update('game_players', ['ball[+]' => 1], [
+        $this->db->update('game_players', ['volleyball[+]' => 1], [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
         ]);
     }
 
-    public function decrementBall(int $gameId, int $telegramUserId): void
+    public function decrementVolleyball(int $gameId, int $telegramUserId): void
     {
         $this->db->pdo->prepare(
-            'UPDATE game_players SET ball = MAX(0, ball - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id'
+            'UPDATE game_players SET volleyball = MAX(0, volleyball - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id'
         )->execute([':game_id' => $gameId, ':telegram_user_id' => $telegramUserId]);
     }
 

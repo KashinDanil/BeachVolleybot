@@ -60,7 +60,7 @@ readonly class GameBuilder
             number: (string)$slot['position'],
             name: $this->buildName($playerRow),
             link: $this->buildLink($playerRow),
-            ball: (int)$gamePlayerRow['ball'],
+            volleyball: (int)$gamePlayerRow['volleyball'],
             net: (int)$gamePlayerRow['net'],
             time: $gamePlayerRow['time'],
         );

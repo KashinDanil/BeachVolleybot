@@ -12,7 +12,7 @@ interface PlayerInterface
 
     public function getLink(): ?string;
 
-    public function getBall(): int;
+    public function getVolleyball(): int;
 
     public function getNet(): int;
 

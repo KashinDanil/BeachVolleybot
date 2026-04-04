@@ -86,7 +86,7 @@ final class GameFactoryTest extends DatabaseTestCase
         $this->assertSame('Alice Smith', $player->getName());
         $this->assertSame('https://t.me/alice', $player->getLink());
         $this->assertSame('19:30', $player->getTime());
-        $this->assertSame(0, $player->getBall());
+        $this->assertSame(0, $player->getVolleyball());
         $this->assertSame(0, $player->getNet());
     }
 

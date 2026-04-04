@@ -10,21 +10,21 @@ use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
 
 readonly class DefaultMessageBuilder implements MessageBuilderInterface
 {
-    public const string  BALL_EMOJI              = '🏐';
+    public const string  VOLLEYBALL_EMOJI        = '🏐';
     public const string  NET_EMOJI               = '🕸️';
     private const string SEPARATOR               = "\n\n";
     private const int    EMOJI_COMPACT_THRESHOLD = 3;
 
     //Shortcuts are used as callback_data is limited to 64 bytes
-    private const string KEY_ACTION  = 'a';
+    private const string KEY_ACTION          = 'a';
     private const string KEY_INLINE_QUERY_ID = 'q';
 
-    private const string ACTION_ADD_PLAYER    = 'ap';
-    private const string ACTION_REMOVE_PLAYER = 'rp';
-    private const string ACTION_ADD_BALL      = 'ab';
-    private const string ACTION_REMOVE_BALL   = 'rb';
-    private const string ACTION_ADD_NET       = 'an';
-    private const string ACTION_REMOVE_NET    = 'rn';
+    private const string ACTION_ADD_PLAYER        = 'ap';
+    private const string ACTION_REMOVE_PLAYER     = 'rp';
+    private const string ACTION_ADD_VOLLEYBALL    = 'ab';
+    private const string ACTION_REMOVE_VOLLEYBALL = 'rb';
+    private const string ACTION_ADD_NET           = 'an';
+    private const string ACTION_REMOVE_NET        = 'rn';
 
     public function build(GameInterface $game): TelegramMessage
     {
@@ -42,8 +42,8 @@ readonly class DefaultMessageBuilder implements MessageBuilderInterface
                 $this->buildButton('Sign Up', $this->buildCallbackData(self::ACTION_ADD_PLAYER)),
             ],
             [
-                $this->buildButton('-' . self::BALL_EMOJI, $this->buildCallbackData(self::ACTION_REMOVE_BALL)),
-                $this->buildButton('+' . self::BALL_EMOJI, $this->buildCallbackData(self::ACTION_ADD_BALL)),
+                $this->buildButton('-' . self::VOLLEYBALL_EMOJI, $this->buildCallbackData(self::ACTION_REMOVE_VOLLEYBALL)),
+                $this->buildButton('+' . self::VOLLEYBALL_EMOJI, $this->buildCallbackData(self::ACTION_ADD_VOLLEYBALL)),
             ],
             [
                 $this->buildButton('-' . self::NET_EMOJI, $this->buildCallbackData(self::ACTION_REMOVE_NET)),
@@ -99,7 +99,7 @@ readonly class DefaultMessageBuilder implements MessageBuilderInterface
         $parts = array_filter([
             $player->getNumber() . '.',
             $this->displayName($player, $appearance),
-            $this->formatEmoji($player->getBall(), self::BALL_EMOJI),
+            $this->formatEmoji($player->getVolleyball(), self::VOLLEYBALL_EMOJI),
             $this->formatEmoji($player->getNet(), self::NET_EMOJI),
             $this->displayTime($player->getTime(), $gameTime),
         ]);

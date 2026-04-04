@@ -9,6 +9,7 @@ use BeachVolleybot\Database\GamePlayerRepository;
 final class GamePlayerRepositoryTest extends DatabaseTestCase
 {
     private GamePlayerRepository $repository;
+
     private int $gameId;
 
     protected function setUp(): void
@@ -51,34 +52,34 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
         $this->assertSame([], $this->repository->findByGameId($this->gameId));
     }
 
-    public function testIncrementBall(): void
+    public function testIncrementVolleyball(): void
     {
         $this->repository->create($this->gameId, 200);
 
-        $this->repository->incrementBall($this->gameId, 200);
-        $this->repository->incrementBall($this->gameId, 200);
+        $this->repository->incrementVolleyball($this->gameId, 200);
+        $this->repository->incrementVolleyball($this->gameId, 200);
 
-        $this->assertSame(2, $this->repository->findByGameAndPlayer($this->gameId, 200)['ball']);
+        $this->assertSame(2, $this->repository->findByGameAndPlayer($this->gameId, 200)['volleyball']);
     }
 
-    public function testDecrementBallFloorsAtZero(): void
+    public function testDecrementVolleyballFloorsAtZero(): void
     {
         $this->repository->create($this->gameId, 200);
 
-        $this->repository->decrementBall($this->gameId, 200);
+        $this->repository->decrementVolleyball($this->gameId, 200);
 
-        $this->assertSame(0, $this->repository->findByGameAndPlayer($this->gameId, 200)['ball']);
+        $this->assertSame(0, $this->repository->findByGameAndPlayer($this->gameId, 200)['volleyball']);
     }
 
-    public function testDecrementBallDecrementsFromPositive(): void
+    public function testDecrementVolleyballDecrementsFromPositive(): void
     {
         $this->repository->create($this->gameId, 200);
 
-        $this->repository->incrementBall($this->gameId, 200);
-        $this->repository->incrementBall($this->gameId, 200);
-        $this->repository->decrementBall($this->gameId, 200);
+        $this->repository->incrementVolleyball($this->gameId, 200);
+        $this->repository->incrementVolleyball($this->gameId, 200);
+        $this->repository->decrementVolleyball($this->gameId, 200);
 
-        $this->assertSame(1, $this->repository->findByGameAndPlayer($this->gameId, 200)['ball']);
+        $this->assertSame(1, $this->repository->findByGameAndPlayer($this->gameId, 200)['volleyball']);
     }
 
     public function testIncrementNet(): void

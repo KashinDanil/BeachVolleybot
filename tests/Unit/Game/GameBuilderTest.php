@@ -63,17 +63,17 @@ final class GameBuilderTest extends TestCase
         $this->assertSame('3', $game->getPlayers()[0]->getNumber());
     }
 
-    public function testSinglePlayerBallAndNet(): void
+    public function testSinglePlayerVolleyballAndNet(): void
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
-            gamePlayerRows: [$this->gamePlayerRow(ball: 5, net: 2)],
+            gamePlayerRows: [$this->gamePlayerRow(volleyball: 5, net: 2)],
             playerRows: [$this->playerRow()],
         );
 
         $player = $game->getPlayers()[0];
 
-        $this->assertSame(5, $player->getBall());
+        $this->assertSame(5, $player->getVolleyball());
         $this->assertSame(2, $player->getNet());
     }
 
@@ -228,14 +228,14 @@ final class GameBuilderTest extends TestCase
 
     private function gamePlayerRow(
         int $userId = 100,
-        int $ball = 0,
+        int $volleyball = 0,
         int $net = 0,
         ?string $time = null,
     ): array {
         return [
             'game_id' => 1,
             'telegram_user_id' => $userId,
-            'ball' => $ball,
+            'volleyball' => $volleyball,
             'net' => $net,
             'time' => $time,
         ];
