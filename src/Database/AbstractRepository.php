@@ -15,14 +15,16 @@ abstract readonly class AbstractRepository
 
     abstract protected function table(): string;
 
+    abstract protected function primaryKeyColumn(): string;
+
     public function findById(int $id): ?array
     {
-        return $this->db->get($this->table(), '*', ['id' => $id]) ?: null;
+        return $this->db->get($this->table(), '*', [$this->primaryKeyColumn() => $id]) ?: null;
     }
 
     public function delete(int $id): bool
     {
-        $result = $this->db->delete($this->table(), ['id' => $id]);
+        $result = $this->db->delete($this->table(), [$this->primaryKeyColumn() => $id]);
 
         return 0 < $result->rowCount();
     }

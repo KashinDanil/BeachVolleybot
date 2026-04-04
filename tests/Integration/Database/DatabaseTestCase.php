@@ -30,45 +30,45 @@ abstract class DatabaseTestCase extends TestCase
     protected function createGame(
         string $title = 'Friday Game',
         int $createdBy = 100,
-        ?string $inlineMessageId = 'msg_1',
-        ?int $chatId = null,
-        ?int $messageId = null,
+        string $inlineMessageId = 'msg_1',
     ): int {
-        $data = [
+        $this->db->insert('games', [
             'title' => $title,
             'created_by' => $createdBy,
-        ];
-
-        if (null !== $inlineMessageId) {
-            $data['inline_message_id'] = $inlineMessageId;
-        }
-        if (null !== $chatId) {
-            $data['chat_id'] = $chatId;
-        }
-        if (null !== $messageId) {
-            $data['message_id'] = $messageId;
-        }
-
-        $this->db->insert('games', $data);
+            'inline_message_id' => $inlineMessageId,
+        ]);
 
         return (int) $this->db->id();
     }
 
-    protected function createParticipant(
-        int $gameId,
-        int $telegramId = 200,
+    protected function createPlayer(
+        int $telegramUserId = 200,
         string $firstName = 'Danil',
         ?string $lastName = null,
         ?string $username = null,
-    ): int {
-        $this->db->insert('participants', [
-            'game_id' => $gameId,
-            'telegram_id' => $telegramId,
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'username' => $username,
+    ): void {
+        $this->db->pdo->prepare(
+            'INSERT INTO players (telegram_user_id, first_name, last_name, username)
+             VALUES (:telegram_user_id, :first_name, :last_name, :username)
+             ON CONFLICT (telegram_user_id) DO NOTHING'
+        )->execute([
+            ':telegram_user_id' => $telegramUserId,
+            ':first_name' => $firstName,
+            ':last_name' => $lastName,
+            ':username' => $username,
         ]);
+    }
 
-        return (int) $this->db->id();
+    protected function createGamePlayer(
+        int $gameId,
+        int $telegramUserId = 200,
+        ?string $time = null,
+    ): void {
+        $this->createPlayer($telegramUserId);
+        $this->db->insert('game_players', [
+            'game_id' => $gameId,
+            'telegram_user_id' => $telegramUserId,
+            'time' => $time,
+        ]);
     }
 }
