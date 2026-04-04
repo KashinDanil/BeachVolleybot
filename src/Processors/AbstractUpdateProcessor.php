@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors;
 
-use BeachVolleybot\Telegram\TelegramUpdate;
+use BeachVolleybot\Telegram\Incoming\TelegramUpdate;
 use TelegramBot\Api\BotApi;
 
 abstract class AbstractUpdateProcessor

@@ -6,7 +6,7 @@ namespace BeachVolleybot\Routing;
 
 use BeachVolleybot\Processors\InlineQueryProcessor;
 use BeachVolleybot\Queue\IncomingMessageQueueRouter;
-use BeachVolleybot\Telegram\TelegramUpdate;
+use BeachVolleybot\Telegram\Incoming\TelegramUpdate;
 use TelegramBot\Api\BotApi;
 
 readonly class IncomingMessageRouter

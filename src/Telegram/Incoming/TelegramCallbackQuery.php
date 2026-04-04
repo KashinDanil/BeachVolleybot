@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Telegram;
+namespace BeachVolleybot\Telegram\Incoming;
 
 readonly class TelegramCallbackQuery
 {
