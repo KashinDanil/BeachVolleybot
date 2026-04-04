@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Models;
 
-use BeachVolleybot\Game\MessageBuilders\MessageBuilderInterface;
+use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
 
 interface GameInterface
 {
@@ -21,7 +21,7 @@ interface GameInterface
     /** @return PlayerInterface[] */
     public function getPlayers(): array;
 
-    public function getMessageBuilder(): MessageBuilderInterface;
+    public function buildTelegramMessage(): TelegramMessage;
 
     public function getFooter(): ?string;
 }

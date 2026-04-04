@@ -11,7 +11,6 @@ use BeachVolleybot\Game\Models\PlayerInterface;
 
 readonly class GameBuilder
 {
-    private const string PROFILE_URL_PREFIX = 'https://t.me/';
 
     /**
      * @param array<string, mixed> $gameRow
@@ -58,25 +57,12 @@ readonly class GameBuilder
     {
         return new Player(
             number: (string)$slot['position'],
-            name: $this->buildName($playerRow),
-            link: $this->buildLink($playerRow),
+            name: Player::buildName($playerRow['first_name'], $playerRow['last_name'] ?? null),
+            link: Player::buildLink($playerRow['username'] ?? null),
             volleyball: (int)$gamePlayerRow['volleyball'],
             net: (int)$gamePlayerRow['net'],
             time: $gamePlayerRow['time'],
         );
     }
 
-    private function buildName(array $playerRow): string
-    {
-        return trim($playerRow['first_name'] . ' ' . ($playerRow['last_name'] ?? ''));
-    }
-
-    private function buildLink(array $playerRow): ?string
-    {
-        if (null === $playerRow['username']) {
-            return null;
-        }
-
-        return self::PROFILE_URL_PREFIX . $playerRow['username'];
-    }
 }

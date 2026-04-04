@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Common\TimeExtractor;
-use BeachVolleybot\Game\MessageBuilders\DefaultMessageBuilder;
-use BeachVolleybot\Game\MessageBuilders\MessageBuilderInterface;
+use BeachVolleybot\Game\MessageBuilders\DefaultTelegramMessageBuilder;
+use BeachVolleybot\Game\MessageBuilders\TelegramMessageBuilderInterface;
+use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
 use RuntimeException;
 
 readonly class Game implements GameInterface
@@ -18,7 +19,7 @@ readonly class Game implements GameInterface
         private string $inlineMessageId,
         private string $title,
         private array $players,
-        private MessageBuilderInterface $messageBuilder = new DefaultMessageBuilder(),
+        private TelegramMessageBuilderInterface $telegramMessageBuilder = new DefaultTelegramMessageBuilder(),
     ) {
     }
 
@@ -59,9 +60,9 @@ readonly class Game implements GameInterface
         return $this->players;
     }
 
-    public function getMessageBuilder(): MessageBuilderInterface
+    public function buildTelegramMessage(): TelegramMessage
     {
-        return $this->messageBuilder;
+        return $this->telegramMessageBuilder->build($this);
     }
 
     public function getFooter(): ?string

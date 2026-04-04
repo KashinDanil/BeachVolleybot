@@ -7,13 +7,16 @@ namespace BeachVolleybot\Game\MessageBuilders;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
+use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 
-readonly class DefaultMessageBuilder implements MessageBuilderInterface
+readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderInterface
 {
     public const string  VOLLEYBALL_EMOJI        = '🏐';
     public const string  NET_EMOJI               = '🕸️';
     private const string SEPARATOR               = "\n\n";
     private const int    EMOJI_COMPACT_THRESHOLD = 3;
+    private const string PARSE_MODE              = 'Markdown';
 
     //Shortcuts are used as callback_data is limited to 64 bytes
     private const string KEY_ACTION          = 'a';
@@ -29,8 +32,8 @@ readonly class DefaultMessageBuilder implements MessageBuilderInterface
     public function build(GameInterface $game): TelegramMessage
     {
         return new TelegramMessage(
-            $this->buildText($game),
-            $this->buildKeyboard($game)
+            new Text($this->buildText($game), self::PARSE_MODE),
+            new InlineKeyboardMarkup($this->buildKeyboard($game)),
         );
     }
 

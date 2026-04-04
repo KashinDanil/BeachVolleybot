@@ -4,48 +4,32 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors;
 
+use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Telegram\Incoming\TelegramUpdate;
-use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
-use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
-use TelegramBot\Api\Types\Inline\QueryResult\Article;
+use BeachVolleybot\Telegram\Outgoing\ArticleBuilder;
+use BeachVolleybot\Validator\Rules\TimeInTitleRule;
+use BeachVolleybot\Validator\Validator;
+use TelegramBot\Api\Exception;
 
 class InlineQueryProcessor extends AbstractUpdateProcessor
 {
     public function process(TelegramUpdate $update): void
     {
         $inlineQuery = $update->inlineQuery;
-        $from = $inlineQuery->from;
 
-        $visibleName = htmlspecialchars($from->firstName, ENT_QUOTES);
-        $hiddenUserLink = '<a href="https://a.com#' . htmlspecialchars(json_encode(['iq' => $inlineQuery->id, 'p' => [['number' => 1, 'id' => $from->id]]]), ENT_QUOTES) . '">&#8203;</a>';
+        $validator = new Validator([new TimeInTitleRule($inlineQuery->query)]);
 
-        $messageText = htmlspecialchars($inlineQuery->query, ENT_QUOTES)
-            . "\n\n1. " . $visibleName
-            . $hiddenUserLink;
+        if (!$validator->validate()->isSuccess()) {
+            return;
+        }
 
-        $keyboard = new InlineKeyboardMarkup([
-            [
-                ['text' => 'Sign Out', 'callback_data' => '/eg_-p'],
-                ['text' => 'Sign Up', 'callback_data' => '/eg_+p'],
-            ],
-            [
-                ['text' => '-🏐', 'callback_data' => '/eg_-b'],
-                ['text' => '+🏐', 'callback_data' => '/eg_+b'],
-            ],
-            [
-                ['text' => '-🕸️', 'callback_data' => '/eg_-n'],
-                ['text' => '+🕸️', 'callback_data' => '/eg_+n'],
-            ],
-        ]);
+        $articleBuilder = new ArticleBuilder($inlineQuery);
+        $article = $articleBuilder->build();
 
-        $article = new Article(
-            id: $inlineQuery->id,
-            title: 'Create new game',
-            description: $inlineQuery->query,
-            inputMessageContent: new Text($messageText, 'HTML'),
-            inlineKeyboardMarkup: $keyboard,
-        );
-
-        $this->bot->answerInlineQuery($inlineQuery->id, [$article]);
+        try {
+            $this->bot->answerInlineQuery($inlineQuery->id, [$article]);
+        } catch (Exception $e) {
+            Logger::logApp("Failed to answer inline query $inlineQuery->id: {$e->getMessage()}");
+        }
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Game\MessageBuilders;
 
-use BeachVolleybot\Game\MessageBuilders\DefaultMessageBuilder;
+use BeachVolleybot\Game\MessageBuilders\DefaultTelegramMessageBuilder;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
 use PHPUnit\Framework\TestCase;
@@ -13,11 +13,11 @@ final class DefaultMessageBuilderTest extends TestCase
 {
     private const string SEPARATOR = "\n\n";
 
-    private DefaultMessageBuilder $builder;
+    private DefaultTelegramMessageBuilder $builder;
 
     protected function setUp(): void
     {
-        $this->builder = new DefaultMessageBuilder();
+        $this->builder = new DefaultTelegramMessageBuilder();
     }
 
     // --- Text: structure ---
@@ -26,7 +26,7 @@ final class DefaultMessageBuilderTest extends TestCase
     {
         $game = $this->game('Beach Game 18:00', []);
 
-        $this->assertSame('Beach Game 18:00', $this->builder->build($game)->text);
+        $this->assertSame('Beach Game 18:00', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testHeaderAndPlayersSeparatedByNewline(): void
@@ -35,7 +35,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice'),
         ]);
 
-        $text = $this->builder->build($game)->text;
+        $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1. Alice', $text);
     }
@@ -44,7 +44,7 @@ final class DefaultMessageBuilderTest extends TestCase
     {
         $game = $this->game('Beach Game 18:00', [], 'See you there!');
 
-        $text = $this->builder->build($game)->text;
+        $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertSame('Beach Game 18:00' . self::SEPARATOR . 'See you there!', $text);
     }
@@ -56,7 +56,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('2', 'Bob'),
         ], 'See you there!');
 
-        $text = $this->builder->build($game)->text;
+        $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertSame('Beach Game 18:00' . self::SEPARATOR . "1. Alice\n2. Bob" . self::SEPARATOR . 'See you there!', $text);
     }
@@ -69,7 +69,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice'),
         ]);
 
-        $this->assertStringContainsString('1. Alice', $this->builder->build($game)->text);
+        $this->assertStringContainsString('1. Alice', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testPlayerNameWithLinkRendersMarkdown(): void
@@ -78,7 +78,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', link: 'https://t.me/alice'),
         ]);
 
-        $this->assertStringContainsString('1. [Alice](https://t.me/alice)', $this->builder->build($game)->text);
+        $this->assertStringContainsString('1. [Alice](https://t.me/alice)', $this->builder->build($game)->getText()->getMessageText());
     }
 
     // --- Text: +N for repeated players ---
@@ -89,7 +89,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice'),
         ]);
 
-        $text = $this->builder->build($game)->text;
+        $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertStringContainsString('1. Alice', $text);
         $this->assertStringNotContainsString("+", $text);
@@ -102,7 +102,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('2', 'Alice'),
         ]);
 
-        $text = $this->builder->build($game)->text;
+        $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertStringContainsString("1. Alice", $text);
         $this->assertStringContainsString("2. Alice's +1", $text);
@@ -116,7 +116,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('3', 'Alice'),
         ]);
 
-        $text = $this->builder->build($game)->text;
+        $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertStringContainsString("3. Alice's +2", $text);
     }
@@ -128,7 +128,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('2', 'Alice', link: 'https://t.me/alice'),
         ]);
 
-        $text = $this->builder->build($game)->text;
+        $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertStringContainsString("[Alice](https://t.me/alice)'s +1", $text);
     }
@@ -140,7 +140,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('2', 'Alice', link: 'https://t.me/alice2'),
         ]);
 
-        $text = $this->builder->build($game)->text;
+        $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertStringNotContainsString("+1", $text);
     }
@@ -153,7 +153,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', volleyball: 0),
         ]);
 
-        $this->assertStringNotContainsString('🏐', $this->builder->build($game)->text);
+        $this->assertStringNotContainsString('🏐', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testOneVolleyballShowsSingleEmoji(): void
@@ -162,7 +162,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', volleyball: 1),
         ]);
 
-        $this->assertStringContainsString('1. Alice 🏐', $this->builder->build($game)->text);
+        $this->assertStringContainsString('1. Alice 🏐', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testTwoVolleyballsShowsTwoEmojis(): void
@@ -171,7 +171,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', volleyball: 2),
         ]);
 
-        $this->assertStringContainsString('🏐🏐', $this->builder->build($game)->text);
+        $this->assertStringContainsString('🏐🏐', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testThreeVolleyballsShowsCompactFormat(): void
@@ -180,7 +180,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', volleyball: 3),
         ]);
 
-        $this->assertStringContainsString('🏐x3', $this->builder->build($game)->text);
+        $this->assertStringContainsString('🏐x3', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testFiveVolleyballsShowsCompactFormat(): void
@@ -189,7 +189,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', volleyball: 5),
         ]);
 
-        $this->assertStringContainsString('🏐x5', $this->builder->build($game)->text);
+        $this->assertStringContainsString('🏐x5', $this->builder->build($game)->getText()->getMessageText());
     }
 
     // --- Text: net emoji ---
@@ -200,7 +200,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', net: 0),
         ]);
 
-        $this->assertStringNotContainsString('🕸️', $this->builder->build($game)->text);
+        $this->assertStringNotContainsString('🕸️', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testOneNetShowsSingleEmoji(): void
@@ -209,7 +209,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', net: 1),
         ]);
 
-        $this->assertStringContainsString('🕸️', $this->builder->build($game)->text);
+        $this->assertStringContainsString('🕸️', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testTwoNetsShowsTwoEmojis(): void
@@ -218,7 +218,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', net: 2),
         ]);
 
-        $this->assertStringContainsString('🕸️🕸️', $this->builder->build($game)->text);
+        $this->assertStringContainsString('🕸️🕸️', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testThreeNetsShowsCompactFormat(): void
@@ -227,7 +227,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', net: 3),
         ]);
 
-        $this->assertStringContainsString('🕸️x3', $this->builder->build($game)->text);
+        $this->assertStringContainsString('🕸️x3', $this->builder->build($game)->getText()->getMessageText());
     }
 
     // --- Text: time ---
@@ -238,7 +238,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', time: null),
         ]);
 
-        $this->assertSame('Game 18:00' . self::SEPARATOR . '1. Alice', $this->builder->build($game)->text);
+        $this->assertSame('Game 18:00' . self::SEPARATOR . '1. Alice', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testPlayerTimeHiddenWhenMatchesGameTime(): void
@@ -247,7 +247,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', time: '18:00'),
         ], gameTime: '18:00');
 
-        $text = $this->builder->build($game)->text;
+        $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertSame('Game' . self::SEPARATOR . '1. Alice', $text);
     }
@@ -258,7 +258,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', time: '19:30'),
         ]);
 
-        $this->assertStringContainsString('19:30', $this->builder->build($game)->text);
+        $this->assertStringContainsString('19:30', $this->builder->build($game)->getText()->getMessageText());
     }
 
     // --- Text: combined player line ---
@@ -271,7 +271,7 @@ final class DefaultMessageBuilderTest extends TestCase
 
         $this->assertStringContainsString(
             '1. [Alice](https://t.me/alice) 🏐 🕸️🕸️ 19:00',
-            $this->builder->build($game)->text
+            $this->builder->build($game)->getText()->getMessageText()
         );
     }
 
@@ -281,7 +281,7 @@ final class DefaultMessageBuilderTest extends TestCase
             $this->player('4-7', 'Alice'),
         ]);
 
-        $this->assertStringContainsString('4-7. Alice', $this->builder->build($game)->text);
+        $this->assertStringContainsString('4-7. Alice', $this->builder->build($game)->getText()->getMessageText());
     }
 
     // --- Keyboard: structure ---
@@ -289,7 +289,7 @@ final class DefaultMessageBuilderTest extends TestCase
     public function testKeyboardHasThreeRows(): void
     {
         $game = $this->game('Game 18:00', []);
-        $keyboard = $this->builder->build($game)->keyboard;
+        $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         $this->assertCount(3, $keyboard);
     }
@@ -297,7 +297,7 @@ final class DefaultMessageBuilderTest extends TestCase
     public function testEachRowHasTwoButtons(): void
     {
         $game = $this->game('Game 18:00', []);
-        $keyboard = $this->builder->build($game)->keyboard;
+        $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         foreach ($keyboard as $row) {
             $this->assertCount(2, $row);
@@ -309,7 +309,7 @@ final class DefaultMessageBuilderTest extends TestCase
     public function testButtonLabels(): void
     {
         $game = $this->game('Game 18:00', []);
-        $keyboard = $this->builder->build($game)->keyboard;
+        $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         $this->assertSame('Sign Out', $keyboard[0][0]['text']);
         $this->assertSame('Sign Up', $keyboard[0][1]['text']);
@@ -324,7 +324,7 @@ final class DefaultMessageBuilderTest extends TestCase
     public function testMetaButtonContainsInlineQueryId(): void
     {
         $game = $this->game('Game 18:00', [], inlineQueryId: 'q_42');
-        $keyboard = $this->builder->build($game)->keyboard;
+        $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         $data = json_decode($keyboard[0][0]['callback_data'], true, flags: JSON_THROW_ON_ERROR);
 
@@ -334,7 +334,7 @@ final class DefaultMessageBuilderTest extends TestCase
     public function testNonMetaButtonsDoNotContainInlineQueryId(): void
     {
         $game = $this->game('Game 18:00', [], inlineQueryId: 'q_42');
-        $keyboard = $this->builder->build($game)->keyboard;
+        $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         $nonMetaButtons = [
             $keyboard[0][1],
@@ -353,7 +353,7 @@ final class DefaultMessageBuilderTest extends TestCase
     public function testButtonActionCodes(): void
     {
         $game = $this->game('Game 18:00', []);
-        $keyboard = $this->builder->build($game)->keyboard;
+        $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         $expected = [
             [0, 0, 'rp'],

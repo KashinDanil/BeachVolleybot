@@ -7,7 +7,7 @@ namespace BeachVolleybot\Game\MessageBuilders;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
 
-interface MessageBuilderInterface
+interface TelegramMessageBuilderInterface
 {
     public function build(GameInterface $game): TelegramMessage;
 }

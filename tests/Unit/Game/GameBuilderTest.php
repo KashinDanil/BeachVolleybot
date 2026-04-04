@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Game;
 
 use BeachVolleybot\Game\GameBuilder;
-use BeachVolleybot\Game\MessageBuilders\DefaultMessageBuilder;
 use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
 use PHPUnit\Framework\TestCase;
 
 final class GameBuilderTest extends TestCase
@@ -34,11 +34,15 @@ final class GameBuilderTest extends TestCase
         $this->assertSame('Sunday Game 19:00', $game->getTitle());
     }
 
-    public function testUsesDefaultMessageBuilder(): void
+    public function testBuildTelegramMessageReturnsTelegramMessage(): void
     {
-        $game = $this->buildGame();
+        $game = $this->buildGame(
+            slotRows: [$this->slotRow()],
+            gamePlayerRows: [$this->gamePlayerRow()],
+            playerRows: [$this->playerRow()],
+        );
 
-        $this->assertInstanceOf(DefaultMessageBuilder::class, $game->getMessageBuilder());
+        $this->assertInstanceOf(TelegramMessage::class, $game->buildTelegramMessage());
     }
 
     // --- No slots ---
