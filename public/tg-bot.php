@@ -7,7 +7,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use BeachVolleybot\Common\InputStrategies\InputStrategyFactory;
 use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Queue\IncomingMessageQueueRouter;
+use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Routing\IncomingMessageRouter;
 use BeachVolleybot\Validator\Rules\ValidPayloadRule;
 use BeachVolleybot\Validator\Rules\PostRequestRule;
