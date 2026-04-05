@@ -36,6 +36,41 @@ final class GameFactory
         return self::buildFromRow($gameRow);
     }
 
+    public static function create(NewGameData $data): int
+    {
+        $db = Connection::get();
+
+        new PlayerRepository($db)->upsert(
+            $data->playerRow['telegram_user_id'],
+            $data->playerRow['first_name'],
+            $data->playerRow['last_name'],
+            $data->playerRow['username'],
+        );
+
+        $gameId = new GameRepository($db)->create(
+            $data->gameRow['title'],
+            $data->playerRow['telegram_user_id'],
+            $data->gameRow['inline_message_id'],
+            $data->gameRow['inline_query_id'],
+        );
+
+        new GamePlayerRepository($db)->create(
+            $gameId,
+            $data->gamePlayerRow['telegram_user_id'],
+            $data->gamePlayerRow['time'],
+            $data->gamePlayerRow['volleyball'],
+            $data->gamePlayerRow['net'],
+        );
+
+        new GameSlotRepository($db)->create(
+            $gameId,
+            $data->slotRow['telegram_user_id'],
+            $data->slotRow['position'],
+        );
+
+        return $gameId;
+    }
+
     private static function buildFromRow(array $gameRow): GameInterface
     {
         $db = Connection::get();

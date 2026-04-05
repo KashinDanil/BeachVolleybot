@@ -29,6 +29,16 @@ readonly class GameBuilder
     ) {
     }
 
+    public static function fromNewGameData(NewGameData $data): GameInterface
+    {
+        return new self(
+            $data->gameRow,
+            [$data->slotRow],
+            [$data->gamePlayerRow],
+            [$data->playerRow],
+        )->build();
+    }
+
     public function build(): GameInterface
     {
         return $this->applyAddOns(

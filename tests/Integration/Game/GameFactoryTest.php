@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Game;
 
 use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Database\GamePlayerRepository;
+use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Database\GameSlotRepository;
+use BeachVolleybot\Database\PlayerRepository;
 use BeachVolleybot\Game\GameFactory;
+use BeachVolleybot\Game\NewGameData;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use RuntimeException;
 
@@ -105,6 +111,59 @@ final class GameFactoryTest extends DatabaseTestCase
         $this->assertCount(2, $players);
         $this->assertSame('Bob', $players[0]->getName());
         $this->assertSame('Alice', $players[1]->getName());
+    }
+
+    // --- create ---
+
+    public function testCreatePersistsGameToDatabase(): void
+    {
+        $data = $this->newGameData();
+
+        $gameId = GameFactory::create($data);
+
+        $game = new GameRepository($this->db)->findByInlineMessageId('msg_1');
+        $this->assertNotNull($game);
+        $this->assertSame($gameId, (int) $game['game_id']);
+        $this->assertSame('Game 18:00', $game['title']);
+    }
+
+    public function testCreateUpsertsPlayer(): void
+    {
+        GameFactory::create($this->newGameData());
+
+        $players = new PlayerRepository($this->db)->findAll();
+        $this->assertCount(1, $players);
+        $this->assertSame(200, $players[0]['telegram_user_id']);
+        $this->assertSame('Danil', $players[0]['first_name']);
+    }
+
+    public function testCreatePersistsGamePlayerWithInitialEquipment(): void
+    {
+        $gameId = GameFactory::create($this->newGameData());
+
+        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
+        $this->assertNotNull($gamePlayer);
+        $this->assertSame(NewGameData::INITIAL_VOLLEYBALL, $gamePlayer['volleyball']);
+        $this->assertSame(NewGameData::INITIAL_NET, $gamePlayer['net']);
+    }
+
+    public function testCreatePersistsSlotAtPositionOne(): void
+    {
+        $gameId = GameFactory::create($this->newGameData());
+
+        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $this->assertCount(1, $slots);
+        $this->assertSame(1, (int) $slots[0]['position']);
+    }
+
+    private function newGameData(): NewGameData
+    {
+        return NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Game 18:00',
+            'query_1',
+            'msg_1',
+        );
     }
 
     // --- Helpers ---
