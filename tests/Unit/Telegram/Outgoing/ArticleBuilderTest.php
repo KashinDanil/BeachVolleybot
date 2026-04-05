@@ -25,14 +25,14 @@ final class ArticleBuilderTest extends TestCase
     {
         $article = $this->buildArticle();
 
-        $this->assertSame('Create new game', $article->getTitle());
+        $this->assertSame('🏐 New game', $article->getTitle());
     }
 
     public function testArticleDescription(): void
     {
         $article = $this->buildArticle(query: 'Sunday Game 18:00');
 
-        $this->assertSame('Sunday Game 18:00', $article->getDescription());
+        $this->assertSame('Tap to create a new game', $article->getDescription());
     }
 
     // --- Article content ---

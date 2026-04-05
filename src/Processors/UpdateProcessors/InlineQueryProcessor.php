@@ -7,6 +7,9 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\Messages\Outgoing\ArticleBuilder;
+use BeachVolleybot\Telegram\Messages\Outgoing\ErrorArticleBuilder;
+use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
+use BeachVolleybot\Validator\Rules\RuleInterface;
 use BeachVolleybot\Validator\Rules\TimeInTitleRule;
 use BeachVolleybot\Validator\Validator;
 use TelegramBot\Api\Exception;
@@ -17,19 +20,32 @@ class InlineQueryProcessor extends AbstractActionProcessor
     {
         $inlineQuery = $update->inlineQuery;
 
-        $validator = new Validator([new TimeInTitleRule($inlineQuery->query)]);
+        $validationState = new Validator($this->validationRules($inlineQuery->query))->validate();
 
-        if (!$validator->validate()->isSuccess()) {
-            return;
+        if ($validationState->isSuccess()) {
+            $articleBuilder = new ArticleBuilder($inlineQuery);
+        } else {
+            $articleBuilder = new ErrorArticleBuilder(InlineQueryError::fromError($validationState->getError()));
         }
 
-        $articleBuilder = new ArticleBuilder($inlineQuery);
         $article = $articleBuilder->build();
+        $this->answerInlineQuery($inlineQuery->id, [$article]);
+    }
 
+    /** @return list<RuleInterface> */
+    public function validationRules(string $query): array
+    {
+        return [
+            new TimeInTitleRule($query),
+        ];
+    }
+
+    private function answerInlineQuery(string $inlineQueryId, array $results): void
+    {
         try {
-            $this->bot->answerInlineQuery($inlineQuery->id, [$article]);
-        } catch (Exception $e) {
-            Logger::logApp("Failed to answer inline query $inlineQuery->id: {$e->getMessage()}");
+            $this->bot->answerInlineQuery($inlineQueryId, $results);
+        } catch (Exception $exception) {
+            Logger::logApp("Failed to answer inline query $inlineQueryId: {$exception->getMessage()}");
         }
     }
 }

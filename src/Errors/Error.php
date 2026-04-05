@@ -12,6 +12,11 @@ abstract readonly class Error implements ErrorInterface
     {
     }
 
+    public function getMessageKey(): string
+    {
+        return $this->message;
+    }
+
     public function getMessage(): string
     {
         return Translator::translate($this->message);

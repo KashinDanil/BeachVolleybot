@@ -28,6 +28,13 @@ class BotApiStub extends BotApi
         return true;
     }
 
+    public function answerInlineQuery($inlineQueryId, $results, $cacheTime = 300, $isPersonal = false, $nextOffset = '', $switchPmText = null, $switchPmParameter = null): true
+    {
+        $this->calls[] = ['method' => 'answerInlineQuery', 'args' => func_get_args()];
+
+        return true;
+    }
+
     public function editMessageText($chatId, $messageId, $text, $parseMode = null, $disablePreview = false, $replyMarkup = null, $inlineMessageId = null): true
     {
         $this->calls[] = ['method' => 'editMessageText', 'args' => func_get_args()];

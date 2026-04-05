@@ -60,7 +60,7 @@ final class LoggerTest extends TestCase
         Logger::logApp('timestamped');
 
         $content = file_get_contents($this->logsDir . '/app.log');
-        $this->assertMatchesRegularExpression('/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[^\]]+\]/', $content);
+        $this->assertMatchesRegularExpression('/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[^]]+]/', $content);
     }
 
     public function testLogAppAppendsOnMultipleCalls(): void
@@ -76,6 +76,7 @@ final class LoggerTest extends TestCase
     public function testLogUnauthorizedAccessAttemptWritesToWebLog(): void
     {
         $error = new class implements ErrorInterface {
+            public function getMessageKey(): string { return 'Invalid token'; }
             public function getMessage(): string { return 'Invalid token'; }
             public function getData(): array { return ['foo' => 'bar']; }
         };

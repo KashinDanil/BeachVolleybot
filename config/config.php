@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+define('BOT_USERNAME', '@dev_beach_volleybot');
 define('TG_BOT_ACCESS_TOKEN', 'XXX');
 define('APP_TOKEN_HASH', 'XXX');
 define('BASE_LOG_DIR', 'XXX');

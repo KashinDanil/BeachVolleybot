@@ -106,6 +106,23 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    protected function inlineQueryPayload(
+        string $inlineQueryId,
+        string $query,
+        int $fromId = 200,
+        string $firstName = 'Danil',
+    ): array {
+        return [
+            'update_id' => 1,
+            'inline_query' => [
+                'id' => $inlineQueryId,
+                'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                'query' => $query,
+                'offset' => '',
+            ],
+        ];
+    }
+
     protected function replyMessagePayload(
         string $text,
         string $inlineQueryId,

@@ -9,7 +9,7 @@ use BeachVolleybot\Errors\ValidationError;
 
 readonly class TimeInTitleRule implements RuleInterface
 {
-    private const string ERROR_MESSAGE = 'Title does not contain a time';
+    public const string ERROR_MESSAGE = 'Title does not contain a time';
 
     public function __construct(private string $title)
     {
