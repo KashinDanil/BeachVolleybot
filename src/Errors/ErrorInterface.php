@@ -6,9 +6,9 @@ namespace BeachVolleybot\Errors;
 
 interface ErrorInterface
 {
-    public function getMessageKey(): string;
-
     public function getMessage(): string;
+
+    public function getTranslatedMessage(): string;
 
     public function getData(): array;
 }

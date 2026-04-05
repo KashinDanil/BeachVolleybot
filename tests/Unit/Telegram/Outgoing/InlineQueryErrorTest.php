@@ -43,7 +43,7 @@ final class InlineQueryErrorTest extends TestCase
             $this->assertNotSame(
                 InlineQueryError::UNKNOWN_TITLE,
                 $inlineQueryError->title(),
-                sprintf('Validation rule %s error "%s" is not covered in InlineQueryError', $rule::class, $error->getMessageKey()),
+                sprintf('Validation rule %s error "%s" is not covered in InlineQueryError', $rule::class, $error->getMessage()),
             );
         }
     }

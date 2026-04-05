@@ -17,14 +17,14 @@ final class MultiErrorTest extends TestCase
             new ValidationError('Second error'),
         ]);
 
-        $this->assertSame('First error; Second error', $multi->getMessage());
+        $this->assertSame('First error; Second error', $multi->getTranslatedMessage());
     }
 
     public function testGetMessageWithSingleError(): void
     {
         $multi = new MultiError([new ValidationError('Only error')]);
 
-        $this->assertSame('Only error', $multi->getMessage());
+        $this->assertSame('Only error', $multi->getTranslatedMessage());
     }
 
     public function testGetDataMergesAllErrorData(): void

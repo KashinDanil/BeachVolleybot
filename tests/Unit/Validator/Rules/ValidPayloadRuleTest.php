@@ -45,6 +45,6 @@ final class ValidPayloadRuleTest extends TestCase
     {
         $error = (new ValidPayloadRule('{bad}'))->getError();
 
-        $this->assertNotEmpty($error->getMessage());
+        $this->assertNotEmpty($error->getTranslatedMessage());
     }
 }

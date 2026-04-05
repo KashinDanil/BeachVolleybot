@@ -23,7 +23,7 @@ final readonly class InlineQueryError
 
     public static function fromError(ErrorInterface $error): self
     {
-        return match ($error->getMessageKey()) {
+        return match ($error->getMessage()) {
             TimeInTitleRule::ERROR_MESSAGE => new self(self::TIME_NOT_FOUND_TITLE, self::TIME_NOT_FOUND_DESCRIPTION),
             default => new self(self::UNKNOWN_TITLE, self::UNKNOWN_DESCRIPTION),
         };

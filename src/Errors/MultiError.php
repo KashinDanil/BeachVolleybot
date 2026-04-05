@@ -11,14 +11,14 @@ final readonly class MultiError implements ErrorInterface
     {
     }
 
-    public function getMessageKey(): string
-    {
-        return implode('; ', array_map(static fn(ErrorInterface $e) => $e->getMessageKey(), $this->errors));
-    }
-
     public function getMessage(): string
     {
         return implode('; ', array_map(static fn(ErrorInterface $e) => $e->getMessage(), $this->errors));
+    }
+
+    public function getTranslatedMessage(): string
+    {
+        return implode('; ', array_map(static fn(ErrorInterface $e) => $e->getTranslatedMessage(), $this->errors));
     }
 
     public function getData(): array

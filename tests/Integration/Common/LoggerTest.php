@@ -76,8 +76,8 @@ final class LoggerTest extends TestCase
     public function testLogUnauthorizedAccessAttemptWritesToWebLog(): void
     {
         $error = new class implements ErrorInterface {
-            public function getMessageKey(): string { return 'Invalid token'; }
             public function getMessage(): string { return 'Invalid token'; }
+            public function getTranslatedMessage(): string { return 'Invalid token'; }
             public function getData(): array { return ['foo' => 'bar']; }
         };
 
