@@ -145,6 +145,22 @@ final class DefaultMessageBuilderTest extends TestCase
         $this->assertStringNotContainsString("+1", $text);
     }
 
+    public function testEquipmentShownOnlyOnFirstSlot(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->player('1', 'Alice', volleyball: 2, net: 1),
+            $this->player('2', 'Alice', volleyball: 2, net: 1),
+        ]);
+
+        $text = $this->builder->build($game)->getText()->getMessageText();
+        $lines = explode("\n", explode(self::SEPARATOR, $text)[1]);
+
+        $this->assertStringContainsString('🏐', $lines[0]);
+        $this->assertStringContainsString('🕸️', $lines[0]);
+        $this->assertStringNotContainsString('🏐', $lines[1]);
+        $this->assertStringNotContainsString('🕸️', $lines[1]);
+    }
+
     // --- Text: volleyball emoji ---
 
     public function testZeroVolleyballsShowsNoEmoji(): void

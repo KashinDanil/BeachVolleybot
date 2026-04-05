@@ -93,15 +93,19 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
 
     private function buildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime): string
     {
-        $parts = array_filter([
+        $parts = [
             $player->getNumber() . '.',
             $this->displayName($player, $appearance),
-            $this->formatEmoji($player->getVolleyball(), self::VOLLEYBALL_EMOJI),
-            $this->formatEmoji($player->getNet(), self::NET_EMOJI),
-            $this->displayTime($player->getTime(), $gameTime),
-        ]);
+        ];
 
-        return implode(' ', $parts);
+        if (1 === $appearance) {
+            $parts[] = $this->formatEmoji($player->getVolleyball(), self::VOLLEYBALL_EMOJI);
+            $parts[] = $this->formatEmoji($player->getNet(), self::NET_EMOJI);
+        }
+
+        $parts[] = $this->displayTime($player->getTime(), $gameTime);
+
+        return implode(' ', array_filter($parts));
     }
 
     private function displayName(PlayerInterface $player, int $appearance): string
