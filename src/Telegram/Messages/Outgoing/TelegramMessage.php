@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Telegram\Outgoing;
+namespace BeachVolleybot\Telegram\Messages\Outgoing;
 
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Inline\InputMessageContent\Text;

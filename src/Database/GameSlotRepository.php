@@ -48,6 +48,14 @@ readonly class GameSlotRepository
         return 0 < $result->rowCount();
     }
 
+    public function findPositionsByPlayer(int $gameId, int $telegramUserId): array
+    {
+        return array_map('intval', $this->db->select('game_slots', 'position', [
+            'game_id' => $gameId,
+            'telegram_user_id' => $telegramUserId,
+        ]));
+    }
+
     public function deleteByPlayer(int $gameId, int $telegramUserId): int
     {
         return $this->db->delete('game_slots', [
@@ -60,6 +68,6 @@ readonly class GameSlotRepository
     {
         $max = $this->db->max('game_slots', 'position', ['game_id' => $gameId]);
 
-        return null === $max ? 1 : (int) $max + 1;
+        return null === $max ? 1 : (int)$max + 1;
     }
 }

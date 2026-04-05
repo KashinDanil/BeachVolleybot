@@ -25,7 +25,7 @@ abstract readonly class AbstractRepository
     /** @return list<array<string, mixed>> */
     public function findByIds(array $ids): array
     {
-        if ([] === $ids) {
+        if (empty($ids)) {
             return [];
         }
 

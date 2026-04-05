@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Telegram\Incoming\TelegramUpdate;
-use BeachVolleybot\Telegram\Outgoing\ArticleBuilder;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Telegram\Messages\Outgoing\ArticleBuilder;
 use BeachVolleybot\Validator\Rules\TimeInTitleRule;
 use BeachVolleybot\Validator\Validator;
 use TelegramBot\Api\Exception;

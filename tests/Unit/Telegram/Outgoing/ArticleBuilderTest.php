@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\Outgoing;
 
-use BeachVolleybot\Telegram\Incoming\TelegramInlineQuery;
-use BeachVolleybot\Telegram\Incoming\TelegramUser;
-use BeachVolleybot\Telegram\Outgoing\ArticleBuilder;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramInlineQuery;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
+use BeachVolleybot\Telegram\Messages\Outgoing\ArticleBuilder;
 use PHPUnit\Framework\TestCase;
 use TelegramBot\Api\Types\Inline\QueryResult\Article;
 

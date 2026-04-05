@@ -6,7 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Game;
 
 use BeachVolleybot\Game\GameBuilder;
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
+use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Tests\Unit\Game\AddOns\Stub\TitlePrefixAddOn;
 use PHPUnit\Framework\TestCase;
 

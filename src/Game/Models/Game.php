@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Common\TimeExtractor;
-use BeachVolleybot\Game\MessageBuilders\DefaultTelegramMessageBuilder;
-use BeachVolleybot\Game\MessageBuilders\TelegramMessageBuilderInterface;
-use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
+use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\TelegramMessageBuilderInterface;
+use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use RuntimeException;
 
 readonly class Game implements GameInterface

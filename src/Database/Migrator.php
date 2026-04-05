@@ -26,7 +26,7 @@ final readonly class Migrator
         $applied = $this->getAppliedMigrations();
         $pending = $this->getPendingMigrations($applied);
 
-        if ([] === $pending) {
+        if (empty($pending)) {
             $this->info('Nothing to migrate.', 'cyan');
 
             return 0;

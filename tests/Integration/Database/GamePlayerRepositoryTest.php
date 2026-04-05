@@ -24,7 +24,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
     {
         $this->repository->create($this->gameId, 200, '15:20');
 
-        $entry = $this->repository->findByGameAndPlayer($this->gameId, 200);
+        $entry = $this->repository->findByGamePlayer($this->gameId, 200);
 
         $this->assertSame($this->gameId, $entry['game_id']);
         $this->assertSame(200, $entry['telegram_user_id']);
@@ -33,7 +33,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
     public function testFindByGameAndPlayerReturnsNullWhenNotFound(): void
     {
-        $this->assertNull($this->repository->findByGameAndPlayer($this->gameId, 999));
+        $this->assertNull($this->repository->findByGamePlayer($this->gameId, 999));
     }
 
     public function testFindByGameIdReturnsList(): void
@@ -59,7 +59,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
         $this->repository->incrementVolleyball($this->gameId, 200);
         $this->repository->incrementVolleyball($this->gameId, 200);
 
-        $this->assertSame(2, $this->repository->findByGameAndPlayer($this->gameId, 200)['volleyball']);
+        $this->assertSame(2, $this->repository->findByGamePlayer($this->gameId, 200)['volleyball']);
     }
 
     public function testDecrementVolleyballFloorsAtZero(): void
@@ -68,7 +68,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
         $this->repository->decrementVolleyball($this->gameId, 200);
 
-        $this->assertSame(0, $this->repository->findByGameAndPlayer($this->gameId, 200)['volleyball']);
+        $this->assertSame(0, $this->repository->findByGamePlayer($this->gameId, 200)['volleyball']);
     }
 
     public function testDecrementVolleyballDecrementsFromPositive(): void
@@ -79,7 +79,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
         $this->repository->incrementVolleyball($this->gameId, 200);
         $this->repository->decrementVolleyball($this->gameId, 200);
 
-        $this->assertSame(1, $this->repository->findByGameAndPlayer($this->gameId, 200)['volleyball']);
+        $this->assertSame(1, $this->repository->findByGamePlayer($this->gameId, 200)['volleyball']);
     }
 
     public function testIncrementNet(): void
@@ -88,7 +88,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
         $this->repository->incrementNet($this->gameId, 200);
 
-        $this->assertSame(1, $this->repository->findByGameAndPlayer($this->gameId, 200)['net']);
+        $this->assertSame(1, $this->repository->findByGamePlayer($this->gameId, 200)['net']);
     }
 
     public function testDecrementNetFloorsAtZero(): void
@@ -97,7 +97,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
         $this->repository->decrementNet($this->gameId, 200);
 
-        $this->assertSame(0, $this->repository->findByGameAndPlayer($this->gameId, 200)['net']);
+        $this->assertSame(0, $this->repository->findByGamePlayer($this->gameId, 200)['net']);
     }
 
     public function testDeleteRemovesEntry(): void
@@ -105,7 +105,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
         $this->repository->create($this->gameId, 200);
 
         $this->assertTrue($this->repository->delete($this->gameId, 200));
-        $this->assertNull($this->repository->findByGameAndPlayer($this->gameId, 200));
+        $this->assertNull($this->repository->findByGamePlayer($this->gameId, 200));
     }
 
     public function testDeleteReturnsFalseWhenNotFound(): void

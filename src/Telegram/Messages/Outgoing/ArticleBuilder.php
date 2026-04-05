@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Telegram\Outgoing;
+namespace BeachVolleybot\Telegram\Messages\Outgoing;
 
 use BeachVolleybot\Game\GameBuilder;
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Telegram\Incoming\TelegramInlineQuery;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramInlineQuery;
 use TelegramBot\Api\Types\Inline\QueryResult\Article;
 
 final readonly class ArticleBuilder

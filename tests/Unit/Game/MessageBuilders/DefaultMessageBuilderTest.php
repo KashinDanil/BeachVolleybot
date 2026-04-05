@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Game\MessageBuilders;
 
-use BeachVolleybot\Game\MessageBuilders\DefaultTelegramMessageBuilder;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
+use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
 use PHPUnit\Framework\TestCase;
 
 final class DefaultMessageBuilderTest extends TestCase
@@ -356,8 +356,8 @@ final class DefaultMessageBuilderTest extends TestCase
         $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         $expected = [
-            [0, 0, 'rp'],
-            [0, 1, 'ap'],
+            [0, 0, 'so'],
+            [0, 1, 'su'],
             [1, 0, 'rv'],
             [1, 1, 'av'],
             [2, 0, 'rn'],

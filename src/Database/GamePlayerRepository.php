@@ -13,21 +13,43 @@ readonly class GamePlayerRepository
     ) {
     }
 
-    public function create(int $gameId, int $telegramUserId, ?string $time = null): void
+    public function create(int $gameId, int $telegramUserId, ?string $time = null, int $volleyball = 0, int $net = 0): void
     {
         $this->db->insert('game_players', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
             'time' => $time,
+            'volleyball' => $volleyball,
+            'net' => $net,
         ]);
     }
 
-    public function findByGameAndPlayer(int $gameId, int $telegramUserId): ?array
+    public function findByGamePlayer(int $gameId, int $telegramUserId): ?array
     {
         return $this->db->get('game_players', '*', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
         ]) ?: null;
+    }
+
+    public function findVolleyballCount(int $gameId, int $telegramUserId): ?int
+    {
+        $value = $this->db->get('game_players', 'volleyball', [
+            'game_id' => $gameId,
+            'telegram_user_id' => $telegramUserId,
+        ]);
+
+        return false === $value || null === $value ? null : (int) $value;
+    }
+
+    public function findNetCount(int $gameId, int $telegramUserId): ?int
+    {
+        $value = $this->db->get('game_players', 'net', [
+            'game_id' => $gameId,
+            'telegram_user_id' => $telegramUserId,
+        ]);
+
+        return false === $value || null === $value ? null : (int) $value;
     }
 
     public function findByGameId(int $gameId): array
@@ -45,33 +67,53 @@ readonly class GamePlayerRepository
         return 0 < $result->rowCount();
     }
 
-    public function incrementVolleyball(int $gameId, int $telegramUserId): void
+    public function incrementVolleyball(int $gameId, int $telegramUserId): bool
     {
-        $this->db->update('game_players', ['volleyball[+]' => 1], [
+        $result = $this->db->update('game_players', ['volleyball[+]' => 1], [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
         ]);
+
+        return 0 < $result->rowCount();
     }
 
-    public function decrementVolleyball(int $gameId, int $telegramUserId): void
+    public function decrementVolleyball(int $gameId, int $telegramUserId): bool
     {
-        $this->db->pdo->prepare(
+        $statement = $this->db->pdo->prepare(
             'UPDATE game_players SET volleyball = MAX(0, volleyball - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id'
-        )->execute([':game_id' => $gameId, ':telegram_user_id' => $telegramUserId]);
+        );
+        $statement->execute([':game_id' => $gameId, ':telegram_user_id' => $telegramUserId]);
+
+        return 0 < $statement->rowCount();
     }
 
-    public function incrementNet(int $gameId, int $telegramUserId): void
+    public function incrementNet(int $gameId, int $telegramUserId): bool
     {
-        $this->db->update('game_players', ['net[+]' => 1], [
+        $result = $this->db->update('game_players', ['net[+]' => 1], [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
         ]);
+
+        return 0 < $result->rowCount();
     }
 
-    public function decrementNet(int $gameId, int $telegramUserId): void
+    public function decrementNet(int $gameId, int $telegramUserId): bool
     {
-        $this->db->pdo->prepare(
+        $statement = $this->db->pdo->prepare(
             'UPDATE game_players SET net = MAX(0, net - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id'
-        )->execute([':game_id' => $gameId, ':telegram_user_id' => $telegramUserId]);
+        );
+        $statement->execute([':game_id' => $gameId, ':telegram_user_id' => $telegramUserId]);
+
+        return 0 < $statement->rowCount();
+    }
+
+    public function updateTime(int $gameId, int $telegramUserId, string $time): bool
+    {
+        $result = $this->db->update('game_players', ['time' => $time], [
+            'game_id' => $gameId,
+            'telegram_user_id' => $telegramUserId,
+        ]);
+
+        return 0 < $result->rowCount();
     }
 }

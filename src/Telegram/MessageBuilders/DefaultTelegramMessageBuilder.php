@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Game\MessageBuilders;
+namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
-use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
+use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 
@@ -19,15 +20,8 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     private const string PARSE_MODE              = 'Markdown';
 
     //Shortcuts are used as callback_data is limited to 64 bytes
-    private const string KEY_ACTION          = 'a';
-    private const string KEY_INLINE_QUERY_ID = 'q';
-
-    private const string ACTION_ADD_PLAYER        = 'ap';
-    private const string ACTION_REMOVE_PLAYER     = 'rp';
-    private const string ACTION_ADD_VOLLEYBALL    = 'av';
-    private const string ACTION_REMOVE_VOLLEYBALL = 'rv';
-    private const string ACTION_ADD_NET           = 'an';
-    private const string ACTION_REMOVE_NET        = 'rn';
+    public const string KEY_ACTION          = 'a';
+    public const string KEY_INLINE_QUERY_ID = 'q';
 
     public function build(GameInterface $game): TelegramMessage
     {
@@ -41,16 +35,16 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     {
         return [
             [ // The first button is the meta-button — it carries the inline query ID, needed when a callback arrives on an inline message
-                $this->buildButton('Sign Out', $this->buildCallbackData(self::ACTION_REMOVE_PLAYER, $game->getInlineQueryId())),
-                $this->buildButton('Sign Up', $this->buildCallbackData(self::ACTION_ADD_PLAYER)),
+                $this->buildButton('Sign Out', $this->buildCallbackData(CallbackAction::SignOut, $game->getInlineQueryId())),
+                $this->buildButton('Sign Up', $this->buildCallbackData(CallbackAction::SignUp)),
             ],
             [
-                $this->buildButton('-' . self::VOLLEYBALL_EMOJI, $this->buildCallbackData(self::ACTION_REMOVE_VOLLEYBALL)),
-                $this->buildButton('+' . self::VOLLEYBALL_EMOJI, $this->buildCallbackData(self::ACTION_ADD_VOLLEYBALL)),
+                $this->buildButton('-' . self::VOLLEYBALL_EMOJI, $this->buildCallbackData(CallbackAction::RemoveVolleyball)),
+                $this->buildButton('+' . self::VOLLEYBALL_EMOJI, $this->buildCallbackData(CallbackAction::AddVolleyball)),
             ],
             [
-                $this->buildButton('-' . self::NET_EMOJI, $this->buildCallbackData(self::ACTION_REMOVE_NET)),
-                $this->buildButton('+' . self::NET_EMOJI, $this->buildCallbackData(self::ACTION_ADD_NET)),
+                $this->buildButton('-' . self::NET_EMOJI, $this->buildCallbackData(CallbackAction::RemoveNet)),
+                $this->buildButton('+' . self::NET_EMOJI, $this->buildCallbackData(CallbackAction::AddNet)),
             ],
         ];
     }
@@ -60,9 +54,9 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         return ['text' => $text, 'callback_data' => $callbackData];
     }
 
-    private function buildCallbackData(string $action, ?string $inlineQueryId = null): string
+    private function buildCallbackData(CallbackAction $action, ?string $inlineQueryId = null): string
     {
-        $payload = [self::KEY_ACTION => $action];
+        $payload = [self::KEY_ACTION => $action->value];
 
         if (null !== $inlineQueryId) {
             $payload[self::KEY_INLINE_QUERY_ID] = $inlineQueryId;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Game\MessageBuilders;
+namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Telegram\Outgoing\TelegramMessage;
+use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 interface TelegramMessageBuilderInterface
 {

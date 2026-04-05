@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Telegram\Incoming;
+namespace BeachVolleybot\Telegram\Messages\Incoming;
 
 readonly class TelegramMessage
 {
