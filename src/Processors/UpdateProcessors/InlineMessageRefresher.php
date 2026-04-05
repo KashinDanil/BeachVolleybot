@@ -24,7 +24,7 @@ readonly class InlineMessageRefresher
             null,
             $message->getText()->getMessageText(),
             $message->getText()->getParseMode(),
-            false,
+            $message->getText()->isDisableWebPagePreview(),
             $message->getKeyboard(),
             $inlineMessageId,
         );

@@ -18,6 +18,7 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     private const string SEPARATOR               = "\n\n";
     private const int    EMOJI_COMPACT_THRESHOLD = 3;
     private const string PARSE_MODE              = 'Markdown';
+    private const bool   DISABLE_PREVIEW         = true;
 
     //Shortcuts are used as callback_data is limited to 64 bytes
     public const string KEY_ACTION          = 'a';
@@ -26,7 +27,7 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     public function build(GameInterface $game): TelegramMessage
     {
         return new TelegramMessage(
-            new Text($this->buildText($game), self::PARSE_MODE),
+            new Text($this->buildText($game), self::PARSE_MODE, self::DISABLE_PREVIEW),
             new InlineKeyboardMarkup($this->buildKeyboard($game)),
         );
     }
