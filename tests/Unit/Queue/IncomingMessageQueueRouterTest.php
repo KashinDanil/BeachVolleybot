@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Queue;
 
+use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
+use Medoo\Medoo;
+use PDO;
 use PHPUnit\Framework\TestCase;
 
 final class IncomingMessageQueueRouterTest extends TestCase
@@ -62,9 +65,39 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
     public function testReplyToViaBotMessageRoutesToGameQueue(): void
     {
-        $this->router->route($this->replyToViaBotPayload(chatId: -5127803306, repliedMessageId: 53));
+        $this->seedGame(inlineQueryId: 'query_123', inlineMessageId: 'inline_msg_resolved');
 
-        $this->assertEnqueuedOnce('game_-5127803306_53');
+        $this->router->route($this->replyToViaBotPayload(inlineQueryId: 'query_123'));
+
+        $this->assertEnqueuedOnce('game_inline_msg_resolved');
+    }
+
+    public function testReplyToViaBotMessageWithoutMetaButtonIsSkipped(): void
+    {
+        $payload = [
+            'message' => [
+                'message_id' => 54,
+                'text' => '12:00',
+                'chat' => ['id' => -5127803306, 'type' => 'group'],
+                'reply_to_message' => [
+                    'message_id' => 53,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'],
+                ],
+            ],
+        ];
+
+        $this->router->route($payload);
+
+        $this->assertNothingEnqueued();
+    }
+
+    public function testReplyToViaBotMessageWithUnknownGameIsSkipped(): void
+    {
+        $this->seedGame(inlineQueryId: 'other_query', inlineMessageId: 'other_msg');
+
+        $this->router->route($this->replyToViaBotPayload(inlineQueryId: 'unknown_query'));
+
+        $this->assertNothingEnqueued();
     }
 
     public function testNonGroupMessageIsSkipped(): void
@@ -164,17 +197,25 @@ final class IncomingMessageQueueRouterTest extends TestCase
         ];
     }
 
-    private function replyToViaBotPayload(int $chatId, int $repliedMessageId): array
+    private function replyToViaBotPayload(string $inlineQueryId): array
     {
         return [
             'update_id' => 100,
             'message' => [
                 'message_id' => 54,
                 'text' => '12:00',
-                'chat' => ['id' => $chatId, 'type' => 'group'],
+                'chat' => ['id' => -5127803306, 'type' => 'group'],
                 'reply_to_message' => [
-                    'message_id' => $repliedMessageId,
+                    'message_id' => 53,
                     'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'],
+                    'reply_markup' => [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => 'Sign Out', 'callback_data' => json_encode(['a' => 'rp', 'q' => $inlineQueryId])],
+                                ['text' => 'Sign Up', 'callback_data' => json_encode(['a' => 'ap'])],
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -190,5 +231,26 @@ final class IncomingMessageQueueRouterTest extends TestCase
     private function assertNothingEnqueued(): void
     {
         $this->assertSame([], SpyQueue::$instances);
+    }
+
+    private function seedGame(string $inlineQueryId, string $inlineMessageId): void
+    {
+        $db = new Medoo([
+            'type' => 'sqlite',
+            'database' => ':memory:',
+            'error' => PDO::ERRMODE_EXCEPTION,
+        ]);
+
+        $schema = file_get_contents(__DIR__ . '/../../../db/migrations/001_create_games_and_participants.sql');
+        $db->pdo->exec($schema);
+
+        $db->insert('games', [
+            'title' => 'Test',
+            'created_by' => 1,
+            'inline_message_id' => $inlineMessageId,
+            'inline_query_id' => $inlineQueryId,
+        ]);
+
+        Connection::set($db);
     }
 }

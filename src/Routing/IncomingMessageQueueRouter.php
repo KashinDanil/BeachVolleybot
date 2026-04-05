@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Routing;
 
 use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Database\GameRepository;
 use DanilKashin\FileQueue\Queue\QueueInterface;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 
@@ -12,6 +14,7 @@ readonly class IncomingMessageQueueRouter
 {
     private const string GAME_QUEUE_PREFIX = 'game_';
     private const array ALLOWED_CHAT_TYPES = ['group'];
+    private const string CALLBACK_DATA_INLINE_QUERY_ID_KEY = 'q';
 
     /** @var class-string<QueueInterface> */
     private string $queueClass;
@@ -40,6 +43,7 @@ readonly class IncomingMessageQueueRouter
 
     private function resolveQueueName(array $payload): ?string
     {
+//        return null;
         if (isset($payload['chosen_inline_result'])) {
             $inlineMessageId = $payload['chosen_inline_result']['inline_message_id'] ?? null;
             if (null === $inlineMessageId) {
@@ -70,7 +74,32 @@ readonly class IncomingMessageQueueRouter
             return $this->skip('Not a reply to a via_bot message', $message);
         }
 
-        return $this->gameQueueName($message['chat']['id'] . '_' . $message['reply_to_message']['message_id']);
+        $inlineQueryId = $this->extractInlineQueryIdFromMetaButton($message['reply_to_message']);
+
+        if (null === $inlineQueryId) {
+            return $this->skip('Meta-button missing inline_query_id', $message);
+        }
+
+        $inlineMessageId = new GameRepository(Connection::get())->findInlineMessageIdByInlineQueryId($inlineQueryId);
+
+        if (null === $inlineMessageId) {
+            return $this->skip('Game not found by inline_query_id: ' . $inlineQueryId, $message);
+        }
+
+        return $this->gameQueueName($inlineMessageId);
+    }
+
+    private function extractInlineQueryIdFromMetaButton(array $replyToMessage): ?string
+    {
+        $metaButtonCallbackData = $replyToMessage['reply_markup']['inline_keyboard'][0][0]['callback_data'] ?? null;
+
+        if (null === $metaButtonCallbackData) {
+            return null;
+        }
+
+        $decoded = json_decode($metaButtonCallbackData, true, 512, JSON_THROW_ON_ERROR);
+
+        return $decoded[self::CALLBACK_DATA_INLINE_QUERY_ID_KEY] ?? null;
     }
 
     private function resolveCallbackQueryQueue(array $callbackQuery): ?string
@@ -84,9 +113,9 @@ readonly class IncomingMessageQueueRouter
         return $this->gameQueueName($inlineMessageId);
     }
 
-    private function gameQueueName(string $queueId): string
+    private function gameQueueName(string $inlineMessageId): string
     {
-        return self::GAME_QUEUE_PREFIX . $queueId;
+        return self::GAME_QUEUE_PREFIX . $inlineMessageId;
     }
 
     private function skip(string $reason, array $context): null
