@@ -358,8 +358,8 @@ final class DefaultMessageBuilderTest extends TestCase
         $expected = [
             [0, 0, 'rp'],
             [0, 1, 'ap'],
-            [1, 0, 'rb'],
-            [1, 1, 'ab'],
+            [1, 0, 'rv'],
+            [1, 1, 'av'],
             [2, 0, 'rn'],
             [2, 1, 'an'],
         ];

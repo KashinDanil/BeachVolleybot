@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Processors;
+namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Telegram\Incoming\TelegramUpdate;
@@ -11,7 +11,7 @@ use BeachVolleybot\Validator\Rules\TimeInTitleRule;
 use BeachVolleybot\Validator\Validator;
 use TelegramBot\Api\Exception;
 
-class InlineQueryProcessor extends AbstractUpdateProcessor
+class InlineQueryProcessor extends AbstractActionProcessor
 {
     public function process(TelegramUpdate $update): void
     {

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Processors;
+namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Telegram\Incoming\TelegramUpdate;
 use TelegramBot\Api\BotApi;
 
-abstract class AbstractUpdateProcessor
+abstract class AbstractActionProcessor
 {
     public function __construct(
         protected readonly BotApi $bot,

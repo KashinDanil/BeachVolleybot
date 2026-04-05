@@ -24,8 +24,8 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
 
     private const string ACTION_ADD_PLAYER        = 'ap';
     private const string ACTION_REMOVE_PLAYER     = 'rp';
-    private const string ACTION_ADD_VOLLEYBALL    = 'ab';
-    private const string ACTION_REMOVE_VOLLEYBALL = 'rb';
+    private const string ACTION_ADD_VOLLEYBALL    = 'av';
+    private const string ACTION_REMOVE_VOLLEYBALL = 'rv';
     private const string ACTION_ADD_NET           = 'an';
     private const string ACTION_REMOVE_NET        = 'rn';
 
