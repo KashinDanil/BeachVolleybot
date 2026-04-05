@@ -6,14 +6,11 @@ namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
-use TelegramBot\Api\BotApi;
+use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
 
 abstract class ProcessorTestCase extends DatabaseTestCase
 {
-    protected BotApi $bot;
-
-    /** @var list<array{method: string, args: list<mixed>}> */
-    protected array $botCalls = [];
+    protected BotApiStub $bot;
 
     protected function setUp(): void
     {
@@ -21,27 +18,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         Connection::set($this->db);
         @mkdir(BASE_LOG_DIR, 0777, true);
 
-        $this->bot = $this->createStub(BotApi::class);
-        $this->bot->method('answerCallbackQuery')->willReturnCallback(function () {
-            $this->botCalls[] = ['method' => 'answerCallbackQuery', 'args' => func_get_args()];
-
-            return true;
-        });
-        $this->bot->method('editMessageText')->willReturnCallback(function () {
-            $this->botCalls[] = ['method' => 'editMessageText', 'args' => func_get_args()];
-
-            return true;
-        });
-        $this->bot->method('deleteMessage')->willReturnCallback(function () {
-            $this->botCalls[] = ['method' => 'deleteMessage', 'args' => func_get_args()];
-
-            return true;
-        });
-        $this->bot->method('call')->willReturnCallback(function () {
-            $this->botCalls[] = ['method' => 'call', 'args' => func_get_args()];
-
-            return true;
-        });
+        $this->bot = new BotApiStub();
     }
 
     protected function tearDown(): void
@@ -165,7 +142,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
 
     protected function assertAnsweredWith(string $expectedText): void
     {
-        $answerCalls = array_filter($this->botCalls, fn($c) => 'answerCallbackQuery' === $c['method']);
+        $answerCalls = array_filter($this->bot->calls, fn($c) => 'answerCallbackQuery' === $c['method']);
         $this->assertNotEmpty($answerCalls, 'Expected answerCallbackQuery to be called');
         $lastCall = end($answerCalls);
         $this->assertSame($expectedText, $lastCall['args'][1] ?? null);
@@ -173,13 +150,13 @@ abstract class ProcessorTestCase extends DatabaseTestCase
 
     protected function assertMessageEdited(): void
     {
-        $editCalls = array_filter($this->botCalls, fn($c) => 'editMessageText' === $c['method']);
+        $editCalls = array_filter($this->bot->calls, fn($c) => 'editMessageText' === $c['method']);
         $this->assertNotEmpty($editCalls, 'Expected editMessageText to be called');
     }
 
     protected function assertMessageNotEdited(): void
     {
-        $editCalls = array_filter($this->botCalls, fn($c) => 'editMessageText' === $c['method']);
+        $editCalls = array_filter($this->bot->calls, fn($c) => 'editMessageText' === $c['method']);
         $this->assertEmpty($editCalls, 'Expected editMessageText NOT to be called');
     }
 }

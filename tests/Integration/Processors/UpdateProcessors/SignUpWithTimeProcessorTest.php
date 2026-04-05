@@ -65,7 +65,7 @@ final class SignUpWithTimeProcessorTest extends ProcessorTestCase
 
         new SignUpWithTimeProcessor($this->bot)->process($update);
 
-        $deleteCalls = array_filter($this->botCalls, fn($c) => 'deleteMessage' === $c['method']);
+        $deleteCalls = array_filter($this->bot->calls, fn($c) => 'deleteMessage' === $c['method']);
         $this->assertNotEmpty($deleteCalls);
     }
 
@@ -76,7 +76,7 @@ final class SignUpWithTimeProcessorTest extends ProcessorTestCase
 
         new SignUpWithTimeProcessor($this->bot)->process($update);
 
-        $reactionCalls = array_filter($this->botCalls, fn($c) => 'call' === $c['method'] && 'setMessageReaction' === ($c['args'][0] ?? null));
+        $reactionCalls = array_filter($this->bot->calls, fn($c) => 'call' === $c['method'] && 'setMessageReaction' === ($c['args'][0] ?? null));
         $this->assertNotEmpty($reactionCalls);
     }
 
@@ -97,7 +97,7 @@ final class SignUpWithTimeProcessorTest extends ProcessorTestCase
 
         new SignUpWithTimeProcessor($this->bot)->process($update);
 
-        $this->assertEmpty($this->botCalls);
+        $this->assertEmpty($this->bot->calls);
     }
 
     public function testIgnoresWhenGameNotFound(): void
@@ -106,7 +106,7 @@ final class SignUpWithTimeProcessorTest extends ProcessorTestCase
 
         new SignUpWithTimeProcessor($this->bot)->process($update);
 
-        $this->assertEmpty($this->botCalls);
+        $this->assertEmpty($this->bot->calls);
     }
 
     public function testIgnoresMessageWithoutReplyMarkup(): void
@@ -132,7 +132,7 @@ final class SignUpWithTimeProcessorTest extends ProcessorTestCase
 
         new SignUpWithTimeProcessor($this->bot)->process(TelegramUpdate::fromArray($payload));
 
-        $this->assertEmpty($this->botCalls);
+        $this->assertEmpty($this->bot->calls);
     }
 
     private function buildUpdate(string $text, string $inlineQueryId): TelegramUpdate
