@@ -13,7 +13,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 {
     public function testUpdatesGameLocation(): void
     {
-        $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
+        $gameId = $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
         new SetLocationProcessor($this->telegramSender)->process($update);
@@ -22,36 +22,56 @@ final class SetLocationProcessorTest extends ProcessorTestCase
         $this->assertSame('41.399747,2.20778', $game['location']);
     }
 
-    public function testDeletesUserMessage(): void
+    public function testReactsWithCheckmark(): void
     {
-        $this->seedFullGame(inlineQueryId: 'query_1');
+        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
+
+        new SetLocationProcessor($this->telegramSender)->process($update);
+
+        $this->assertReactedWith('👍');
+    }
+
+    public function testDoesNotDeleteMessage(): void
+    {
+        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
         new SetLocationProcessor($this->telegramSender)->process($update);
 
         $deleteCalls = array_filter($this->bot->calls, fn($c) => 'deleteMessage' === $c['method']);
-        $this->assertNotEmpty($deleteCalls);
-    }
-
-    public function testSetsReaction(): void
-    {
-        $this->seedFullGame(inlineQueryId: 'query_1');
-        $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
-
-        new SetLocationProcessor($this->telegramSender)->process($update);
-
-        $reactionCalls = array_filter($this->bot->calls, fn($c) => 'call' === $c['method'] && 'setMessageReaction' === ($c['args'][0] ?? null));
-        $this->assertNotEmpty($reactionCalls);
+        $this->assertEmpty($deleteCalls);
     }
 
     public function testRefreshesInlineMessage(): void
     {
-        $this->seedFullGame(inlineQueryId: 'query_1');
+        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
         new SetLocationProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageEdited();
+    }
+
+    public function testReactsConfusedWhenPlayerNotInGame(): void
+    {
+        $this->seedFullGame(inlineQueryId: 'query_1');
+        $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
+
+        new SetLocationProcessor($this->telegramSender)->process($update);
+
+        $this->assertMessageNotEdited();
+    }
+
+    public function testDoesNotUpdateLocationWhenPlayerNotInGame(): void
+    {
+        $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
+        $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
+
+        new SetLocationProcessor($this->telegramSender)->process($update);
+
+        $game = new GameRepository($this->db)->findById($gameId);
+        $this->assertNull($game['location']);
     }
 
     public function testIgnoresWhenGameNotFound(): void
@@ -65,7 +85,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
     public function testIgnoresMessageWithoutLocation(): void
     {
-        $this->seedFullGame(inlineQueryId: 'query_1');
+        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
         $update = TelegramUpdate::fromArray(
             $this->replyMessagePayload('hello', 'query_1'),
         );
@@ -77,7 +97,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
     public function testIgnoresMessageWithoutReplyMarkup(): void
     {
-        $this->seedFullGame(inlineQueryId: 'query_1');
+        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
         $payload = [
             'update_id' => 1,
             'message' => [

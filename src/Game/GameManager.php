@@ -184,6 +184,11 @@ readonly class GameManager
         $this->recalculateGameTime($gameId);
     }
 
+    public function isPlayerInGame(int $gameId, int $telegramUserId): bool
+    {
+        return $this->gamePlayerRepository->exists($gameId, $telegramUserId);
+    }
+
     public function resolveGameIdByInlineMessageId(string $inlineMessageId): ?int
     {
         return $this->gameRepository->findGameIdByInlineMessageId($inlineMessageId);

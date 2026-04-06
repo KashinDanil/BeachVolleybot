@@ -35,10 +35,14 @@ class SetLocationProcessor extends AbstractActionReplyProcessor
             return;
         }
 
+        if (!$gameManager->isPlayerInGame($gameLookup->gameId, $message->from->id)) {
+            return;
+        }
+
         $location = sprintf('%s,%s', $message->location->latitude, $message->location->longitude);
         $gameManager->setLocation($gameLookup->gameId, $location);
 
-        $this->reactWithCheckmarkAndDelete($message);
+        $this->reactWithCheckmark($message);
         $this->refreshInlineMessage($gameLookup->inlineMessageId);
     }
 }

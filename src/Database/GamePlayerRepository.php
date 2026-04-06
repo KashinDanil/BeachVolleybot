@@ -24,6 +24,14 @@ readonly class GamePlayerRepository
         ]);
     }
 
+    public function exists(int $gameId, int $telegramUserId): bool
+    {
+        return $this->db->has('game_players', [
+            'game_id' => $gameId,
+            'telegram_user_id' => $telegramUserId,
+        ]);
+    }
+
     public function findByGamePlayer(int $gameId, int $telegramUserId): ?array
     {
         return $this->db->get('game_players', '*', [
