@@ -8,7 +8,5 @@ interface ErrorInterface
 {
     public function getMessage(): string;
 
-    public function getTranslatedMessage(): string;
-
     public function getData(): array;
 }

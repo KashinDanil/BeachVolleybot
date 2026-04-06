@@ -38,7 +38,7 @@ class Logger
     {
         $message = sprintf(
             'Unauthorized access attempt: Validation error=\'%s\', data=\'%s\', IP=\'%s\', URL=\'%s\', Method=\'%s\', UserAgent=\'%s\'',
-            $error->getTranslatedMessage(),
+            $error->getMessage(),
             json_encode($error->getData(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             $_SERVER['REMOTE_ADDR'] ?? null,
             $_SERVER['REQUEST_URI'] ?? null,

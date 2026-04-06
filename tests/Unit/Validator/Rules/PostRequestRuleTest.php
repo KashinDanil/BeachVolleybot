@@ -45,6 +45,6 @@ final class PostRequestRuleTest extends TestCase
     {
         $error = (new PostRequestRule('GET'))->getError();
 
-        $this->assertStringContainsStringIgnoringCase('POST', $error->getTranslatedMessage());
+        $this->assertStringContainsStringIgnoringCase('POST', $error->getMessage());
     }
 }

@@ -16,11 +16,6 @@ final readonly class MultiError implements ErrorInterface
         return implode('; ', array_map(static fn(ErrorInterface $e) => $e->getMessage(), $this->errors));
     }
 
-    public function getTranslatedMessage(): string
-    {
-        return implode('; ', array_map(static fn(ErrorInterface $e) => $e->getTranslatedMessage(), $this->errors));
-    }
-
     public function getData(): array
     {
         return array_merge(...array_map(static fn(ErrorInterface $e) => $e->getData(), $this->errors));

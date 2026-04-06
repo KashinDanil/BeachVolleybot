@@ -77,7 +77,6 @@ final class LoggerTest extends TestCase
     {
         $error = new class implements ErrorInterface {
             public function getMessage(): string { return 'Invalid token'; }
-            public function getTranslatedMessage(): string { return 'Invalid token'; }
             public function getData(): array { return ['foo' => 'bar']; }
         };
 
