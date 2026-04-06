@@ -88,8 +88,8 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     {
         $sections = array_filter([
             $game->getTitle(),
-            $this->buildLocationLink($game->getLocation()),
             $this->buildPlayerList($game),
+            $this->buildLocationLink($game->getLocation()),
             $game->getFooter(),
         ]);
 

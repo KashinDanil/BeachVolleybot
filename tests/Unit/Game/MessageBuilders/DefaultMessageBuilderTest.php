@@ -71,7 +71,7 @@ final class DefaultMessageBuilderTest extends TestCase
 
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '[📍 Location](https://maps.google.com/?q=41.399747,2.20778)' . self::SEPARATOR . '1. Alice', $text);
+        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1. Alice' . self::SEPARATOR . '[📍 Location](https://maps.google.com/?q=41.399747,2.20778)', $text);
     }
 
     public function testLocationOmittedWhenNull(): void
