@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\Messages\Outgoing;
 
+use BeachVolleybot\Localization\Translator;
 use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 use TelegramBot\Api\Types\Inline\QueryResult\Article;
 
@@ -15,6 +16,7 @@ final readonly class ErrorArticleBuilder implements ArticleBuilderInterface
 
     public function __construct(
         private InlineQueryError $error,
+        private Translator $translator,
     ) {
     }
 
@@ -22,9 +24,9 @@ final readonly class ErrorArticleBuilder implements ArticleBuilderInterface
     {
         return new Article(
             id: self::ARTICLE_ID,
-            title: $this->error->title(),
-            description: $this->error->description(),
-            inputMessageContent: new Text(sprintf(self::DEFAULT_MESSAGE, BOT_USERNAME), self::PARSE_MODE),
+            title: $this->translator->translate($this->error->title()),
+            description: $this->translator->translate($this->error->description()),
+            inputMessageContent: new Text(sprintf($this->translator->translate(self::DEFAULT_MESSAGE), BOT_USERNAME), self::PARSE_MODE),
         );
     }
 }

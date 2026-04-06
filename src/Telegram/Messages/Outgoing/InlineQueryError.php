@@ -13,7 +13,7 @@ final readonly class InlineQueryError
     public const string UNKNOWN_DESCRIPTION = 'Try again using the correct format';
 
     public const string TIME_NOT_FOUND_TITLE = '⚠️ Include a time in your query';
-    public const string TIME_NOT_FOUND_DESCRIPTION = 'e.g., 18:00';
+    public const string TIME_NOT_FOUND_DESCRIPTION = 'E.g., 18:00';
 
     private function __construct(
         private string $title,

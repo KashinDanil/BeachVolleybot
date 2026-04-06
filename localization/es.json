@@ -1,5 +1,22 @@
 {
-    "Provided token is invalid": "El token proporcionado no es válido",
-    "Invalid request method. Only POST requests are allowed": "Método de solicitud inválido. Solo se permiten solicitudes POST",
-    "Invalid payload": "Carga de datos incorrecta"
+    "This game no longer exists": "Este juego ya no existe",
+    "Join the game first!": "¡Únete al juego primero!",
+    "You're not in this game": "No estás en este juego",
+    "You're in! See you there 🏖": "¡Estás dentro! Nos vemos allí 🏖",
+    "You've left the game": "Has dejado el juego",
+    "🏐 Volleyball added! Thanks for bringing one": "🏐 ¡Balón añadido! Gracias por traer uno",
+    "🏐 Volleyball removed": "🏐 Balón eliminado",
+    "You don't have any volleyballs to remove": "No tienes ningún balón para quitar",
+    "🕸️ Net added! Thanks for bringing one": "🕸️ ¡Red añadida! Gracias por traer una",
+    "🕸️ Net removed": "🕸️ Red eliminada",
+    "You don't have any nets to remove": "No tienes ninguna red para quitar",
+    "Something went wrong": "Algo salió mal",
+
+    "🏐 New game": "🏐 Nuevo juego",
+    "Tap to create a new game": "Toca para crear un nuevo juego",
+    "⚠️ Something went wrong": "⚠️ Algo salió mal",
+    "Try again using the correct format": "Inténtalo de nuevo usando el formato correcto",
+    "⚠️ Include a time in your query": "⚠️ Incluye una hora en tu consulta",
+    "E.g., 18:00": "P. ej., 18:00",
+    "Use the following pattern to create a new game:```\n@%s \nSaturday 11.04\nBogatell 10:00```": "Usa el siguiente formato para crear un nuevo juego:```\n@%s \nSábado 11.04\nBogatell 10:00```"
 }

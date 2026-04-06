@@ -1,5 +1,22 @@
 {
-    "Provided token is invalid": "Предоставленный токен недействителен",
-    "Invalid request method. Only POST requests are allowed": "Недопустимый метод запроса. Разрешены только POST-запросы",
-    "Invalid payload": "Некорректные данные запроса"
+    "This game no longer exists": "Эта игра больше не существует",
+    "Join the game first!": "Сначала присоединитесь к игре!",
+    "You're not in this game": "Вы не участвуете в этой игре",
+    "You're in! See you there 🏖": "Вы записаны! До встречи 🏖",
+    "You've left the game": "Вы покинули игру",
+    "🏐 Volleyball added! Thanks for bringing one": "🏐 Мяч добавлен! Спасибо, что берёте с собой",
+    "🏐 Volleyball removed": "🏐 Мяч убран",
+    "You don't have any volleyballs to remove": "У вас нет мячей для удаления",
+    "🕸️ Net added! Thanks for bringing one": "🕸️ Сетка добавлена! Спасибо, что берёте с собой",
+    "🕸️ Net removed": "🕸️ Сетка убрана",
+    "You don't have any nets to remove": "У вас нет сеток для удаления",
+    "Something went wrong": "Что-то пошло не так",
+
+    "🏐 New game": "🏐 Новая игра",
+    "Tap to create a new game": "Нажмите, чтобы создать новую игру",
+    "⚠️ Something went wrong": "⚠️ Что-то пошло не так",
+    "Try again using the correct format": "Попробуйте ещё раз, используя правильный формат",
+    "⚠️ Include a time in your query": "⚠️ Укажите время в запросе",
+    "E.g., 18:00": "Например, 18:00",
+    "Use the following pattern to create a new game:```\n@%s \nSaturday 11.04\nBogatell 10:00```": "Используйте следующий шаблон для создания новой игры:```\n@%s \nСуббота 11.04\nBogatell 10:00```"
 }

@@ -10,19 +10,11 @@ use PHPUnit\Framework\TestCase;
 
 final class TranslatorTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        Translator::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        Translator::reset();
-    }
-
     public function testTranslateReturnsOriginalTextForDefaultLanguage(): void
     {
-        $this->assertSame('Hello', Translator::translate('Hello'));
+        $translator = new Translator(Language::EN);
+
+        $this->assertSame('Hello', $translator->translate('Hello'));
     }
 
     public function testIsDefaultLanguageReturnsTrueForEn(): void
@@ -37,61 +29,33 @@ final class TranslatorTest extends TestCase
 
     public function testTranslateReturnsTranslatedStringForRu(): void
     {
-        Translator::setLanguage(Language::RU);
+        $translator = new Translator(Language::RU);
 
         $this->assertSame(
-            'Некорректные данные запроса',
-            Translator::translate('Invalid payload'),
+            'Что-то пошло не так',
+            $translator->translate('Something went wrong'),
         );
     }
 
     public function testTranslateFallsBackToEnglishForMissingKey(): void
     {
         $tmpFile = tempnam(sys_get_temp_dir(), 'bvb_missing_');
-        Translator::setInstance(new Translator(Language::RU, $tmpFile));
+        $translator = new Translator(Language::RU, $tmpFile);
 
         try {
-            $this->assertSame('Unknown key', Translator::translate('Unknown key'));
+            $this->assertSame('Unknown key', $translator->translate('Unknown key'));
         } finally {
             @unlink($tmpFile);
         }
     }
 
-    public function testGetInstanceReturnsEnByDefault(): void
-    {
-        $this->assertTrue(Translator::getInstance()->isDefaultLanguage());
-    }
-
-    public function testSetInstanceReplacesSingleton(): void
-    {
-        $translator = new Translator(Language::RU);
-        Translator::setInstance($translator);
-
-        $this->assertSame($translator, Translator::getInstance());
-    }
-
-    public function testSetLanguageUpdatesSingleton(): void
-    {
-        Translator::setLanguage(Language::RU);
-
-        $this->assertFalse(Translator::getInstance()->isDefaultLanguage());
-    }
-
-    public function testResetRestoresDefaultSingleton(): void
-    {
-        Translator::setLanguage(Language::RU);
-        Translator::reset();
-
-        $this->assertTrue(Translator::getInstance()->isDefaultLanguage());
-    }
-
     public function testMissingTranslationIsWrittenToFile(): void
     {
         $tmpFile = tempnam(sys_get_temp_dir(), 'bvb_missing_');
-        Translator::setInstance(new Translator(Language::RU, $tmpFile));
+        $translator = new Translator(Language::RU, $tmpFile);
 
         try {
-            Translator::translate('This key does not exist');
+            $translator->translate('This key does not exist');
 
             $written = json_decode(file_get_contents($tmpFile), true);
             $this->assertContains('This key does not exist', $written[Language::RU]);
@@ -103,11 +67,11 @@ final class TranslatorTest extends TestCase
     public function testMissingTranslationIsNotTrackedTwice(): void
     {
         $tmpFile = tempnam(sys_get_temp_dir(), 'bvb_missing_');
-        Translator::setInstance(new Translator(Language::RU, $tmpFile));
+        $translator = new Translator(Language::RU, $tmpFile);
 
         try {
-            Translator::translate('Duplicate key');
-            Translator::translate('Duplicate key');
+            $translator->translate('Duplicate key');
+            $translator->translate('Duplicate key');
 
             $written     = json_decode(file_get_contents($tmpFile), true);
             $occurrences = array_count_values($written[Language::RU]);
@@ -120,10 +84,10 @@ final class TranslatorTest extends TestCase
     public function testMissingTranslationIsNotTrackedForDefaultLanguage(): void
     {
         $tmpFile = tempnam(sys_get_temp_dir(), 'bvb_missing_');
-        Translator::setInstance(new Translator(Language::EN, $tmpFile));
+        $translator = new Translator(Language::EN, $tmpFile);
 
         try {
-            Translator::translate('Any English text');
+            $translator->translate('Any English text');
 
             $this->assertSame('', file_get_contents($tmpFile));
         } finally {

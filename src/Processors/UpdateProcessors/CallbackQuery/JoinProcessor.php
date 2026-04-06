@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class JoinProcessor extends AbstractActionProcessor
+class JoinProcessor extends AbstractCallbackProcessor
 {
     public function process(TelegramUpdate $update): void
     {
@@ -20,7 +20,7 @@ class JoinProcessor extends AbstractActionProcessor
         $gameId = $gameManager->resolveGameIdByInlineMessageId($inlineMessageId);
 
         if (null === $gameId) {
-            $this->telegramSender->answerCallbackQuery($callbackQuery->id, CallbackAnswer::GAME_NOT_FOUND);
+            $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_NOT_FOUND);
 
             return;
         }
@@ -28,6 +28,6 @@ class JoinProcessor extends AbstractActionProcessor
         $gameManager->joinGame($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
 
         $this->refreshInlineMessage($inlineMessageId);
-        $this->telegramSender->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOINED);
+        $this->answerCallbackQuery($callbackQuery, CallbackAnswer::JOINED);
     }
 }
