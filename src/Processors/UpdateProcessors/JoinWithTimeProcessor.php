@@ -16,14 +16,14 @@ class JoinWithTimeProcessor extends AbstractActionReplyProcessor
         $message = $update->message;
         $from = $message->from;
 
+        if (null === $message->replyToMessage) { //Ignore none replies
+            return;
+        }
+
         $time = TimeExtractor::extract($message->text ?? '');
         if (null === $time) {
             $this->reactConfused($message);
 
-            return;
-        }
-
-        if (null === $message->replyToMessage) {
             return;
         }
 
@@ -44,7 +44,7 @@ class JoinWithTimeProcessor extends AbstractActionReplyProcessor
             return;
         }
 
-        $gameManager->joinWithTime(
+        $gameManager->setPlayerTime(
             $gameLookup->gameId,
             $from->id,
             $from->firstName,

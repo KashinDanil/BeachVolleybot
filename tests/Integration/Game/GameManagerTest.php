@@ -282,7 +282,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->createGame();
 
-        $this->gameManager->joinWithTime($gameId, 200, 'Danil', null, null, '19:30');
+        $this->gameManager->setPlayerTime($gameId, 200, 'Danil', null, null, '19:30');
 
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
         $this->assertNotNull($gamePlayer);
@@ -297,7 +297,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame();
         $this->seedPlayer($gameId, 200, position: 1);
 
-        $this->gameManager->joinWithTime($gameId, 200, 'Danil', null, null, '20:00');
+        $this->gameManager->setPlayerTime($gameId, 200, 'Danil', null, null, '20:00');
 
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
         $this->assertSame('20:00', $gamePlayer['time']);

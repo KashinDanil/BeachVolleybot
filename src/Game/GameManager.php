@@ -67,16 +67,8 @@ readonly class GameManager
         ?string $username,
     ): void {
         $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
-
-        if (null === $this->gamePlayerRepository->findByGamePlayer($gameId, $telegramUserId)) {
-            $this->gamePlayerRepository->create($gameId, $telegramUserId);
-        }
-
-        $this->gameSlotRepository->create(
-            $gameId,
-            $telegramUserId,
-            $this->gameSlotRepository->getNextPosition($gameId),
-        );
+        $this->ensureGamePlayer($gameId, $telegramUserId);
+        $this->addSlot($gameId, $telegramUserId);
     }
 
     public function leaveGame(int $gameId, int $telegramUserId): LeaveResult
@@ -157,7 +149,7 @@ readonly class GameManager
         $this->gameRepository->updateLocation($gameId, $location);
     }
 
-    public function joinWithTime(
+    public function setPlayerTime(
         int $gameId,
         int $telegramUserId,
         string $firstName,
@@ -167,15 +159,12 @@ readonly class GameManager
     ): void {
         $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
 
-        if (!$this->gamePlayerRepository->updateTime($gameId, $telegramUserId, $time)) {
-            $this->gamePlayerRepository->create($gameId, $telegramUserId, $time);
-
-            $this->gameSlotRepository->create(
-                $gameId,
-                $telegramUserId,
-                $this->gameSlotRepository->getNextPosition($gameId),
-            );
+        if ($this->gamePlayerRepository->updateTime($gameId, $telegramUserId, $time)) {
+            return;
         }
+
+        $this->gamePlayerRepository->create($gameId, $telegramUserId, $time);
+        $this->addSlot($gameId, $telegramUserId);
     }
 
     public function resolveGameIdByInlineMessageId(string $inlineMessageId): ?int
@@ -195,5 +184,32 @@ readonly class GameManager
             (int)$row['game_id'],
             (string)$row['inline_message_id'],
         );
+    }
+
+    private function ensureGamePlayer(int $gameId, int $telegramUserId): void
+    {
+        if (null === $this->gamePlayerRepository->findByGamePlayer($gameId, $telegramUserId)) {
+            $this->gamePlayerRepository->create($gameId, $telegramUserId, $this->resolveGameTime($gameId));
+        }
+    }
+
+    private function addSlot(int $gameId, int $telegramUserId): void
+    {
+        $this->gameSlotRepository->create(
+            $gameId,
+            $telegramUserId,
+            $this->gameSlotRepository->getNextPosition($gameId),
+        );
+    }
+
+    private function resolveGameTime(int $gameId): ?string
+    {
+        $title = $this->gameRepository->findTitleByGameId($gameId);
+
+        if (null === $title) {
+            return null;
+        }
+
+        return TimeExtractor::extract($title);
     }
 }
