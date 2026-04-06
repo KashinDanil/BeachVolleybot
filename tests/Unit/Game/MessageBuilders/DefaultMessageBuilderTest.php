@@ -61,6 +61,30 @@ final class DefaultMessageBuilderTest extends TestCase
         $this->assertSame('Beach Game 18:00' . self::SEPARATOR . "1. Alice\n2. Bob" . self::SEPARATOR . 'See you there!', $text);
     }
 
+    // --- Text: location ---
+
+    public function testLocationAppearsAfterTitle(): void
+    {
+        $game = $this->game('Beach Game 18:00', [
+            $this->player('1', 'Alice'),
+        ], location: '41.399747,2.20778');
+
+        $text = $this->builder->build($game)->getText()->getMessageText();
+
+        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '[📍 Location](https://maps.google.com/?q=41.399747,2.20778)' . self::SEPARATOR . '1. Alice', $text);
+    }
+
+    public function testLocationOmittedWhenNull(): void
+    {
+        $game = $this->game('Beach Game 18:00', [
+            $this->player('1', 'Alice'),
+        ]);
+
+        $text = $this->builder->build($game)->getText()->getMessageText();
+
+        $this->assertStringNotContainsString('41.399747', $text);
+    }
+
     // --- Text: player name and link ---
 
     public function testPlayerNameWithoutLink(): void
@@ -411,6 +435,7 @@ final class DefaultMessageBuilderTest extends TestCase
         string $header,
         array $players,
         ?string $footer = null,
+        ?string $location = null,
         string $gameTime = '18:00',
         int $gameId = 1,
         string $inlineQueryId = 'query_1',
@@ -419,6 +444,7 @@ final class DefaultMessageBuilderTest extends TestCase
         $game->method('getGameId')->willReturn($gameId);
         $game->method('getInlineQueryId')->willReturn($inlineQueryId);
         $game->method('getTitle')->willReturn($header);
+        $game->method('getLocation')->willReturn($location);
         $game->method('getPlayers')->willReturn($players);
         $game->method('getFooter')->willReturn($footer);
         $game->method('getTime')->willReturn($gameTime);

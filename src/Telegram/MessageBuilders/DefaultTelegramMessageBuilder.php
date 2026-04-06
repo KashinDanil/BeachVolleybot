@@ -70,11 +70,21 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     {
         $sections = array_filter([
             $game->getTitle(),
+            $this->buildLocationLink($game->getLocation()),
             $this->buildPlayerList($game),
             $game->getFooter(),
         ]);
 
         return implode(self::SEPARATOR, $sections);
+    }
+
+    private function buildLocationLink(?string $location): ?string
+    {
+        if (null === $location) {
+            return null;
+        }
+
+        return sprintf('[📍 Location](https://maps.google.com/?q=%s)', $location);
     }
 
     private function buildPlayerList(GameInterface $game): string
