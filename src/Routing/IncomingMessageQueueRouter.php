@@ -120,7 +120,7 @@ readonly class IncomingMessageQueueRouter
 
     private function skip(string $reason, array $context): null
     {
-        Logger::logApp($reason . ', skipping: ' . json_encode($context));
+        Logger::logVerbose($reason . ', skipping: ' . json_encode($context) . PHP_EOL);
 
         return null;
     }

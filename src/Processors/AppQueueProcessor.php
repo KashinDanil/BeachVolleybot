@@ -38,7 +38,7 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
         $processor = $this->resolveProcessor($update, $telegramSender);
 
         if (null === $processor) {
-            Logger::logApp('No processor found for update ' . $update->updateId);
+            Logger::logVerbose('No processor found for update ' . $update->updateId);
 
             return false;
         }
