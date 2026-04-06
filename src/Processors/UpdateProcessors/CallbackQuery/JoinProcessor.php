@@ -13,7 +13,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class SignUpProcessor extends AbstractActionProcessor
+class JoinProcessor extends AbstractActionProcessor
 {
     public function process(TelegramUpdate $update): void
     {
@@ -39,7 +39,7 @@ class SignUpProcessor extends AbstractActionProcessor
         $slotRepo = new GameSlotRepository($db);
         $slotRepo->create($gameId, $from->id, $slotRepo->getNextPosition($gameId));
 
-        $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::SIGNED_UP);
+        $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOINED);
         new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
     }
 }

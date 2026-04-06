@@ -327,8 +327,8 @@ final class DefaultMessageBuilderTest extends TestCase
         $game = $this->game('Game 18:00', []);
         $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
-        $this->assertSame('Sign Out', $keyboard[0][0]['text']);
-        $this->assertSame('Sign Up', $keyboard[0][1]['text']);
+        $this->assertSame('Leave', $keyboard[0][0]['text']);
+        $this->assertSame('Join', $keyboard[0][1]['text']);
         $this->assertSame('-🏐', $keyboard[1][0]['text']);
         $this->assertSame('+🏐', $keyboard[1][1]['text']);
         $this->assertSame('-🕸️', $keyboard[2][0]['text']);
@@ -372,8 +372,8 @@ final class DefaultMessageBuilderTest extends TestCase
         $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         $expected = [
-            [0, 0, 'so'],
-            [0, 1, 'su'],
+            [0, 0, 'l'],
+            [0, 1, 'j'],
             [1, 0, 'rv'],
             [1, 1, 'av'],
             [2, 0, 'rn'],

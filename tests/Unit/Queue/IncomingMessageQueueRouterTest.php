@@ -211,8 +211,8 @@ final class IncomingMessageQueueRouterTest extends TestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Sign Out', 'callback_data' => json_encode(['a' => 'rp', 'q' => $inlineQueryId])],
-                                ['text' => 'Sign Up', 'callback_data' => json_encode(['a' => 'ap'])],
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'rp', 'q' => $inlineQueryId])],
+                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'ap'])],
                             ],
                         ],
                     ],

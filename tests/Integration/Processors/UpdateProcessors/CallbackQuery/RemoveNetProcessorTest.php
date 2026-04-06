@@ -54,14 +54,14 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
-    public function testAnswersSignUpFirstWhenPlayerNotInGame(): void
+    public function testAnswersJoinFirstWhenPlayerNotInGame(): void
     {
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
         new RemoveNetProcessor($this->bot)->process($update);
 
-        $this->assertAnsweredWith(CallbackAnswer::SIGN_UP_FIRST);
+        $this->assertAnsweredWith(CallbackAnswer::JOIN_FIRST);
         $this->assertMessageNotEdited();
     }
 

@@ -32,7 +32,7 @@ class RemoveNetProcessor extends AbstractActionProcessor
         $netCount = $gamePlayerRepo->findNetCount($gameId, $from->id);
 
         if (null === $netCount) {
-            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::SIGN_UP_FIRST);
+            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOIN_FIRST);
 
             return;
         }

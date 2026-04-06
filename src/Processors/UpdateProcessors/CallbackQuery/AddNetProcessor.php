@@ -31,7 +31,7 @@ class AddNetProcessor extends AbstractActionProcessor
         $updated = new GamePlayerRepository($db)->incrementNet($gameId, $from->id);
 
         if (!$updated) {
-            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::SIGN_UP_FIRST);
+            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOIN_FIRST);
 
             return;
         }

@@ -36,8 +36,8 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     {
         return [
             [ // The first button is the meta-button — it carries the inline query ID, needed when a callback arrives on an inline message
-                $this->buildButton('Sign Out', $this->buildCallbackData(CallbackAction::SignOut, $game->getInlineQueryId())),
-                $this->buildButton('Sign Up', $this->buildCallbackData(CallbackAction::SignUp)),
+                $this->buildButton('Leave', $this->buildCallbackData(CallbackAction::Leave, $game->getInlineQueryId())),
+                $this->buildButton('Join', $this->buildCallbackData(CallbackAction::Join)),
             ],
             [
                 $this->buildButton('-' . self::VOLLEYBALL_EMOJI, $this->buildCallbackData(CallbackAction::RemoveVolleyball)),

@@ -8,7 +8,7 @@ use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\SignUpWithTimeProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 use TelegramBot\Api\BotApi;
@@ -40,7 +40,7 @@ class AppQueueProcessor implements QueueProcessorInterface
         }
 
         if (null !== $update->message) {
-            return new SignUpWithTimeProcessor($bot);
+            return new JoinWithTimeProcessor($bot);
         }
 
         if (null !== $update->callbackQuery) {

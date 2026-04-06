@@ -32,7 +32,7 @@ class RemoveVolleyballProcessor extends AbstractActionProcessor
         $volleyballCount = $gamePlayerRepo->findVolleyballCount($gameId, $from->id);
 
         if (null === $volleyballCount) {
-            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::SIGN_UP_FIRST);
+            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOIN_FIRST);
 
             return;
         }

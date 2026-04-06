@@ -14,7 +14,7 @@ use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class SignUpWithTimeProcessor extends AbstractActionProcessor
+class JoinWithTimeProcessor extends AbstractActionProcessor
 {
     public function process(TelegramUpdate $update): void
     {

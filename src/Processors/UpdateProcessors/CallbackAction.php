@@ -8,15 +8,15 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\AddNetProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\AddVolleyballProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveNetProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveVolleyballProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\SignOutProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\SignUpProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\LeaveProcessor;
 use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
 use TelegramBot\Api\BotApi;
 
 enum CallbackAction: string
 {
-    case SignUp = 'su';
-    case SignOut = 'so';
+    case Join = 'j';
+    case Leave = 'l';
     case AddVolleyball = 'av';
     case RemoveVolleyball = 'rv';
     case AddNet = 'an';
@@ -36,8 +36,8 @@ enum CallbackAction: string
     public function resolveProcessor(BotApi $bot): AbstractActionProcessor
     {
         return match ($this) {
-            self::SignUp => new SignUpProcessor($bot),
-            self::SignOut => new SignOutProcessor($bot),
+            self::Join => new JoinProcessor($bot),
+            self::Leave => new LeaveProcessor($bot),
             self::AddVolleyball => new AddVolleyballProcessor($bot),
             self::RemoveVolleyball => new RemoveVolleyballProcessor($bot),
             self::AddNet => new AddNetProcessor($bot),

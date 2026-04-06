@@ -12,7 +12,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class SignOutProcessor extends AbstractActionProcessor
+class LeaveProcessor extends AbstractActionProcessor
 {
     public function process(TelegramUpdate $update): void
     {
@@ -33,7 +33,7 @@ class SignOutProcessor extends AbstractActionProcessor
         $positions = $slotRepo->findPositionsByPlayer($gameId, $from->id);
 
         if (empty($positions)) {
-            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::NOT_SIGNED_UP);
+            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::NOT_JOINED);
 
             return;
         }
@@ -44,7 +44,7 @@ class SignOutProcessor extends AbstractActionProcessor
             new GamePlayerRepository($db)->delete($gameId, $from->id);
         }
 
-        $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::SIGNED_OUT);
+        $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::LEFT);
         new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
     }
 }

@@ -147,8 +147,8 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Sign Out', 'callback_data' => json_encode(['a' => 'so', 'q' => $inlineQueryId])],
-                                ['text' => 'Sign Up', 'callback_data' => json_encode(['a' => 'su'])],
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],

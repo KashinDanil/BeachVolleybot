@@ -7,18 +7,18 @@ namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQ
 use BeachVolleybot\Database\GamePlayerRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\SignUpProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 
-final class SignUpProcessorTest extends ProcessorTestCase
+final class JoinProcessorTest extends ProcessorTestCase
 {
-    public function testSignsUpNewPlayer(): void
+    public function testJoinsNewPlayer(): void
     {
         $gameId = $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new SignUpProcessor($this->bot)->process($update);
+        new JoinProcessor($this->bot)->process($update);
 
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
         $this->assertNotNull($gamePlayer);
@@ -29,44 +29,44 @@ final class SignUpProcessorTest extends ProcessorTestCase
         $gameId = $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new SignUpProcessor($this->bot)->process($update);
+        new JoinProcessor($this->bot)->process($update);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
         $this->assertSame(1, (int) $slots[0]['position']);
     }
 
-    public function testSecondSignUpAddsExtraSlot(): void
+    public function testSecondJoinAddsExtraSlot(): void
     {
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new SignUpProcessor($this->bot)->process($update);
+        new JoinProcessor($this->bot)->process($update);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(2, $slots);
         $this->assertSame(2, (int) $slots[1]['position']);
     }
 
-    public function testSecondSignUpDoesNotDuplicateGamePlayer(): void
+    public function testSecondJoinDoesNotDuplicateGamePlayer(): void
     {
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new SignUpProcessor($this->bot)->process($update);
+        new JoinProcessor($this->bot)->process($update);
 
         $gamePlayers = new GamePlayerRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $gamePlayers);
     }
 
-    public function testAnswersWithSignedUp(): void
+    public function testAnswersWithJoined(): void
     {
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new SignUpProcessor($this->bot)->process($update);
+        new JoinProcessor($this->bot)->process($update);
 
-        $this->assertAnsweredWith(CallbackAnswer::SIGNED_UP);
+        $this->assertAnsweredWith(CallbackAnswer::JOINED);
     }
 
     public function testRefreshesInlineMessage(): void
@@ -74,7 +74,7 @@ final class SignUpProcessorTest extends ProcessorTestCase
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new SignUpProcessor($this->bot)->process($update);
+        new JoinProcessor($this->bot)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -83,7 +83,7 @@ final class SignUpProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('nonexistent_msg');
 
-        new SignUpProcessor($this->bot)->process($update);
+        new JoinProcessor($this->bot)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();
@@ -92,7 +92,7 @@ final class SignUpProcessorTest extends ProcessorTestCase
     private function buildUpdate(string $inlineMessageId, int $fromId = 200): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'su']), $fromId),
+            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'j']), $fromId),
         );
     }
 }
