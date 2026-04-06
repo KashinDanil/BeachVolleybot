@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
 use BeachVolleybot\Database\GamePlayerRepository;
+use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\AddNetProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -45,13 +46,21 @@ final class AddNetProcessorTest extends ProcessorTestCase
 
     public function testAutoJoinsAndAddsNetWhenPlayerNotInGame(): void
     {
-        $this->seedFullGame();
+        $gameId = $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
         new AddNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::NET_ADDED);
         $this->assertMessageEdited();
+
+        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
+        $this->assertNotNull($gamePlayer);
+        $this->assertSame(1, $gamePlayer['net']);
+
+        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $this->assertCount(1, $slots);
+        $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
     }
 
     public function testAnswersGameNotFoundWhenGameMissing(): void

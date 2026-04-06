@@ -196,6 +196,21 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame(EquipmentResult::Added, $result);
         $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
         $this->assertSame(1, new GamePlayerRepository($this->db)->findNetCount($gameId, 200));
+
+        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $this->assertCount(1, $slots);
+        $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
+    }
+
+    public function testAddNetDoesNotDuplicateSlotForExistingPlayer(): void
+    {
+        $gameId = $this->createGame();
+        $this->seedPlayer($gameId, 200, position: 1);
+
+        $this->gameManager->addNet($gameId, 200, 'Danil', null, null);
+
+        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $this->assertCount(1, $slots);
     }
 
     // --- removeNet ---
@@ -252,6 +267,21 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame(EquipmentResult::Added, $result);
         $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
         $this->assertSame(1, new GamePlayerRepository($this->db)->findVolleyballCount($gameId, 200));
+
+        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $this->assertCount(1, $slots);
+        $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
+    }
+
+    public function testAddVolleyballDoesNotDuplicateSlotForExistingPlayer(): void
+    {
+        $gameId = $this->createGame();
+        $this->seedPlayer($gameId, 200, position: 1);
+
+        $this->gameManager->addVolleyball($gameId, 200, 'Danil', null, null);
+
+        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $this->assertCount(1, $slots);
     }
 
     // --- removeVolleyball ---
@@ -314,7 +344,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertCount(1, $slots);
     }
 
-    public function testJoinWithTimeUpdatesTimeForExistingPlayer(): void
+    public function testSetPlayerTimeDoesNotDuplicateSlotForExistingPlayer(): void
     {
         $gameId = $this->createGame();
         $this->seedPlayer($gameId, 200, position: 1);

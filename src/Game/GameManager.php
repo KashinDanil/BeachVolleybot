@@ -97,8 +97,7 @@ readonly class GameManager
         ?string $lastName,
         ?string $username,
     ): EquipmentResult {
-        $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
-        $this->ensureGamePlayer($gameId, $telegramUserId);
+        $this->ensurePlayerInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
 
         if (!$this->gamePlayerRepository->incrementNet($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
@@ -137,8 +136,7 @@ readonly class GameManager
         ?string $lastName,
         ?string $username,
     ): EquipmentResult {
-        $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
-        $this->ensureGamePlayer($gameId, $telegramUserId);
+        $this->ensurePlayerInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
 
         if (!$this->gamePlayerRepository->incrementVolleyball($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
@@ -179,12 +177,9 @@ readonly class GameManager
         ?string $username,
         string $time,
     ): void {
-        $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
+        $this->ensurePlayerInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
 
-        if (!$this->gamePlayerRepository->updateTime($gameId, $telegramUserId, $time)) {
-            $this->gamePlayerRepository->create($gameId, $telegramUserId, $time);
-            $this->addSlot($gameId, $telegramUserId);
-        }
+        $this->gamePlayerRepository->updateTime($gameId, $telegramUserId, $time);
 
         $this->recalculateGameTime($gameId);
     }
@@ -213,6 +208,25 @@ readonly class GameManager
         if (null === $this->gamePlayerRepository->findByGamePlayer($gameId, $telegramUserId)) {
             $this->gamePlayerRepository->create($gameId, $telegramUserId, $this->resolveGameTime($gameId));
         }
+    }
+
+    private function ensureGamePlayerSlot(int $gameId, int $telegramUserId): void
+    {
+        if (empty($this->gameSlotRepository->findPositionsByPlayer($gameId, $telegramUserId))) {
+            $this->addSlot($gameId, $telegramUserId);
+        }
+    }
+
+    private function ensurePlayerInGame(
+        int $gameId,
+        int $telegramUserId,
+        string $firstName,
+        ?string $lastName,
+        ?string $username,
+    ): void {
+        $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
+        $this->ensureGamePlayer($gameId, $telegramUserId);
+        $this->ensureGamePlayerSlot($gameId, $telegramUserId);
     }
 
     private function addSlot(int $gameId, int $telegramUserId): void
