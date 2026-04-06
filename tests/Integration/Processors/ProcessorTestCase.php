@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
 
 abstract class ProcessorTestCase extends DatabaseTestCase
 {
     protected BotApiStub $bot;
+    protected TelegramMessageSender $telegramSender;
 
     protected function setUp(): void
     {
@@ -19,6 +21,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         @mkdir(BASE_LOG_DIR, 0777, true);
 
         $this->bot = new BotApiStub();
+        $this->telegramSender = new TelegramMessageSender($this->bot);
     }
 
     protected function tearDown(): void

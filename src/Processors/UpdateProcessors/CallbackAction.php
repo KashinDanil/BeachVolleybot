@@ -11,7 +11,7 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveVolleyballPro
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\LeaveProcessor;
 use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
-use TelegramBot\Api\BotApi;
+use BeachVolleybot\Telegram\TelegramMessageSender;
 
 enum CallbackAction: string
 {
@@ -33,15 +33,15 @@ enum CallbackAction: string
         return self::tryFrom($data[DefaultTelegramMessageBuilder::KEY_ACTION] ?? '');
     }
 
-    public function resolveProcessor(BotApi $bot): AbstractActionProcessor
+    public function resolveProcessor(TelegramMessageSender $telegramSender): AbstractActionProcessor
     {
         return match ($this) {
-            self::Join => new JoinProcessor($bot),
-            self::Leave => new LeaveProcessor($bot),
-            self::AddVolleyball => new AddVolleyballProcessor($bot),
-            self::RemoveVolleyball => new RemoveVolleyballProcessor($bot),
-            self::AddNet => new AddNetProcessor($bot),
-            self::RemoveNet => new RemoveNetProcessor($bot),
+            self::Join => new JoinProcessor($telegramSender),
+            self::Leave => new LeaveProcessor($telegramSender),
+            self::AddVolleyball => new AddVolleyballProcessor($telegramSender),
+            self::RemoveVolleyball => new RemoveVolleyballProcessor($telegramSender),
+            self::AddNet => new AddNetProcessor($telegramSender),
+            self::RemoveNet => new RemoveNetProcessor($telegramSender),
         };
     }
 }

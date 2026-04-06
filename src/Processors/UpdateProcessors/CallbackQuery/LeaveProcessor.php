@@ -20,7 +20,7 @@ class LeaveProcessor extends AbstractActionProcessor
         $gameId = $gameManager->resolveGameIdByInlineMessageId($inlineMessageId);
 
         if (null === $gameId) {
-            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::GAME_NOT_FOUND);
+            $this->telegramSender->answerCallbackQuery($callbackQuery->id, CallbackAnswer::GAME_NOT_FOUND);
 
             return;
         }
@@ -36,6 +36,6 @@ class LeaveProcessor extends AbstractActionProcessor
             $this->refreshInlineMessage($inlineMessageId);
         }
 
-        $this->bot->answerCallbackQuery($callbackQuery->id, $callbackAnswer);
+        $this->telegramSender->answerCallbackQuery($callbackQuery->id, $callbackAnswer);
     }
 }

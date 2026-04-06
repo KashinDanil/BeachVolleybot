@@ -11,6 +11,7 @@ use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Telegram\TelegramMessageSender;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 use TelegramBot\Api\BotApi;
 
@@ -19,9 +20,9 @@ class AppQueueProcessor implements QueueProcessorInterface
     public function process(QueueMessage $message): bool
     {
         $update = TelegramUpdate::fromArray($message->payload);
-        $bot = new BotApi(TG_BOT_ACCESS_TOKEN);
+        $telegramSender = new TelegramMessageSender(new BotApi(TG_BOT_ACCESS_TOKEN));
 
-        $processor = $this->resolveProcessor($update, $bot);
+        $processor = $this->resolveProcessor($update, $telegramSender);
 
         if (null === $processor) {
             Logger::logApp('No processor found for update ' . $update->updateId);
@@ -34,31 +35,31 @@ class AppQueueProcessor implements QueueProcessorInterface
         return true;
     }
 
-    private function resolveProcessor(TelegramUpdate $update, BotApi $bot): ?AbstractActionProcessor
+    private function resolveProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
     {
         if (null !== $update->chosenInlineResult) {
-            return new CreateGameProcessor($bot);
+            return new CreateGameProcessor($telegramSender);
         }
 
         if (null !== $update->message) {
-            return $this->resolveMessageProcessor($update, $bot);
+            return $this->resolveMessageProcessor($update, $telegramSender);
         }
 
         if (null !== $update->callbackQuery) {
-            return CallbackAction::fromCallbackData($update->callbackQuery->data)?->resolveProcessor($bot);
+            return CallbackAction::fromCallbackData($update->callbackQuery->data)?->resolveProcessor($telegramSender);
         }
 
         return null;
     }
 
-    private function resolveMessageProcessor(TelegramUpdate $update, BotApi $bot): ?AbstractActionProcessor
+    private function resolveMessageProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
     {
         if (null !== $update->message->location) {
-            return new SetLocationProcessor($bot);
+            return new SetLocationProcessor($telegramSender);
         }
 
         if (null !== $update->message->text) {
-            return new JoinWithTimeProcessor($bot);
+            return new JoinWithTimeProcessor($telegramSender);
         }
 
         return null;

@@ -17,7 +17,7 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200, volleyball: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new AddVolleyballProcessor($this->bot)->process($update);
+        new AddVolleyballProcessor($this->telegramSender)->process($update);
 
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
         $this->assertSame(2, $gamePlayer['volleyball']);
@@ -28,7 +28,7 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200);
         $update = $this->buildUpdate('msg_1');
 
-        new AddVolleyballProcessor($this->bot)->process($update);
+        new AddVolleyballProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::VOLLEYBALL_ADDED);
     }
@@ -38,7 +38,7 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200);
         $update = $this->buildUpdate('msg_1');
 
-        new AddVolleyballProcessor($this->bot)->process($update);
+        new AddVolleyballProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -48,7 +48,7 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new AddVolleyballProcessor($this->bot)->process($update);
+        new AddVolleyballProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::JOIN_FIRST);
         $this->assertMessageNotEdited();
@@ -58,7 +58,7 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('nonexistent_msg');
 
-        new AddVolleyballProcessor($this->bot)->process($update);
+        new AddVolleyballProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();

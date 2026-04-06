@@ -17,7 +17,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 2);
         $update = $this->buildUpdate('msg_1');
 
-        new RemoveNetProcessor($this->bot)->process($update);
+        new RemoveNetProcessor($this->telegramSender)->process($update);
 
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
         $this->assertSame(1, $gamePlayer['net']);
@@ -28,7 +28,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200, net: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new RemoveNetProcessor($this->bot)->process($update);
+        new RemoveNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::NET_REMOVED);
     }
@@ -38,7 +38,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200, net: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new RemoveNetProcessor($this->bot)->process($update);
+        new RemoveNetProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -48,7 +48,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200, net: 0);
         $update = $this->buildUpdate('msg_1');
 
-        new RemoveNetProcessor($this->bot)->process($update);
+        new RemoveNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::NO_NETS);
         $this->assertMessageNotEdited();
@@ -59,7 +59,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new RemoveNetProcessor($this->bot)->process($update);
+        new RemoveNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::JOIN_FIRST);
         $this->assertMessageNotEdited();
@@ -69,7 +69,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('nonexistent_msg');
 
-        new RemoveNetProcessor($this->bot)->process($update);
+        new RemoveNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();

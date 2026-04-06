@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Unit\Telegram\Outgoing;
 use BeachVolleybot\Errors\ValidationError;
 use BeachVolleybot\Processors\UpdateProcessors\InlineQueryProcessor;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
+use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
 use BeachVolleybot\Validator\Rules\TimeInTitleRule;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +34,7 @@ final class InlineQueryErrorTest extends TestCase
 
     public function testAllProcessorValidationRulesAreCovered(): void
     {
-        $processor = new InlineQueryProcessor(new BotApiStub());
+        $processor = new InlineQueryProcessor(new TelegramMessageSender(new BotApiStub()));
         $rules = $processor->validationRules('');
 
         foreach ($rules as $rule) {

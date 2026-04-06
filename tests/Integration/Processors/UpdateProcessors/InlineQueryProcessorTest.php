@@ -15,7 +15,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('query_1', 'Beach Game 18:00');
 
-        new InlineQueryProcessor($this->bot)->process($update);
+        new InlineQueryProcessor($this->telegramSender)->process($update);
 
         $this->assertInlineQueryAnswered();
     }
@@ -24,7 +24,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('query_1', 'Beach Game');
 
-        new InlineQueryProcessor($this->bot)->process($update);
+        new InlineQueryProcessor($this->telegramSender)->process($update);
 
         $this->assertInlineQueryAnswered();
         $call = $this->lastInlineQueryCall();

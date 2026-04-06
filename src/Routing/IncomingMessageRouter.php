@@ -6,12 +6,12 @@ namespace BeachVolleybot\Routing;
 
 use BeachVolleybot\Processors\UpdateProcessors\InlineQueryProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use TelegramBot\Api\BotApi;
+use BeachVolleybot\Telegram\TelegramMessageSender;
 
 readonly class IncomingMessageRouter
 {
     public function __construct(
-        private BotApi $bot,
+        private TelegramMessageSender $telegramSender,
         private IncomingMessageQueueRouter $queueRouter,
     ) {
     }
@@ -29,9 +29,7 @@ readonly class IncomingMessageRouter
 
     private function processInlineQuery(array $payload): void
     {
-        $processor = new InlineQueryProcessor($this->bot);
+        $processor = new InlineQueryProcessor($this->telegramSender);
         $processor->process(TelegramUpdate::fromArray($payload));
     }
-
-
 }

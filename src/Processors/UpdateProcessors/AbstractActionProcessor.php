@@ -7,12 +7,11 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 use BeachVolleybot\Telegram\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use TelegramBot\Api\BotApi;
 
 abstract class AbstractActionProcessor
 {
     public function __construct(
-        protected readonly BotApi $bot,
+        protected readonly TelegramMessageSender $telegramSender,
     ) {
     }
 
@@ -20,7 +19,7 @@ abstract class AbstractActionProcessor
 
     protected function refreshInlineMessage(string $inlineMessageId): void
     {
-        $refresher = new InlineMessageRefresher(new TelegramMessageSender($this->bot));
+        $refresher = new InlineMessageRefresher($this->telegramSender);
         $refresher->refresh($inlineMessageId);
     }
 }

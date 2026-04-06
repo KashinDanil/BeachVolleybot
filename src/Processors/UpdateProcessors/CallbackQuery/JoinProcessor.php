@@ -20,7 +20,7 @@ class JoinProcessor extends AbstractActionProcessor
         $gameId = $gameManager->resolveGameIdByInlineMessageId($inlineMessageId);
 
         if (null === $gameId) {
-            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::GAME_NOT_FOUND);
+            $this->telegramSender->answerCallbackQuery($callbackQuery->id, CallbackAnswer::GAME_NOT_FOUND);
 
             return;
         }
@@ -28,6 +28,6 @@ class JoinProcessor extends AbstractActionProcessor
         $gameManager->joinGame($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
 
         $this->refreshInlineMessage($inlineMessageId);
-        $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOINED);
+        $this->telegramSender->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOINED);
     }
 }

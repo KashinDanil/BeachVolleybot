@@ -18,7 +18,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('msg_1', 'query_1', 'Friday Game 18:00');
 
-        new CreateGameProcessor($this->bot)->process($update);
+        new CreateGameProcessor($this->telegramSender)->process($update);
 
         $game = new GameRepository($this->db)->findByInlineMessageId('msg_1');
         $this->assertNotNull($game);
@@ -30,7 +30,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('msg_1', 'query_1', 'Game 18:00', fromId: 300, firstName: 'Alice');
 
-        new CreateGameProcessor($this->bot)->process($update);
+        new CreateGameProcessor($this->telegramSender)->process($update);
 
         $players = new PlayerRepository($this->db)->findAll();
         $this->assertCount(1, $players);
@@ -42,7 +42,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('msg_1', 'query_1', 'Game 18:00');
 
-        new CreateGameProcessor($this->bot)->process($update);
+        new CreateGameProcessor($this->telegramSender)->process($update);
 
         $gameId = new GameRepository($this->db)->findGameIdByInlineMessageId('msg_1');
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
@@ -56,7 +56,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('msg_1', 'query_1', 'Game 18:00');
 
-        new CreateGameProcessor($this->bot)->process($update);
+        new CreateGameProcessor($this->telegramSender)->process($update);
 
         $gameId = new GameRepository($this->db)->findGameIdByInlineMessageId('msg_1');
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
@@ -70,7 +70,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('msg_1', 'query_1', 'Game 18:00');
 
-        new CreateGameProcessor($this->bot)->process($update);
+        new CreateGameProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageEdited();
     }

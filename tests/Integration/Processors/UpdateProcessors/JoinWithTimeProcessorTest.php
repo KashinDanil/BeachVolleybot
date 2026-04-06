@@ -17,7 +17,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate('15:30', 'query_1');
 
-        new JoinWithTimeProcessor($this->bot)->process($update);
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
         $this->assertNotNull($gamePlayer);
@@ -29,7 +29,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate('15:30', 'query_1');
 
-        new JoinWithTimeProcessor($this->bot)->process($update);
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
@@ -41,7 +41,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200);
         $update = $this->buildUpdate('16:00', 'query_1');
 
-        new JoinWithTimeProcessor($this->bot)->process($update);
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
         $this->assertSame('16:00', $gamePlayer['time']);
@@ -52,7 +52,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200);
         $update = $this->buildUpdate('16:00', 'query_1');
 
-        new JoinWithTimeProcessor($this->bot)->process($update);
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
@@ -63,7 +63,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate('15:30', 'query_1');
 
-        new JoinWithTimeProcessor($this->bot)->process($update);
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
         $deleteCalls = array_filter($this->bot->calls, fn($c) => 'deleteMessage' === $c['method']);
         $this->assertNotEmpty($deleteCalls);
@@ -74,7 +74,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate('15:30', 'query_1');
 
-        new JoinWithTimeProcessor($this->bot)->process($update);
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
         $reactionCalls = array_filter($this->bot->calls, fn($c) => 'call' === $c['method'] && 'setMessageReaction' === ($c['args'][0] ?? null));
         $this->assertNotEmpty($reactionCalls);
@@ -85,7 +85,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200);
         $update = $this->buildUpdate('16:00', 'query_1');
 
-        new JoinWithTimeProcessor($this->bot)->process($update);
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -95,7 +95,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate('no time here', 'query_1');
 
-        new JoinWithTimeProcessor($this->bot)->process($update);
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
         $this->assertReactedWithConfused();
         $this->assertMessageNotEdited();
@@ -105,7 +105,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('15:30', 'unknown_query');
 
-        new JoinWithTimeProcessor($this->bot)->process($update);
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
         $this->assertReactedWithConfused();
         $this->assertMessageNotEdited();
@@ -132,7 +132,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
             ],
         ];
 
-        new JoinWithTimeProcessor($this->bot)->process(TelegramUpdate::fromArray($payload));
+        new JoinWithTimeProcessor($this->telegramSender)->process(TelegramUpdate::fromArray($payload));
 
         $this->assertReactedWithConfused();
         $this->assertMessageNotEdited();

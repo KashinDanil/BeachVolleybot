@@ -18,7 +18,7 @@ final class JoinProcessorTest extends ProcessorTestCase
         $gameId = $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new JoinProcessor($this->bot)->process($update);
+        new JoinProcessor($this->telegramSender)->process($update);
 
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
         $this->assertNotNull($gamePlayer);
@@ -29,7 +29,7 @@ final class JoinProcessorTest extends ProcessorTestCase
         $gameId = $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new JoinProcessor($this->bot)->process($update);
+        new JoinProcessor($this->telegramSender)->process($update);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
@@ -41,7 +41,7 @@ final class JoinProcessorTest extends ProcessorTestCase
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new JoinProcessor($this->bot)->process($update);
+        new JoinProcessor($this->telegramSender)->process($update);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(2, $slots);
@@ -53,7 +53,7 @@ final class JoinProcessorTest extends ProcessorTestCase
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new JoinProcessor($this->bot)->process($update);
+        new JoinProcessor($this->telegramSender)->process($update);
 
         $gamePlayers = new GamePlayerRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $gamePlayers);
@@ -64,7 +64,7 @@ final class JoinProcessorTest extends ProcessorTestCase
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new JoinProcessor($this->bot)->process($update);
+        new JoinProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::JOINED);
     }
@@ -74,7 +74,7 @@ final class JoinProcessorTest extends ProcessorTestCase
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new JoinProcessor($this->bot)->process($update);
+        new JoinProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -83,7 +83,7 @@ final class JoinProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('nonexistent_msg');
 
-        new JoinProcessor($this->bot)->process($update);
+        new JoinProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();

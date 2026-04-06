@@ -11,7 +11,7 @@ abstract class AbstractActionReplyProcessor extends AbstractActionProcessor
     protected function reactWithCheckmarkAndDelete(TelegramMessage $message): void
     {
         $this->reactWithCheckmark($message);
-        $this->bot->deleteMessage($message->chat->id, $message->messageId);
+        $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);
     }
 
     protected function reactWithCheckmark(TelegramMessage $message): void
@@ -26,11 +26,7 @@ abstract class AbstractActionReplyProcessor extends AbstractActionProcessor
 
     private function react(TelegramMessage $message, string $emoji): void
     {
-        $this->bot->call('setMessageReaction', [
-            'chat_id' => $message->chat->id,
-            'message_id' => $message->messageId,
-            'reaction' => json_encode([['type' => 'emoji', 'emoji' => $emoji]]),
-        ]);
-        $this->bot->deleteMessage($message->chat->id, $message->messageId);
+        $this->telegramSender->setMessageReaction($message->chat->id, $message->messageId, $emoji);
+        $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);
     }
 }

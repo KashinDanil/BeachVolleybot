@@ -16,7 +16,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
         $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
-        new SetLocationProcessor($this->bot)->process($update);
+        new SetLocationProcessor($this->telegramSender)->process($update);
 
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertSame('41.399747,2.20778', $game['location']);
@@ -27,7 +27,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
         $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
-        new SetLocationProcessor($this->bot)->process($update);
+        new SetLocationProcessor($this->telegramSender)->process($update);
 
         $deleteCalls = array_filter($this->bot->calls, fn($c) => 'deleteMessage' === $c['method']);
         $this->assertNotEmpty($deleteCalls);
@@ -38,7 +38,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
         $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
-        new SetLocationProcessor($this->bot)->process($update);
+        new SetLocationProcessor($this->telegramSender)->process($update);
 
         $reactionCalls = array_filter($this->bot->calls, fn($c) => 'call' === $c['method'] && 'setMessageReaction' === ($c['args'][0] ?? null));
         $this->assertNotEmpty($reactionCalls);
@@ -49,7 +49,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
         $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
-        new SetLocationProcessor($this->bot)->process($update);
+        new SetLocationProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -58,7 +58,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate(41.399747, 2.207780, 'unknown_query');
 
-        new SetLocationProcessor($this->bot)->process($update);
+        new SetLocationProcessor($this->telegramSender)->process($update);
 
         $this->assertEmpty($this->bot->calls);
     }
@@ -70,7 +70,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
             $this->replyMessagePayload('hello', 'query_1'),
         );
 
-        new SetLocationProcessor($this->bot)->process($update);
+        new SetLocationProcessor($this->telegramSender)->process($update);
 
         $this->assertEmpty($this->bot->calls);
     }
@@ -96,7 +96,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
             ],
         ];
 
-        new SetLocationProcessor($this->bot)->process(TelegramUpdate::fromArray($payload));
+        new SetLocationProcessor($this->telegramSender)->process(TelegramUpdate::fromArray($payload));
 
         $this->assertEmpty($this->bot->calls);
     }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
-use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\Messages\Outgoing\ArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\ErrorArticleBuilder;
@@ -12,7 +11,6 @@ use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
 use BeachVolleybot\Validator\Rules\RuleInterface;
 use BeachVolleybot\Validator\Rules\TimeInTitleRule;
 use BeachVolleybot\Validator\Validator;
-use TelegramBot\Api\Exception;
 
 class InlineQueryProcessor extends AbstractActionProcessor
 {
@@ -29,7 +27,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
         }
 
         $article = $articleBuilder->build();
-        $this->answerInlineQuery($inlineQuery->id, [$article]);
+        $this->telegramSender->answerInlineQuery($inlineQuery->id, [$article]);
     }
 
     /** @return list<RuleInterface> */
@@ -38,14 +36,5 @@ class InlineQueryProcessor extends AbstractActionProcessor
         return [
             new TimeInTitleRule($query),
         ];
-    }
-
-    private function answerInlineQuery(string $inlineQueryId, array $results): void
-    {
-        try {
-            $this->bot->answerInlineQuery($inlineQueryId, $results);
-        } catch (Exception $exception) {
-            Logger::logApp("Failed to answer inline query $inlineQueryId: {$exception->getMessage()}");
-        }
     }
 }

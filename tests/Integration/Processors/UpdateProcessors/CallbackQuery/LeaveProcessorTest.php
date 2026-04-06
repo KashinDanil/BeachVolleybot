@@ -19,7 +19,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
         $this->createSlot($gameId, 200, 2);
         $update = $this->buildUpdate('msg_1');
 
-        new LeaveProcessor($this->bot)->process($update);
+        new LeaveProcessor($this->telegramSender)->process($update);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
@@ -31,7 +31,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new LeaveProcessor($this->bot)->process($update);
+        new LeaveProcessor($this->telegramSender)->process($update);
 
         $this->assertNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
         $this->assertSame([], new GameSlotRepository($this->db)->findByGameId($gameId));
@@ -43,7 +43,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
         $this->createSlot($gameId, 200, 2);
         $update = $this->buildUpdate('msg_1');
 
-        new LeaveProcessor($this->bot)->process($update);
+        new LeaveProcessor($this->telegramSender)->process($update);
 
         $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
     }
@@ -53,7 +53,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new LeaveProcessor($this->bot)->process($update);
+        new LeaveProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::LEFT);
     }
@@ -63,7 +63,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new LeaveProcessor($this->bot)->process($update);
+        new LeaveProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -73,7 +73,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new LeaveProcessor($this->bot)->process($update);
+        new LeaveProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::NOT_JOINED);
         $this->assertMessageNotEdited();
@@ -83,7 +83,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('nonexistent_msg');
 
-        new LeaveProcessor($this->bot)->process($update);
+        new LeaveProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();

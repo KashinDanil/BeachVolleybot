@@ -26,4 +26,28 @@ readonly class TelegramMessageSender
             $inlineMessageId,
         );
     }
+
+    public function answerCallbackQuery(string $callbackQueryId, string $text): void
+    {
+        $this->bot->answerCallbackQuery($callbackQueryId, $text);
+    }
+
+    public function answerInlineQuery(string $inlineQueryId, array $results): void
+    {
+        $this->bot->answerInlineQuery($inlineQueryId, $results);
+    }
+
+    public function deleteMessage(int $chatId, int $messageId): void
+    {
+        $this->bot->deleteMessage($chatId, $messageId);
+    }
+
+    public function setMessageReaction(int $chatId, int $messageId, string $emoji): void
+    {
+        $this->bot->call('setMessageReaction', [
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'reaction' => json_encode([['type' => 'emoji', 'emoji' => $emoji]]),
+        ]);
+    }
 }

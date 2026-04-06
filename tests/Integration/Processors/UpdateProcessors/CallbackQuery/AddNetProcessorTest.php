@@ -17,7 +17,7 @@ final class AddNetProcessorTest extends ProcessorTestCase
         $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 1);
         $update = $this->buildUpdate('msg_1');
 
-        new AddNetProcessor($this->bot)->process($update);
+        new AddNetProcessor($this->telegramSender)->process($update);
 
         $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
         $this->assertSame(2, $gamePlayer['net']);
@@ -28,7 +28,7 @@ final class AddNetProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200);
         $update = $this->buildUpdate('msg_1');
 
-        new AddNetProcessor($this->bot)->process($update);
+        new AddNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::NET_ADDED);
     }
@@ -38,7 +38,7 @@ final class AddNetProcessorTest extends ProcessorTestCase
         $this->seedGameWithPlayer(telegramUserId: 200);
         $update = $this->buildUpdate('msg_1');
 
-        new AddNetProcessor($this->bot)->process($update);
+        new AddNetProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -48,7 +48,7 @@ final class AddNetProcessorTest extends ProcessorTestCase
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
-        new AddNetProcessor($this->bot)->process($update);
+        new AddNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::JOIN_FIRST);
         $this->assertMessageNotEdited();
@@ -58,7 +58,7 @@ final class AddNetProcessorTest extends ProcessorTestCase
     {
         $update = $this->buildUpdate('nonexistent_msg');
 
-        new AddNetProcessor($this->bot)->process($update);
+        new AddNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();
