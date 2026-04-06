@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game;
 
+use BeachVolleybot\Common\TimeExtractor;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GamePlayerRepository;
 use BeachVolleybot\Database\GameRepository;
@@ -32,33 +33,28 @@ readonly class GameManager
     public function createGame(NewGameData $data): int
     {
         $this->playerRepository->upsert(
-            $data->playerRow['telegram_user_id'],
-            $data->playerRow['first_name'],
-            $data->playerRow['last_name'],
-            $data->playerRow['username'],
+            $data->telegramUserId,
+            $data->firstName,
+            $data->lastName,
+            $data->username,
         );
 
         $gameId = $this->gameRepository->create(
-            $data->gameRow['title'],
-            $data->playerRow['telegram_user_id'],
-            $data->gameRow['inline_message_id'],
-            $data->gameRow['inline_query_id'],
-            $data->gameRow['location'],
+            $data->title,
+            $data->telegramUserId,
+            $data->inlineMessageId,
+            $data->inlineQueryId,
         );
 
         $this->gamePlayerRepository->create(
             $gameId,
-            $data->gamePlayerRow['telegram_user_id'],
-            $data->gamePlayerRow['time'],
-            $data->gamePlayerRow['volleyball'],
-            $data->gamePlayerRow['net'],
+            $data->telegramUserId,
+            TimeExtractor::extract($data->title),
+            NewGameData::INITIAL_VOLLEYBALL,
+            NewGameData::INITIAL_NET,
         );
 
-        $this->gameSlotRepository->create(
-            $gameId,
-            $data->slotRow['telegram_user_id'],
-            $data->slotRow['position'],
-        );
+        $this->gameSlotRepository->create($gameId, $data->telegramUserId, NewGameData::INITIAL_POSITION);
 
         return $gameId;
     }

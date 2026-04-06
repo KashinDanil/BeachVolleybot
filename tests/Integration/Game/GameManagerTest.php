@@ -54,7 +54,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Danil', $players[0]['first_name']);
     }
 
-    public function testCreateGamePersistsGamePlayerWithInitialEquipment(): void
+    public function testCreateGamePersistsGamePlayerWithInitialEquipmentAndTime(): void
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
 
@@ -62,6 +62,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertNotNull($gamePlayer);
         $this->assertSame(NewGameData::INITIAL_VOLLEYBALL, $gamePlayer['volleyball']);
         $this->assertSame(NewGameData::INITIAL_NET, $gamePlayer['net']);
+        $this->assertSame('18:00', $gamePlayer['time']);
     }
 
     public function testCreateGamePersistsSlotAtPositionOne(): void

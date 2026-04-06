@@ -10,12 +10,16 @@ readonly class NewGameData
 {
     public const int INITIAL_VOLLEYBALL = 1;
     public const int INITIAL_NET = 1;
+    public const int INITIAL_POSITION = 1;
 
     private function __construct(
-        public array $gameRow,
-        public array $slotRow,
-        public array $gamePlayerRow,
-        public array $playerRow,
+        public int $telegramUserId,
+        public string $firstName,
+        public ?string $lastName,
+        public ?string $username,
+        public string $title,
+        public string $inlineQueryId,
+        public string $inlineMessageId,
     ) {
     }
 
@@ -25,35 +29,14 @@ readonly class NewGameData
         string $inlineQueryId,
         string $inlineMessageId = '',
     ): self {
-        $userId = $creator->id;
-
         return new self(
-            gameRow: [
-                'game_id' => 0,
-                'inline_query_id' => $inlineQueryId,
-                'inline_message_id' => $inlineMessageId,
-                'title' => $title,
-                'location' => null,
-            ],
-            slotRow: [
-                'game_id' => 0,
-                'telegram_user_id' => $userId,
-                'position' => 1,
-            ],
-            gamePlayerRow: [
-                'game_id' => 0,
-                'telegram_user_id' => $userId,
-                'volleyball' => self::INITIAL_VOLLEYBALL,
-                'net' => self::INITIAL_NET,
-                'time' => null,
-            ],
-            playerRow: [
-                'telegram_user_id' => $userId,
-                'first_name' => $creator->firstName,
-                'last_name' => $creator->lastName,
-                'username' => $creator->username,
-            ],
+            telegramUserId: $creator->id,
+            firstName: $creator->firstName,
+            lastName: $creator->lastName,
+            username: $creator->username,
+            title: $title,
+            inlineQueryId: $inlineQueryId,
+            inlineMessageId: $inlineMessageId,
         );
     }
-
 }

@@ -35,7 +35,7 @@ final readonly class ArticleBuilder implements ArticleBuilderInterface
 
     private function buildGame(): GameInterface
     {
-        return GameBuilder::fromNewGameData(
+        return GameBuilder::buildFromNewGameData(
             NewGameData::fromUser(
                 $this->inlineQuery->from,
                 $this->inlineQuery->query,
