@@ -25,11 +25,12 @@ class AddNetProcessor extends AbstractActionProcessor
             return;
         }
 
-        $result = $gameManager->addNet($gameId, $callbackQuery->from->id);
+        $from = $callbackQuery->from;
+        $result = $gameManager->addNet($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
 
         $callbackAnswer = match ($result) {
             EquipmentResult::Added => CallbackAnswer::NET_ADDED,
-            EquipmentResult::NotJoined => CallbackAnswer::JOIN_FIRST,
+            EquipmentResult::Error => CallbackAnswer::SOMETHING_WENT_WRONG,
         };
 
         if (EquipmentResult::Added === $result) {

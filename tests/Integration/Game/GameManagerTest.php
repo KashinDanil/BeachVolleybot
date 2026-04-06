@@ -181,19 +181,21 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame();
         $this->seedPlayer($gameId, 200, position: 1);
 
-        $result = $this->gameManager->addNet($gameId, 200);
+        $result = $this->gameManager->addNet($gameId, 200, 'Danil', null, null);
 
         $this->assertSame(EquipmentResult::Added, $result);
         $this->assertSame(1, new GamePlayerRepository($this->db)->findNetCount($gameId, 200));
     }
 
-    public function testAddNetReturnsNotJoinedWhenNotInGame(): void
+    public function testAddNetAutoJoinsPlayerWhenNotInGame(): void
     {
         $gameId = $this->createGame();
 
-        $result = $this->gameManager->addNet($gameId, 200);
+        $result = $this->gameManager->addNet($gameId, 200, 'Danil', null, null);
 
-        $this->assertSame(EquipmentResult::NotJoined, $result);
+        $this->assertSame(EquipmentResult::Added, $result);
+        $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
+        $this->assertSame(1, new GamePlayerRepository($this->db)->findNetCount($gameId, 200));
     }
 
     // --- removeNet ---
@@ -235,19 +237,21 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame();
         $this->seedPlayer($gameId, 200, position: 1);
 
-        $result = $this->gameManager->addVolleyball($gameId, 200);
+        $result = $this->gameManager->addVolleyball($gameId, 200, 'Danil', null, null);
 
         $this->assertSame(EquipmentResult::Added, $result);
         $this->assertSame(1, new GamePlayerRepository($this->db)->findVolleyballCount($gameId, 200));
     }
 
-    public function testAddVolleyballReturnsNotJoinedWhenNotInGame(): void
+    public function testAddVolleyballAutoJoinsPlayerWhenNotInGame(): void
     {
         $gameId = $this->createGame();
 
-        $result = $this->gameManager->addVolleyball($gameId, 200);
+        $result = $this->gameManager->addVolleyball($gameId, 200, 'Danil', null, null);
 
-        $this->assertSame(EquipmentResult::NotJoined, $result);
+        $this->assertSame(EquipmentResult::Added, $result);
+        $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
+        $this->assertSame(1, new GamePlayerRepository($this->db)->findVolleyballCount($gameId, 200));
     }
 
     // --- removeVolleyball ---
@@ -364,7 +368,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
         $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '16:00');
 
-        $this->gameManager->addNet($gameId, 201);
+        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 16:00', $title);
@@ -399,7 +403,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
         $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '15:00');
 
-        $this->gameManager->addVolleyball($gameId, 201);
+        $this->gameManager->addVolleyball($gameId, 201, 'Alice', null, null);
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 18:00', $title);
@@ -411,7 +415,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '08:00');
         $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '07:30');
 
-        $this->gameManager->addNet($gameId, 201);
+        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 07:30', $title);
@@ -435,7 +439,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
         $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '18:00');
 
-        $this->gameManager->addNet($gameId, 201);
+        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 18:00', $title);

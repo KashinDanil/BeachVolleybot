@@ -43,15 +43,15 @@ final class AddNetProcessorTest extends ProcessorTestCase
         $this->assertMessageEdited();
     }
 
-    public function testAnswersJoinFirstWhenPlayerNotInGame(): void
+    public function testAutoJoinsAndAddsNetWhenPlayerNotInGame(): void
     {
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
         new AddNetProcessor($this->telegramSender)->process($update);
 
-        $this->assertAnsweredWith(CallbackAnswer::JOIN_FIRST);
-        $this->assertMessageNotEdited();
+        $this->assertAnsweredWith(CallbackAnswer::NET_ADDED);
+        $this->assertMessageEdited();
     }
 
     public function testAnswersGameNotFoundWhenGameMissing(): void

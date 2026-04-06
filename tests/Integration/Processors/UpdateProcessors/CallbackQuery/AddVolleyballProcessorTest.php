@@ -43,15 +43,15 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
         $this->assertMessageEdited();
     }
 
-    public function testAnswersJoinFirstWhenPlayerNotInGame(): void
+    public function testAutoJoinsAndAddsVolleyballWhenPlayerNotInGame(): void
     {
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
 
         new AddVolleyballProcessor($this->telegramSender)->process($update);
 
-        $this->assertAnsweredWith(CallbackAnswer::JOIN_FIRST);
-        $this->assertMessageNotEdited();
+        $this->assertAnsweredWith(CallbackAnswer::VOLLEYBALL_ADDED);
+        $this->assertMessageEdited();
     }
 
     public function testAnswersGameNotFoundWhenGameMissing(): void

@@ -25,11 +25,11 @@ class AddVolleyballProcessor extends AbstractActionProcessor
             return;
         }
 
-        $result = $gameManager->addVolleyball($gameId, $callbackQuery->from->id);
+        $from = $callbackQuery->from;
+        $result = $gameManager->addVolleyball($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
 
         $callbackAnswer = match ($result) {
             EquipmentResult::Added => CallbackAnswer::VOLLEYBALL_ADDED,
-            EquipmentResult::NotJoined => CallbackAnswer::JOIN_FIRST,
             EquipmentResult::Error => CallbackAnswer::SOMETHING_WENT_WRONG,
         };
 

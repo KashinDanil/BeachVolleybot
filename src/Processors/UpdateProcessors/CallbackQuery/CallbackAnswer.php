@@ -11,11 +11,11 @@ final class CallbackAnswer
     public const string NOT_JOINED           = "You're not in this game";
     public const string JOINED               = "You're in! See you there 🏖";
     public const string LEFT                 = "You've left the game";
-    public const string VOLLEYBALL_ADDED     = "🏐 +1 volleyball";
-    public const string VOLLEYBALL_REMOVED   = "🏐 -1 volleyball";
-    public const string NO_VOLLEYBALLS       = "You have no volleyballs to remove";
-    public const string NET_ADDED            = "🕸️ +1 net";
-    public const string NET_REMOVED          = "🕸️ -1 net";
-    public const string NO_NETS              = "You have no nets to remove";
+    public const string VOLLEYBALL_ADDED     = "🏐 Volleyball added! Thanks for bringing one";
+    public const string VOLLEYBALL_REMOVED   = "🏐 Volleyball removed";
+    public const string NO_VOLLEYBALLS       = "You don't have any volleyballs to remove";
+    public const string NET_ADDED            = "🕸️ Net added! Thanks for bringing one";
+    public const string NET_REMOVED          = "🕸️ Net removed";
+    public const string NO_NETS              = "You don't have any nets to remove";
     public const string SOMETHING_WENT_WRONG = "Something went wrong";
 }

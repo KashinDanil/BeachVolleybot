@@ -90,10 +90,18 @@ readonly class GameManager
         return LeaveResult::Left;
     }
 
-    public function addNet(int $gameId, int $telegramUserId): EquipmentResult
-    {
+    public function addNet(
+        int $gameId,
+        int $telegramUserId,
+        string $firstName,
+        ?string $lastName,
+        ?string $username,
+    ): EquipmentResult {
+        $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
+        $this->ensureGamePlayer($gameId, $telegramUserId);
+
         if (!$this->gamePlayerRepository->incrementNet($gameId, $telegramUserId)) {
-            return EquipmentResult::NotJoined;
+            return EquipmentResult::Error;
         }
 
         $this->recalculateGameTime($gameId);
@@ -122,10 +130,18 @@ readonly class GameManager
         return EquipmentResult::Removed;
     }
 
-    public function addVolleyball(int $gameId, int $telegramUserId): EquipmentResult
-    {
+    public function addVolleyball(
+        int $gameId,
+        int $telegramUserId,
+        string $firstName,
+        ?string $lastName,
+        ?string $username,
+    ): EquipmentResult {
+        $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
+        $this->ensureGamePlayer($gameId, $telegramUserId);
+
         if (!$this->gamePlayerRepository->incrementVolleyball($gameId, $telegramUserId)) {
-            return EquipmentResult::NotJoined;
+            return EquipmentResult::Error;
         }
 
         return EquipmentResult::Added;
