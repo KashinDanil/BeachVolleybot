@@ -33,7 +33,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
-        $this->assertSame(200, (int) $slots[0]['telegram_user_id']);
+        $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
     }
 
     public function testExistingPlayerUpdatesTime(): void
@@ -90,26 +90,28 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $this->assertMessageEdited();
     }
 
-    public function testIgnoresMessageWithoutTime(): void
+    public function testReactsConfusedWhenNoTime(): void
     {
         $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate('no time here', 'query_1');
 
         new JoinWithTimeProcessor($this->bot)->process($update);
 
-        $this->assertEmpty($this->bot->calls);
+        $this->assertReactedWithConfused();
+        $this->assertMessageNotEdited();
     }
 
-    public function testIgnoresWhenGameNotFound(): void
+    public function testReactsConfusedWhenGameNotFound(): void
     {
         $update = $this->buildUpdate('15:30', 'unknown_query');
 
         new JoinWithTimeProcessor($this->bot)->process($update);
 
-        $this->assertEmpty($this->bot->calls);
+        $this->assertReactedWithConfused();
+        $this->assertMessageNotEdited();
     }
 
-    public function testIgnoresMessageWithoutReplyMarkup(): void
+    public function testReactsConfusedWhenNoReplyMarkup(): void
     {
         $this->seedFullGame(inlineQueryId: 'query_1');
         $payload = [
@@ -132,7 +134,8 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->bot)->process(TelegramUpdate::fromArray($payload));
 
-        $this->assertEmpty($this->bot->calls);
+        $this->assertReactedWithConfused();
+        $this->assertMessageNotEdited();
     }
 
     private function buildUpdate(string $text, string $inlineQueryId): TelegramUpdate

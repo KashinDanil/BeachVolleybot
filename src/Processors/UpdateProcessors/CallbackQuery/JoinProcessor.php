@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GamePlayerRepository;
-use BeachVolleybot\Database\GameRepository;
-use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\PlayerRepository;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -20,9 +16,9 @@ class JoinProcessor extends AbstractActionProcessor
         $callbackQuery = $update->callbackQuery;
         $from = $callbackQuery->from;
         $inlineMessageId = $callbackQuery->inlineMessageId;
-        $db = Connection::get();
 
-        $gameId = new GameRepository($db)->findGameIdByInlineMessageId($inlineMessageId);
+        $gameManager = new GameManager();
+        $gameId = $gameManager->resolveGameIdByInlineMessageId($inlineMessageId);
 
         if (null === $gameId) {
             $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::GAME_NOT_FOUND);
@@ -30,16 +26,9 @@ class JoinProcessor extends AbstractActionProcessor
             return;
         }
 
-        new PlayerRepository($db)->upsert($from->id, $from->firstName, $from->lastName, $from->username);
+        $gameManager->joinGame($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
 
-        if (null === new GamePlayerRepository($db)->findByGamePlayer($gameId, $from->id)) {
-            new GamePlayerRepository($db)->create($gameId, $from->id);
-        }
-
-        $slotRepo = new GameSlotRepository($db);
-        $slotRepo->create($gameId, $from->id, $slotRepo->getNextPosition($gameId));
-
-        $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOINED);
         new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
+        $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOINED);
     }
 }

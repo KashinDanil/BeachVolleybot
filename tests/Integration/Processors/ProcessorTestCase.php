@@ -211,4 +211,26 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         $editCalls = array_filter($this->bot->calls, fn($c) => 'editMessageText' === $c['method']);
         $this->assertEmpty($editCalls, 'Expected editMessageText NOT to be called');
     }
+
+    protected function assertReactedWithConfused(): void
+    {
+        $this->assertReactedWith('😕');
+    }
+
+    protected function assertReactedWith(string $emoji): void
+    {
+        $reactionCalls = array_filter(
+            $this->bot->calls,
+            function ($c) use ($emoji) {
+                if ('call' !== $c['method'] || 'setMessageReaction' !== ($c['args'][0] ?? null)) {
+                    return false;
+                }
+
+                $reaction = json_decode($c['args'][1]['reaction'] ?? '[]', true);
+
+                return ($reaction[0]['emoji'] ?? null) === $emoji;
+            },
+        );
+        $this->assertNotEmpty($reactionCalls, "Expected reaction with $emoji to be set");
+    }
 }

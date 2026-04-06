@@ -14,7 +14,7 @@ readonly class TelegramMessage
         public ?string $text = null,
         public ?array $entities = null,
         public ?TelegramLocation $location = null,
-        public ?array $replyMarkup = null,
+        public ?TelegramInlineKeyboardMarkup $replyMarkup = null,
         public ?self $replyToMessage = null,
         public ?TelegramUser $viaBot = null,
     ) {
@@ -30,7 +30,7 @@ readonly class TelegramMessage
             text: $data['text'] ?? null,
             entities: $data['entities'] ?? null,
             location: isset($data['location']) ? TelegramLocation::fromArray($data['location']) : null,
-            replyMarkup: $data['reply_markup'] ?? null,
+            replyMarkup: isset($data['reply_markup']) ? TelegramInlineKeyboardMarkup::fromArray($data['reply_markup']) : null,
             replyToMessage: isset($data['reply_to_message']) ? self::fromArray($data['reply_to_message']) : null,
             viaBot: isset($data['via_bot']) ? TelegramUser::fromArray($data['via_bot']) : null,
         );

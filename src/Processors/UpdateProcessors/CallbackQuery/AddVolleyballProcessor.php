@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GamePlayerRepository;
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\EquipmentResult;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -16,11 +15,10 @@ class AddVolleyballProcessor extends AbstractActionProcessor
     public function process(TelegramUpdate $update): void
     {
         $callbackQuery = $update->callbackQuery;
-        $from = $callbackQuery->from;
         $inlineMessageId = $callbackQuery->inlineMessageId;
-        $db = Connection::get();
 
-        $gameId = new GameRepository($db)->findGameIdByInlineMessageId($inlineMessageId);
+        $gameManager = new GameManager();
+        $gameId = $gameManager->resolveGameIdByInlineMessageId($inlineMessageId);
 
         if (null === $gameId) {
             $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::GAME_NOT_FOUND);
@@ -28,15 +26,18 @@ class AddVolleyballProcessor extends AbstractActionProcessor
             return;
         }
 
-        $updated = new GamePlayerRepository($db)->incrementVolleyball($gameId, $from->id);
+        $result = $gameManager->addVolleyball($gameId, $callbackQuery->from->id);
 
-        if (!$updated) {
-            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOIN_FIRST);
+        $callbackAnswer = match ($result) {
+            EquipmentResult::Added => CallbackAnswer::VOLLEYBALL_ADDED,
+            EquipmentResult::NotJoined => CallbackAnswer::JOIN_FIRST,
+            EquipmentResult::Error => CallbackAnswer::SOMETHING_WENT_WRONG,
+        };
 
-            return;
+        if (EquipmentResult::Added === $result) {
+            new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
         }
 
-        $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::VOLLEYBALL_ADDED);
-        new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
+        $this->bot->answerCallbackQuery($callbackQuery->id, $callbackAnswer);
     }
 }

@@ -5,24 +5,21 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\TimeExtractor;
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GamePlayerRepository;
-use BeachVolleybot\Database\GameRepository;
-use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\PlayerRepository;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
-use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class JoinWithTimeProcessor extends AbstractActionProcessor
+class JoinWithTimeProcessor extends AbstractActionReplyProcessor
 {
     public function process(TelegramUpdate $update): void
     {
         $message = $update->message;
         $from = $message->from;
-        $time = TimeExtractor::extract($message->text ?? '');
 
+        $time = TimeExtractor::extract($message->text ?? '');
         if (null === $time) {
+            $this->reactConfused($message);
+
             return;
         }
 
@@ -30,52 +27,33 @@ class JoinWithTimeProcessor extends AbstractActionProcessor
             return;
         }
 
-        $inlineQueryId = $this->extractInlineQueryIdFromMetaButton($message->replyToMessage);
+        $inlineQueryId = DefaultTelegramMessageBuilder::extractInlineQueryId($message->replyToMessage);
 
         if (null === $inlineQueryId) {
+            $this->reactConfused($message);
+
             return;
         }
 
-        $db = Connection::get();
-        $gameRow = new GameRepository($db)->findGameAndInlineMessageIdsByInlineQueryId($inlineQueryId);
+        $gameManager = new GameManager();
+        $gameLookup = $gameManager->resolveGameByInlineQueryId($inlineQueryId);
 
-        if (null === $gameRow) {
+        if (null === $gameLookup) {
+            $this->reactConfused($message);
+
             return;
         }
 
-        $gameId = (int) $gameRow['game_id'];
-        $inlineMessageId = (string) $gameRow['inline_message_id'];
+        $gameManager->joinWithTime(
+            $gameLookup->gameId,
+            $from->id,
+            $from->firstName,
+            $from->lastName,
+            $from->username,
+            $time,
+        );
 
-        new PlayerRepository($db)->upsert($from->id, $from->firstName, $from->lastName, $from->username);
-
-        $gamePlayerRepo = new GamePlayerRepository($db);
-
-        if (!$gamePlayerRepo->updateTime($gameId, $from->id, $time)) {
-            $gamePlayerRepo->create($gameId, $from->id, $time);
-
-            $slotRepo = new GameSlotRepository($db);
-            $slotRepo->create($gameId, $from->id, $slotRepo->getNextPosition($gameId));
-        }
-
-        $this->bot->call('setMessageReaction', [
-            'chat_id' => $message->chat->id,
-            'message_id' => $message->messageId,
-            'reaction' => json_encode([['type' => 'emoji', 'emoji' => '✅']]),
-        ]);
-        $this->bot->deleteMessage($message->chat->id, $message->messageId);
-        new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
-    }
-
-    private function extractInlineQueryIdFromMetaButton(TelegramMessage $replyToMessage): ?string
-    {
-        $metaButtonCallbackData = $replyToMessage->replyMarkup['inline_keyboard'][0][0]['callback_data'] ?? null;
-
-        if (null === $metaButtonCallbackData) {
-            return null;
-        }
-
-        $decoded = json_decode($metaButtonCallbackData, true, 512, JSON_THROW_ON_ERROR);
-
-        return $decoded[DefaultTelegramMessageBuilder::KEY_INLINE_QUERY_ID] ?? null;
+        $this->reactWithCheckmarkAndDelete($message);
+        new InlineMessageRefresher($this->bot)->refresh($gameLookup->inlineMessageId);
     }
 }

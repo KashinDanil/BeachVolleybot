@@ -7,6 +7,7 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage as IncomingTelegramMessage;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
@@ -23,6 +24,23 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     //Shortcuts are used as callback_data is limited to 64 bytes
     public const string KEY_ACTION          = 'a';
     public const string KEY_INLINE_QUERY_ID = 'q';
+
+    public static function extractInlineQueryId(IncomingTelegramMessage $replyToMessage): ?string
+    {
+        $metaButton = $replyToMessage->replyMarkup?->inlineKeyboard[0][0] ?? null;
+
+        if (null === $metaButton) {
+            return null;
+        }
+
+        if (null === $metaButton->callbackData) {
+            return null;
+        }
+
+        $decoded = json_decode($metaButton->callbackData, true, 512, JSON_THROW_ON_ERROR);
+
+        return $decoded[self::KEY_INLINE_QUERY_ID] ?? null;
+    }
 
     public function build(GameInterface $game): TelegramMessage
     {

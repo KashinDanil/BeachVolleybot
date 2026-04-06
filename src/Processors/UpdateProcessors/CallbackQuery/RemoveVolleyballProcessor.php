@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GamePlayerRepository;
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\EquipmentResult;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -16,11 +15,10 @@ class RemoveVolleyballProcessor extends AbstractActionProcessor
     public function process(TelegramUpdate $update): void
     {
         $callbackQuery = $update->callbackQuery;
-        $from = $callbackQuery->from;
         $inlineMessageId = $callbackQuery->inlineMessageId;
-        $db = Connection::get();
 
-        $gameId = new GameRepository($db)->findGameIdByInlineMessageId($inlineMessageId);
+        $gameManager = new GameManager();
+        $gameId = $gameManager->resolveGameIdByInlineMessageId($inlineMessageId);
 
         if (null === $gameId) {
             $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::GAME_NOT_FOUND);
@@ -28,24 +26,19 @@ class RemoveVolleyballProcessor extends AbstractActionProcessor
             return;
         }
 
-        $gamePlayerRepo = new GamePlayerRepository($db);
-        $volleyballCount = $gamePlayerRepo->findVolleyballCount($gameId, $from->id);
+        $result = $gameManager->removeVolleyball($gameId, $callbackQuery->from->id);
 
-        if (null === $volleyballCount) {
-            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOIN_FIRST);
+        $callbackAnswer = match ($result) {
+            EquipmentResult::Removed => CallbackAnswer::VOLLEYBALL_REMOVED,
+            EquipmentResult::NotJoined => CallbackAnswer::JOIN_FIRST,
+            EquipmentResult::NoneLeft => CallbackAnswer::NO_VOLLEYBALLS,
+            EquipmentResult::Error => CallbackAnswer::SOMETHING_WENT_WRONG,
+        };
 
-            return;
+        if (EquipmentResult::Removed === $result) {
+            new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
         }
 
-        if (0 === $volleyballCount) {
-            $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::NO_VOLLEYBALLS);
-
-            return;
-        }
-
-        $gamePlayerRepo->decrementVolleyball($gameId, $from->id);
-
-        $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::VOLLEYBALL_REMOVED);
-        new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
+        $this->bot->answerCallbackQuery($callbackQuery->id, $callbackAnswer);
     }
 }
