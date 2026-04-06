@@ -32,7 +32,6 @@ abstract class AbstractActionReplyProcessor extends AbstractActionProcessor
     {
         try {
             $this->telegramSender->setMessageReaction($message->chat->id, $message->messageId, $emoji);
-            $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);
         } catch (HttpException) {
         }
     }
