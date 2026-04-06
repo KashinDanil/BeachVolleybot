@@ -65,6 +65,24 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('18:00', $gamePlayer['time']);
     }
 
+    public function testCreateGameNormalizesShortTimeFormatInTitle(): void
+    {
+        $gameId = $this->gameManager->createGame(
+            NewGameData::fromUser(
+                new TelegramUser(id: 200, firstName: 'Danil'),
+                'Beach 8:00',
+                'query_1',
+                'msg_1',
+            ),
+        );
+
+        $game = new GameRepository($this->db)->findByInlineMessageId('msg_1');
+        $this->assertSame('Beach 08:00', $game['title']);
+
+        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
+        $this->assertSame('08:00', $gamePlayer['time']);
+    }
+
     public function testCreateGamePersistsSlotAtPositionOne(): void
     {
         $gameId = $this->gameManager->createGame($this->newGameData());

@@ -72,4 +72,21 @@ final class TimeExtractorTest extends TestCase
     {
         $this->assertNull(TimeExtractor::extractRaw('Beach Game'));
     }
+
+    // --- normalize ---
+
+    public function testNormalizeShortTimeFormat(): void
+    {
+        $this->assertSame('Beach 08:00', TimeExtractor::normalize('Beach 8:00'));
+    }
+
+    public function testNormalizeKeepsFullTimeFormat(): void
+    {
+        $this->assertSame('Beach 18:00', TimeExtractor::normalize('Beach 18:00'));
+    }
+
+    public function testNormalizeReturnsTextWithoutTime(): void
+    {
+        $this->assertSame('No time here', TimeExtractor::normalize('No time here'));
+    }
 }
