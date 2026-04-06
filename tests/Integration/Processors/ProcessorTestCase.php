@@ -123,6 +123,41 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    protected function locationMessagePayload(
+        float $latitude,
+        float $longitude,
+        string $inlineQueryId,
+        int $fromId = 200,
+        string $firstName = 'Danil',
+        int $chatId = -5127803306,
+    ): array {
+        return [
+            'update_id' => 1,
+            'message' => [
+                'message_id' => 54,
+                'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                'chat' => ['id' => $chatId, 'type' => 'group'],
+                'date' => 1700000000,
+                'location' => ['latitude' => $latitude, 'longitude' => $longitude],
+                'reply_to_message' => [
+                    'message_id' => 53,
+                    'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                    'chat' => ['id' => $chatId, 'type' => 'group'],
+                    'date' => 1699999000,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                    'reply_markup' => [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
     protected function replyMessagePayload(
         string $text,
         string $inlineQueryId,

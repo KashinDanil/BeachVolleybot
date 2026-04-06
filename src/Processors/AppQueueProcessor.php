@@ -9,6 +9,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 use TelegramBot\Api\BotApi;
@@ -40,11 +41,24 @@ class AppQueueProcessor implements QueueProcessorInterface
         }
 
         if (null !== $update->message) {
-            return new JoinWithTimeProcessor($bot);
+            return $this->resolveMessageProcessor($update, $bot);
         }
 
         if (null !== $update->callbackQuery) {
             return CallbackAction::fromCallbackData($update->callbackQuery->data)?->resolveProcessor($bot);
+        }
+
+        return null;
+    }
+
+    private function resolveMessageProcessor(TelegramUpdate $update, BotApi $bot): ?AbstractActionProcessor
+    {
+        if (null !== $update->message->location) {
+            return new SetLocationProcessor($bot);
+        }
+
+        if (null !== $update->message->text) {
+            return new JoinWithTimeProcessor($bot);
         }
 
         return null;

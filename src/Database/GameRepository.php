@@ -29,6 +29,11 @@ readonly class GameRepository extends AbstractRepository
         return (int) $this->db->id();
     }
 
+    public function updateLocation(int $gameId, ?string $location): void
+    {
+        $this->db->update($this->table(), ['location' => $location], ['game_id' => $gameId]);
+    }
+
     public function findByInlineMessageId(string $inlineMessageId): ?array
     {
         return $this->db->get($this->table(), '*', ['inline_message_id' => $inlineMessageId]) ?: null;
