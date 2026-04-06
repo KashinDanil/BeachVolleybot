@@ -107,6 +107,16 @@ readonly class GamePlayerRepository
         return 0 < $statement->rowCount();
     }
 
+    public function findEarliestTimeWithNet(int $gameId): ?string
+    {
+        $statement = $this->db->pdo->prepare(
+            'SELECT MIN(time) FROM game_players WHERE game_id = :game_id AND net > 0 AND time IS NOT NULL'
+        );
+        $statement->execute([':game_id' => $gameId]);
+
+        return $statement->fetchColumn() ?: null;
+    }
+
     public function updateTime(int $gameId, int $telegramUserId, string $time): bool
     {
         $result = $this->db->update('game_players', ['time' => $time], [

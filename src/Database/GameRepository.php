@@ -34,6 +34,11 @@ readonly class GameRepository extends AbstractRepository
         $this->db->update($this->table(), ['location' => $location], ['game_id' => $gameId]);
     }
 
+    public function updateTitle(int $gameId, string $title): void
+    {
+        $this->db->update($this->table(), ['title' => $title], ['game_id' => $gameId]);
+    }
+
     public function findTitleByGameId(int $gameId): ?string
     {
         return $this->db->get($this->table(), 'title', ['game_id' => $gameId]) ?: null;

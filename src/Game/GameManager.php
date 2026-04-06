@@ -94,6 +94,8 @@ readonly class GameManager
             return EquipmentResult::NotJoined;
         }
 
+        $this->recalculateGameTime($gameId);
+
         return EquipmentResult::Added;
     }
 
@@ -112,6 +114,8 @@ readonly class GameManager
         if (!$this->gamePlayerRepository->decrementNet($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
+
+        $this->recalculateGameTime($gameId);
 
         return EquipmentResult::Removed;
     }
@@ -159,12 +163,12 @@ readonly class GameManager
     ): void {
         $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
 
-        if ($this->gamePlayerRepository->updateTime($gameId, $telegramUserId, $time)) {
-            return;
+        if (!$this->gamePlayerRepository->updateTime($gameId, $telegramUserId, $time)) {
+            $this->gamePlayerRepository->create($gameId, $telegramUserId, $time);
+            $this->addSlot($gameId, $telegramUserId);
         }
 
-        $this->gamePlayerRepository->create($gameId, $telegramUserId, $time);
-        $this->addSlot($gameId, $telegramUserId);
+        $this->recalculateGameTime($gameId);
     }
 
     public function resolveGameIdByInlineMessageId(string $inlineMessageId): ?int
@@ -211,5 +215,29 @@ readonly class GameManager
         }
 
         return TimeExtractor::extract($title);
+    }
+
+    private function recalculateGameTime(int $gameId): void
+    {
+        $earliestTime = $this->gamePlayerRepository->findEarliestTimeWithNet($gameId);
+
+        if (null === $earliestTime) {
+            return;
+        }
+
+        $title = $this->gameRepository->findTitleByGameId($gameId);
+
+        if (null === $title) {
+            return;
+        }
+
+        $currentTime = TimeExtractor::extractRaw($title);
+
+        if (null === $currentTime || $currentTime === $earliestTime) {
+            return;
+        }
+
+        $updatedTitle = str_replace($currentTime, $earliestTime, $title);
+        $this->gameRepository->updateTitle($gameId, $updatedTitle);
     }
 }

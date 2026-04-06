@@ -338,6 +338,79 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertNull($this->gameManager->resolveGameByInlineQueryId('nonexistent'));
     }
 
+    // --- recalculateGameTime ---
+
+    public function testAddNetRecalculatesGameTimeToEarliestNetHolder(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '16:00');
+
+        $this->gameManager->addNet($gameId, 201);
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Beach 16:00', $title);
+    }
+
+    public function testRemoveNetRecalculatesGameTimeToNextNetHolder(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 16:00');
+        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedPlayer($gameId, 201, position: 2, net: 1, time: '16:00');
+
+        $this->gameManager->removeNet($gameId, 201);
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Beach 18:00', $title);
+    }
+
+    public function testSetPlayerTimeRecalculatesGameTime(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
+
+        $this->gameManager->setPlayerTime($gameId, 200, 'Danil', null, null, '15:30');
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Beach 15:30', $title);
+    }
+
+    public function testRecalculateGameTimeIgnoresPlayersWithoutNets(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '15:00');
+
+        $this->gameManager->addVolleyball($gameId, 201);
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Beach 18:00', $title);
+    }
+
+    public function testRecalculateGameTimeReplacesShortTimeFormatInTitle(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 8:00');
+        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '08:00');
+        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '07:30');
+
+        $this->gameManager->addNet($gameId, 201);
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Beach 07:30', $title);
+    }
+
+    public function testRecalculateGameTimeKeepsTitleWhenNoChange(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '18:00');
+
+        $this->gameManager->addNet($gameId, 201);
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Beach 18:00', $title);
+    }
+
     // --- Helpers ---
 
     private function newGameData(): NewGameData
@@ -356,6 +429,7 @@ final class GameManagerTest extends DatabaseTestCase
         int $position,
         int $volleyball = 0,
         int $net = 0,
+        ?string $time = null,
     ): void {
         $this->createPlayer($telegramUserId);
         $this->db->insert('game_players', [
@@ -363,6 +437,7 @@ final class GameManagerTest extends DatabaseTestCase
             'telegram_user_id' => $telegramUserId,
             'volleyball' => $volleyball,
             'net' => $net,
+            'time' => $time,
         ]);
         $this->createSlot($gameId, $telegramUserId, $position);
     }
