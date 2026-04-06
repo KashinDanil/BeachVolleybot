@@ -110,11 +110,12 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         $lines = [];
         $appearances = [];
 
+        $gameTime = $game->getTime();
         foreach ($game->getPlayers() as $player) {
             $key = $this->playerKey($player);
             $appearances[$key] = ($appearances[$key] ?? 0) + 1;
 
-            $lines[] = $this->buildPlayerLine($player, $appearances[$key], $game->getTime());
+            $lines[] = $this->buildPlayerLine($player, $appearances[$key], $gameTime);
         }
 
         return implode("\n", $lines);
