@@ -221,7 +221,8 @@ readonly class GameManager
 
     private function recalculateGameTime(int $gameId): void
     {
-        $earliestTime = $this->gamePlayerRepository->findEarliestTimeWithNet($gameId);
+        $earliestTime = $this->gamePlayerRepository->findEarliestTimeWithNet($gameId)
+            ?? $this->gamePlayerRepository->findEarliestTime($gameId);
 
         if (null === $earliestTime) {
             return;

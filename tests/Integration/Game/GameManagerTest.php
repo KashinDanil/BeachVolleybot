@@ -417,6 +417,18 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Beach 07:30', $title);
     }
 
+    public function testRemoveLastNetFallsBackToEarliestTimeAmongAllPlayers(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '16:00');
+
+        $this->gameManager->removeNet($gameId, 200);
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Beach 16:00', $title);
+    }
+
     public function testRecalculateGameTimeKeepsTitleWhenNoChange(): void
     {
         $gameId = $this->createGame(title: 'Beach 18:00');
