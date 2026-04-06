@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors;
 
 use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Common\RecentUpdateIdTracker;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
@@ -15,11 +16,23 @@ use BeachVolleybot\Telegram\TelegramMessageSender;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 use TelegramBot\Api\BotApi;
 
-class AppQueueProcessor implements QueueProcessorInterface
+readonly class AppQueueProcessor implements QueueProcessorInterface
 {
+    public function __construct(
+        private RecentUpdateIdTracker $updateIdTracker = new RecentUpdateIdTracker(),
+    ) {
+    }
+
     public function process(QueueMessage $message): bool
     {
         $update = TelegramUpdate::fromArray($message->payload);
+
+        if ($this->updateIdTracker->isTracked($update->updateId)) {
+            Logger::logVerbose('Duplicate update skipped: ' . $update->updateId);
+
+            return true;
+        }
+
         $telegramSender = new TelegramMessageSender(new BotApi(TG_BOT_ACCESS_TOKEN));
 
         $processor = $this->resolveProcessor($update, $telegramSender);

@@ -10,6 +10,8 @@ use DanilKashin\FileQueue\Workers\FileQueueWorker as VendorFileQueueWorker;
 
 final class FileQueueWorker extends VendorFileQueueWorker
 {
+    private AppQueueProcessor $processor;
+
     public function __construct(string $queuesDir = BASE_QUEUE_DIR, ?int $maxTicks = null)
     {
         parent::__construct($queuesDir, $maxTicks);
@@ -22,6 +24,6 @@ final class FileQueueWorker extends VendorFileQueueWorker
 
     private function getProcessor(): AppQueueProcessor
     {
-        return new AppQueueProcessor();
+        return $this->processor ??= new AppQueueProcessor();
     }
 }
