@@ -13,7 +13,7 @@ use DanilKashin\FileQueue\Queue\QueueMessage;
 readonly class IncomingMessageQueueRouter
 {
     private const string GAME_QUEUE_PREFIX = 'game_';
-    private const array ALLOWED_CHAT_TYPES = ['group'];
+    private const array ALLOWED_CHAT_TYPES = ['group', 'supergroup'];
     private const string CALLBACK_DATA_INLINE_QUERY_ID_KEY = 'q';
 
     /** @var class-string<QueueInterface> */
