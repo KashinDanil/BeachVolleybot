@@ -66,6 +66,49 @@ final class GameSlotRepositoryTest extends DatabaseTestCase
         $this->assertSame([], $this->repository->findByGameId($this->gameId));
     }
 
+    public function testDeleteReordersPositionsAboveDeleted(): void
+    {
+        $this->createGamePlayer($this->gameId, 201);
+        $this->repository->create($this->gameId, 200, 1);
+        $this->repository->create($this->gameId, 201, 2);
+
+        $this->repository->delete($this->gameId, 1);
+
+        $slots = $this->repository->findByGameId($this->gameId);
+        $this->assertCount(1, $slots);
+        $this->assertSame(1, $slots[0]['position']);
+        $this->assertSame(201, $slots[0]['telegram_user_id']);
+    }
+
+    public function testDeleteReordersMultiplePositionsAboveDeleted(): void
+    {
+        $this->createGamePlayer($this->gameId, 201);
+        $this->createGamePlayer($this->gameId, 202);
+        $this->repository->create($this->gameId, 200, 1);
+        $this->repository->create($this->gameId, 201, 2);
+        $this->repository->create($this->gameId, 202, 3);
+
+        $this->repository->delete($this->gameId, 1);
+
+        $slots = $this->repository->findByGameId($this->gameId);
+        $this->assertCount(2, $slots);
+        $this->assertSame(1, $slots[0]['position']);
+        $this->assertSame(2, $slots[1]['position']);
+    }
+
+    public function testDeleteLastPositionDoesNotAffectOthers(): void
+    {
+        $this->createGamePlayer($this->gameId, 201);
+        $this->repository->create($this->gameId, 200, 1);
+        $this->repository->create($this->gameId, 201, 2);
+
+        $this->repository->delete($this->gameId, 2);
+
+        $slots = $this->repository->findByGameId($this->gameId);
+        $this->assertCount(1, $slots);
+        $this->assertSame(1, $slots[0]['position']);
+    }
+
     public function testDeleteReturnsFalseWhenNotFound(): void
     {
         $this->assertFalse($this->repository->delete($this->gameId, 999));

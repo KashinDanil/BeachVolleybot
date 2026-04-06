@@ -45,7 +45,13 @@ readonly class GameSlotRepository
             'position' => $position,
         ]);
 
-        return 0 < $result->rowCount();
+        if (0 < $result->rowCount()) {
+            $this->decrementPositionsAbove($gameId, $position);
+
+            return true;
+        }
+
+        return false;
     }
 
     public function findPositionsByPlayer(int $gameId, int $telegramUserId): array
@@ -69,5 +75,13 @@ readonly class GameSlotRepository
         $max = $this->db->max('game_slots', 'position', ['game_id' => $gameId]);
 
         return null === $max ? 1 : (int)$max + 1;
+    }
+
+    private function decrementPositionsAbove(int $gameId, int $deletedPosition): void
+    {
+        $statement = $this->db->pdo->prepare( //Because commands are processed sequentially, we can do that safely without worrying about concurrency issues.
+            'UPDATE game_slots SET position = position - 1 WHERE game_id = :game_id AND position > :deleted_position'
+        );
+        $statement->execute([':game_id' => $gameId, ':deleted_position' => $deletedPosition]);
     }
 }
