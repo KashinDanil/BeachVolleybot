@@ -81,7 +81,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
                 'chat' => ['id' => -5127803306, 'type' => 'group'],
                 'reply_to_message' => [
                     'message_id' => 53,
-                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'],
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
                 ],
             ],
         ];
@@ -108,7 +108,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
                 'chat' => ['id' => 123, 'type' => 'private'],
                 'reply_to_message' => [
                     'message_id' => 53,
-                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'],
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
                 ],
             ],
         ];
@@ -207,7 +207,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
                 'chat' => ['id' => -5127803306, 'type' => 'group'],
                 'reply_to_message' => [
                     'message_id' => 53,
-                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'],
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [

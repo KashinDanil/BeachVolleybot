@@ -70,8 +70,8 @@ readonly class IncomingMessageQueueRouter
             return $this->skip('Not a group message', $message);
         }
 
-        if (!isset($message['reply_to_message']['via_bot'])) {
-            return $this->skip('Not a reply to a via_bot message', $message);
+        if (BOT_USERNAME !== ($message['reply_to_message']['via_bot']['username'] ?? null)) {
+            return $this->skip('Not a reply to a message from this bot', $message);
         }
 
         $inlineQueryId = $this->extractInlineQueryIdFromMetaButton($message['reply_to_message']);

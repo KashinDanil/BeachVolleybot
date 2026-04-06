@@ -143,7 +143,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
                     'chat' => ['id' => $chatId, 'type' => 'group'],
                     'date' => 1699999000,
-                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'],
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [

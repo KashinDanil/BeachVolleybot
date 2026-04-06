@@ -125,7 +125,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
                     'from' => ['id' => 200, 'first_name' => 'Danil', 'is_bot' => false],
                     'chat' => ['id' => -100, 'type' => 'group'],
                     'date' => 1699999000,
-                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'],
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
                 ],
             ],
         ];
