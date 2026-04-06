@@ -2,23 +2,20 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Processors\UpdateProcessors;
+namespace BeachVolleybot\Telegram;
 
-use BeachVolleybot\Game\GameFactory;
+use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use TelegramBot\Api\BotApi;
 
-readonly class InlineMessageRefresher
+readonly class TelegramMessageSender
 {
     public function __construct(
         private BotApi $bot,
     ) {
     }
 
-    public function refresh(string $inlineMessageId): void
+    public function editInlineMessage(string $inlineMessageId, TelegramMessage $message): void
     {
-        $game = GameFactory::fromInlineMessageId($inlineMessageId);
-        $message = $game->buildTelegramMessage();
-
         $this->bot->editMessageText(
             null,
             null,

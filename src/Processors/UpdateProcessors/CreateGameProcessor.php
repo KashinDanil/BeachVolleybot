@@ -16,6 +16,6 @@ class CreateGameProcessor extends AbstractActionProcessor
 
         new GameManager()->createGame(NewGameData::fromUser($result->from, $result->query, $result->resultId, $result->inlineMessageId));
 
-        new InlineMessageRefresher($this->bot)->refresh($result->inlineMessageId);
+        $this->refreshInlineMessage($result->inlineMessageId);
     }
 }

@@ -7,7 +7,6 @@ namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class LeaveProcessor extends AbstractActionProcessor
@@ -34,7 +33,7 @@ class LeaveProcessor extends AbstractActionProcessor
         };
 
         if (LeaveResult::Left === $result) {
-            new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
+            $this->refreshInlineMessage($inlineMessageId);
         }
 
         $this->bot->answerCallbackQuery($callbackQuery->id, $callbackAnswer);

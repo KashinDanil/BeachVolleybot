@@ -6,7 +6,6 @@ namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class JoinProcessor extends AbstractActionProcessor
@@ -28,7 +27,7 @@ class JoinProcessor extends AbstractActionProcessor
 
         $gameManager->joinGame($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
 
-        new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
+        $this->refreshInlineMessage($inlineMessageId);
         $this->bot->answerCallbackQuery($callbackQuery->id, CallbackAnswer::JOINED);
     }
 }

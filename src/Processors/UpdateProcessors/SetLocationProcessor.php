@@ -39,6 +39,6 @@ class SetLocationProcessor extends AbstractActionReplyProcessor
         $gameManager->setLocation($gameLookup->gameId, $location);
 
         $this->reactWithCheckmarkAndDelete($message);
-        new InlineMessageRefresher($this->bot)->refresh($gameLookup->inlineMessageId);
+        $this->refreshInlineMessage($gameLookup->inlineMessageId);
     }
 }

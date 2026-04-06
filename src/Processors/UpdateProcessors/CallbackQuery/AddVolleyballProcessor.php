@@ -7,7 +7,6 @@ namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class AddVolleyballProcessor extends AbstractActionProcessor
@@ -35,7 +34,7 @@ class AddVolleyballProcessor extends AbstractActionProcessor
         };
 
         if (EquipmentResult::Added === $result) {
-            new InlineMessageRefresher($this->bot)->refresh($inlineMessageId);
+            $this->refreshInlineMessage($inlineMessageId);
         }
 
         $this->bot->answerCallbackQuery($callbackQuery->id, $callbackAnswer);
