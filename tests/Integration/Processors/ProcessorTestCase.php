@@ -217,7 +217,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
 
     protected function assertReactedWithConfused(): void
     {
-        $this->assertReactedWith('😕');
+        $this->assertReactedWith('👎');
     }
 
     protected function assertReactedWith(string $emoji): void

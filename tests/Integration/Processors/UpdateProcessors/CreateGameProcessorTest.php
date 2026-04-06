@@ -66,15 +66,6 @@ final class CreateGameProcessorTest extends ProcessorTestCase
         $this->assertSame(200, (int) $slots[0]['telegram_user_id']);
     }
 
-    public function testRefreshesInlineMessage(): void
-    {
-        $update = $this->buildUpdate('msg_1', 'query_1', 'Game 18:00');
-
-        new CreateGameProcessor($this->telegramSender)->process($update);
-
-        $this->assertMessageEdited();
-    }
-
     private function buildUpdate(
         string $inlineMessageId,
         string $resultId,
