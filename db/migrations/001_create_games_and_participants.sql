@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS games (
     inline_query_id VARCHAR NOT NULL UNIQUE,
     inline_message_id VARCHAR NOT NULL UNIQUE,
     title TEXT NOT NULL,
+    location VARCHAR,
     created_by BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

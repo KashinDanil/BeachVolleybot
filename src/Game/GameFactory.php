@@ -52,6 +52,7 @@ final class GameFactory
             $data->playerRow['telegram_user_id'],
             $data->gameRow['inline_message_id'],
             $data->gameRow['inline_query_id'],
+            $data->gameRow['location'],
         );
 
         new GamePlayerRepository($db)->create(

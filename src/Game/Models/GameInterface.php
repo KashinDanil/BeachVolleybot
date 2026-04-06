@@ -16,6 +16,8 @@ interface GameInterface
 
     public function getTitle(): string;
 
+    public function getLocation(): ?string;
+
     public function getTime(): string;
 
     /** @return PlayerInterface[] */

@@ -19,6 +19,7 @@ readonly class Game implements GameInterface
         private string $inlineMessageId,
         private string $title,
         private array $players,
+        private ?string $location = null,
         private TelegramMessageBuilderInterface $telegramMessageBuilder = new DefaultTelegramMessageBuilder(),
     ) {
     }
@@ -41,6 +42,11 @@ readonly class Game implements GameInterface
     public function getTitle(): string
     {
         return $this->title;
+    }
+
+    public function getLocation(): ?string
+    {
+        return $this->location;
     }
 
     public function getTime(): string

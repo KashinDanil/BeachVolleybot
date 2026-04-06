@@ -48,6 +48,7 @@ readonly class GameBuilder
                 inlineMessageId: (string)$this->gameRow['inline_message_id'],
                 title: (string)$this->gameRow['title'],
                 players: $this->buildPlayers(),
+                location: $this->gameRow['location'] ?? null,
             )
         );
     }

@@ -25,6 +25,7 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
             inlineMessageId: $game->getInlineMessageId(),
             title: $game->getTitle(),
             players: $this->mergeConsecutive($game->getPlayers()),
+            location: $game->getLocation(),
         );
     }
 

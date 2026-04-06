@@ -33,6 +33,7 @@ readonly class NewGameData
                 'inline_query_id' => $inlineQueryId,
                 'inline_message_id' => $inlineMessageId,
                 'title' => $title,
+                'location' => null,
             ],
             slotRow: [
                 'game_id' => 0,
