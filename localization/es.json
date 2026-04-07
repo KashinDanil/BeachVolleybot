@@ -18,5 +18,6 @@
     "Try again using the correct format": "Inténtalo de nuevo usando el formato correcto",
     "⚠️ Include a time in your query": "⚠️ Incluye una hora en tu consulta",
     "E.g., 18:00": "P. ej., 18:00",
-    "Use the following pattern to create a new game:```\n@%s \nSaturday 11.04\nBogatell 10:00```": "Usa el siguiente formato para crear un nuevo juego:```\n@%s \nSábado 11.04\nBogatell 10:00```"
+    "Use the following pattern to create a new game:": "Usa el siguiente formato para crear un nuevo juego:",
+    "@%s \nSaturday 11.04\nBogatell 10:00": "@%s \nSábado 11.04\nBogatell 10:00"
 }

@@ -16,6 +16,8 @@ interface MessageFormatterInterface
 
     public function code(string $text): string;
 
+    public function codeBlock(string $text): string;
+
     public function blockquote(string $text): string;
 
     public function link(string $text, string $url): string;

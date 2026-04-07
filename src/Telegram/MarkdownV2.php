@@ -33,6 +33,11 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
         return '`' . str_replace(['\\', '`'], ['\\\\', '\\`'], $text) . '`';
     }
 
+    public function codeBlock(string $text): string
+    {
+        return "```\n" . str_replace(['\\', '`'], ['\\\\', '\\`'], $text) . "\n```";
+    }
+
     public function blockquote(string $text): string
     {
         return '>' . implode("\n>", explode("\n", $this->escape($text)));

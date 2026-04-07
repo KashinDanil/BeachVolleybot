@@ -18,5 +18,6 @@
     "Try again using the correct format": "Попробуйте ещё раз, используя правильный формат",
     "⚠️ Include a time in your query": "⚠️ Укажите время в запросе",
     "E.g., 18:00": "Например, 18:00",
-    "Use the following pattern to create a new game:```\n@%s \nSaturday 11.04\nBogatell 10:00```": "Используйте следующий шаблон для создания новой игры:```\n@%s \nСуббота 11.04\nBogatell 10:00```"
+    "Use the following pattern to create a new game:": "Используйте следующий шаблон для создания новой игры:",
+    "@%s \nSaturday 11.04\nBogatell 10:00": "@%s \nСуббота 11.04\nBogatell 10:00"
 }
