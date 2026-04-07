@@ -7,7 +7,7 @@ namespace BeachVolleybot\Telegram;
 final readonly class MarkdownV2 implements MessageFormatterInterface
 {
     private const string PARSE_MODE = 'MarkdownV2';
-    
+
     public function parseMode(): string
     {
         return self::PARSE_MODE;
@@ -16,6 +16,26 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
     public function escape(string $text): string
     {
         return preg_replace('/([_*\[\]()~`>#+\-=|{}.!\\\\])/', '\\\\$1', $text);
+    }
+
+    public function bold(string $text): string
+    {
+        return '*' . $this->escape($text) . '*';
+    }
+
+    public function italic(string $text): string
+    {
+        return '_' . $this->escape($text) . '_';
+    }
+
+    public function code(string $text): string
+    {
+        return '`' . str_replace(['\\', '`'], ['\\\\', '\\`'], $text) . '`';
+    }
+
+    public function blockquote(string $text): string
+    {
+        return '>' . implode("\n>", explode("\n", $this->escape($text)));
     }
 
     public function link(string $text, string $url): string

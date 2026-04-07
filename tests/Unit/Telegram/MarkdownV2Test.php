@@ -65,6 +65,69 @@ final class MarkdownV2Test extends TestCase
         $this->assertSame('Beach Game 18:00', $this->formatter->escape('Beach Game 18:00'));
     }
 
+    // --- bold ---
+
+    public function testBold(): void
+    {
+        $this->assertSame('*hello*', $this->formatter->bold('hello'));
+    }
+
+    public function testBoldEscapesContent(): void
+    {
+        $this->assertSame('*hello\_world*', $this->formatter->bold('hello_world'));
+    }
+
+    // --- italic ---
+
+    public function testItalic(): void
+    {
+        $this->assertSame('_hello_', $this->formatter->italic('hello'));
+    }
+
+    public function testItalicEscapesContent(): void
+    {
+        $this->assertSame('_hello\*world_', $this->formatter->italic('hello*world'));
+    }
+
+    // --- code ---
+
+    public function testCode(): void
+    {
+        $this->assertSame('`hello`', $this->formatter->code('hello'));
+    }
+
+    public function testCodeEscapesBacktick(): void
+    {
+        $this->assertSame('`a\`b`', $this->formatter->code('a`b'));
+    }
+
+    public function testCodeEscapesBackslash(): void
+    {
+        $this->assertSame('`a\\\\b`', $this->formatter->code('a\\b'));
+    }
+
+    public function testCodeDoesNotEscapeOtherSpecialCharacters(): void
+    {
+        $this->assertSame('`hello_world`', $this->formatter->code('hello_world'));
+    }
+
+    // --- blockquote ---
+
+    public function testBlockquote(): void
+    {
+        $this->assertSame('>hello', $this->formatter->blockquote('hello'));
+    }
+
+    public function testBlockquoteMultiline(): void
+    {
+        $this->assertSame(">line1\n>line2", $this->formatter->blockquote("line1\nline2"));
+    }
+
+    public function testBlockquoteEscapesContent(): void
+    {
+        $this->assertSame('>hello\!', $this->formatter->blockquote('hello!'));
+    }
+
     // --- link ---
 
     public function testLinkBasic(): void

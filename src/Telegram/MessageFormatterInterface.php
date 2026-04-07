@@ -10,5 +10,13 @@ interface MessageFormatterInterface
 
     public function escape(string $text): string;
 
+    public function bold(string $text): string;
+
+    public function italic(string $text): string;
+
+    public function code(string $text): string;
+
+    public function blockquote(string $text): string;
+
     public function link(string $text, string $url): string;
 }
