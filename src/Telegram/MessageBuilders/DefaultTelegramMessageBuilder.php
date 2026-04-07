@@ -38,12 +38,17 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     private function buildText(GameInterface $game): string
     {
         $sections = array_filter([
-            $this->formatter->escape($game->getTitle()),
+            $this->buildTitle($game),
             $this->buildPlayerList($game),
             $this->buildLocationLink($game->getLocation()),
         ]);
 
         return implode(self::SEPARATOR, $sections);
+    }
+
+    protected function buildTitle(GameInterface $game): string
+    {
+        return $this->formatter->escape($game->getTitle());
     }
 
     private function buildPlayerList(GameInterface $game): string

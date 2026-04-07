@@ -21,4 +21,6 @@ interface MessageFormatterInterface
     public function blockquote(string $text): string;
 
     public function link(string $text, string $url): string;
+
+    public function customEmoji(string $placeholder, string $emojiId): string;
 }

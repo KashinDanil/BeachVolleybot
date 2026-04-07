@@ -48,6 +48,15 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
         return '[' . $this->escape($text) . '](' . $this->escapeLinkUrl($url) . ')';
     }
 
+    /**
+     * Requires the bot to have a paid username purchased from Fragment,
+     * upgraded to bot use for 1000 TON.
+     */
+    public function customEmoji(string $placeholder, string $emojiId): string
+    {
+        return '![' . $this->escape($placeholder) . '](tg://emoji?id=' . $emojiId . ')';
+    }
+
     private function escapeLinkUrl(string $url): string
     {
         return str_replace(['\\', ')'], ['\\\\', '\\)'], $url);

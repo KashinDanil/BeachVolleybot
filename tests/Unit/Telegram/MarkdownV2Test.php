@@ -161,4 +161,22 @@ final class MarkdownV2Test extends TestCase
             $this->formatter->link('📍 Location', 'https://maps.google.com/?q=41.39,2.20'),
         );
     }
+
+    // --- customEmoji ---
+
+    public function testCustomEmoji(): void
+    {
+        $this->assertSame(
+            '![🔢](tg://emoji?id=5366536240210394939)',
+            $this->formatter->customEmoji('🔢', '5366536240210394939'),
+        );
+    }
+
+    public function testCustomEmojiEscapesPlaceholder(): void
+    {
+        $this->assertSame(
+            '![test\_emoji](tg://emoji?id=123)',
+            $this->formatter->customEmoji('test_emoji', '123'),
+        );
+    }
 }
