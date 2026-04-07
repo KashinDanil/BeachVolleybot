@@ -66,6 +66,11 @@ readonly class Game implements GameInterface
         return $this->players;
     }
 
+    public function getTelegramMessageBuilder(): TelegramMessageBuilderInterface
+    {
+        return $this->telegramMessageBuilder;
+    }
+
     public function buildTelegramMessage(): TelegramMessage
     {
         return $this->telegramMessageBuilder->build($this);

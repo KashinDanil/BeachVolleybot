@@ -22,6 +22,7 @@ final class TitlePrefixAddOn implements GameAddOnInterface
             inlineMessageId: $game->getInlineMessageId(),
             title: $this->prefix . ' ' . $game->getTitle(),
             players: $game->getPlayers(),
+            telegramMessageBuilder: $game->getTelegramMessageBuilder(),
         );
     }
 }

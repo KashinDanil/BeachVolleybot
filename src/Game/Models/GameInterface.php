@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Models;
 
+use BeachVolleybot\Telegram\MessageBuilders\TelegramMessageBuilderInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 interface GameInterface
 {
+    public function getTelegramMessageBuilder(): TelegramMessageBuilderInterface;
     public function getGameId(): int;
 
     public function getInlineQueryId(): string;

@@ -24,6 +24,7 @@ final class EmojifyAddOn implements GameAddOnInterface
             players: $game->getPlayers(),
             time: $game->getTime(),
             location: $game->getLocation(),
+            telegramMessageBuilder: $game->getTelegramMessageBuilder(),
         );
     }
 
