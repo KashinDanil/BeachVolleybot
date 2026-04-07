@@ -7,8 +7,8 @@ namespace BeachVolleybot\Processors;
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Common\RecentUpdateIdTracker;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
+use BeachVolleybot\Telegram\CallbackData;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -59,7 +59,7 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
         }
 
         if (null !== $update->callbackQuery) {
-            return CallbackAction::fromCallbackData($update->callbackQuery->data)?->resolveProcessor($telegramSender);
+            return CallbackData::extractAction($update->callbackQuery->data)?->resolveProcessor($telegramSender);
         }
 
         return null;

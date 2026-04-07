@@ -7,102 +7,43 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
-use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage as IncomingTelegramMessage;
+use BeachVolleybot\Telegram\CallbackData;
+use BeachVolleybot\Telegram\MarkdownV2;
+use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 
 readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderInterface
 {
-    public const string  VOLLEYBALL_EMOJI        = '🏐';
-    public const string  NET_EMOJI               = '🕸️';
+    private const string VOLLEYBALL_EMOJI        = '🏐';
+    private const string NET_EMOJI               = '🕸️';
     private const string SEPARATOR               = "\n\n";
     private const int    EMOJI_COMPACT_THRESHOLD = 3;
-    private const string PARSE_MODE              = 'Markdown';
     private const bool   DISABLE_PREVIEW         = true;
 
-    //Shortcuts are used as callback_data is limited to 64 bytes
-    public const string KEY_ACTION          = 'a';
-    public const string KEY_INLINE_QUERY_ID = 'q';
-
-    public static function extractInlineQueryId(IncomingTelegramMessage $replyToMessage): ?string
-    {
-        $metaButton = $replyToMessage->replyMarkup?->inlineKeyboard[0][0] ?? null;
-
-        if (null === $metaButton) {
-            return null;
-        }
-
-        if (null === $metaButton->callbackData) {
-            return null;
-        }
-
-        $decoded = json_decode($metaButton->callbackData, true, 512, JSON_THROW_ON_ERROR);
-
-        return $decoded[self::KEY_INLINE_QUERY_ID] ?? null;
+    public function __construct(
+        protected MessageFormatterInterface $formatter = new MarkdownV2(),
+    ) {
     }
 
     public function build(GameInterface $game): TelegramMessage
     {
         return new TelegramMessage(
-            new Text($this->buildText($game), self::PARSE_MODE, self::DISABLE_PREVIEW),
+            new Text($this->buildText($game), $this->formatter->parseMode(), self::DISABLE_PREVIEW),
             new InlineKeyboardMarkup($this->buildKeyboard($game)),
         );
-    }
-
-    private function buildKeyboard(GameInterface $game): array
-    {
-        return [
-            [ // The first button is the meta-button — it carries the inline query ID, needed when a callback arrives on an inline message
-                $this->buildButton('Leave', $this->buildCallbackData(CallbackAction::Leave, $game->getInlineQueryId())),
-                $this->buildButton('Join', $this->buildCallbackData(CallbackAction::Join)),
-            ],
-            [
-                $this->buildButton('-' . self::VOLLEYBALL_EMOJI, $this->buildCallbackData(CallbackAction::RemoveVolleyball)),
-                $this->buildButton('+' . self::VOLLEYBALL_EMOJI, $this->buildCallbackData(CallbackAction::AddVolleyball)),
-            ],
-            [
-                $this->buildButton('-' . self::NET_EMOJI, $this->buildCallbackData(CallbackAction::RemoveNet)),
-                $this->buildButton('+' . self::NET_EMOJI, $this->buildCallbackData(CallbackAction::AddNet)),
-            ],
-        ];
-    }
-
-    private function buildButton(string $text, string $callbackData): array
-    {
-        return ['text' => $text, 'callback_data' => $callbackData];
-    }
-
-    private function buildCallbackData(CallbackAction $action, ?string $inlineQueryId = null): string
-    {
-        $payload = [self::KEY_ACTION => $action->value];
-
-        if (null !== $inlineQueryId) {
-            $payload[self::KEY_INLINE_QUERY_ID] = $inlineQueryId;
-        }
-
-        return json_encode($payload, JSON_THROW_ON_ERROR);
     }
 
     private function buildText(GameInterface $game): string
     {
         $sections = array_filter([
-            $game->getTitle(),
+            $this->formatter->escape($game->getTitle()),
             $this->buildPlayerList($game),
             $this->buildLocationLink($game->getLocation()),
-            $game->getFooter(),
         ]);
 
         return implode(self::SEPARATOR, $sections);
-    }
-
-    private function buildLocationLink(?string $location): ?string
-    {
-        if (null === $location) {
-            return null;
-        }
-
-        return sprintf('[📍 Location](https://maps.google.com/?q=%s)', $location);
     }
 
     private function buildPlayerList(GameInterface $game): string
@@ -124,7 +65,7 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
     private function buildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime): string
     {
         $parts = [
-            $player->getNumber() . '.',
+            $this->formatter->escape($player->getNumber() . '.'),
             $this->displayName($player, $appearance),
         ];
 
@@ -144,11 +85,11 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         $link = $player->getLink();
 
         $formatted = null !== $link
-            ? '[' . $name . '](' . $link . ')'
-            : $name;
+            ? $this->formatter->link($name, $link)
+            : $this->formatter->escape($name);
 
         if (1 < $appearance) {
-            return $formatted . "'s +" . ($appearance - 1);
+            return $formatted . $this->formatter->escape("'s +" . ($appearance - 1));
         }
 
         return $formatted;
@@ -163,6 +104,15 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         return $playerTime;
     }
 
+    private function buildLocationLink(?string $location): ?string
+    {
+        if (null === $location) {
+            return null;
+        }
+
+        return $this->formatter->link('📍 Location', 'https://maps.google.com/?q=' . $location);
+    }
+
     private function playerKey(PlayerInterface $player): string
     {
         return $player->getName() . "\0" . ($player->getLink() ?? '');
@@ -175,5 +125,30 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
             $count < self::EMOJI_COMPACT_THRESHOLD => str_repeat($emoji, $count),
             default => $emoji . 'x' . $count,
         };
+    }
+
+    // --- Keyboard ---
+
+    private function buildKeyboard(GameInterface $game): array
+    {
+        return [
+            [ // The first button is the meta-button — it carries the inline query ID
+                $this->buildButton('Leave', CallbackData::encode(CallbackAction::Leave, $game->getInlineQueryId())),
+                $this->buildButton('Join', CallbackData::encode(CallbackAction::Join)),
+            ],
+            [
+                $this->buildButton('-' . self::VOLLEYBALL_EMOJI, CallbackData::encode(CallbackAction::RemoveVolleyball)),
+                $this->buildButton('+' . self::VOLLEYBALL_EMOJI, CallbackData::encode(CallbackAction::AddVolleyball)),
+            ],
+            [
+                $this->buildButton('-' . self::NET_EMOJI, CallbackData::encode(CallbackAction::RemoveNet)),
+                $this->buildButton('+' . self::NET_EMOJI, CallbackData::encode(CallbackAction::AddNet)),
+            ],
+        ];
+    }
+
+    private function buildButton(string $text, string $callbackData): array
+    {
+        return ['text' => $text, 'callback_data' => $callbackData];
     }
 }

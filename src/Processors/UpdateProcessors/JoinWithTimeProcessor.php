@@ -6,7 +6,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\TimeExtractor;
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
+use BeachVolleybot\Telegram\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class JoinWithTimeProcessor extends AbstractActionReplyProcessor
@@ -27,7 +27,7 @@ class JoinWithTimeProcessor extends AbstractActionReplyProcessor
             return;
         }
 
-        $inlineQueryId = DefaultTelegramMessageBuilder::extractInlineQueryId($message->replyToMessage);
+        $inlineQueryId = CallbackData::extractInlineQueryId($message->replyToMessage);
 
         if (null === $inlineQueryId) {
             $this->reactConfused($message);

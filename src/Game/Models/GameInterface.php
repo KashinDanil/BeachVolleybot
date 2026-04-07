@@ -25,5 +25,4 @@ interface GameInterface
 
     public function buildTelegramMessage(): TelegramMessage;
 
-    public function getFooter(): ?string;
 }

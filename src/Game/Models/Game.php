@@ -71,8 +71,4 @@ readonly class Game implements GameInterface
         return $this->telegramMessageBuilder->build($this);
     }
 
-    public function getFooter(): ?string
-    {
-        return null;
-    }
 }

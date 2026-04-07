@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
+use BeachVolleybot\Telegram\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class SetLocationProcessor extends AbstractActionReplyProcessor
@@ -22,7 +22,7 @@ class SetLocationProcessor extends AbstractActionReplyProcessor
             return;
         }
 
-        $inlineQueryId = DefaultTelegramMessageBuilder::extractInlineQueryId($message->replyToMessage);
+        $inlineQueryId = CallbackData::extractInlineQueryId($message->replyToMessage);
 
         if (null === $inlineQueryId) {
             return;

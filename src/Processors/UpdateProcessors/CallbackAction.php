@@ -10,7 +10,6 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveNetProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveVolleyballProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\LeaveProcessor;
-use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 
 enum CallbackAction: string
@@ -21,17 +20,6 @@ enum CallbackAction: string
     case RemoveVolleyball = 'rv';
     case AddNet = 'an';
     case RemoveNet = 'rn';
-
-    public static function fromCallbackData(?string $json): ?self
-    {
-        if (null === $json) {
-            return null;
-        }
-
-        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-
-        return self::tryFrom($data[DefaultTelegramMessageBuilder::KEY_ACTION] ?? '');
-    }
 
     public function resolveProcessor(TelegramMessageSender $telegramSender): AbstractActionProcessor
     {
