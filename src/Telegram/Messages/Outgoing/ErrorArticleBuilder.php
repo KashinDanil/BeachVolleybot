@@ -14,7 +14,7 @@ final readonly class ErrorArticleBuilder implements ArticleBuilderInterface
 {
     private const string ARTICLE_ID = 'error';
     private const string DEFAULT_MESSAGE = 'Use the following pattern to create a new game:';
-    private const string DEFAULT_MESSAGE_EXAMPLE = "@%s \nSaturday 11.04\nBogatell 10:00";
+    private const string DEFAULT_MESSAGE_EXAMPLE = "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell — 10:00";
 
     public function __construct(
         private InlineQueryError $error,
