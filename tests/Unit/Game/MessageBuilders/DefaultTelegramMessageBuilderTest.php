@@ -108,7 +108,7 @@ final class DefaultTelegramMessageBuilderTest extends TestCase
         $text = $this->builder->build($game)->getText()->getMessageText();
 
         $this->assertStringContainsString("1\\. Alice", $text);
-        $this->assertStringContainsString("2\\. Alice's \\+1", $text);
+        $this->assertStringContainsString("2\\. \\+1 \\(Alice\\)", $text);
     }
 
     public function testThirdAppearanceShowsPlusTwo(): void
@@ -121,7 +121,7 @@ final class DefaultTelegramMessageBuilderTest extends TestCase
 
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertStringContainsString("3\\. Alice's \\+2", $text);
+        $this->assertStringContainsString("3\\. \\+2 \\(Alice\\)", $text);
     }
 
     public function testPlusNWithLinkedName(): void
@@ -133,7 +133,7 @@ final class DefaultTelegramMessageBuilderTest extends TestCase
 
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertStringContainsString("[Alice](https://t.me/alice)'s \\+1", $text);
+        $this->assertStringContainsString("\\+1 \\([Alice](https://t.me/alice)\\)", $text);
     }
 
     public function testSameNameDifferentLinkTreatedAsDifferentPlayers(): void
@@ -199,7 +199,7 @@ final class DefaultTelegramMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', volleyball: 3),
         ]);
 
-        $this->assertStringContainsString('🏐x3', $this->builder->build($game)->getText()->getMessageText());
+        $this->assertStringContainsString('🏐×3', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testFiveVolleyballsShowsCompactFormat(): void
@@ -208,7 +208,7 @@ final class DefaultTelegramMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', volleyball: 5),
         ]);
 
-        $this->assertStringContainsString('🏐x5', $this->builder->build($game)->getText()->getMessageText());
+        $this->assertStringContainsString('🏐×5', $this->builder->build($game)->getText()->getMessageText());
     }
 
     // --- Text: net emoji ---
@@ -246,7 +246,7 @@ final class DefaultTelegramMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', net: 3),
         ]);
 
-        $this->assertStringContainsString('🕸️x3', $this->builder->build($game)->getText()->getMessageText());
+        $this->assertStringContainsString('🕸️×3', $this->builder->build($game)->getText()->getMessageText());
     }
 
     // --- Text: time ---

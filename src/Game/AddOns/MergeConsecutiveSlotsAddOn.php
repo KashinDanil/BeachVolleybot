@@ -8,6 +8,7 @@ use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Game\Models\PlayerInterface;
+use BeachVolleybot\Telegram\MessageBuilders\GroupSizeTelegramMessageBuilder;
 
 /**
  * Merges consecutive slots belonging to the same player into a single entry.
@@ -26,6 +27,7 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
             title: $game->getTitle(),
             players: $this->mergeConsecutive($game->getPlayers()),
             location: $game->getLocation(),
+            telegramMessageBuilder: new GroupSizeTelegramMessageBuilder(),
         );
     }
 

@@ -35,7 +35,7 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         );
     }
 
-    private function buildText(GameInterface $game): string
+    protected function buildText(GameInterface $game): string
     {
         $sections = array_filter([
             $this->buildTitle($game),
@@ -51,7 +51,7 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         return $this->formatter->escape($game->getTitle());
     }
 
-    private function buildPlayerList(GameInterface $game): string
+    protected function buildPlayerList(GameInterface $game): string
     {
         $lines = [];
         $appearances = [];
@@ -67,7 +67,7 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         return implode("\n", $lines);
     }
 
-    private function buildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime): string
+    protected function buildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime): string
     {
         $parts = [
             $this->formatter->escape($player->getNumber() . '.'),
@@ -84,7 +84,7 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         return implode(' ', array_filter($parts));
     }
 
-    private function displayName(PlayerInterface $player, int $appearance): string
+    protected function displayName(PlayerInterface $player, int $appearance): string
     {
         $name = $player->getName();
         $link = $player->getLink();
@@ -94,22 +94,29 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
             : $this->formatter->escape($name);
 
         if (1 < $appearance) {
-            return $formatted . $this->formatter->escape("'s +" . ($appearance - 1));
+            $plusCount = $this->plusCount($player, $appearance);
+
+            return $this->formatter->escape('+' . $plusCount . ' (') . $formatted . $this->formatter->escape(')');
         }
 
         return $formatted;
     }
 
-    private function displayTime(?string $playerTime, string $gameTime): string
+    protected function plusCount(PlayerInterface $player, int $appearance): int
+    {
+        return $appearance - 1;
+    }
+
+    protected function displayTime(?string $playerTime, string $gameTime): string
     {
         if (null === $playerTime || $playerTime === $gameTime) {
             return '';
         }
 
-        return $playerTime;
+        return $this->formatter->escape($playerTime);
     }
 
-    private function buildLocationLink(?string $location): ?string
+    protected function buildLocationLink(?string $location): ?string
     {
         if (null === $location) {
             return null;
@@ -118,23 +125,23 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         return $this->formatter->link('📍 Location', 'https://maps.google.com/?q=' . $location);
     }
 
-    private function playerKey(PlayerInterface $player): string
+    protected function playerKey(PlayerInterface $player): string
     {
         return $player->getName() . "\0" . ($player->getLink() ?? '');
     }
 
-    private function formatEmoji(int $count, string $emoji): string
+    protected function formatEmoji(int $count, string $emoji): string
     {
         return match (true) {
             0 === $count => '',
             $count < self::EMOJI_COMPACT_THRESHOLD => str_repeat($emoji, $count),
-            default => $emoji . 'x' . $count,
+            default => $emoji . '×' . $count,
         };
     }
 
     // --- Keyboard ---
 
-    private function buildKeyboard(GameInterface $game): array
+    protected function buildKeyboard(GameInterface $game): array
     {
         return [
             [ // The first button is the meta-button — it carries the inline query ID
@@ -152,7 +159,7 @@ readonly class DefaultTelegramMessageBuilder implements TelegramMessageBuilderIn
         ];
     }
 
-    private function buildButton(string $text, string $callbackData): array
+    protected function buildButton(string $text, string $callbackData): array
     {
         return ['text' => $text, 'callback_data' => $callbackData];
     }
