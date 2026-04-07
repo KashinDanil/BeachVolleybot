@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\AddOns;
 
+use BeachVolleybot\Common\TimeExtractor;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\GameWithTime;
 
@@ -30,7 +31,7 @@ final class EmojifyAddOn implements GameAddOnInterface
 
     private function emojifyTime(string $text): string
     {
-        return preg_replace_callback('/\b(\d{1,2}):(\d{2})\b/', function (array $matches): string {
+        return preg_replace_callback(TimeExtractor::PATTERN, function (array $matches): string {
             return $this->digitToEmoji($matches[1]) . ':' . $this->digitToEmoji($matches[2]);
         }, $text);
     }

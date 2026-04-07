@@ -6,7 +6,7 @@ namespace BeachVolleybot\Common;
 
 final class TimeExtractor
 {
-    private const string PATTERN = '/\b(\d{1,2})[:](\d{2})\b/';
+    public const string PATTERN = '/\b(\d{1,2}):(\d{2})\b/';
 
     private const string NORMALIZED_FORMAT = '%02d:%02d';
 
