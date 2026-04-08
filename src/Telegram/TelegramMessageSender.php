@@ -35,7 +35,7 @@ readonly class TelegramMessageSender
 
     public function answerInlineQuery(string $inlineQueryId, array $results): void
     {
-        $this->bot->answerInlineQuery($inlineQueryId, $results);
+        $this->bot->answerInlineQuery($inlineQueryId, $results, 0); //Do not cache answers, as this can result in repeated inline_query_ids and inconsistencies (actually, errors) while creating game records in the database.
     }
 
     public function removeInlineKeyboard(string $inlineMessageId): void
