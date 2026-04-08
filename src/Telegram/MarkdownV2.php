@@ -20,12 +20,17 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
 
     public function bold(string $text): string
     {
-        return '*' . $this->escape($text) . '*';
+        return '*' . $text . '*';
     }
 
     public function italic(string $text): string
     {
-        return '_' . $this->escape($text) . '_';
+        return '_' . $text . '_';
+    }
+
+    public function underline(string $text): string
+    {
+        return '__' . $text . '__';
     }
 
     public function code(string $text): string

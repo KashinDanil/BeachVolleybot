@@ -14,6 +14,8 @@ interface MessageFormatterInterface
 
     public function italic(string $text): string;
 
+    public function underline(string $text): string;
+
     public function code(string $text): string;
 
     public function codeBlock(string $text): string;
