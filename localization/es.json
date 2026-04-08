@@ -19,5 +19,5 @@
     "⚠️ Include a time in your query": "⚠️ Incluye una hora en tu consulta",
     "E.g., 18:00": "P. ej., 18:00",
     "Use the following pattern to create a new game:": "Usa el siguiente formato para crear un nuevo juego:",
-    "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell — 10:00": "@%s \n📅 Sábado, 11.04\n🏖️ Bogatell — 10:00"
+    "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Sábado, 11.04\n🏖️ Bogatell\n🕙 10:00"
 }
