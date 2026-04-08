@@ -1,17 +1,17 @@
-WORKER_CMD = ./bin/run_worker 'BeachVolleybot\Workers\FileQueueWorker'
+WORKER_CMD = $(CURDIR)/bin/run_worker 'BeachVolleybot\Workers\FileQueueWorker'
 LOG_DIR = ../logs
 
-.PHONY: qws queue-worker-sync qw queue-worker qwr queue-worker-restart
+.PHONY: queue-worker-run queue-worker-start queue-worker-stop queue-worker-restart
 
-qws: queue-worker-sync
-queue-worker-sync:
+queue-worker-run:
 	$(WORKER_CMD)
 
-qw: queue-worker
-queue-worker:
+queue-worker-start:
 	$(WORKER_CMD) 1>/dev/null 2>>$(LOG_DIR)/queue-worker-errors.log &
 
-qwr: queue-worker-restart
+queue-worker-stop:
+	pkill -f '$(CURDIR)/bin/run_worker.*FileQueue[W]orker' || true
+
 queue-worker-restart:
-	pkill -f 'FileQueueWorker' || true
-	$(MAKE) queue-worker
+	$(MAKE) queue-worker-stop
+	$(MAKE) queue-worker-start
