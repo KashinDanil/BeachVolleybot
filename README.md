@@ -18,6 +18,7 @@ This project was created to address a common frustration: _manually copying part
 - **Multi-language support** — English (default), Russian, Spanish
 - **Concurrency handling** via file-based locking
 - **Asynchronous processing** via file-based queue and worker
+- **Rate limiting** — respects Telegram API rate limits via `RateLimitedBotApi`
 
 ## Architecture
 
@@ -33,6 +34,7 @@ Telegram Webhook
         → FileQueueWorker (async processing)
           → AppQueueProcessor (dispatch)
             → UpdateProcessors (game logic)
+              → RateLimitedBotApi (rate-limited Telegram API calls)
 ```
 
 ### Project Structure
@@ -61,14 +63,24 @@ Telegram Webhook
 
 ## Setup
 
-Follow these steps to configure the project locally.
+### Automated Setup
 
-### Prerequisites
+Run the install script to check prerequisites, install dependencies, apply migrations, and verify the installation:
+
+```bash
+bash install.sh
+```
+
+### Manual Setup
+
+Follow these steps to configure the project manually.
+
+#### Prerequisites
 
 - PHP with extensions: `curl`, `json`, `pcntl`, `sqlite3`, `pdo`
 - Composer
 
-### 1. Install dependencies
+#### 1. Install dependencies
 
 Run Composer to install the required PHP dependencies:
 
@@ -76,7 +88,7 @@ Run Composer to install the required PHP dependencies:
 composer install
 ```
 
-### 2. Run database migrations
+#### 2. Run database migrations
 
 ```bash
 php bin/migrate
@@ -84,7 +96,7 @@ php bin/migrate
 
 This creates the SQLite database at `db/data/beach_volleybot.sqlite` and applies all pending migrations.
 
-### 3. Update configuration constants
+#### 3. Update configuration constants
 
 Open the following file:
 
@@ -108,20 +120,30 @@ Replace the constants with your actual values.
 
 - #### `BASE_LOG_DIR` — the absolute path to the directory where log files will be stored.
 
-### 4. Set up the webhook
+- #### `TG_MAX_REQUESTS_PER_SECOND` — the maximum number of Telegram API requests per second (default: `20`).
+
+#### 4. Set up the webhook
 
 Point Telegram to `public/tg-bot.php` on your server. The endpoint must be accessible over HTTPS.
 
-### 5. Start the queue worker
+#### 5. Start the queue worker
 
 ```bash
-make queue-worker
+make qw
 ```
 
-To run with error logging to a file:
+This runs the worker in the background with error logging to `../logs/queue-worker-errors.log`.
+
+To run synchronously (foreground, stdout output):
 
 ```bash
-make queue-worker-errors
+make qws
+```
+
+To restart the worker (kills the existing process and starts a new one):
+
+```bash
+make qwr
 ```
 
 ## Testing
