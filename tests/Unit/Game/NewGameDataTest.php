@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Game;
 
-use BeachVolleybot\Game\GameBuilder;
 use BeachVolleybot\Game\NewGameData;
+use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use PHPUnit\Framework\TestCase;
 
@@ -48,7 +48,7 @@ final class NewGameDataTest extends TestCase
     {
         $data = NewGameData::fromUser($this->creator, 'Friday Game 18:00', 'query_1');
 
-        $game = GameBuilder::buildFromNewGameData($data);
+        $game = NewGameFactory::create($data);
 
         $this->assertSame('Friday Game 18:00', $game->getTitle());
         $this->assertSame('query_1', $game->getInlineQueryId());
@@ -59,7 +59,7 @@ final class NewGameDataTest extends TestCase
     {
         $data = NewGameData::fromUser($this->creator, 'Friday Game 18:00', 'query_1');
 
-        $player = GameBuilder::buildFromNewGameData($data)->getPlayers()[0];
+        $player = NewGameFactory::create($data)->getPlayers()[0];
 
         $this->assertSame('18:00', $player->getTime());
     }
@@ -68,7 +68,7 @@ final class NewGameDataTest extends TestCase
     {
         $data = NewGameData::fromUser($this->creator, 'Game 18:00', 'query_1');
 
-        $player = GameBuilder::buildFromNewGameData($data)->getPlayers()[0];
+        $player = NewGameFactory::create($data)->getPlayers()[0];
 
         $this->assertSame('Alice Smith', $player->getName());
         $this->assertSame(NewGameData::INITIAL_VOLLEYBALL, $player->getVolleyball());

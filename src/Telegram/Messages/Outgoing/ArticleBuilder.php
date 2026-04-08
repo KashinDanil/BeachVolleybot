@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\Messages\Outgoing;
 
-use BeachVolleybot\Game\GameBuilder;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\NewGameData;
+use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramInlineQuery;
 use TelegramBot\Api\Types\Inline\QueryResult\Article;
@@ -38,7 +38,7 @@ final readonly class ArticleBuilder implements ArticleBuilderInterface
 
     private function buildGame(): GameInterface
     {
-        return GameBuilder::buildFromNewGameData(
+        return NewGameFactory::create(
             NewGameData::fromUser(
                 $this->inlineQuery->from,
                 $this->inlineQuery->query,

@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game;
 
-use BeachVolleybot\Common\TimeExtractor;
+use BeachVolleybot\Game\AddOns\GameAddOnApplier;
 use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\Player;
-use BeachVolleybot\Game\Models\PlayerInterface;
 
 readonly class GameBuilder
 {
-    private const int UNPERSISTED_GAME_ID = 0;
-
     /**
      * @param array<string, mixed> $gameRow
      * @param list<array<string, mixed>> $slotRows
@@ -31,29 +28,6 @@ readonly class GameBuilder
     ) {
     }
 
-    public static function buildFromNewGameData(NewGameData $data): GameInterface
-    {
-        $player = new Player(
-            telegramUserId: $data->telegramUserId,
-            number: (string)NewGameData::INITIAL_POSITION,
-            name: Player::buildName($data->firstName, $data->lastName),
-            link: Player::buildLink($data->username),
-            volleyball: NewGameData::INITIAL_VOLLEYBALL,
-            net: NewGameData::INITIAL_NET,
-            time: TimeExtractor::extract($data->title),
-        );
-
-        $game = new Game(
-            gameId: self::UNPERSISTED_GAME_ID,
-            inlineQueryId: $data->inlineQueryId,
-            inlineMessageId: $data->inlineMessageId,
-            title: $data->title,
-            players: [$player],
-        );
-
-        return (new self([], [], [], []))->applyAddOns($game);
-    }
-
     public function build(): GameInterface
     {
         $title = (string)$this->gameRow['title'];
@@ -67,21 +41,10 @@ readonly class GameBuilder
             location: $this->gameRow['location'] ?? null,
         );
 
-        return $this->applyAddOns($game);
+        return GameAddOnApplier::apply($game, $this->addOns);
     }
 
-    private function applyAddOns(Game $game): GameInterface
-    {
-        $game->init();
-
-        foreach ($this->addOns as $addOnClass) {
-            new $addOnClass()->applyTo($game);
-        }
-
-        return $game;
-    }
-
-    /** @return PlayerInterface[] */
+    /** @return Player[] */
     private function buildPlayersFromRows(): array
     {
         $gamePlayersIndex = array_column($this->gamePlayerRows, null, 'telegram_user_id');

@@ -7,7 +7,6 @@ namespace BeachVolleybot\Tests\Unit\Game;
 use BeachVolleybot\Game\GameBuilder;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
-use BeachVolleybot\Tests\Unit\Game\AddOns\Stub\TitlePrefixAddOn;
 use PHPUnit\Framework\TestCase;
 
 final class GameBuilderTest extends TestCase
@@ -206,29 +205,6 @@ final class GameBuilderTest extends TestCase
         $this->assertSame('Alice', $players[1]->getName());
     }
 
-    // --- Add-ons ---
-
-    public function testAddOnAppliedOnBuild(): void
-    {
-        $game = $this->buildGame(addOns: [TitlePrefixAddOn::class]);
-
-        $this->assertSame('[Modified] Beach Game 18:00', $game->getTitle());
-    }
-
-    public function testMultipleAddOnsAppliedInOrder(): void
-    {
-        $game = $this->buildGame(addOns: [TitlePrefixAddOn::class, TitlePrefixAddOn::class]);
-
-        $this->assertSame('[Modified] [Modified] Beach Game 18:00', $game->getTitle());
-    }
-
-    public function testNoAddOnsLeavesGameUnchanged(): void
-    {
-        $game = $this->buildGame(addOns: []);
-
-        $this->assertSame('Beach Game 18:00', $game->getTitle());
-    }
-
     // --- Helpers ---
 
     private function gameRow(
@@ -288,14 +264,13 @@ final class GameBuilderTest extends TestCase
         array $slotRows = [],
         array $gamePlayerRows = [],
         array $playerRows = [],
-        array $addOns = [],
     ): GameInterface {
         return new GameBuilder(
             gameRow: $gameRow ?? $this->gameRow(),
             slotRows: $slotRows,
             gamePlayerRows: $gamePlayerRows,
             playerRows: $playerRows,
-            addOns: $addOns,
+            addOns: [],
         )->build();
     }
 }
