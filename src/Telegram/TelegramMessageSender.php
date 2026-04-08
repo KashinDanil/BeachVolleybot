@@ -6,6 +6,7 @@ namespace BeachVolleybot\Telegram;
 
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\HttpException;
 
 readonly class TelegramMessageSender
 {
@@ -35,6 +36,15 @@ readonly class TelegramMessageSender
     public function answerInlineQuery(string $inlineQueryId, array $results): void
     {
         $this->bot->answerInlineQuery($inlineQueryId, $results);
+    }
+
+    public function removeInlineKeyboard(string $inlineMessageId): void
+    {
+        try {
+            $this->bot->editMessageReplyMarkup(null, null, null, $inlineMessageId);
+        } catch (HttpException) {
+            // Keyboard already removed or message deleted
+        }
     }
 
     public function deleteMessage(int $chatId, int $messageId): void

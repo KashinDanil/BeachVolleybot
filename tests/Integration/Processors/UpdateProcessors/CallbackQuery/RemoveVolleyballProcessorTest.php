@@ -71,6 +71,7 @@ final class RemoveVolleyballProcessorTest extends ProcessorTestCase
 
         new RemoveVolleyballProcessor($this->telegramSender)->process($update);
 
+        $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();
     }

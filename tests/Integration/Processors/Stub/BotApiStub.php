@@ -35,6 +35,13 @@ class BotApiStub extends BotApi
         return true;
     }
 
+    public function editMessageReplyMarkup($chatId, $messageId, $replyMarkup = null, $inlineMessageId = null): true
+    {
+        $this->calls[] = ['method' => 'editMessageReplyMarkup', 'args' => func_get_args()];
+
+        return true;
+    }
+
     public function editMessageText($chatId, $messageId, $text, $parseMode = null, $disablePreview = false, $replyMarkup = null, $inlineMessageId = null): true
     {
         $this->calls[] = ['method' => 'editMessageText', 'args' => func_get_args()];

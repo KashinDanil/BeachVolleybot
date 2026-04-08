@@ -71,6 +71,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
 
         new RemoveNetProcessor($this->telegramSender)->process($update);
 
+        $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();
     }

@@ -20,6 +20,7 @@ class LeaveProcessor extends AbstractCallbackProcessor
         $gameId = $gameManager->resolveGameIdByInlineMessageId($inlineMessageId);
 
         if (null === $gameId) {
+            $this->telegramSender->removeInlineKeyboard($inlineMessageId);
             $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_NOT_FOUND);
 
             return;

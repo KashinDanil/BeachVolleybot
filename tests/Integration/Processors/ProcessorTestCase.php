@@ -215,6 +215,18 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         $this->assertEmpty($editCalls, 'Expected editMessageText NOT to be called');
     }
 
+    protected function assertKeyboardRemoved(): void
+    {
+        $calls = array_filter($this->bot->calls, fn($c) => 'editMessageReplyMarkup' === $c['method']);
+        $this->assertNotEmpty($calls, 'Expected editMessageReplyMarkup to be called');
+    }
+
+    protected function assertKeyboardNotRemoved(): void
+    {
+        $calls = array_filter($this->bot->calls, fn($c) => 'editMessageReplyMarkup' === $c['method']);
+        $this->assertEmpty($calls, 'Expected editMessageReplyMarkup NOT to be called');
+    }
+
     protected function assertReactedWithConfused(): void
     {
         $this->assertReactedWith('👎');

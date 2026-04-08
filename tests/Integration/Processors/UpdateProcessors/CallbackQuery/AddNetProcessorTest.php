@@ -69,6 +69,7 @@ final class AddNetProcessorTest extends ProcessorTestCase
 
         new AddNetProcessor($this->telegramSender)->process($update);
 
+        $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();
     }

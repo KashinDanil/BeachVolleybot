@@ -69,6 +69,7 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
 
         new AddVolleyballProcessor($this->telegramSender)->process($update);
 
+        $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();
     }

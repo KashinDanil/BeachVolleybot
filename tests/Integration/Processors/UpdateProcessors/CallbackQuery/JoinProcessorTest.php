@@ -85,6 +85,7 @@ final class JoinProcessorTest extends ProcessorTestCase
 
         new JoinProcessor($this->telegramSender)->process($update);
 
+        $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
         $this->assertMessageNotEdited();
     }
