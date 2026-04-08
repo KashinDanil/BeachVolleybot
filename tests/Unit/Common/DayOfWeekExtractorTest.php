@@ -43,4 +43,33 @@ final class DayOfWeekExtractorTest extends TestCase
     {
         $this->assertNull(DayOfWeekExtractor::extract('Sundays are fun'));
     }
+
+    // --- Russian ---
+
+    public function testExtractsRussianDay(): void
+    {
+        $this->assertSame('Пятница', DayOfWeekExtractor::extract('Пятница Игра 18:00'));
+    }
+
+    public function testExtractsRussianDayCaseInsensitive(): void
+    {
+        $this->assertSame('пятница', DayOfWeekExtractor::extract('пятница Игра'));
+    }
+
+    public function testDoesNotMatchPartialRussianDayName(): void
+    {
+        $this->assertNull(DayOfWeekExtractor::extract('Понедельники'));
+    }
+
+    // --- Spanish ---
+
+    public function testExtractsSpanishDay(): void
+    {
+        $this->assertSame('Viernes', DayOfWeekExtractor::extract('Viernes Juego 18:00'));
+    }
+
+    public function testExtractsSpanishDayWithAccent(): void
+    {
+        $this->assertSame('Sábado', DayOfWeekExtractor::extract('Sábado Juego'));
+    }
 }

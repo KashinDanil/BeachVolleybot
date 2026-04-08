@@ -89,6 +89,24 @@ final class StylizeTitleAddOnTest extends TestCase
         $this->assertSame('_Saturday_, _11\.04_ Bogatell __18:00__', $this->buildTitle($game));
     }
 
+    public function testRussianDayOfWeekBecomesItalic(): void
+    {
+        $game = $this->game(title: 'Суббота, 11.04 Bogatell 18:00');
+
+        $this->transform($game);
+
+        $this->assertSame('_Суббота_, _11\.04_ Bogatell __18:00__', $this->buildTitle($game));
+    }
+
+    public function testSpanishDayOfWeekBecomesItalic(): void
+    {
+        $game = $this->game(title: 'Sábado, 11.04 Bogatell 18:00');
+
+        $this->transform($game);
+
+        $this->assertSame('_Sábado_, _11\.04_ Bogatell __18:00__', $this->buildTitle($game));
+    }
+
     // --- No special parts ---
 
     public function testPlainTitleIsEscaped(): void

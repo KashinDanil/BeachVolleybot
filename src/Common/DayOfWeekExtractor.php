@@ -6,7 +6,12 @@ namespace BeachVolleybot\Common;
 
 final class DayOfWeekExtractor
 {
-    public const string PATTERN = '/\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/i';
+    public const string PATTERN =
+        '/(*UCP)\b(?:'
+        . 'Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday'
+        . '|Понедельник|Вторник|Среда|Четверг|Пятница|Суббота|Воскресенье'
+        . '|Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Domingo'
+        . ')\b/iu';
 
     public static function extract(string $text): ?string
     {
