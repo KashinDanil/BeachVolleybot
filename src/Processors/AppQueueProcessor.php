@@ -12,9 +12,9 @@ use BeachVolleybot\Telegram\CallbackData;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Telegram\RateLimitedBotApi;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use DanilKashin\FileQueue\Queue\QueueMessage;
-use TelegramBot\Api\BotApi;
 
 readonly class AppQueueProcessor implements QueueProcessorInterface
 {
@@ -33,7 +33,7 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             return true;
         }
 
-        $telegramSender = new TelegramMessageSender(new BotApi(TG_BOT_ACCESS_TOKEN));
+        $telegramSender = new TelegramMessageSender(new RateLimitedBotApi(TG_BOT_ACCESS_TOKEN, TG_MAX_REQUESTS_PER_SECOND));
 
         $processor = $this->resolveProcessor($update, $telegramSender);
 

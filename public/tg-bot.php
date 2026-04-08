@@ -14,7 +14,7 @@ use BeachVolleybot\Validator\Rules\ValidPayloadRule;
 use BeachVolleybot\Validator\Rules\PostRequestRule;
 use BeachVolleybot\Validator\Rules\AppSecretTokenRule;
 use BeachVolleybot\Validator\Validator;
-use TelegramBot\Api\BotApi;
+use BeachVolleybot\Telegram\RateLimitedBotApi;
 
 $inputStrategy = InputStrategyFactory::getStrategy();
 $validator = new Validator(
@@ -35,7 +35,7 @@ if (!$validationResult->isSuccess()) {
 Logger::logVerbose(sprintf('Received message: %s' . PHP_EOL, $inputStrategy->getPayload()));
 $payload = json_decode($inputStrategy->getPayload(), true);
 
-$telegramSender = new TelegramMessageSender(new BotApi(TG_BOT_ACCESS_TOKEN));
+$telegramSender = new TelegramMessageSender(new RateLimitedBotApi(TG_BOT_ACCESS_TOKEN, TG_MAX_REQUESTS_PER_SECOND));
 $queueRouter = new IncomingMessageQueueRouter(QUEUE_CLASS, BASE_QUEUE_DIR);
 $router = new IncomingMessageRouter($telegramSender, $queueRouter);
 $router->route($payload);
