@@ -26,4 +26,9 @@ final class FileQueueWorker extends VendorFileQueueWorker
     {
         return $this->processor ??= new AppQueueProcessor();
     }
+
+    protected function getTickIntervalMs(): int
+    {
+        return 1000; //Decrease the queue bandwidth to 1 message per second to fit in with telegram API group limits
+    }
 }
