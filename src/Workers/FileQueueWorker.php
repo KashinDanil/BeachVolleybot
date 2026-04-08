@@ -29,6 +29,6 @@ final class FileQueueWorker extends VendorFileQueueWorker
 
     protected function getTickIntervalMs(): int
     {
-        return 1000; //Decrease the queue bandwidth to 1 message per second to fit in with telegram API group limits
+        return 500; //Decrease the queue bandwidth to 2 messages per second to fit in with telegram API group limits
     }
 }
