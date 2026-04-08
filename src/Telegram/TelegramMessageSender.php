@@ -49,15 +49,23 @@ readonly class TelegramMessageSender
 
     public function deleteMessage(int $chatId, int $messageId): void
     {
-        $this->bot->deleteMessage($chatId, $messageId);
+        try {
+            $this->bot->deleteMessage($chatId, $messageId);
+        } catch (HttpException) {
+            // Message already deleted or not found
+        }
     }
 
     public function setMessageReaction(int $chatId, int $messageId, string $emoji): void
     {
-        $this->bot->call('setMessageReaction', [
-            'chat_id' => $chatId,
-            'message_id' => $messageId,
-            'reaction' => json_encode([['type' => 'emoji', 'emoji' => $emoji]]),
-        ]);
+        try {
+            $this->bot->call('setMessageReaction', [
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
+                'reaction' => json_encode([['type' => 'emoji', 'emoji' => $emoji]]),
+            ]);
+        } catch (HttpException) {
+            // Message not found or reaction not supported
+        }
     }
 }

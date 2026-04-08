@@ -5,17 +5,12 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
-use TelegramBot\Api\HttpException;
 
 abstract class AbstractActionReplyProcessor extends AbstractActionProcessor
 {
-    protected function reactWithCheckmarkAndDelete(TelegramMessage $message): void
+    protected function deleteMessage(TelegramMessage $message): void
     {
-        try {
-            $this->reactWithCheckmark($message);
-            $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);
-        } catch (HttpException) {
-        }
+        $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);
     }
 
     protected function reactWithCheckmark(TelegramMessage $message): void
@@ -30,9 +25,6 @@ abstract class AbstractActionReplyProcessor extends AbstractActionProcessor
 
     private function react(TelegramMessage $message, string $emoji): void
     {
-        try {
-            $this->telegramSender->setMessageReaction($message->chat->id, $message->messageId, $emoji);
-        } catch (HttpException) {
-        }
+        $this->telegramSender->setMessageReaction($message->chat->id, $message->messageId, $emoji);
     }
 }

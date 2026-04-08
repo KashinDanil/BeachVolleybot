@@ -53,7 +53,7 @@ class JoinWithTimeProcessor extends AbstractActionReplyProcessor
             $time,
         );
 
-        $this->reactWithCheckmarkAndDelete($message);
         $this->refreshInlineMessage($gameLookup->inlineMessageId);
+        $this->deleteMessage($message);
     }
 }

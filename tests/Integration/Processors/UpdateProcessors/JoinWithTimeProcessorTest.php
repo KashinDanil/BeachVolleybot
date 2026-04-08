@@ -69,17 +69,6 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $this->assertNotEmpty($deleteCalls);
     }
 
-    public function testSetsReactionBeforeDeleting(): void
-    {
-        $this->seedFullGame(inlineQueryId: 'query_1');
-        $update = $this->buildUpdate('15:30', 'query_1');
-
-        new JoinWithTimeProcessor($this->telegramSender)->process($update);
-
-        $reactionCalls = array_filter($this->bot->calls, fn($c) => 'call' === $c['method'] && 'setMessageReaction' === ($c['args'][0] ?? null));
-        $this->assertNotEmpty($reactionCalls);
-    }
-
     public function testRefreshesInlineMessage(): void
     {
         $this->seedGameWithPlayer(telegramUserId: 200);
