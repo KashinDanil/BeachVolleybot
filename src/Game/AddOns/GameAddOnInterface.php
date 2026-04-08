@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\AddOns;
 
-use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Game\Models\Game;
 
 interface GameAddOnInterface
 {
-    public function transform(GameInterface $game): GameInterface;
+    public function transform(Game $game): void;
 }

@@ -43,35 +43,39 @@ readonly class GameBuilder
             time: TimeExtractor::extract($data->title),
         );
 
-        return (new self([], [], [], []))->buildGame(
-            new Game(
-                gameId: self::UNPERSISTED_GAME_ID,
-                inlineQueryId: $data->inlineQueryId,
-                inlineMessageId: $data->inlineMessageId,
-                title: $data->title,
-                players: [$player],
-            ),
+        $game = new Game(
+            gameId: self::UNPERSISTED_GAME_ID,
+            inlineQueryId: $data->inlineQueryId,
+            inlineMessageId: $data->inlineMessageId,
+            title: $data->title,
+            players: [$player],
         );
+
+        return (new self([], [], [], []))->applyAddOns($game);
     }
 
     public function build(): GameInterface
     {
-        return $this->buildGame(
-            new Game(
-                gameId: (int)$this->gameRow['game_id'],
-                inlineQueryId: (string)$this->gameRow['inline_query_id'],
-                inlineMessageId: (string)$this->gameRow['inline_message_id'],
-                title: (string)$this->gameRow['title'],
-                players: $this->buildPlayersFromRows(),
-                location: $this->gameRow['location'] ?? null,
-            ),
+        $title = (string)$this->gameRow['title'];
+
+        $game = new Game(
+            gameId: (int)$this->gameRow['game_id'],
+            inlineQueryId: (string)$this->gameRow['inline_query_id'],
+            inlineMessageId: (string)$this->gameRow['inline_message_id'],
+            title: $title,
+            players: $this->buildPlayersFromRows(),
+            location: $this->gameRow['location'] ?? null,
         );
+
+        return $this->applyAddOns($game);
     }
 
-    private function buildGame(GameInterface $game): GameInterface
+    private function applyAddOns(Game $game): GameInterface
     {
+        $game->init();
+
         foreach ($this->addOns as $addOnClass) {
-            $game = new $addOnClass()->transform($game);
+            new $addOnClass()->transform($game);
         }
 
         return $game;

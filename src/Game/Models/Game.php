@@ -5,23 +5,29 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Common\TimeExtractor;
-use BeachVolleybot\Telegram\MessageBuilders\DefaultTelegramMessageBuilder;
-use BeachVolleybot\Telegram\MessageBuilders\TelegramMessageBuilderInterface;
+use BeachVolleybot\Telegram\MessageBuilders\TelegramMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use RuntimeException;
 
-readonly class Game implements GameInterface
+final class Game implements GameInterface
 {
+    private ?string $time = null;
+
     /** @param PlayerInterface[] $players */
     public function __construct(
-        private int $gameId,
-        private string $inlineQueryId,
-        private string $inlineMessageId,
-        private string $title,
-        private array $players,
-        private ?string $location = null,
-        private TelegramMessageBuilderInterface $telegramMessageBuilder = new DefaultTelegramMessageBuilder(),
+        private readonly int $gameId,
+        private readonly string $inlineQueryId,
+        private readonly string $inlineMessageId,
+        public string $title,
+        public array $players,
+        public ?string $location = null,
+        public TelegramMessageBuilder $telegramMessageBuilder = new TelegramMessageBuilder(),
     ) {
+    }
+
+    public function init(): void
+    {
+        $this->time = TimeExtractor::extract($this->title);
     }
 
     public function getGameId(): int
@@ -51,13 +57,11 @@ readonly class Game implements GameInterface
 
     public function getTime(): string
     {
-        $time = TimeExtractor::extract($this->title);
-
-        if (null === $time) {
+        if (null === $this->time) {
             throw new RuntimeException("Time not found in title: $this->title");
         }
 
-        return $time;
+        return $this->time;
     }
 
     /** @return PlayerInterface[] */
@@ -66,14 +70,8 @@ readonly class Game implements GameInterface
         return $this->players;
     }
 
-    public function getTelegramMessageBuilder(): TelegramMessageBuilderInterface
-    {
-        return $this->telegramMessageBuilder;
-    }
-
     public function buildTelegramMessage(): TelegramMessage
     {
         return $this->telegramMessageBuilder->build($this);
     }
-
 }

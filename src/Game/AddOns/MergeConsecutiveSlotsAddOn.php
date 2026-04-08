@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\AddOns;
 
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Game\Models\PlayerInterface;
-use BeachVolleybot\Telegram\MessageBuilders\GroupSizeTelegramMessageBuilder;
 
 /**
  * Merges consecutive slots belonging to the same player into a single entry.
@@ -18,16 +16,21 @@ use BeachVolleybot\Telegram\MessageBuilders\GroupSizeTelegramMessageBuilder;
  */
 final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
 {
-    public function transform(GameInterface $game): GameInterface
+    public function transform(Game $game): void
     {
-        return new Game(
-            gameId: $game->getGameId(),
-            inlineQueryId: $game->getInlineQueryId(),
-            inlineMessageId: $game->getInlineMessageId(),
-            title: $game->getTitle(),
-            players: $this->mergeConsecutive($game->getPlayers()),
-            location: $game->getLocation(),
-            telegramMessageBuilder: new GroupSizeTelegramMessageBuilder(),
+        $game->players = $this->mergeConsecutive($game->players);
+        $game->telegramMessageBuilder->override('plusCount',
+            static function (PlayerInterface $player, int $appearance): int {
+                $number = $player->getNumber();
+
+                if (str_contains($number, '-')) {
+                    $parts = explode('-', $number);
+
+                    return (int) $parts[1] - (int) $parts[0] + 1;
+                }
+
+                return 1;
+            }
         );
     }
 

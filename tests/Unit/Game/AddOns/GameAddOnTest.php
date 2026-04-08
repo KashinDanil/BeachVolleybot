@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Game\AddOns;
 
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Tests\Unit\Game\AddOns\Stub\TitlePrefixAddOn;
 use PHPUnit\Framework\TestCase;
 
@@ -17,27 +16,28 @@ final class GameAddOnTest extends TestCase
     {
         $game = $this->game();
 
-        $result = new TitlePrefixAddOn()->transform($game);
+        (new TitlePrefixAddOn())->transform($game);
 
-        $this->assertSame('[Modified] Beach Game 18:00', $result->getTitle());
+        $this->assertSame('[Modified] Beach Game 18:00', $game->title);
     }
 
     public function testAddOnPreservesGameId(): void
     {
         $game = $this->game(gameId: 42);
 
-        $result = new TitlePrefixAddOn()->transform($game);
+        (new TitlePrefixAddOn())->transform($game);
 
-        $this->assertSame(42, $result->getGameId());
+        $this->assertSame(42, $game->getGameId());
     }
 
     public function testAddOnPreservesPlayers(): void
     {
         $game = $this->game();
+        $playersBefore = $game->players;
 
-        $result = new TitlePrefixAddOn()->transform($game);
+        (new TitlePrefixAddOn())->transform($game);
 
-        $this->assertSame($game->getPlayers(), $result->getPlayers());
+        $this->assertSame($playersBefore, $game->players);
     }
 
     // --- Custom constructor parameter ---
@@ -46,9 +46,9 @@ final class GameAddOnTest extends TestCase
     {
         $game = $this->game();
 
-        $result = new TitlePrefixAddOn('[VIP]')->transform($game);
+        (new TitlePrefixAddOn('[VIP]'))->transform($game);
 
-        $this->assertSame('[VIP] Beach Game 18:00', $result->getTitle());
+        $this->assertSame('[VIP] Beach Game 18:00', $game->title);
     }
 
     // --- Chaining multiple add-ons ---
@@ -63,19 +63,10 @@ final class GameAddOnTest extends TestCase
         ];
 
         foreach ($addOns as $addOn) {
-            $game = $addOn->transform($game);
+            $addOn->transform($game);
         }
 
-        $this->assertSame('[Second] [First] Beach Game 18:00', $game->getTitle());
-    }
-
-    public function testAddOnReturnsNewInstance(): void
-    {
-        $game = $this->game();
-
-        $result = new TitlePrefixAddOn()->transform($game);
-
-        $this->assertNotSame($game, $result);
+        $this->assertSame('[Second] [First] Beach Game 18:00', $game->title);
     }
 
     // --- Helpers ---
@@ -83,7 +74,7 @@ final class GameAddOnTest extends TestCase
     private function game(
         int $gameId = 1,
         string $title = 'Beach Game 18:00',
-    ): GameInterface {
+    ): Game {
         return new Game(
             gameId: $gameId,
             inlineQueryId: 'query_1',

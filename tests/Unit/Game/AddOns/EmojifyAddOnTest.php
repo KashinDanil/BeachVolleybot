@@ -6,7 +6,6 @@ namespace BeachVolleybot\Tests\Unit\Game\AddOns;
 
 use BeachVolleybot\Game\AddOns\EmojifyAddOn;
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\Player;
 use PHPUnit\Framework\TestCase;
 
@@ -23,75 +22,73 @@ final class EmojifyAddOnTest extends TestCase
 
     public function testReplacesTimeInTitle(): void
     {
-        $game = $this->transform($this->game(title: 'Beach Game 18:00'));
+        $game = $this->game(title: 'Beach Game 18:00');
 
-        $this->assertSame('Beach Game 1️⃣8️⃣:0️⃣0️⃣', $game->getTitle());
+        $this->transform($game);
+
+        $this->assertSame('Beach Game 1️⃣8️⃣:0️⃣0️⃣', $game->title);
     }
 
     public function testReplacesArbitraryMinutesInTitle(): void
     {
-        $game = $this->transform($this->game(title: 'Beach Game 18:45'));
+        $game = $this->game(title: 'Beach Game 18:45');
 
-        $this->assertSame('Beach Game 1️⃣8️⃣:4️⃣5️⃣', $game->getTitle());
+        $this->transform($game);
+
+        $this->assertSame('Beach Game 1️⃣8️⃣:4️⃣5️⃣', $game->title);
     }
 
     public function testReplacesSingleDigitHourInTitle(): void
     {
-        $game = $this->transform($this->game(title: 'Beach Game 9:30'));
+        $game = $this->game(title: 'Beach Game 9:30');
 
-        $this->assertSame('Beach Game 9️⃣:3️⃣0️⃣', $game->getTitle());
-    }
+        $this->transform($game);
 
-    public function testTitleWithoutTimeThrows(): void
-    {
-        $this->expectException(\RuntimeException::class);
-
-        $this->transform($this->game(title: 'Sunday Beach Game'));
+        $this->assertSame('Beach Game 9️⃣:3️⃣0️⃣', $game->title);
     }
 
     public function testPreservesTextAroundTime(): void
     {
-        $game = $this->transform($this->game(title: 'Saturday Bogatell 10:15 volleyball'));
+        $game = $this->game(title: 'Saturday Bogatell 10:15 volleyball');
 
-        $this->assertSame('Saturday Bogatell 1️⃣0️⃣:1️⃣5️⃣ volleyball', $game->getTitle());
+        $this->transform($game);
+
+        $this->assertSame('Saturday Bogatell 1️⃣0️⃣:1️⃣5️⃣ volleyball', $game->title);
     }
 
     // --- Player times ---
 
-    public function testReplacesPlayerTime(): void
+    public function testPlayerTimesUnchanged(): void
     {
-        $game = $this->transform($this->game(players: [
+        $game = $this->game(players: [
             $this->player(time: '19:00'),
-        ]));
+        ]);
 
-        $this->assertSame('19:00', $game->getPlayers()[0]->getTime());
-    }
+        $this->transform($game);
 
-    public function testReplacesPlayerTimeWithArbitraryMinutes(): void
-    {
-        $game = $this->transform($this->game(players: [
-            $this->player(time: '07:15'),
-        ]));
-
-        $this->assertSame('07:15', $game->getPlayers()[0]->getTime());
+        $this->assertSame('19:00', $game->players[0]->getTime());
     }
 
     public function testNullPlayerTimeStaysNull(): void
     {
-        $game = $this->transform($this->game(players: [
+        $game = $this->game(players: [
             $this->player(time: null),
-        ]));
+        ]);
 
-        $this->assertNull($game->getPlayers()[0]->getTime());
+        $this->transform($game);
+
+        $this->assertNull($game->players[0]->getTime());
     }
 
     public function testPlayerAttributesPreserved(): void
     {
-        $game = $this->transform($this->game(players: [
+        $game = $this->game(players: [
             $this->player(telegramUserId: 42, number: '3', name: 'Alice', link: 'https://t.me/alice', volleyball: 2, net: 1, time: '20:00'),
-        ]));
+        ]);
 
-        $player = $game->getPlayers()[0];
+        $this->transform($game);
+
+        $player = $game->players[0];
 
         $this->assertSame(42, $player->getTelegramUserId());
         $this->assertSame('3', $player->getNumber());
@@ -105,7 +102,9 @@ final class EmojifyAddOnTest extends TestCase
 
     public function testGamePropertiesPreserved(): void
     {
-        $game = $this->transform($this->game(gameId: 42, title: 'Sunday Game 18:00'));
+        $game = $this->game(gameId: 42, title: 'Sunday Game 18:00');
+
+        $this->transform($game);
 
         $this->assertSame(42, $game->getGameId());
         $this->assertSame('query_1', $game->getInlineQueryId());
@@ -114,16 +113,16 @@ final class EmojifyAddOnTest extends TestCase
 
     // --- Helpers ---
 
-    private function transform(GameInterface $game): GameInterface
+    private function transform(Game $game): void
     {
-        return $this->addOn->transform($game);
+        $this->addOn->transform($game);
     }
 
     private function game(
         int $gameId = 1,
         string $title = 'Beach Game 18:00',
         array $players = [],
-    ): GameInterface {
+    ): Game {
         return new Game(
             gameId: $gameId,
             inlineQueryId: 'query_1',

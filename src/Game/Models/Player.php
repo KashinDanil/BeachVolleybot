@@ -10,12 +10,12 @@ readonly class Player implements PlayerInterface
 
     public function __construct(
         private int $telegramUserId,
-        private string $number,
-        private string $name,
-        private ?string $link,
-        private int $volleyball,
-        private int $net,
-        private ?string $time,
+        public string $number,
+        public string $name,
+        public ?string $link,
+        public int $volleyball,
+        public int $net,
+        public ?string $time,
     ) {
     }
 

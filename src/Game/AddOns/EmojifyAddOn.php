@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\AddOns;
 
 use BeachVolleybot\Common\TimeExtractor;
-use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\GameWithTime;
+use BeachVolleybot\Game\Models\Game;
 
 final class EmojifyAddOn implements GameAddOnInterface
 {
@@ -15,18 +14,9 @@ final class EmojifyAddOn implements GameAddOnInterface
         '5' => '5️⃣', '6' => '6️⃣', '7' => '7️⃣', '8' => '8️⃣', '9' => '9️⃣',
     ];
 
-    public function transform(GameInterface $game): GameInterface
+    public function transform(Game $game): void
     {
-        return new GameWithTime(
-            gameId: $game->getGameId(),
-            inlineQueryId: $game->getInlineQueryId(),
-            inlineMessageId: $game->getInlineMessageId(),
-            title: $this->emojifyTime($game->getTitle()),
-            players: $game->getPlayers(),
-            time: $game->getTime(),
-            location: $game->getLocation(),
-            telegramMessageBuilder: $game->getTelegramMessageBuilder(),
-        );
+        $game->title = $this->emojifyTime($game->title);
     }
 
     private function emojifyTime(string $text): string
@@ -40,7 +30,7 @@ final class EmojifyAddOn implements GameAddOnInterface
     {
         return $digits
                 |> str_split(...)
-                |> (static fn($x) => array_map(fn(string $char) => self::DIGIT_EMOJIS[$char], $x))
+                |> (static fn($x) => array_map(static fn(string $char) => self::DIGIT_EMOJIS[$char], $x))
                 |> (static fn($x) => implode('', $x));
     }
 }

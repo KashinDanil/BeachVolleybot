@@ -6,7 +6,6 @@ namespace BeachVolleybot\Tests\Unit\Game\AddOns\Stub;
 
 use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Game\Models\GameInterface;
 
 final class TitlePrefixAddOn implements GameAddOnInterface
 {
@@ -14,15 +13,8 @@ final class TitlePrefixAddOn implements GameAddOnInterface
     {
     }
 
-    public function transform(GameInterface $game): GameInterface
+    public function transform(Game $game): void
     {
-        return new Game(
-            gameId: $game->getGameId(),
-            inlineQueryId: $game->getInlineQueryId(),
-            inlineMessageId: $game->getInlineMessageId(),
-            title: $this->prefix . ' ' . $game->getTitle(),
-            players: $game->getPlayers(),
-            telegramMessageBuilder: $game->getTelegramMessageBuilder(),
-        );
+        $game->title = $this->prefix . ' ' . $game->title;
     }
 }
