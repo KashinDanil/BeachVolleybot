@@ -166,6 +166,27 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->assertSame($payload, SpyQueue::$instances[0]->lastPayload);
     }
 
+    public function testPathTraversalInChosenInlineResultIsSanitized(): void
+    {
+        $this->router->route($this->chosenInlineResultPayload('../../etc/evil'));
+
+        $this->assertEnqueuedOnce('game_______etc_evil');
+    }
+
+    public function testPathTraversalInCallbackQueryIsSanitized(): void
+    {
+        $this->router->route($this->callbackQueryPayload('/eg_+p', '../../etc/evil'));
+
+        $this->assertEnqueuedOnce('game_______etc_evil');
+    }
+
+    public function testSpecialCharactersInInlineMessageIdAreSanitized(): void
+    {
+        $this->router->route($this->chosenInlineResultPayload('AgAAA+Fsq/AP=='));
+
+        $this->assertEnqueuedOnce('game_AgAAA_Fsq_AP__');
+    }
+
     public function testQueueReceivesCorrectBaseDir(): void
     {
         $this->router->route($this->chosenInlineResultPayload('inline_msg_abc'));

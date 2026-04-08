@@ -115,7 +115,12 @@ readonly class IncomingMessageQueueRouter
 
     private function gameQueueName(string $inlineMessageId): string
     {
-        return self::GAME_QUEUE_PREFIX . $inlineMessageId;
+        return self::GAME_QUEUE_PREFIX . $this->sanitizeForFilesystem($inlineMessageId);
+    }
+
+    private function sanitizeForFilesystem(string $value): string
+    {
+        return preg_replace('/[^A-Za-z0-9_\-]/', '_', $value);
     }
 
     private function skip(string $reason, array $context): null

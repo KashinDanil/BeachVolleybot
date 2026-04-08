@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram;
 
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
 use PHPUnit\Framework\TestCase;
-use TelegramBot\Api\BotApi;
 use TelegramBot\Api\HttpException;
 
 final class TelegramMessageSenderTest extends TestCase
@@ -28,7 +28,7 @@ final class TelegramMessageSenderTest extends TestCase
 
     public function testAnswerCallbackQueryDoesNotThrowOnHttpException(): void
     {
-        $bot = $this->createMock(BotApi::class);
+        $bot = $this->createMock(BotApiStub::class);
         $bot->method('answerCallbackQuery')
             ->willThrowException(new HttpException('Bad Request: query is too old', 400));
 
@@ -44,7 +44,7 @@ final class TelegramMessageSenderTest extends TestCase
 
     public function testAnswerInlineQueryDoesNotThrowOnHttpException(): void
     {
-        $bot = $this->createMock(BotApi::class);
+        $bot = $this->createMock(BotApiStub::class);
         $bot->method('answerInlineQuery')
             ->willThrowException(new HttpException('Bad Request: query is too old', 400));
 
