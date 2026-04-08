@@ -16,7 +16,7 @@ final class GameAddOnTest extends TestCase
     {
         $game = $this->game();
 
-        (new TitlePrefixAddOn())->transform($game);
+        (new TitlePrefixAddOn())->applyTo($game);
 
         $this->assertSame('[Modified] Beach Game 18:00', $game->title);
     }
@@ -25,7 +25,7 @@ final class GameAddOnTest extends TestCase
     {
         $game = $this->game(gameId: 42);
 
-        (new TitlePrefixAddOn())->transform($game);
+        (new TitlePrefixAddOn())->applyTo($game);
 
         $this->assertSame(42, $game->getGameId());
     }
@@ -35,7 +35,7 @@ final class GameAddOnTest extends TestCase
         $game = $this->game();
         $playersBefore = $game->players;
 
-        (new TitlePrefixAddOn())->transform($game);
+        (new TitlePrefixAddOn())->applyTo($game);
 
         $this->assertSame($playersBefore, $game->players);
     }
@@ -46,7 +46,7 @@ final class GameAddOnTest extends TestCase
     {
         $game = $this->game();
 
-        (new TitlePrefixAddOn('[VIP]'))->transform($game);
+        (new TitlePrefixAddOn('[VIP]'))->applyTo($game);
 
         $this->assertSame('[VIP] Beach Game 18:00', $game->title);
     }
@@ -63,7 +63,7 @@ final class GameAddOnTest extends TestCase
         ];
 
         foreach ($addOns as $addOn) {
-            $addOn->transform($game);
+            $addOn->applyTo($game);
         }
 
         $this->assertSame('[Second] [First] Beach Game 18:00', $game->title);

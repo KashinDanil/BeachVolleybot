@@ -8,5 +8,5 @@ use BeachVolleybot\Game\Models\Game;
 
 interface GameAddOnInterface
 {
-    public function transform(Game $game): void;
+    public function applyTo(Game $game): void;
 }

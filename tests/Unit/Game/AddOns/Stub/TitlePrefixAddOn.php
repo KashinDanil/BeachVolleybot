@@ -13,7 +13,7 @@ final class TitlePrefixAddOn implements GameAddOnInterface
     {
     }
 
-    public function transform(Game $game): void
+    public function applyTo(Game $game): void
     {
         $game->title = $this->prefix . ' ' . $game->title;
     }

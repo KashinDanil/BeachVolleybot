@@ -157,7 +157,7 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
 
     private function transform(Game $game): void
     {
-        $this->addOn->transform($game);
+        $this->addOn->applyTo($game);
     }
 
     private function game(

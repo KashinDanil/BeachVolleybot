@@ -115,7 +115,7 @@ final class EmojifyAddOnTest extends TestCase
 
     private function transform(Game $game): void
     {
-        $this->addOn->transform($game);
+        $this->addOn->applyTo($game);
     }
 
     private function game(

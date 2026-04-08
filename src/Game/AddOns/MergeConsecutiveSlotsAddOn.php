@@ -16,7 +16,7 @@ use BeachVolleybot\Game\Models\PlayerInterface;
  */
 final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
 {
-    public function transform(Game $game): void
+    public function applyTo(Game $game): void
     {
         $game->players = $this->mergeConsecutive($game->players);
         $game->telegramMessageBuilder->override('plusCount',

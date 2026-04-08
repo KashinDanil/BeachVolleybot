@@ -14,7 +14,7 @@ final class EmojifyAddOn implements GameAddOnInterface
         '5' => '5️⃣', '6' => '6️⃣', '7' => '7️⃣', '8' => '8️⃣', '9' => '9️⃣',
     ];
 
-    public function transform(Game $game): void
+    public function applyTo(Game $game): void
     {
         $game->title = $this->emojifyTime($game->title);
     }

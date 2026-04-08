@@ -75,7 +75,7 @@ readonly class GameBuilder
         $game->init();
 
         foreach ($this->addOns as $addOnClass) {
-            new $addOnClass()->transform($game);
+            new $addOnClass()->applyTo($game);
         }
 
         return $game;
