@@ -38,14 +38,14 @@ final class RateLimitedBotApiTest extends TestCase
     public function testMaxRetriesUsesExactlyThreeAttempts(): void
     {
         $bot = new RateLimitedBotApiStub(100);
-        $bot->callResults = array_fill(0, 3, new HttpException('Too Many Requests: retry after 1', 429, null, ['retry_after' => 1]));
+        $bot->callResults = array_fill(0, 2, new HttpException('Too Many Requests: retry after 1', 429, null, ['retry_after' => 1]));
 
         try {
             $bot->call('sendMessage');
         } catch (HttpException) {
         }
 
-        $this->assertSame(3, $bot->parentCallCount);
+        $this->assertSame(2, $bot->parentCallCount);
     }
 
     public function testNonRateLimitExceptionIsNotRetried(): void

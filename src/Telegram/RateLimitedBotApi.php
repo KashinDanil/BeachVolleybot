@@ -10,7 +10,7 @@ use TelegramBot\Api\HttpException;
 
 class RateLimitedBotApi extends BotApi
 {
-    private const int MAX_ATTEMPTS = 3;
+    private const int MAX_ATTEMPTS = 2;
 
     private readonly float $minimumRequestInterval;
 
