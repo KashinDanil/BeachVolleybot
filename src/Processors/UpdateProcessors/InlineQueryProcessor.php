@@ -10,7 +10,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\ArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\ErrorArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
 use BeachVolleybot\Validator\Rules\RuleInterface;
-use BeachVolleybot\Validator\Rules\TimeInTitleRule;
+use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
 use BeachVolleybot\Validator\Validator;
 
 class InlineQueryProcessor extends AbstractActionProcessor
@@ -37,7 +37,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
     public function validationRules(string $query): array
     {
         return [
-            new TimeInTitleRule($query),
+            new DateTimeInTitleRule($query),
         ];
     }
 }

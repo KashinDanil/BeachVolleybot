@@ -16,7 +16,11 @@
     "Tap to create a new game": "Нажмите, чтобы создать новую игру",
     "⚠️ Something went wrong": "⚠️ Что-то пошло не так",
     "Try again using the correct format": "Попробуйте ещё раз, используя правильный формат",
-    "⚠️ Include a time in your query": "⚠️ Укажите время в запросе",
+    "⚠️ Include a date and time": "⚠️ Укажите дату и время",
+    "E.g., Saturday 18:00": "Например, Суббота 18:00",
+    "⚠️ Include a date": "⚠️ Укажите дату",
+    "E.g., Saturday or April 12": "Например, Суббота или 12 апреля",
+    "⚠️ Include a time": "⚠️ Укажите время",
     "E.g., 18:00": "Например, 18:00",
     "Use the following pattern to create a new game:": "Используйте следующий шаблон для создания новой игры:",
     "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Суббота, 11.04\n🏖️ Bogatell\n🕙 10:00"

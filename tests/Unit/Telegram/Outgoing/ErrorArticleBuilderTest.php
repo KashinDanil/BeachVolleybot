@@ -8,7 +8,7 @@ use BeachVolleybot\Errors\ValidationError;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Outgoing\ErrorArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
-use BeachVolleybot\Validator\Rules\TimeInTitleRule;
+use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
 use DanilKashin\Localization\Language;
 use PHPUnit\Framework\TestCase;
 
@@ -23,18 +23,18 @@ final class ErrorArticleBuilderTest extends TestCase
 
     public function testTitleMatchesInlineQueryError(): void
     {
-        $error = InlineQueryError::fromError(new ValidationError(TimeInTitleRule::ERROR_MESSAGE));
+        $error = InlineQueryError::fromError(new ValidationError(DateTimeInTitleRule::ERROR_DATE_AND_TIME_MISSING));
         $article = $this->buildArticle($error);
 
-        $this->assertSame(InlineQueryError::TIME_NOT_FOUND_TITLE, $article->getTitle());
+        $this->assertSame(InlineQueryError::DATE_AND_TIME_NOT_FOUND_TITLE, $article->getTitle());
     }
 
     public function testDescriptionMatchesInlineQueryError(): void
     {
-        $error = InlineQueryError::fromError(new ValidationError(TimeInTitleRule::ERROR_MESSAGE));
+        $error = InlineQueryError::fromError(new ValidationError(DateTimeInTitleRule::ERROR_DATE_AND_TIME_MISSING));
         $article = $this->buildArticle($error);
 
-        $this->assertSame(InlineQueryError::TIME_NOT_FOUND_DESCRIPTION, $article->getDescription());
+        $this->assertSame(InlineQueryError::DATE_AND_TIME_NOT_FOUND_DESCRIPTION, $article->getDescription());
     }
 
     public function testUnknownErrorTitle(): void
@@ -69,25 +69,25 @@ final class ErrorArticleBuilderTest extends TestCase
 
     public function testTranslatesTitle(): void
     {
-        $error = InlineQueryError::fromError(new ValidationError(TimeInTitleRule::ERROR_MESSAGE));
+        $error = InlineQueryError::fromError(new ValidationError(DateTimeInTitleRule::ERROR_DATE_AND_TIME_MISSING));
         $translator = new Translator(Language::RU);
         $article = (new ErrorArticleBuilder($error, $translator))->build();
 
-        $this->assertNotSame(InlineQueryError::TIME_NOT_FOUND_TITLE, $article->getTitle());
+        $this->assertNotSame(InlineQueryError::DATE_AND_TIME_NOT_FOUND_TITLE, $article->getTitle());
     }
 
     public function testTranslatesDescription(): void
     {
-        $error = InlineQueryError::fromError(new ValidationError(TimeInTitleRule::ERROR_MESSAGE));
+        $error = InlineQueryError::fromError(new ValidationError(DateTimeInTitleRule::ERROR_DATE_AND_TIME_MISSING));
         $translator = new Translator(Language::RU);
         $article = (new ErrorArticleBuilder($error, $translator))->build();
 
-        $this->assertNotSame(InlineQueryError::TIME_NOT_FOUND_DESCRIPTION, $article->getDescription());
+        $this->assertNotSame(InlineQueryError::DATE_AND_TIME_NOT_FOUND_DESCRIPTION, $article->getDescription());
     }
 
     private function buildArticle(?InlineQueryError $error = null): \TelegramBot\Api\Types\Inline\QueryResult\Article
     {
-        $error ??= InlineQueryError::fromError(new ValidationError(TimeInTitleRule::ERROR_MESSAGE));
+        $error ??= InlineQueryError::fromError(new ValidationError(DateTimeInTitleRule::ERROR_DATE_AND_TIME_MISSING));
 
         return (new ErrorArticleBuilder($error, new Translator()))->build();
     }

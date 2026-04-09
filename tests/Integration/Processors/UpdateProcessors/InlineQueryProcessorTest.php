@@ -13,7 +13,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
 {
     public function testValidQueryAnswersInlineQuery(): void
     {
-        $update = $this->buildUpdate('query_1', 'Beach Game 18:00');
+        $update = $this->buildUpdate('query_1', 'Saturday Beach Game 18:00');
 
         new InlineQueryProcessor($this->telegramSender)->process($update);
 
@@ -28,7 +28,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
 
         $this->assertInlineQueryAnswered();
         $call = $this->lastInlineQueryCall();
-        $this->assertSame(InlineQueryError::TIME_NOT_FOUND_TITLE, $call['args'][1][0]->getTitle());
+        $this->assertSame(InlineQueryError::DATE_AND_TIME_NOT_FOUND_TITLE, $call['args'][1][0]->getTitle());
     }
 
     private function buildUpdate(string $inlineQueryId, string $query): TelegramUpdate

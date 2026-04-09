@@ -16,7 +16,11 @@
     "Tap to create a new game": "Toca para crear un nuevo juego",
     "⚠️ Something went wrong": "⚠️ Algo salió mal",
     "Try again using the correct format": "Inténtalo de nuevo usando el formato correcto",
-    "⚠️ Include a time in your query": "⚠️ Incluye una hora en tu consulta",
+    "⚠️ Include a date and time": "⚠️ Incluye una fecha y hora",
+    "E.g., Saturday 18:00": "P. ej., Sábado 18:00",
+    "⚠️ Include a date": "⚠️ Incluye una fecha",
+    "E.g., Saturday or April 12": "P. ej., Sábado o 12 de abril",
+    "⚠️ Include a time": "⚠️ Incluye una hora",
     "E.g., 18:00": "P. ej., 18:00",
     "Use the following pattern to create a new game:": "Usa el siguiente formato para crear un nuevo juego:",
     "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Sábado, 11.04\n🏖️ Bogatell\n🕙 10:00"
