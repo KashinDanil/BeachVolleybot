@@ -24,5 +24,7 @@ interface MessageFormatterInterface
 
     public function link(string $text, string $url): string;
 
+    public function newLine(): string;
+
     public function customEmoji(string $placeholder, string $emojiId): string;
 }

@@ -13,6 +13,11 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
         return self::PARSE_MODE;
     }
 
+    public function newLine(): string
+    {
+        return "\n";
+    }
+
     public function escape(string $text): string
     {
         return preg_replace('/([_*\[\]()~`>#+\-=|{}.!\\\\])/', '\\\\$1', $text);

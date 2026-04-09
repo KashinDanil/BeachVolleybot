@@ -21,6 +21,7 @@ use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 
 /**
+ * @method string  separator()
  * @method string  buildText(GameInterface $game)
  * @method string  buildTitle(GameInterface $game)
  * @method string  buildPlayerList(GameInterface $game)
@@ -39,7 +40,6 @@ final class TelegramMessageBuilder
 {
     private const string VOLLEYBALL_EMOJI        = '🏐';
     private const string NET_EMOJI               = '🕸️';
-    private const string SEPARATOR               = "\n\n";
     private const int    EMOJI_COMPACT_THRESHOLD = 3;
     private const bool   DISABLE_PREVIEW         = true;
 
@@ -82,6 +82,11 @@ final class TelegramMessageBuilder
         );
     }
 
+    private function defaultSeparator(): string
+    {
+        return $this->formatter->newLine() . $this->formatter->newLine();
+    }
+
     private function defaultBuildText(GameInterface $game): string
     {
         $sections = array_filter([
@@ -91,7 +96,7 @@ final class TelegramMessageBuilder
             $this->buildLocationLink($game->getLocation()),
         ]);
 
-        return implode(self::SEPARATOR, $sections);
+        return implode($this->separator(), $sections);
     }
 
     /** @param PlayerInterface[] $players */
@@ -107,7 +112,7 @@ final class TelegramMessageBuilder
             return null;
         }
 
-        return $this->formatter->blockquote('⚠️ ' . implode("\n", $messages)) . "\n";
+        return $this->formatter->blockquote('⚠️ ' . implode($this->formatter->newLine(), $messages)) . $this->formatter->newLine();
     }
 
     private function defaultBuildTitle(GameInterface $game): string
@@ -128,7 +133,7 @@ final class TelegramMessageBuilder
             $lines[] = $this->buildPlayerLine($player, $appearances[$key], $gameTime);
         }
 
-        return implode("\n", $lines);
+        return implode($this->formatter->newLine(), $lines);
     }
 
     private function defaultBuildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime): string
