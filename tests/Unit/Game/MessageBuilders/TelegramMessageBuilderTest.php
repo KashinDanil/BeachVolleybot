@@ -336,18 +336,17 @@ final class TelegramMessageBuilderTest extends TestCase
             $this->player('1', 'Alice', volleyball: 0, net: 1),
         ]);
 
-        $this->assertStringContainsString('>⚠️ A volleyball is needed', $this->builder->build($game)->getText()->getMessageText());
+        $this->assertStringContainsString('>⚠️ Someone needs to bring a volleyball', $this->builder->build($game)->getText()->getMessageText());
     }
 
-    public function testBothWarningsWhenNoEquipment(): void
+    public function testCombinedWarningWhenNoEquipment(): void
     {
         $game = $this->game('Game 18:00', [
             $this->player('1', 'Alice', volleyball: 0, net: 0),
         ]);
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertStringContainsString('>⚠️ Someone needs to bring a net', $text);
-        $this->assertStringContainsString('>A volleyball is needed', $text);
+        $this->assertStringContainsString('>⚠️ Someone needs to bring a net and a volleyball', $text);
     }
 
     public function testWarningAppearsBeforeTitle(): void

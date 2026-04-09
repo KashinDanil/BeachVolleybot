@@ -11,8 +11,7 @@ use BeachVolleybot\Telegram\CallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyleEnum;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\GameWarningCollector;
-use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoNetWarning;
-use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoVolleyballWarning;
+use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoEquipmentWarning;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BadMethodCallException;
@@ -49,8 +48,7 @@ final class TelegramMessageBuilder
     public function __construct(
         private readonly MessageFormatterInterface $formatter = new MarkdownV2(),
         private readonly GameWarningCollector $warningCollector = new GameWarningCollector(
-            new NoNetWarning(),
-            new NoVolleyballWarning(),
+            new NoEquipmentWarning(),
         ),
     ) {
     }

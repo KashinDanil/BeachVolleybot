@@ -6,8 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders\Warnings;
 
 use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\GameWarningCollector;
-use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoNetWarning;
-use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoVolleyballWarning;
+use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoEquipmentWarning;
 use PHPUnit\Framework\TestCase;
 
 final class GameWarningCollectorTest extends TestCase
@@ -17,12 +16,11 @@ final class GameWarningCollectorTest extends TestCase
     protected function setUp(): void
     {
         $this->collector = new GameWarningCollector(
-            new NoNetWarning(),
-            new NoVolleyballWarning(),
+            new NoEquipmentWarning(),
         );
     }
 
-    public function testReturnsEmptyArrayWhenPlayersHaveBothEquipment(): void
+    public function testReturnsEmptyArrayWhenPlayersHaveEquipment(): void
     {
         $players = [
             $this->player(volleyball: 1, net: 1),
@@ -31,7 +29,7 @@ final class GameWarningCollectorTest extends TestCase
         $this->assertSame([], $this->collector->collect($players));
     }
 
-    public function testReturnsNetWarningOnly(): void
+    public function testReturnsWarningWhenNetMissing(): void
     {
         $players = [
             $this->player(volleyball: 1, net: 0),
@@ -40,23 +38,23 @@ final class GameWarningCollectorTest extends TestCase
         $this->assertSame(['Someone needs to bring a net'], $this->collector->collect($players));
     }
 
-    public function testReturnsVolleyballWarningOnly(): void
+    public function testReturnsWarningWhenVolleyballMissing(): void
     {
         $players = [
             $this->player(volleyball: 0, net: 1),
         ];
 
-        $this->assertSame(['A volleyball is needed'], $this->collector->collect($players));
+        $this->assertSame(['Someone needs to bring a volleyball'], $this->collector->collect($players));
     }
 
-    public function testReturnsBothWarningsInOrder(): void
+    public function testReturnsCombinedWarningWhenBothMissing(): void
     {
         $players = [
             $this->player(volleyball: 0, net: 0),
         ];
 
         $this->assertSame(
-            ['Someone needs to bring a net', 'A volleyball is needed'],
+            ['Someone needs to bring a net and a volleyball'],
             $this->collector->collect($players),
         );
     }
