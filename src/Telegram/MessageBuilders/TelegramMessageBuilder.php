@@ -10,6 +10,9 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
 use BeachVolleybot\Telegram\CallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyleEnum;
+use BeachVolleybot\Telegram\MessageBuilders\Warnings\GameWarningCollector;
+use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoNetWarning;
+use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoVolleyballWarning;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BadMethodCallException;
@@ -25,7 +28,8 @@ use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
  * @method string  displayName(PlayerInterface $player, int $appearance)
  * @method int     plusCount(PlayerInterface $player, int $appearance)
  * @method string  displayTime(?string $playerTime, string $gameTime)
- * @method ?string buildLocationLink(?string $location)
+ * @method string|null buildLocationLink(?string $location)
+ * @method string|null buildWarning(array $players)
  * @method string  playerKey(PlayerInterface $player)
  * @method string  formatEmoji(int $count, string $emoji)
  * @method array   buildKeyboard(GameInterface $game)
@@ -44,6 +48,10 @@ final class TelegramMessageBuilder
 
     public function __construct(
         private readonly MessageFormatterInterface $formatter = new MarkdownV2(),
+        private readonly GameWarningCollector $warningCollector = new GameWarningCollector(
+            new NoNetWarning(),
+            new NoVolleyballWarning(),
+        ),
     ) {
     }
 
@@ -77,12 +85,29 @@ final class TelegramMessageBuilder
     private function defaultBuildText(GameInterface $game): string
     {
         $sections = array_filter([
+            $this->buildWarning($game->getPlayers()),
             $this->buildTitle($game),
             $this->buildPlayerList($game),
             $this->buildLocationLink($game->getLocation()),
         ]);
 
         return implode(self::SEPARATOR, $sections);
+    }
+
+    /** @param PlayerInterface[] $players */
+    private function defaultBuildWarning(array $players): ?string
+    {
+        if (empty($players)) {
+            return null;
+        }
+
+        $messages = $this->warningCollector->collect($players);
+
+        if (empty($messages)) {
+            return null;
+        }
+
+        return $this->formatter->blockquote('⚠️ ' . implode("\n", $messages)) . "\n";
     }
 
     private function defaultBuildTitle(GameInterface $game): string

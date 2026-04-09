@@ -32,12 +32,12 @@ final class TelegramMessageBuilderTest extends TestCase
     public function testHeaderAndPlayersSeparatedByNewline(): void
     {
         $game = $this->game('Beach Game 18:00', [
-            $this->player('1', 'Alice'),
+            $this->player('1', 'Alice', volleyball: 1, net: 1),
         ]);
 
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1\. Alice', $text);
+        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1\. Alice 🏐 🕸️', $text);
     }
 
     // --- Text: location ---
@@ -45,12 +45,12 @@ final class TelegramMessageBuilderTest extends TestCase
     public function testLocationAppearsAfterTitle(): void
     {
         $game = $this->game('Beach Game 18:00', [
-            $this->player('1', 'Alice'),
+            $this->player('1', 'Alice', volleyball: 1, net: 1),
         ], location: '41.399747,2.20778');
 
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1\. Alice' . self::SEPARATOR . '[📍 Location](https://maps.google.com/?q=41.399747,2.20778)', $text);
+        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1\. Alice 🏐 🕸️' . self::SEPARATOR . '[📍 Location](https://maps.google.com/?q=41.399747,2.20778)', $text);
     }
 
     public function testLocationOmittedWhenNull(): void
@@ -254,21 +254,21 @@ final class TelegramMessageBuilderTest extends TestCase
     public function testPlayerTimeHiddenWhenNull(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', time: null),
+            $this->player('1', 'Alice', volleyball: 1, net: 1, time: null),
         ]);
 
-        $this->assertSame('Game 18:00' . self::SEPARATOR . '1\. Alice', $this->builder->build($game)->getText()->getMessageText());
+        $this->assertSame('Game 18:00' . self::SEPARATOR . '1\. Alice 🏐 🕸️', $this->builder->build($game)->getText()->getMessageText());
     }
 
     public function testPlayerTimeHiddenWhenMatchesGameTime(): void
     {
         $game = $this->game('Game', [
-            $this->player('1', 'Alice', time: '18:00'),
+            $this->player('1', 'Alice', volleyball: 1, net: 1, time: '18:00'),
         ], gameTime: '18:00');
 
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertSame('Game' . self::SEPARATOR . '1\. Alice', $text);
+        $this->assertSame('Game' . self::SEPARATOR . '1\. Alice 🏐 🕸️', $text);
     }
 
     public function testPlayerTimeShownWhenDifferentFromGameTime(): void
@@ -301,6 +301,64 @@ final class TelegramMessageBuilderTest extends TestCase
         ]);
 
         $this->assertStringContainsString('4\-7\. Alice', $this->builder->build($game)->getText()->getMessageText());
+    }
+
+    // --- Text: warnings ---
+
+    public function testNoWarningWhenNoPlayers(): void
+    {
+        $game = $this->game('Game 18:00', []);
+
+        $this->assertStringNotContainsString('⚠️', $this->builder->build($game)->getText()->getMessageText());
+    }
+
+    public function testNoWarningWhenPlayersHaveEquipment(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->player('1', 'Alice', volleyball: 1, net: 1),
+        ]);
+
+        $this->assertStringNotContainsString('⚠️', $this->builder->build($game)->getText()->getMessageText());
+    }
+
+    public function testWarningWhenNoNets(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->player('1', 'Alice', volleyball: 1, net: 0),
+        ]);
+
+        $this->assertStringContainsString('>⚠️ Someone needs to bring a net', $this->builder->build($game)->getText()->getMessageText());
+    }
+
+    public function testWarningWhenNoVolleyballs(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->player('1', 'Alice', volleyball: 0, net: 1),
+        ]);
+
+        $this->assertStringContainsString('>⚠️ A volleyball is needed', $this->builder->build($game)->getText()->getMessageText());
+    }
+
+    public function testBothWarningsWhenNoEquipment(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->player('1', 'Alice', volleyball: 0, net: 0),
+        ]);
+        $text = $this->builder->build($game)->getText()->getMessageText();
+
+        $this->assertStringContainsString('>⚠️ Someone needs to bring a net', $text);
+        $this->assertStringContainsString('>A volleyball is needed', $text);
+    }
+
+    public function testWarningAppearsBeforeTitle(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->player('1', 'Alice', volleyball: 0, net: 0),
+        ]);
+        $sections = explode(self::SEPARATOR, $this->builder->build($game)->getText()->getMessageText());
+
+        $this->assertStringContainsString('⚠️', $sections[0]);
+        $this->assertSame('Game 18:00', ltrim($sections[1]));
     }
 
     // --- Keyboard: structure ---
