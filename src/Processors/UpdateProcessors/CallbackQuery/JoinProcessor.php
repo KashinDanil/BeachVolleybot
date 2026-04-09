@@ -26,6 +26,7 @@ class JoinProcessor extends AbstractCallbackProcessor
             return;
         }
 
+        $this->logUserAction($from, 'join', "gameId=$gameId");
         $gameManager->joinGame($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
 
         $this->refreshInlineMessage($inlineMessageId);

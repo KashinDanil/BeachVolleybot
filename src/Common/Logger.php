@@ -8,9 +8,10 @@ use BeachVolleybot\Errors\ErrorInterface;
 
 class Logger
 {
-    private const string VERBOSE_LOG_FILE = 'verbose.log';
-    private const string APP_LOG_FILE     = 'app.log';
-    private const string WEB_LOG_FILE     = 'web.log';
+    private const string VERBOSE_LOG_FILE      = 'verbose.log';
+    private const string APP_LOG_FILE          = 'app.log';
+    private const string WEB_LOG_FILE          = 'web.log';
+    private const string USER_ACTIONS_LOG_FILE = 'user_actions.log';
 
     private static function log(string $message, string $logFile): void
     {
@@ -32,6 +33,19 @@ class Logger
     public static function logWeb(string $message): void
     {
         self::log($message, self::WEB_LOG_FILE);
+    }
+
+    public static function logUserAction(int $userId, string $name, ?string $username, string $action, string $details = ''): void
+    {
+        $message = sprintf(
+            "User id=%d, name='%s', username='%s', action='%s', details='%s'",
+            $userId,
+            $name,
+            $username ?? '',
+            $action,
+            $details ?? '',
+        );
+        self::log($message, self::USER_ACTIONS_LOG_FILE);
     }
 
     public static function logUnauthorizedAccessAttempt(ErrorInterface $error): void

@@ -44,6 +44,7 @@ class JoinWithTimeProcessor extends AbstractActionReplyProcessor
             return;
         }
 
+        $this->logUserAction($from, 'join_with_time', "gameId=$gameLookup->gameId;time=$time");
         $gameManager->setPlayerTime(
             $gameLookup->gameId,
             $from->id,

@@ -18,6 +18,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
     public function process(TelegramUpdate $update): void
     {
         $inlineQuery = $update->inlineQuery;
+        $this->logUserAction($inlineQuery->from, 'inline_query', $inlineQuery->query);
         $translator = Translator::fromUser($inlineQuery->from);
 
         $validationState = new Validator($this->validationRules($inlineQuery->query))->validate();

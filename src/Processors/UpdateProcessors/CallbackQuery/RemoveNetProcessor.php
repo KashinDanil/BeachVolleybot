@@ -26,6 +26,7 @@ class RemoveNetProcessor extends AbstractCallbackProcessor
             return;
         }
 
+        $this->logUserAction($callbackQuery->from, 'remove_net', "gameId=$gameId");
         $result = $gameManager->removeNet($gameId, $callbackQuery->from->id);
 
         $callbackAnswer = match ($result) {
