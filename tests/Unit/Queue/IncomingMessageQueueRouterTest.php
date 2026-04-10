@@ -262,7 +262,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
             'error' => PDO::ERRMODE_EXCEPTION,
         ]);
 
-        $schema = file_get_contents(__DIR__ . '/../../../db/migrations/001_create_games_and_participants.sql');
+        $schema = file_get_contents(__DIR__ . '/../../../migrations/001_create_games_and_participants.sql');
         $db->pdo->exec($schema);
 
         $db->insert('games', [

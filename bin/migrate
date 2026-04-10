@@ -10,7 +10,7 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\Migrator;
 
 $migrator = new Migrator(
-    migrationsDir: __DIR__ . '/../db/migrations',
+    migrationsDir: __DIR__ . '/../migrations',
     db: Connection::get(),
 );
 

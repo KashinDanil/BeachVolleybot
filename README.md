@@ -42,9 +42,7 @@ Telegram Webhook
 ```
 ├── bin/                 # CLI scripts (migrate, run_worker)
 ├── config/              # Configuration constants
-├── db/
-│   ├── data/            # SQLite database
-│   └── migrations/      # SQL migrations
+├── migrations/          # SQL migrations
 ├── localization/        # Translation files (ru.json, es.json)
 ├── public/              # Webhook entry point (tg-bot.php)
 ├── src/
@@ -94,7 +92,7 @@ composer install
 php bin/migrate
 ```
 
-This creates the SQLite database at `db/data/beach_volleybot.sqlite` and applies all pending migrations.
+This creates the SQLite database at `../db/data/beach_volleybot.sqlite` and applies all pending migrations.
 
 #### 3. Update configuration constants
 
