@@ -7,6 +7,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Load runtime directory paths from the single source of truth.
+# Paths are relative to the config/ directory.
+source ./config/paths.env
+LOGS_DIR="${SCRIPT_DIR}/config/${LOGS_DIR}"
+QUEUES_DIR="${SCRIPT_DIR}/config/${QUEUES_DIR}"
+DB_DATA_DIR="${SCRIPT_DIR}/config/${DB_DATA_DIR}"
+
 # ANSI color codes for formatted output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -49,8 +56,6 @@ ok "Dependencies installed"
 echo ""
 echo "== Creating runtime directories =="
 
-LOGS_DIR="${SCRIPT_DIR}/../../logs"
-QUEUES_DIR="${SCRIPT_DIR}/../../queues"
 
 # Create logs directory with read/write/execute for owner, read/execute for others
 mkdir -p "$LOGS_DIR" && chmod 755 "$LOGS_DIR"
@@ -76,14 +81,14 @@ echo ""
 echo "== Running database migrations =="
 
 # Ensure the SQLite data directory exists with proper permissions
-mkdir -p db/data && chmod 755 db/data
+mkdir -p "$DB_DATA_DIR" && chmod 755 "$DB_DATA_DIR"
 
 # Run the migration script to create/update the SQLite database
 php bin/migrate
 ok "Migrations applied"
 
 # Make the SQLite file read/writable by owner and group, readable by others
-DB_FILE="db/data/beach_volleybot.sqlite"
+DB_FILE="${DB_DATA_DIR}/${DB_FILENAME}"
 if [ -f "$DB_FILE" ]; then
     chmod 664 "$DB_FILE"
     ok "Database file permissions set"

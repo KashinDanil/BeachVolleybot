@@ -19,14 +19,16 @@ readonly class TelegramUpdate
 
     public static function fromArray(array $payload): self
     {
-        if (!isset($payload['message']) && !isset($payload['callback_query']) && !isset($payload['inline_query']) && !isset($payload['chosen_inline_result'])) {
+        if (!isset($payload['message']) && !isset($payload['edited_message']) && !isset($payload['callback_query']) && !isset($payload['inline_query']) && !isset($payload['chosen_inline_result'])) {
             throw new InvalidArgumentException('Unsupported payload format');
         }
 
+        $messageData = $payload['message'] ?? $payload['edited_message'] ?? null;
+
         return new self(
             updateId: $payload['update_id'],
-            message: isset($payload['message'])
-                ? TelegramMessage::fromArray($payload['message'])
+            message: null !== $messageData
+                ? TelegramMessage::fromArray($messageData)
                 : null,
             callbackQuery: isset($payload['callback_query'])
                 ? TelegramCallbackQuery::fromArray($payload['callback_query'])

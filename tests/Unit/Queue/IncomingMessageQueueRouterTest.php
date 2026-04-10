@@ -150,6 +150,13 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->assertNothingEnqueued();
     }
 
+    public function testEditedMessageIsSkipped(): void
+    {
+        $this->router->route($this->editedMessagePayload(inlineQueryId: 'query_456'));
+
+        $this->assertNothingEnqueued();
+    }
+
     public function testUnsupportedPayloadFormatIsSkipped(): void
     {
         $this->router->route(['update_id' => 123]);
@@ -237,6 +244,36 @@ final class IncomingMessageQueueRouterTest extends TestCase
                             ],
                         ],
                     ],
+                ],
+            ],
+        ];
+    }
+
+    private function editedMessagePayload(string $inlineQueryId): array
+    {
+        return [
+            'update_id' => 100,
+            'edited_message' => [
+                'message_id' => 147,
+                'chat' => ['id' => -1003759398496, 'type' => 'supergroup'],
+                'reply_to_message' => [
+                    'message_id' => 146,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                    'reply_markup' => [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                            ],
+                        ],
+                    ],
+                ],
+                'location' => [
+                    'latitude' => 41.413114,
+                    'longitude' => 2.194864,
+                    'live_period' => 900,
+                    'heading' => 171,
+                    'horizontal_accuracy' => 6,
                 ],
             ],
         ];
