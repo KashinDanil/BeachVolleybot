@@ -2,21 +2,22 @@
 
 declare(strict_types=1);
 
+define('VERBOSE_LOGGING', false);
+define('ADMINS_TELEGRAM_USER_IDS', []);
 define('BOT_USERNAME', 'XXX');
 define('TG_BOT_ACCESS_TOKEN', 'XXX');
 define('APP_TOKEN_HASH', 'XXX');
 define('BASE_LOG_DIR', 'XXX');
 define('BASE_QUEUE_DIR', 'XXX');
-define('VERBOSE_LOGGING', false);
 define('QUEUE_CLASS', \DanilKashin\FileQueue\Queue\FileQueue::class);
 define('GAME_ADD_ONS', [
     \BeachVolleybot\Game\AddOns\MergeConsecutiveSlotsAddOn::class,
     \BeachVolleybot\Game\AddOns\StylizeTitleAddOn::class,
 ]);
-define('TG_MAX_REQUESTS_PER_SECOND', 20);
+define('TG_MAX_REQUESTS_PER_SECOND', 19);
 define('DB_CONNECTION', [
     'type' => 'sqlite',
-    'database' => __DIR__ . '/../db/data/beach_volleybot.sqlite',
+    'database' => __DIR__ . '/../../db/data/beach_volleybot.sqlite',
     'error' => PDO::ERRMODE_EXCEPTION,
     'command' => [
         'PRAGMA foreign_keys = ON',
