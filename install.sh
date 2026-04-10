@@ -49,8 +49,8 @@ ok "Dependencies installed"
 echo ""
 echo "== Creating runtime directories =="
 
-LOGS_DIR="${SCRIPT_DIR}/../logs"
-QUEUES_DIR="${SCRIPT_DIR}/../queues"
+LOGS_DIR="${SCRIPT_DIR}/../../logs"
+QUEUES_DIR="${SCRIPT_DIR}/../../queues"
 
 # Create logs directory with read/write/execute for owner, read/execute for others
 mkdir -p "$LOGS_DIR" && chmod 755 "$LOGS_DIR"
