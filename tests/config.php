@@ -8,7 +8,7 @@ $queueDirectory = $testTempDirectory . '/queues';
 $databaseDirectory = $testTempDirectory . '/db';
 
 foreach ([$logDirectory, $queueDirectory, $databaseDirectory] as $directory) {
-    if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
+    if (!@mkdir($directory, 0755, true) && !is_dir($directory)) {
         throw new RuntimeException('Failed to create directory: ' . $directory);
     }
 }
