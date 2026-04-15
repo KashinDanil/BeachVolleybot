@@ -17,6 +17,11 @@ readonly class TelegramUser
     ) {
     }
 
+    public function isAdmin(): bool
+    {
+        return in_array($this->id, ADMINS_TELEGRAM_USER_IDS, true);
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

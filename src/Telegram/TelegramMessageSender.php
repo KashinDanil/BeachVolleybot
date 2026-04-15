@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram;
 
-use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use CURLFile;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\HttpException;
 
@@ -70,6 +71,51 @@ readonly class TelegramMessageSender
             $this->bot->deleteMessage($chatId, $messageId);
         } catch (HttpException) {
             // Message already deleted or not found
+        }
+    }
+
+    public function sendMessage(int $chatId, TelegramMessage $message): int
+    {
+        try {
+            $result = $this->bot->sendMessage(
+                $chatId,
+                $message->getText()->getMessageText(),
+                $message->getText()->getParseMode(),
+                $message->getText()->isDisableWebPagePreview(),
+                null,
+                $message->getKeyboard(),
+            );
+
+            return (int)$result->getMessageId();
+        } catch (HttpException $exception) {
+            Logger::logApp('sendMessage failed: ' . $exception->getMessage());
+
+            return 0;
+        }
+    }
+
+    public function editMessage(int $chatId, int $messageId, TelegramMessage $message): void
+    {
+        try {
+            $this->bot->editMessageText(
+                $chatId,
+                $messageId,
+                $message->getText()->getMessageText(),
+                $message->getText()->getParseMode(),
+                $message->getText()->isDisableWebPagePreview(),
+                $message->getKeyboard(),
+            );
+        } catch (HttpException $exception) {
+            Logger::logApp('editMessage failed: ' . $exception->getMessage());
+        }
+    }
+
+    public function sendDocument(int $chatId, string $filePath): void
+    {
+        try {
+            $this->bot->sendDocument($chatId, new CURLFile($filePath));
+        } catch (HttpException $exception) {
+            Logger::logApp('sendDocument failed: ' . $exception->getMessage());
         }
     }
 

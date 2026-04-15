@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Tests\Unit\Telegram;
+namespace BeachVolleybot\Tests\Unit\Telegram\CallbackData;
 
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
-use BeachVolleybot\Telegram\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramChat;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramInlineKeyboardButton;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramInlineKeyboardMarkup;
@@ -79,12 +79,39 @@ final class CallbackDataTest extends TestCase
         $this->assertSame('q_123', CallbackData::extractInlineQueryId($message));
     }
 
+    private function messageWithMetaButton(?string $callbackData): TelegramMessage
+    {
+        return new TelegramMessage(
+            messageId: 1,
+            from: new TelegramUser(id: 1, firstName: 'Test'),
+            chat: new TelegramChat(id: 1, type: 'private'),
+            date: time(),
+            replyMarkup: new TelegramInlineKeyboardMarkup([
+                [
+                    new TelegramInlineKeyboardButton(text: 'Leave', callbackData: $callbackData),
+                ],
+            ]),
+        );
+    }
+
     public function testExtractInlineQueryIdReturnsNullWhenNoReplyMarkup(): void
     {
         $message = $this->messageWithoutMarkup();
 
         $this->assertNull(CallbackData::extractInlineQueryId($message));
     }
+
+    private function messageWithoutMarkup(): TelegramMessage
+    {
+        return new TelegramMessage(
+            messageId: 1,
+            from: new TelegramUser(id: 1, firstName: 'Test'),
+            chat: new TelegramChat(id: 1, type: 'private'),
+            date: time(),
+        );
+    }
+
+    // --- Helpers ---
 
     public function testExtractInlineQueryIdReturnsNullWhenNoCallbackData(): void
     {
@@ -98,30 +125,5 @@ final class CallbackDataTest extends TestCase
         $message = $this->messageWithMetaButton('{"a":"j"}');
 
         $this->assertNull(CallbackData::extractInlineQueryId($message));
-    }
-
-    // --- Helpers ---
-
-    private function messageWithMetaButton(?string $callbackData): TelegramMessage
-    {
-        return new TelegramMessage(
-            messageId: 1,
-            from: new TelegramUser(id: 1, firstName: 'Test'),
-            chat: new TelegramChat(id: 1, type: 'private'),
-            date: time(),
-            replyMarkup: new TelegramInlineKeyboardMarkup([[
-                new TelegramInlineKeyboardButton(text: 'Leave', callbackData: $callbackData),
-            ]]),
-        );
-    }
-
-    private function messageWithoutMarkup(): TelegramMessage
-    {
-        return new TelegramMessage(
-            messageId: 1,
-            from: new TelegramUser(id: 1, firstName: 'Test'),
-            chat: new TelegramChat(id: 1, type: 'private'),
-            date: time(),
-        );
     }
 }

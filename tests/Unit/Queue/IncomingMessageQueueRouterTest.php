@@ -54,7 +54,21 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->assertEnqueuedOnce('game_inline_msg_abc');
     }
 
-    public function testCallbackQueryWithoutInlineMessageIdIsSkipped(): void
+    public function testCallbackQueryWithoutInlineMessageIdRoutesToDmQueue(): void
+    {
+        $payload = [
+            'callback_query' => [
+                'data' => '/eg_+p',
+                'from' => ['id' => 456, 'first_name' => 'Test', 'is_bot' => false],
+            ],
+        ];
+
+        $this->router->route($payload);
+
+        $this->assertEnqueuedOnce('dm_456');
+    }
+
+    public function testCallbackQueryWithoutInlineMessageIdOrFromIsSkipped(): void
     {
         $payload = ['callback_query' => ['data' => '/eg_+p']];
 
@@ -100,11 +114,12 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->assertNothingEnqueued();
     }
 
-    public function testNonGroupMessageIsSkipped(): void
+    public function testPrivateMessageRoutesToDmQueue(): void
     {
         $payload = [
             'message' => [
                 'message_id' => 54,
+                'from' => ['id' => 123, 'first_name' => 'Test', 'is_bot' => false],
                 'chat' => ['id' => 123, 'type' => 'private'],
                 'reply_to_message' => [
                     'message_id' => 53,
@@ -115,7 +130,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
         $this->router->route($payload);
 
-        $this->assertNothingEnqueued();
+        $this->assertEnqueuedOnce('dm_123');
     }
 
     public function testNonReplyGroupMessageIsSkipped(): void

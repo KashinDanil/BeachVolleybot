@@ -7,12 +7,14 @@ namespace BeachVolleybot\Routing;
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramChat;
 use DanilKashin\FileQueue\Queue\QueueInterface;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 
 readonly class IncomingMessageQueueRouter
 {
     private const string GAME_QUEUE_PREFIX = 'game_';
+    private const string DM_QUEUE_PREFIX = 'dm_';
     private const array ALLOWED_CHAT_TYPES = ['group', 'supergroup'];
     private const string CALLBACK_DATA_INLINE_QUERY_ID_KEY = 'q';
 
@@ -43,14 +45,13 @@ readonly class IncomingMessageQueueRouter
 
     private function resolveQueueName(array $payload): ?string
     {
-//        return null;
         if (isset($payload['chosen_inline_result'])) {
             $inlineMessageId = $payload['chosen_inline_result']['inline_message_id'] ?? null;
             if (null === $inlineMessageId) {
                 return $this->skip('Chosen inline result missing inline_message_id', $payload);
             }
 
-            return $this->gameQueueName($inlineMessageId);
+            return $this->inlineMessageQueueName($inlineMessageId);
         }
 
         if (isset($payload['callback_query'])) {
@@ -71,6 +72,16 @@ readonly class IncomingMessageQueueRouter
 
     private function resolveMessageQueue(array $message): ?string
     {
+        if (TelegramChat::TYPE_PRIVATE === ($message['chat']['type'] ?? null)) {
+            $userId = $message['from']['id'] ?? null;
+
+            if (null === $userId) {
+                return $this->skip('Private message missing from.id', $message);
+            }
+
+            return $this->dmQueueName((int)$userId);
+        }
+
         if (!in_array($message['chat']['type'] ?? null, self::ALLOWED_CHAT_TYPES, true)) {
             return $this->skip('Not a group message', $message);
         }
@@ -91,7 +102,7 @@ readonly class IncomingMessageQueueRouter
             return $this->skip('Game not found by inline_query_id: ' . $inlineQueryId, $message);
         }
 
-        return $this->gameQueueName($inlineMessageId);
+        return $this->inlineMessageQueueName($inlineMessageId);
     }
 
     private function extractInlineQueryIdFromMetaButton(array $replyToMessage): ?string
@@ -111,16 +122,27 @@ readonly class IncomingMessageQueueRouter
     {
         $inlineMessageId = $callbackQuery['inline_message_id'] ?? null;
 
-        if (null === $inlineMessageId) {
-            return $this->skip('Callback query missing inline_message_id', $callbackQuery);
+        if (null !== $inlineMessageId) {
+            return $this->inlineMessageQueueName($inlineMessageId);
         }
 
-        return $this->gameQueueName($inlineMessageId);
+        $userId = $callbackQuery['from']['id'] ?? null;
+
+        if (null !== $userId) {
+            return $this->dmQueueName((int)$userId);
+        }
+
+        return $this->skip('Callback query missing both inline_message_id and from.id', $callbackQuery);
     }
 
-    private function gameQueueName(string $inlineMessageId): string
+    private function inlineMessageQueueName(string $inlineMessageId): string
     {
         return self::GAME_QUEUE_PREFIX . $this->sanitizeForFilesystem($inlineMessageId);
+    }
+
+    private function dmQueueName(int $userId): string
+    {
+        return self::DM_QUEUE_PREFIX . $userId;
     }
 
     private function sanitizeForFilesystem(string $value): string

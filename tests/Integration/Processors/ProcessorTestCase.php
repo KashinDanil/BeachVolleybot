@@ -195,6 +195,66 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    protected function privateMessagePayload(
+        string $text,
+        int $fromId = 12345678,
+        string $firstName = 'Danil',
+    ): array {
+        return [
+            'update_id' => 1,
+            'message' => [
+                'message_id' => 109,
+                'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                'chat' => ['id' => $fromId, 'first_name' => $firstName, 'type' => 'private'],
+                'date' => 1700000000,
+                'text' => $text,
+            ],
+        ];
+    }
+
+    protected function adminCallbackQueryPayload(
+        string $data,
+        int $fromId = 12345678,
+        string $firstName = 'Danil',
+        int $chatId = 12345678,
+        int $messageId = 109,
+    ): array {
+        return [
+            'update_id' => 1,
+            'callback_query' => [
+                'id' => 'cbq_admin_1',
+                'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                'chat_instance' => '-123',
+                'message' => [
+                    'message_id' => $messageId,
+                    'from' => ['id' => 999, 'first_name' => 'Bot', 'is_bot' => true],
+                    'chat' => ['id' => $chatId, 'first_name' => $firstName, 'type' => 'private'],
+                    'date' => 1700000000,
+                    'text' => 'Settings',
+                ],
+                'data' => $data,
+            ],
+        ];
+    }
+
+    protected function assertMessageSent(): void
+    {
+        $calls = array_filter($this->bot->calls, fn($c) => 'sendMessage' === $c['method']);
+        $this->assertNotEmpty($calls, 'Expected sendMessage to be called');
+    }
+
+    protected function assertMessageNotSent(): void
+    {
+        $calls = array_filter($this->bot->calls, fn($c) => 'sendMessage' === $c['method']);
+        $this->assertEmpty($calls, 'Expected sendMessage NOT to be called');
+    }
+
+    protected function assertDocumentSent(): void
+    {
+        $calls = array_filter($this->bot->calls, fn($c) => 'sendDocument' === $c['method']);
+        $this->assertNotEmpty($calls, 'Expected sendDocument to be called');
+    }
+
     protected function assertAnsweredWith(string $expectedText): void
     {
         $answerCalls = array_filter($this->bot->calls, fn($c) => 'answerCallbackQuery' === $c['method']);

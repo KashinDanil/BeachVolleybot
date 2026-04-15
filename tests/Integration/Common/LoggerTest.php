@@ -15,7 +15,7 @@ final class LoggerTest extends TestCase
     protected function setUp(): void
     {
         $this->logsDir = BASE_LOG_DIR;
-        mkdir($this->logsDir, 0777, true);
+        @mkdir($this->logsDir, 0777, true);
     }
 
     protected function tearDown(): void

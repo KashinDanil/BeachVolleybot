@@ -44,6 +44,11 @@ readonly class GameRepository extends AbstractRepository
         return $this->db->get($this->table(), 'title', ['game_id' => $gameId]) ?: null;
     }
 
+    public function findInlineMessageIdByGameId(int $gameId): ?string
+    {
+        return $this->db->get($this->table(), 'inline_message_id', ['game_id' => $gameId]) ?: null;
+    }
+
     public function findByInlineMessageId(string $inlineMessageId): ?array
     {
         return $this->db->get($this->table(), '*', ['inline_message_id' => $inlineMessageId]) ?: null;
@@ -64,5 +69,19 @@ readonly class GameRepository extends AbstractRepository
     public function findInlineMessageIdByInlineQueryId(string $inlineQueryId): ?string
     {
         return $this->db->get($this->table(), 'inline_message_id', ['inline_query_id' => $inlineQueryId]) ?: null;
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function findAllDescending(int $limit, int $offset): array
+    {
+        return $this->db->select($this->table(), '*', [
+            'ORDER' => ['game_id' => 'DESC'],
+            'LIMIT' => [$offset, $limit],
+        ]);
+    }
+
+    public function countAll(): int
+    {
+        return $this->db->count($this->table());
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors\Stub;
 
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\Types\Message;
 
 class BotApiStub extends BotApi
 {
@@ -33,6 +34,47 @@ class BotApiStub extends BotApi
         $this->calls[] = ['method' => 'answerInlineQuery', 'args' => func_get_args()];
 
         return true;
+    }
+
+    public function sendMessage(
+        $chatId,
+        $text,
+        $parseMode = null,
+        $disablePreview = false,
+        $replyToMessageId = null,
+        $replyMarkup = null,
+        $disableNotification = false,
+        $messageThreadId = null,
+        $protectContent = null,
+        $allowSendingWithoutReply = null
+    ): Message {
+        $this->calls[] = ['method' => 'sendMessage', 'args' => func_get_args()];
+
+        $message = new Message();
+        $message->setMessageId(42);
+
+        return $message;
+    }
+
+    public function sendDocument(
+        $chatId,
+        $document,
+        $caption = null,
+        $replyToMessageId = null,
+        $replyMarkup = null,
+        $disableNotification = false,
+        $parseMode = null,
+        $messageThreadId = null,
+        $protectContent = null,
+        $allowSendingWithoutReply = null,
+        $thumbnail = null
+    ): Message {
+        $this->calls[] = ['method' => 'sendDocument', 'args' => func_get_args()];
+
+        $message = new Message();
+        $message->setMessageId(43);
+
+        return $message;
     }
 
     public function editMessageReplyMarkup($chatId, $messageId, $replyMarkup = null, $inlineMessageId = null): true

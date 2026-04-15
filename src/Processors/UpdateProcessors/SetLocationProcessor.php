@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class SetLocationProcessor extends AbstractActionReplyProcessor

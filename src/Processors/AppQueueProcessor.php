@@ -6,11 +6,14 @@ namespace BeachVolleybot\Processors;
 
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Common\RecentUpdateIdTracker;
+use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
+use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
-use BeachVolleybot\Telegram\CallbackData;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
+use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
+use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\RateLimitedBotApi;
 use BeachVolleybot\Telegram\TelegramMessageSender;
@@ -59,20 +62,46 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
         }
 
         if (null !== $update->callbackQuery) {
-            return CallbackData::extractAction($update->callbackQuery->data)?->resolveProcessor($telegramSender);
+            return $this->resolveCallbackProcessor($update, $telegramSender);
         }
 
         return null;
     }
 
+    private function resolveCallbackProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
+    {
+        if ($update->callbackQuery->from->isAdmin()) {
+            $adminCallback = AdminCallbackData::fromJson($update->callbackQuery->data);
+
+            if (null !== $adminCallback) {
+                return $adminCallback->getAction()->resolveProcessor($telegramSender, $adminCallback);
+            }
+        }
+
+        return CallbackData::extractAction($update->callbackQuery->data)?->resolveProcessor($telegramSender);
+    }
+
     private function resolveMessageProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
     {
+        if ($update->message->chat->isPrivate()) {
+            return $this->resolvePrivateMessageProcessor($update, $telegramSender);
+        }
+
         if (null !== $update->message->location) {
             return new SetLocationProcessor($telegramSender);
         }
 
         if (null !== $update->message->text) {
             return new JoinWithTimeProcessor($telegramSender);
+        }
+
+        return null;
+    }
+
+    private function resolvePrivateMessageProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
+    {
+        if (SettingsMenuCallbackProcessor::COMMAND === $update->message->text && $update->message->from->isAdmin()) {
+            return new SettingsMenuCallbackProcessor($telegramSender, AdminCallbackData::create(AdminCallbackAction::Settings));
         }
 
         return null;

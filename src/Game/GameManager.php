@@ -13,13 +13,13 @@ use BeachVolleybot\Database\PlayerRepository;
 
 readonly class GameManager
 {
-    private GameRepository $gameRepository;
+    protected GameRepository $gameRepository;
 
-    private GamePlayerRepository $gamePlayerRepository;
+    protected GamePlayerRepository $gamePlayerRepository;
 
-    private GameSlotRepository $gameSlotRepository;
+    protected GameSlotRepository $gameSlotRepository;
 
-    private PlayerRepository $playerRepository;
+    protected PlayerRepository $playerRepository;
 
     public function __construct()
     {
@@ -99,13 +99,7 @@ readonly class GameManager
     ): EquipmentResult {
         $this->ensurePlayerInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
 
-        if (!$this->gamePlayerRepository->incrementNet($gameId, $telegramUserId)) {
-            return EquipmentResult::Error;
-        }
-
-        $this->recalculateGameTime($gameId);
-
-        return EquipmentResult::Added;
+        return $this->incrementNet($gameId, $telegramUserId);
     }
 
     public function removeNet(int $gameId, int $telegramUserId): EquipmentResult
@@ -138,11 +132,7 @@ readonly class GameManager
     ): EquipmentResult {
         $this->ensurePlayerInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
 
-        if (!$this->gamePlayerRepository->incrementVolleyball($gameId, $telegramUserId)) {
-            return EquipmentResult::Error;
-        }
-
-        return EquipmentResult::Added;
+        return $this->incrementVolleyball($gameId, $telegramUserId);
     }
 
     public function removeVolleyball(int $gameId, int $telegramUserId): EquipmentResult
@@ -164,7 +154,7 @@ readonly class GameManager
         return EquipmentResult::Removed;
     }
 
-    public function setLocation(int $gameId, string $location): void
+    public function setLocation(int $gameId, ?string $location): void
     {
         $this->gameRepository->updateLocation($gameId, $location);
     }
@@ -206,6 +196,26 @@ readonly class GameManager
             (int)$row['game_id'],
             (string)$row['inline_message_id'],
         );
+    }
+
+    protected function incrementNet(int $gameId, int $telegramUserId): EquipmentResult
+    {
+        if (!$this->gamePlayerRepository->incrementNet($gameId, $telegramUserId)) {
+            return EquipmentResult::Error;
+        }
+
+        $this->recalculateGameTime($gameId);
+
+        return EquipmentResult::Added;
+    }
+
+    protected function incrementVolleyball(int $gameId, int $telegramUserId): EquipmentResult
+    {
+        if (!$this->gamePlayerRepository->incrementVolleyball($gameId, $telegramUserId)) {
+            return EquipmentResult::Error;
+        }
+
+        return EquipmentResult::Added;
     }
 
     private function ensureGamePlayer(int $gameId, int $telegramUserId): void

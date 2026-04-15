@@ -7,17 +7,13 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
-use BeachVolleybot\Telegram\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyleEnum;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\GameWarningCollector;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoEquipmentWarning;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
-use BadMethodCallException;
-use Closure;
-use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
-use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 
 /**
  * @method string  separator()
@@ -33,59 +29,33 @@ use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
  * @method string  playerKey(PlayerInterface $player)
  * @method string  formatEmoji(int $count, string $emoji)
  * @method array   buildKeyboard(GameInterface $game)
- * @method array   buildButton(string $text, string $callbackData, ?InlineButtonStyleEnum $style = null)
  */
-final class TelegramMessageBuilder
+final class GameMessageBuilder extends AbstractMessageBuilder
 {
     private const string VOLLEYBALL_EMOJI        = '🏐';
     private const string NET_EMOJI               = '🕸️';
     private const int    EMOJI_COMPACT_THRESHOLD = 3;
-    private const bool   DISABLE_PREVIEW         = true;
-
-    /** @var array<string, Closure> */
-    private array $overrides = [];
 
     public function __construct(
-        private readonly MessageFormatterInterface $formatter = new MarkdownV2(),
+        MessageFormatterInterface $formatter = new MarkdownV2(),
         private readonly GameWarningCollector $warningCollector = new GameWarningCollector(
             new NoEquipmentWarning(),
         ),
     ) {
-    }
-
-    public function override(string $method, Closure $override): void
-    {
-        $this->overrides[$method] = $override;
-    }
-
-    public function __call(string $name, array $arguments): mixed
-    {
-        if (isset($this->overrides[$name])) {
-            return ($this->overrides[$name])(...$arguments);
-        }
-
-        $default = 'default' . ucfirst($name);
-        if (method_exists($this, $default)) {
-            return $this->$default(...$arguments);
-        }
-
-        throw new BadMethodCallException(sprintf('Method %s::%s does not exist', self::class, $name));
+        parent::__construct($formatter);
     }
 
     public function build(GameInterface $game): TelegramMessage
     {
-        return new TelegramMessage(
-            new Text($this->buildText($game), $this->formatter->parseMode(), self::DISABLE_PREVIEW),
-            new InlineKeyboardMarkup($this->buildKeyboard($game)),
-        );
+        return $this->buildMessage($this->buildText($game), $this->buildKeyboard($game));
     }
 
-    private function defaultSeparator(): string
+    protected function defaultSeparator(): string
     {
         return $this->formatter->newLine() . $this->formatter->newLine();
     }
 
-    private function defaultBuildText(GameInterface $game): string
+    protected function defaultBuildText(GameInterface $game): string
     {
         $sections = array_filter([
             $this->buildWarning($game->getPlayers()),
@@ -98,7 +68,7 @@ final class TelegramMessageBuilder
     }
 
     /** @param PlayerInterface[] $players */
-    private function defaultBuildWarning(array $players): ?string
+    protected function defaultBuildWarning(array $players): ?string
     {
         if (empty($players)) {
             return null;
@@ -113,12 +83,12 @@ final class TelegramMessageBuilder
         return $this->formatter->blockquote('⚠️ ' . implode($this->formatter->newLine(), $messages)) . $this->formatter->newLine();
     }
 
-    private function defaultBuildTitle(GameInterface $game): string
+    protected function defaultBuildTitle(GameInterface $game): string
     {
         return $this->formatter->escape($game->getTitle());
     }
 
-    private function defaultBuildPlayerList(GameInterface $game): string
+    protected function defaultBuildPlayerList(GameInterface $game): string
     {
         $lines = [];
         $appearances = [];
@@ -134,7 +104,7 @@ final class TelegramMessageBuilder
         return implode($this->formatter->newLine(), $lines);
     }
 
-    private function defaultBuildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime): string
+    protected function defaultBuildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime): string
     {
         $parts = [
             $this->formatter->escape($player->getNumber() . '.'),
@@ -151,7 +121,7 @@ final class TelegramMessageBuilder
         return implode(' ', array_filter($parts));
     }
 
-    private function defaultDisplayName(PlayerInterface $player, int $appearance): string
+    protected function defaultDisplayName(PlayerInterface $player, int $appearance): string
     {
         $name = $player->getName();
         $link = $player->getLink();
@@ -169,12 +139,12 @@ final class TelegramMessageBuilder
         return $formatted;
     }
 
-    private function defaultPlusCount(PlayerInterface $player, int $appearance): int
+    protected function defaultPlusCount(PlayerInterface $player, int $appearance): int
     {
         return $appearance - 1;
     }
 
-    private function defaultDisplayTime(?string $playerTime, string $gameTime): string
+    protected function defaultDisplayTime(?string $playerTime, string $gameTime): string
     {
         if (null === $playerTime || $playerTime === $gameTime) {
             return '';
@@ -183,7 +153,7 @@ final class TelegramMessageBuilder
         return $this->formatter->escape($playerTime);
     }
 
-    private function defaultBuildLocationLink(?string $location): ?string
+    protected function defaultBuildLocationLink(?string $location): ?string
     {
         if (null === $location) {
             return null;
@@ -192,12 +162,12 @@ final class TelegramMessageBuilder
         return $this->formatter->link('📍 Location', 'https://maps.google.com/?q=' . $location);
     }
 
-    private function defaultPlayerKey(PlayerInterface $player): string
+    protected function defaultPlayerKey(PlayerInterface $player): string
     {
         return $player->getName() . "\0" . ($player->getLink() ?? '');
     }
 
-    private function defaultFormatEmoji(int $count, string $emoji): string
+    protected function defaultFormatEmoji(int $count, string $emoji): string
     {
         return match (true) {
             0 === $count => '',
@@ -206,9 +176,7 @@ final class TelegramMessageBuilder
         };
     }
 
-    // --- Keyboard ---
-
-    private function defaultBuildKeyboard(GameInterface $game): array
+    protected function defaultBuildKeyboard(GameInterface $game): array
     {
         return [
             [ // The first button is the meta-button — it carries the inline query ID
@@ -224,15 +192,5 @@ final class TelegramMessageBuilder
                 $this->buildButton('+' . self::NET_EMOJI, CallbackData::encode(CallbackAction::AddNet)),
             ],
         ];
-    }
-
-    private function defaultBuildButton(string $text, string $callbackData, ?InlineButtonStyleEnum $style = null): array
-    {
-        $button = ['text' => $text, 'callback_data' => $callbackData];
-        if (null !== $style) {
-            $button['style'] = $style->value;
-        }
-
-        return $button;
     }
 }

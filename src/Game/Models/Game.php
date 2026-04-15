@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Common\TimeExtractor;
-use BeachVolleybot\Telegram\MessageBuilders\TelegramMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use RuntimeException;
 
@@ -21,7 +21,7 @@ final class Game implements GameInterface
         public string $title,
         public array $players,
         public ?string $location = null,
-        public TelegramMessageBuilder $telegramMessageBuilder = new TelegramMessageBuilder(),
+        public GameMessageBuilder $telegramMessageBuilder = new GameMessageBuilder(),
     ) {
     }
 

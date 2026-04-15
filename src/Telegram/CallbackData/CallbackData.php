@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Telegram;
+namespace BeachVolleybot\Telegram\CallbackData;
 
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;

@@ -6,7 +6,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\TimeExtractor;
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class JoinWithTimeProcessor extends AbstractActionReplyProcessor

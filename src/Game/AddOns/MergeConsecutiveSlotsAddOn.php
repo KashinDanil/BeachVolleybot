@@ -19,19 +19,20 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
     public function applyTo(Game $game): void
     {
         $game->players = $this->mergeConsecutive($game->players);
-        $game->telegramMessageBuilder->override('plusCount',
-            static function (PlayerInterface $player, int $appearance): int {
-                $number = $player->getNumber();
+        $game->telegramMessageBuilder->override('plusCount', self::plusCount(...));
+    }
 
-                if (str_contains($number, '-')) {
-                    $parts = explode('-', $number);
+    private static function plusCount(PlayerInterface $player, int $appearance): int
+    {
+        $number = $player->getNumber();
 
-                    return (int) $parts[1] - (int) $parts[0] + 1;
-                }
+        if (str_contains($number, '-')) {
+            $parts = explode('-', $number);
 
-                return 1;
-            }
-        );
+            return (int)$parts[1] - (int)$parts[0] + 1;
+        }
+
+        return 1;
     }
 
     /**

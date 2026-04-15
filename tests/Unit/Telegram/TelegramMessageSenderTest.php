@@ -28,7 +28,7 @@ final class TelegramMessageSenderTest extends TestCase
 
     public function testAnswerCallbackQueryDoesNotThrowOnHttpException(): void
     {
-        $bot = $this->createMock(BotApiStub::class);
+        $bot = $this->createStub(BotApiStub::class);
         $bot->method('answerCallbackQuery')
             ->willThrowException(new HttpException('Bad Request: query is too old', 400));
 
@@ -44,7 +44,7 @@ final class TelegramMessageSenderTest extends TestCase
 
     public function testAnswerInlineQueryDoesNotThrowOnHttpException(): void
     {
-        $bot = $this->createMock(BotApiStub::class);
+        $bot = $this->createStub(BotApiStub::class);
         $bot->method('answerInlineQuery')
             ->willThrowException(new HttpException('Bad Request: query is too old', 400));
 

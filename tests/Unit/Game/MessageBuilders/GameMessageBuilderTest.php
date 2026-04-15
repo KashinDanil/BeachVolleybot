@@ -6,18 +6,18 @@ namespace BeachVolleybot\Tests\Unit\Game\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
-use BeachVolleybot\Telegram\MessageBuilders\TelegramMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
 use PHPUnit\Framework\TestCase;
 
-final class TelegramMessageBuilderTest extends TestCase
+final class GameMessageBuilderTest extends TestCase
 {
     private const string SEPARATOR = "\n\n";
 
-    private TelegramMessageBuilder $builder;
+    private GameMessageBuilder $builder;
 
     protected function setUp(): void
     {
-        $this->builder = new TelegramMessageBuilder();
+        $this->builder = new GameMessageBuilder();
     }
 
     // --- Text: structure ---
