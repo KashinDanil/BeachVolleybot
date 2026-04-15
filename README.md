@@ -19,9 +19,6 @@ This project was created to address a common frustration: _manually copying part
 - **Concurrency handling** via file-based locking
 - **Asynchronous processing** via file-based queue and worker
 - **Rate limiting** — respects Telegram API rate limits via `RateLimitedBotApi`
-- **Message pinning** — game messages are automatically pinned if the bot has permissions; past-date games are auto-unpinned when the next game is pinned
-- **Admin panel** — manage games, players, equipment, and view logs via Telegram callback interface
-- **Game add-ons** — pipeline of post-processing add-ons (e.g. merge consecutive slots, stylize title)
 
 ## Architecture
 
@@ -34,7 +31,7 @@ Telegram Webhook
   → public/tg-bot.php (validation, authentication)
     → IncomingMessageRouter (routing)
       → IncomingMessageQueueRouter (enqueue)
-        → AppQueueWorker (async processing)
+        → FileQueueWorker (async processing)
           → AppQueueProcessor (dispatch)
             → UpdateProcessors (game logic)
               → RateLimitedBotApi (rate-limited Telegram API calls)
@@ -54,7 +51,6 @@ Telegram Webhook
 │   ├── Errors/          # Error types
 │   ├── Game/            # Core game logic, models, add-ons
 │   ├── Localization/    # Translator
-│   ├── Log/             # Log file management
 │   ├── Processors/      # Update processors (create, join, leave, equipment)
 │   ├── Routing/         # Message routing
 │   ├── Telegram/        # Message sender, builders, MarkdownV2
@@ -65,13 +61,56 @@ Telegram Webhook
 
 ## Setup
 
-#### 1. Configure `config/config.php` and `config/paths.env`
+### Automated Setup
 
-**config/config.php:**
+#### 1. Configure `config/config.php`
 
-- #### `VERBOSE_LOGGING` — enable/disable verbose logging (`true`/`false`).
+Before running the install script, open `config/config.php` and replace all `'XXX'` placeholder values with your actual configuration (see the [Configuration constants](#3-update-configuration-constants) section below for details on each field).
 
-- #### `ADMINS_TELEGRAM_USER_IDS` — an array of Telegram user IDs that should have admin access to the bot. Can be left empty (`[]`).
+The install script will refuse to run if any `'XXX'` placeholders remain.
+
+#### 2. Run the install script
+
+```bash
+bash install.sh
+```
+
+This checks prerequisites, installs dependencies, applies migrations, and verifies the installation.
+
+### Manual Setup
+
+Follow these steps to configure the project manually.
+
+#### Prerequisites
+
+- PHP with extensions: `curl`, `json`, `pcntl`, `sqlite3`, `pdo`
+- Composer
+
+#### 1. Install dependencies
+
+Run Composer to install the required PHP dependencies:
+
+```bash
+composer install
+```
+
+#### 2. Run database migrations
+
+```bash
+php bin/migrate
+```
+
+This creates the SQLite database at `../db/data/beach_volleybot.sqlite` and applies all pending migrations.
+
+#### 3. Update configuration constants
+
+Open the following file:
+
+```php
+config/config.php
+```
+
+Replace the constants with your actual values.
 
 - #### `BOT_USERNAME` — the username of your Telegram bot (without the `@` prefix), as set in **BotFather**.
 
@@ -82,68 +121,39 @@ Telegram Webhook
   Generate it with the following command:
 
   ```bash
-  php -r 'echo password_hash("YOUR_SECRET_TOKEN", PASSWORD_DEFAULT), PHP_EOL;'
+  php -r 'echo password_hash("TELEGRAM_BOT_API_SECRET_TOKEN", PASSWORD_DEFAULT), PHP_EOL;'
   ```
 
-  Use the same `YOUR_SECRET_TOKEN` as the `secret_token` when calling [setWebhook](https://core.telegram.org/bots/api#setwebhook).
+  Replace `TELEGRAM_BOT_API_SECRET_TOKEN` in the command with a `secret_token` that you [configure Telegram to send](https://core.telegram.org/bots/api#setwebhook) in the `X-Telegram-Bot-Api-Secret-Token` header to your server as an extra safety measure.
 
-- #### `GAME_ADD_ONS` — ordered list of add-on classes applied to each game after processing.
+- #### `ADMINS_TELEGRAM_USER_IDS` — an array of Telegram user IDs that should have admin access to the bot. Can be left empty (`[]`).
 
 - #### `TG_MAX_REQUESTS_PER_SECOND` — the maximum number of Telegram API requests per second (default: `19`).
 
-**config/paths.env:**
+Directory paths for logs, queues, and the database are configured in `config/paths.env`.
 
-- #### `LOGS_DIR` — path to the logs directory (relative to `config/`).
-
-- #### `QUEUES_DIR` — path to the queues directory (relative to `config/`).
-
-- #### `DB_DATA_DIR` — path to the database directory (relative to `config/`).
-
-- #### `DB_FILENAME` — SQLite database filename.
-
-#### 2. Run the installation script
-
-Run the script as the same user that will execute PHP requests (e.g. `www-data`):
-
-```bash
-bash install.sh
-```
-
-This checks prerequisites, installs dependencies, creates runtime directories, applies migrations, runs all tests, and starts the queue worker.
-
-#### 3. Set up the webhook
+#### 4. Set up the webhook
 
 Point Telegram to `public/tg-bot.php` on your server. The endpoint must be accessible over HTTPS.
 
-## Workers
-
-The project runs two workers concurrently: the **app worker** (processes Telegram updates from the main queue) and the **weather worker** (fetches forecasts for games). Both are started automatically by `install.sh`.
-
-To start both in the background:
+#### 5. Start the queue worker
 
 ```bash
-make workers-start
+make qw
 ```
 
-App errors log to `logs/app-worker-errors.log`; weather errors log to `logs/weather-worker-errors.log`.
+This runs the worker in the background with error logging to `../logs/queue-worker-errors.log`.
 
-To restart both (stops running processes, then starts fresh ones):
+To run synchronously (foreground, stdout output):
 
 ```bash
-make workers-restart
+make qws
 ```
 
-To stop both:
+To restart the worker (kills the existing process and starts a new one):
 
 ```bash
-make workers-stop
-```
-
-To run a single worker in the foreground (stdout output, useful during development):
-
-```bash
-make app-worker-run
-make weather-worker-run
+make qwr
 ```
 
 ## Testing
