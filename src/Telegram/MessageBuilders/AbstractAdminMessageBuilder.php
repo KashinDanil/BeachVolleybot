@@ -23,12 +23,6 @@ abstract class AbstractAdminMessageBuilder extends AbstractMessageBuilder
         return [$this->buildActionButton(self::BACK_LABEL, $callbackData)];
     }
 
-    /** @return array{text: string, callback_data: string} */
-    protected function buildActionButton(string $text, AdminCallbackData $callbackData): array
-    {
-        return $this->buildButton($text, $callbackData->toJson());
-    }
-
     /** @return ?list<array{text: string, callback_data: string}> */
     protected function paginationRow(KeyboardPagination $pagination, AdminCallbackData $callbackData): ?array
     {

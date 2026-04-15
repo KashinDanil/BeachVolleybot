@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\CallbackData;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
-use JsonSerializable;
 
-final readonly class AdminCallbackData implements JsonSerializable
+final readonly class AdminCallbackData implements CallbackDataInterface
 {
     private const string KEY_ACTION   = 'aa';
     private const string KEY_GAME_ID  = 'g';

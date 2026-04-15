@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BadMethodCallException;
+use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyleEnum;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
@@ -14,6 +15,7 @@ use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 
 /**
+ * @method array   buildActionButton(string $text, CallbackDataInterface $callbackData, ?InlineButtonStyleEnum $style = null)
  * @method array   buildButton(string $text, string $callbackData, ?InlineButtonStyleEnum $style = null)
  */
 abstract class AbstractMessageBuilder
@@ -53,6 +55,11 @@ abstract class AbstractMessageBuilder
             new Text($text, $this->formatter->parseMode(), self::DISABLE_PREVIEW),
             new InlineKeyboardMarkup($keyboard),
         );
+    }
+
+    protected function defaultBuildActionButton(string $text, CallbackDataInterface $callbackData, ?InlineButtonStyleEnum $style = null): array
+    {
+        return $this->buildButton($text, $callbackData->toJson(), $style);
     }
 
     protected function defaultBuildButton(string $text, string $callbackData, ?InlineButtonStyleEnum $style = null): array

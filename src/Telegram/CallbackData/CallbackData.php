@@ -7,31 +7,39 @@ namespace BeachVolleybot\Telegram\CallbackData;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 
-final class CallbackData
+final readonly class CallbackData implements CallbackDataInterface
 {
     private const string KEY_ACTION          = 'a';
     private const string KEY_INLINE_QUERY_ID = 'q';
 
-    public static function encode(CallbackAction $action, ?string $inlineQueryId = null): string
-    {
-        $payload = [self::KEY_ACTION => $action->value];
-
-        if (null !== $inlineQueryId) {
-            $payload[self::KEY_INLINE_QUERY_ID] = $inlineQueryId;
-        }
-
-        return json_encode($payload, JSON_THROW_ON_ERROR);
+    private function __construct(
+        private CallbackAction $action,
+        private ?string $inlineQueryId = null,
+    ) {
     }
 
-    public static function extractAction(?string $json): ?CallbackAction
+    public static function create(CallbackAction $action): self
+    {
+        return new self($action);
+    }
+
+    public static function fromJson(?string $json): ?self
     {
         if (null === $json) {
             return null;
         }
 
         $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        $action = CallbackAction::tryFrom($data[self::KEY_ACTION] ?? '');
 
-        return CallbackAction::tryFrom($data[self::KEY_ACTION] ?? '');
+        if (null === $action) {
+            return null;
+        }
+
+        return new self(
+            action: $action,
+            inlineQueryId: $data[self::KEY_INLINE_QUERY_ID] ?? null,
+        );
     }
 
     public static function extractInlineQueryId(TelegramMessage $replyToMessage): ?string
@@ -42,12 +50,37 @@ final class CallbackData
             return null;
         }
 
-        if (null === $metaButton->callbackData) {
-            return null;
+        return self::fromJson($metaButton->callbackData)?->getInlineQueryId();
+    }
+
+    public function withInlineQueryId(string $inlineQueryId): self
+    {
+        return new self($this->action, $inlineQueryId);
+    }
+
+    public function getAction(): CallbackAction
+    {
+        return $this->action;
+    }
+
+    public function getInlineQueryId(): ?string
+    {
+        return $this->inlineQueryId;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $data = [self::KEY_ACTION => $this->action->value];
+
+        if (null !== $this->inlineQueryId) {
+            $data[self::KEY_INLINE_QUERY_ID] = $this->inlineQueryId;
         }
 
-        $decoded = json_decode($metaButton->callbackData, true, 512, JSON_THROW_ON_ERROR);
+        return $data;
+    }
 
-        return $decoded[self::KEY_INLINE_QUERY_ID] ?? null;
+    public function toJson(): string
+    {
+        return json_encode($this, JSON_THROW_ON_ERROR);
     }
 }

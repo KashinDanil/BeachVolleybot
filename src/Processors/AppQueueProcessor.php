@@ -78,7 +78,7 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             }
         }
 
-        return CallbackData::extractAction($update->callbackQuery->data)?->resolveProcessor($telegramSender);
+        return CallbackData::fromJson($update->callbackQuery->data)?->getAction()->resolveProcessor($telegramSender);
     }
 
     private function resolveMessageProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor

@@ -168,14 +168,14 @@ final class AdminCallbackDataTest extends TestCase
         foreach (AdminCallbackAction::cases() as $action) {
             $json = AdminCallbackData::create($action)->toJson();
 
-            $this->assertNull(CallbackData::extractAction($json), "Admin action '{$action->value}' was recognized as a game callback");
+            $this->assertNull(CallbackData::fromJson($json), "Admin action '{$action->value}' was recognized as a game callback");
         }
     }
 
     public function testGameCallbackNotRecognizedAsAdminCallback(): void
     {
         foreach (CallbackAction::cases() as $action) {
-            $json = CallbackData::encode($action);
+            $json = CallbackData::create($action)->toJson();
 
             $this->assertNull(AdminCallbackData::fromJson($json), "Game action '{$action->value}' was recognized as an admin callback");
         }

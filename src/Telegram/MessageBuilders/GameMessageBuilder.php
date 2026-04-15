@@ -180,16 +180,16 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     {
         return [
             [ // The first button is the meta-button — it carries the inline query ID
-                $this->buildButton('Leave', CallbackData::encode(CallbackAction::Leave, $game->getInlineQueryId()), InlineButtonStyleEnum::DANGER),
-                $this->buildButton('Join', CallbackData::encode(CallbackAction::Join), InlineButtonStyleEnum::SUCCESS),
+                $this->buildActionButton('Leave', CallbackData::create(CallbackAction::Leave)->withInlineQueryId($game->getInlineQueryId()), InlineButtonStyleEnum::DANGER),
+                $this->buildActionButton('Join', CallbackData::create(CallbackAction::Join), InlineButtonStyleEnum::SUCCESS),
             ],
             [
-                $this->buildButton('-' . self::VOLLEYBALL_EMOJI, CallbackData::encode(CallbackAction::RemoveVolleyball)),
-                $this->buildButton('+' . self::VOLLEYBALL_EMOJI, CallbackData::encode(CallbackAction::AddVolleyball)),
+                $this->buildActionButton('-' . self::VOLLEYBALL_EMOJI, CallbackData::create(CallbackAction::RemoveVolleyball)),
+                $this->buildActionButton('+' . self::VOLLEYBALL_EMOJI, CallbackData::create(CallbackAction::AddVolleyball)),
             ],
             [
-                $this->buildButton('-' . self::NET_EMOJI, CallbackData::encode(CallbackAction::RemoveNet)),
-                $this->buildButton('+' . self::NET_EMOJI, CallbackData::encode(CallbackAction::AddNet)),
+                $this->buildActionButton('-' . self::NET_EMOJI, CallbackData::create(CallbackAction::RemoveNet)),
+                $this->buildActionButton('+' . self::NET_EMOJI, CallbackData::create(CallbackAction::AddNet)),
             ],
         ];
     }

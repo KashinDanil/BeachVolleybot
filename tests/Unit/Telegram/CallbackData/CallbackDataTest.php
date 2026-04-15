@@ -15,56 +15,63 @@ use PHPUnit\Framework\TestCase;
 
 final class CallbackDataTest extends TestCase
 {
-    // --- encode ---
+    // --- toJson ---
 
-    public function testEncodeActionOnly(): void
+    public function testToJsonActionOnly(): void
     {
-        $json = CallbackData::encode(CallbackAction::Join);
+        $json = CallbackData::create(CallbackAction::Join)->toJson();
 
         $this->assertSame('{"a":"j"}', $json);
     }
 
-    public function testEncodeActionWithInlineQueryId(): void
+    public function testToJsonWithInlineQueryId(): void
     {
-        $json = CallbackData::encode(CallbackAction::Leave, 'q_42');
+        $json = CallbackData::create(CallbackAction::Leave)->withInlineQueryId('q_42')->toJson();
 
         $this->assertSame('{"a":"l","q":"q_42"}', $json);
     }
 
-    public function testEncodeNullInlineQueryIdOmitsKey(): void
+    public function testToJsonOmitsNullInlineQueryId(): void
     {
-        $decoded = json_decode(CallbackData::encode(CallbackAction::Join), true);
+        $decoded = json_decode(CallbackData::create(CallbackAction::Join)->toJson(), true);
 
         $this->assertArrayNotHasKey('q', $decoded);
     }
 
-    // --- extractAction ---
+    // --- fromJson ---
 
-    public function testExtractActionFromEncodedData(): void
+    public function testFromJsonRestoresAction(): void
     {
-        $json = CallbackData::encode(CallbackAction::AddVolleyball);
+        $json = CallbackData::create(CallbackAction::AddVolleyball)->toJson();
 
-        $this->assertSame(CallbackAction::AddVolleyball, CallbackData::extractAction($json));
+        $this->assertSame(CallbackAction::AddVolleyball, CallbackData::fromJson($json)?->getAction());
     }
 
-    public function testExtractActionReturnsNullForNullInput(): void
+    public function testFromJsonReturnsNullForNullInput(): void
     {
-        $this->assertNull(CallbackData::extractAction(null));
+        $this->assertNull(CallbackData::fromJson(null));
     }
 
-    public function testExtractActionReturnsNullForUnknownAction(): void
+    public function testFromJsonReturnsNullForUnknownAction(): void
     {
-        $this->assertNull(CallbackData::extractAction('{"a":"unknown"}'));
+        $this->assertNull(CallbackData::fromJson('{"a":"unknown"}'));
     }
 
-    // --- encode + extractAction roundtrip ---
+    public function testFromJsonRestoresInlineQueryId(): void
+    {
+        $json = CallbackData::create(CallbackAction::Leave)->withInlineQueryId('q_99')->toJson();
+
+        $this->assertSame('q_99', CallbackData::fromJson($json)?->getInlineQueryId());
+    }
+
+    // --- roundtrip ---
 
     public function testRoundtripForAllActions(): void
     {
         foreach (CallbackAction::cases() as $action) {
-            $json = CallbackData::encode($action);
+            $json = CallbackData::create($action)->toJson();
 
-            $this->assertSame($action, CallbackData::extractAction($json), "Roundtrip failed for {$action->name}");
+            $this->assertSame($action, CallbackData::fromJson($json)?->getAction(), "Roundtrip failed for {$action->name}");
         }
     }
 
@@ -73,7 +80,7 @@ final class CallbackDataTest extends TestCase
     public function testExtractInlineQueryIdFromMetaButton(): void
     {
         $message = $this->messageWithMetaButton(
-            CallbackData::encode(CallbackAction::Leave, 'q_123'),
+            CallbackData::create(CallbackAction::Leave)->withInlineQueryId('q_123')->toJson(),
         );
 
         $this->assertSame('q_123', CallbackData::extractInlineQueryId($message));
@@ -110,8 +117,6 @@ final class CallbackDataTest extends TestCase
             date: time(),
         );
     }
-
-    // --- Helpers ---
 
     public function testExtractInlineQueryIdReturnsNullWhenNoCallbackData(): void
     {
