@@ -188,6 +188,24 @@ sqlite3 <db> "UPDATE users SET role = 1 WHERE telegram_user_id = <telegram_user_
 sqlite3 <db> "UPDATE users SET role = 2 WHERE telegram_user_id = <telegram_user_id>;"
 ```
 
+## Deployment
+
+Anything that serves `public/tg-bot.php` over HTTPS and keeps the workers running will do. One option is `release.sh`, the scheme the production instance happens to use: releases are numbered bundles under the web root, `bundle0` being the manual [Setup](#setup) above, and every release after it one command:
+
+```bash
+sudo /var/www/beachvolleybot-production/public/release.sh
+```
+
+It clones the next bundle, installs it, and switches nginx over only once install and tests pass. Its header comment has the layout and the host-specific constants to edit; to roll back, run `make workers-stop` in the new bundle first — nothing else stops it — then point nginx back at the previous one, reload it and run `make workers-start` there.
+
+Whichever scheme you use, keep `db`, `logs` and `queues` out of the deployed tree. Their paths come from `config/paths.env`, resolved relative to `<bundle>/config/`, so with bundles they belong next to `public/` where no release touches them:
+
+```
+LOGS_DIR=../../../logs
+QUEUES_DIR=../../../queues
+DB_DATA_DIR=../../../db
+```
+
 ## Workers
 
 The project runs three workers concurrently: the **app worker** (processes Telegram updates from per-game / per-DM / per-chat queues), the **weather worker** (fetches forecasts for games), and the **weather scan worker** (wakes every 5 minutes and enqueues the upcoming games whose forecast has aged past its ladder rung). All three are started automatically by `install.sh`.
