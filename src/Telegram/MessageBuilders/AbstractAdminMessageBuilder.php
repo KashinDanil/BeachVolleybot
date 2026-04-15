@@ -14,7 +14,7 @@ abstract class AbstractAdminMessageBuilder extends AbstractMessageBuilder
 
     protected function formatHeader(string $header): string
     {
-        return $this->formatter->bold($this->formatter->escape($header));
+        return $this->formatter->bold($header);
     }
 
     /** @return list<array{text: string, callback_data: string}> */

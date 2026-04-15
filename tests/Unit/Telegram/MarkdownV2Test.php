@@ -72,11 +72,9 @@ final class MarkdownV2Test extends TestCase
         $this->assertSame('*hello*', $this->formatter->bold('hello'));
     }
 
-    public function testBoldWrapsPreEscapedContent(): void
+    public function testBoldEscapesContent(): void
     {
-        $escaped = $this->formatter->escape('hello_world');
-
-        $this->assertSame('*hello\_world*', $this->formatter->bold($escaped));
+        $this->assertSame('*hello\_world*', $this->formatter->bold('hello_world'));
     }
 
     // --- italic ---
@@ -86,11 +84,9 @@ final class MarkdownV2Test extends TestCase
         $this->assertSame('_hello_', $this->formatter->italic('hello'));
     }
 
-    public function testItalicWrapsPreEscapedContent(): void
+    public function testItalicEscapesContent(): void
     {
-        $escaped = $this->formatter->escape('hello*world');
-
-        $this->assertSame('_hello\*world_', $this->formatter->italic($escaped));
+        $this->assertSame('_hello\*world_', $this->formatter->italic('hello*world'));
     }
 
     // --- underline ---
@@ -100,20 +96,9 @@ final class MarkdownV2Test extends TestCase
         $this->assertSame('__hello__', $this->formatter->underline('hello'));
     }
 
-    public function testUnderlineWrapsPreEscapedContent(): void
+    public function testUnderlineEscapesContent(): void
     {
-        $escaped = $this->formatter->escape('hello*world');
-
-        $this->assertSame('__hello\*world__', $this->formatter->underline($escaped));
-    }
-
-    // --- composition ---
-
-    public function testBoldUnderlineComposition(): void
-    {
-        $escaped = $this->formatter->escape('hello');
-
-        $this->assertSame('*__hello__*', $this->formatter->bold($this->formatter->underline($escaped)));
+        $this->assertSame('__hello\*world__', $this->formatter->underline('hello*world'));
     }
 
     // --- code ---

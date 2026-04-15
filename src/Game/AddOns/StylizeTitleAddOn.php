@@ -56,9 +56,7 @@ final class StylizeTitleAddOn implements GameAddOnInterface
                 $result .= $formatter->escape(substr($title, $position, $offset - $position));
             }
 
-            $result .= substr($title, $offset, $length)
-                    |> $formatter->escape(...)
-                    |> $style(...);
+            $result .= substr($title, $offset, $length) |> $style(...);
             $position = $offset + $length;
         }
 

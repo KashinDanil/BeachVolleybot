@@ -25,27 +25,27 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
 
     public function bold(string $text): string
     {
-        return '*' . $text . '*';
+        return '*' . $this->escape($text) . '*';
     }
 
     public function italic(string $text): string
     {
-        return '_' . $text . '_';
+        return '_' . $this->escape($text) . '_';
     }
 
     public function underline(string $text): string
     {
-        return '__' . $text . '__';
+        return '__' . $this->escape($text) . '__';
     }
 
     public function code(string $text): string
     {
-        return '`' . str_replace(['\\', '`'], ['\\\\', '\\`'], $text) . '`';
+        return '`' . $this->escapeCode($text) . '`';
     }
 
     public function codeBlock(string $text): string
     {
-        return "```\n" . str_replace(['\\', '`'], ['\\\\', '\\`'], $text) . "\n```";
+        return "```\n" . $this->escapeCode($text) . "\n```";
     }
 
     public function blockquote(string $text): string
@@ -65,6 +65,11 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
     public function customEmoji(string $placeholder, string $emojiId): string
     {
         return '![' . $this->escape($placeholder) . '](tg://emoji?id=' . $emojiId . ')';
+    }
+
+    private function escapeCode(string $text): string
+    {
+        return str_replace(['\\', '`'], ['\\\\', '\\`'], $text);
     }
 
     private function escapeLinkUrl(string $url): string
