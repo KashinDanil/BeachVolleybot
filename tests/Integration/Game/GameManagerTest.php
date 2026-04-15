@@ -322,7 +322,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->createGame();
 
-        $this->gameManager->setLocation($gameId, '55.751244,37.618423');
+        $this->gameManager->setLocation($gameId, 55.751244, 37.618423);
 
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertSame('55.751244,37.618423', $game['location']);

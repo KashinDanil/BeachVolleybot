@@ -181,11 +181,60 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->assertNothingEnqueued();
     }
 
-    public function testEditedMessageIsSkipped(): void
+    public function testEditedMessageWithLocationRoutesToGameQueue(): void
     {
+        $this->seedGame(inlineQueryId: 'query_456', inlineMessageId: 'inline_msg_456');
+
         $this->router->route($this->editedMessageUpdate(inlineQueryId: 'query_456'));
 
+        $this->assertEnqueuedOnce('game_inline_msg_456');
+    }
+
+    public function testEditedMessageWithoutLocationIsSkipped(): void
+    {
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
+            'edited_message' => [
+                'message_id' => 147,
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
+                'chat' => ['id' => -1003759398496, 'type' => 'supergroup'],
+                'date' => 1700000000,
+                'text' => 'edited text',
+                'reply_to_message' => [
+                    'message_id' => 146,
+                    'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true],
+                    'chat' => ['id' => -1003759398496, 'type' => 'supergroup'],
+                    'date' => 1700000000,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                ],
+            ],
+        ]);
+
+        $this->router->route($update);
+
         $this->assertNothingEnqueued();
+    }
+
+    public function testEditedMessageInPrivateChatIsSkipped(): void
+    {
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
+            'edited_message' => [
+                'message_id' => 147,
+                'from' => ['id' => 123, 'first_name' => 'Test', 'is_bot' => false],
+                'chat' => ['id' => 123, 'type' => 'private'],
+                'date' => 1700000000,
+                'location' => [
+                    'latitude' => 41.413114,
+                    'longitude' => 2.194864,
+                    'live_period' => 900,
+                ],
+            ],
+        ]);
+
+        $this->router->route($update);
+
+        $this->assertEnqueuedOnce('dm_123');
     }
 
     public function testEnqueuedPayloadMatchesInput(): void

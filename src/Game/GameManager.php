@@ -154,9 +154,17 @@ readonly class GameManager
         return EquipmentResult::Removed;
     }
 
-    public function setLocation(int $gameId, ?string $location): void
+    public function setLocation(int $gameId, float $latitude, float $longitude): string
     {
+        $location = sprintf('%s,%s', $latitude, $longitude);
         $this->gameRepository->updateLocation($gameId, $location);
+
+        return $location;
+    }
+
+    public function removeLocation(int $gameId): void
+    {
+        $this->gameRepository->updateLocation($gameId, null);
     }
 
     public function setPlayerTime(

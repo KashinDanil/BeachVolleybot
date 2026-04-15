@@ -64,9 +64,8 @@ readonly class IncomingMessageQueueRouter
             return $this->resolveMessageQueue($update->message);
         }
 
-        // edited_message updates (e.g. live location) are intentionally not processed
         if ($update->hasEditedMessage()) {
-            return null;
+            return $this->resolveMessageQueue($update->editedMessage);
         }
 
         return $this->skip('Unsupported payload format');

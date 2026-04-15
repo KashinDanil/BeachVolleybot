@@ -83,14 +83,14 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->assertSame(EquipmentResult::NotJoined, $result);
     }
 
-    // --- setLocation with null ---
+    // --- removeLocation ---
 
-    public function testSetLocationAcceptsNull(): void
+    public function testRemoveLocationClearsValue(): void
     {
         $gameId = $this->createGame();
         $this->db->update('games', ['location' => '55.7,37.6'], ['game_id' => $gameId]);
 
-        $this->gameManager->setLocation($gameId, null);
+        $this->gameManager->removeLocation($gameId);
 
         $game = $this->db->get('games', '*', ['game_id' => $gameId]);
         $this->assertNull($game['location']);
@@ -139,13 +139,13 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->assertSame(3, (int)$gamePlayer['volleyball']);
     }
 
-    // --- setLocation: set non-null ---
+    // --- setLocation: from coordinates ---
 
-    public function testSetLocationSetsValue(): void
+    public function testSetLocationSetsValueFromCoordinates(): void
     {
         $gameId = $this->createGame();
 
-        $this->gameManager->setLocation($gameId, '55.7,37.6');
+        $this->gameManager->setLocation($gameId, 55.7, 37.6);
 
         $game = $this->db->get('games', '*', ['game_id' => $gameId]);
         $this->assertSame('55.7,37.6', $game['location']);

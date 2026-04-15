@@ -195,6 +195,45 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    protected function editedLocationMessagePayload(
+        float $latitude,
+        float $longitude,
+        string $inlineQueryId,
+        int $fromId = 200,
+        string $firstName = 'Danil',
+        int $chatId = -5127803306,
+    ): array {
+        return [
+            'update_id' => 1,
+            'edited_message' => [
+                'message_id' => 180,
+                'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                'chat' => ['id' => $chatId, 'type' => 'supergroup'],
+                'date' => 1700000000,
+                'reply_to_message' => [
+                    'message_id' => 171,
+                    'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                    'chat' => ['id' => $chatId, 'type' => 'supergroup'],
+                    'date' => 1699999000,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                    'reply_markup' => [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                            ],
+                        ],
+                    ],
+                ],
+                'location' => [
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'live_period' => 900,
+                ],
+            ],
+        ];
+    }
+
     protected function privateMessagePayload(
         string $text,
         int $fromId = 12345678,

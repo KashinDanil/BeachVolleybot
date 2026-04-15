@@ -11,6 +11,7 @@ use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
@@ -59,6 +60,10 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
 
         if ($update->hasMessage()) {
             return $this->resolveMessageProcessor($update, $telegramSender);
+        }
+
+        if ($update->hasEditedMessage()) {
+            return new SetLiveLocationProcessor($telegramSender);
         }
 
         if ($update->hasCallbackQuery()) {
