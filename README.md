@@ -63,11 +63,19 @@ Telegram Webhook
 
 ### Automated Setup
 
-Run the install script to check prerequisites, install dependencies, apply migrations, and verify the installation:
+#### 1. Configure `config/config.php`
+
+Before running the install script, open `config/config.php` and replace all `'XXX'` placeholder values with your actual configuration (see the [Configuration constants](#3-update-configuration-constants) section below for details on each field).
+
+The install script will refuse to run if any `'XXX'` placeholders remain.
+
+#### 2. Run the install script
 
 ```bash
 bash install.sh
 ```
+
+This checks prerequisites, installs dependencies, applies migrations, and verifies the installation.
 
 ### Manual Setup
 
@@ -104,7 +112,9 @@ config/config.php
 
 Replace the constants with your actual values.
 
-- #### `TG_BOT_ACCESS_TOKEN` — provided by **Telegram BotFather** after creating your bot.
+- #### `BOT_USERNAME` — the username of your Telegram bot (without the `@` prefix), as set in **BotFather**.
+
+- #### `TG_BOT_ACCESS_TOKEN` — the HTTP API token provided by **Telegram BotFather** after creating your bot.
 
 - #### `APP_TOKEN_HASH` — a hash of your webhook secret token.
 
@@ -116,9 +126,11 @@ Replace the constants with your actual values.
 
   Replace `TELEGRAM_BOT_API_SECRET_TOKEN` in the command with a `secret_token` that you [configure Telegram to send](https://core.telegram.org/bots/api#setwebhook) in the `X-Telegram-Bot-Api-Secret-Token` header to your server as an extra safety measure.
 
-- #### `BASE_LOG_DIR` — the absolute path to the directory where log files will be stored.
+- #### `ADMINS_TELEGRAM_USER_IDS` — an array of Telegram user IDs that should have admin access to the bot. Can be left empty (`[]`).
 
-- #### `TG_MAX_REQUESTS_PER_SECOND` — the maximum number of Telegram API requests per second (default: `20`).
+- #### `TG_MAX_REQUESTS_PER_SECOND` — the maximum number of Telegram API requests per second (default: `19`).
+
+Directory paths for logs, queues, and the database are configured in `config/paths.env`.
 
 #### 4. Set up the webhook
 

@@ -1,114 +1,122 @@
 #!/usr/bin/env bash
 
-# Exit on error (-e), undefined variable (-u), or pipe failure (-o pipefail)
 set -euo pipefail
 
-# Resolve the absolute path to the project root and cd into it
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Load runtime directory paths from the single source of truth.
-# Paths are relative to the config/ directory.
+# Paths in paths.env are relative to config/
 source ./config/paths.env
 LOGS_DIR="${SCRIPT_DIR}/config/${LOGS_DIR}"
 QUEUES_DIR="${SCRIPT_DIR}/config/${QUEUES_DIR}"
 DB_DATA_DIR="${SCRIPT_DIR}/config/${DB_DATA_DIR}"
 
-# ANSI color codes for formatted output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Helper functions for printing colored status messages
-ok()   { echo -e "  ${GREEN}✔${NC} $1"; }
-fail() { echo -e "  ${RED}✘${NC} $1"; exit 1; }
-warn() { echo -e "  ${YELLOW}!${NC} $1"; }
+ok()      { echo -e "  ${GREEN}✔${NC} $1"; }
+fail()    { echo -e "  ${RED}✘${NC} $1"; exit 1; }
+warn()    { echo -e "  ${YELLOW}!${NC} $1"; }
+section() { echo -e "\n== $1 =="; }
 
-# --- 1. Check that php and composer are installed, and required PHP extensions are available ---
+ensure_directory() {
+    mkdir -p "$1" && chmod 755 "$1"
+    ok "$2: $1"
+}
 
-echo "== Checking prerequisites =="
+check_configuration() {
+    section "Checking configuration"
 
-# Verify php is on PATH
-command -v php      >/dev/null 2>&1 || fail "php is not installed"
-ok "php found"
+    if grep -q "'XXX'" "${SCRIPT_DIR}/config/config.php"; then
+        fail "config/config.php still contains 'XXX' placeholders. Configure it first (see README.md)"
+    fi
+    ok "config/config.php is configured"
+}
 
-# Verify composer is on PATH
-command -v composer >/dev/null 2>&1 || fail "composer is not installed"
-ok "composer found"
+check_prerequisites() {
+    section "Checking prerequisites"
 
-# Check each required PHP extension via `php -r extension_loaded()`
-REQUIRED_EXTENSIONS=(curl json pcntl sqlite3 pdo)
-for extension in "${REQUIRED_EXTENSIONS[@]}"; do
-    php -r "exit(extension_loaded('${extension}') ? 0 : 1);" || fail "PHP extension '${extension}' is missing"
-    ok "ext-${extension}"
-done
+    command -v php      >/dev/null 2>&1 || fail "php is not installed"
+    ok "php found"
 
-# --- 2. Install PHP dependencies via Composer ---
+    command -v composer >/dev/null 2>&1 || fail "composer is not installed"
+    ok "composer found"
 
-echo ""
-echo "== Installing Composer dependencies =="
-composer install
-ok "Dependencies installed"
+    local extensions=(curl json pcntl sqlite3 pdo)
+    for extension in "${extensions[@]}"; do
+        php -r "exit(extension_loaded('${extension}') ? 0 : 1);" || fail "PHP extension '${extension}' is missing"
+        ok "ext-${extension}"
+    done
+}
 
-# --- 3. Create runtime directories (logs and queues) sibling to the project root ---
+install_dependencies() {
+    section "Installing Composer dependencies"
 
-echo ""
-echo "== Creating runtime directories =="
+    composer install
+    ok "Dependencies installed"
+}
 
+create_runtime_directories() {
+    section "Creating runtime directories"
 
-# Create logs directory with read/write/execute for owner, read/execute for others
-mkdir -p "$LOGS_DIR" && chmod 755 "$LOGS_DIR"
-ok "Logs directory: ${LOGS_DIR}"
+    ensure_directory "$LOGS_DIR" "Logs"
+    ensure_directory "$QUEUES_DIR" "Queues"
+}
 
-# Create queues directory with the same permissions
-mkdir -p "$QUEUES_DIR" && chmod 755 "$QUEUES_DIR"
-ok "Queues directory: ${QUEUES_DIR}"
+set_bin_permissions() {
+    section "Setting executable permissions"
 
-# --- 4. Make bin scripts executable ---
+    chmod +x bin/migrate bin/run_worker
+    ok "bin/migrate"
+    ok "bin/run_worker"
+}
 
-echo ""
-echo "== Setting executable permissions on bin scripts =="
+run_migrations() {
+    section "Running database migrations"
 
-# Grant execute permission to CLI entry points
-chmod +x bin/migrate bin/run_worker
-ok "bin/migrate"
-ok "bin/run_worker"
+    ensure_directory "$DB_DATA_DIR" "Database"
 
-# --- 5. Create database directory and apply SQL migrations ---
+    php bin/migrate
+    ok "Migrations applied"
 
-echo ""
-echo "== Running database migrations =="
+    local database_file="${DB_DATA_DIR}/${DB_FILENAME}"
+    if [ -f "$database_file" ]; then
+        chmod 664 "$database_file"
+        ok "Database file permissions set"
+    fi
+}
 
-# Ensure the SQLite data directory exists with proper permissions
-mkdir -p "$DB_DATA_DIR" && chmod 755 "$DB_DATA_DIR"
+run_tests() {
+    section "Running tests"
 
-# Run the migration script to create/update the SQLite database
-php bin/migrate
-ok "Migrations applied"
+    vendor/bin/phpunit --bootstrap tests/config.php --no-progress tests/
+    ok "All tests passed"
+}
 
-# Make the SQLite file read/writable by owner and group, readable by others
-DB_FILE="${DB_DATA_DIR}/${DB_FILENAME}"
-if [ -f "$DB_FILE" ]; then
-    chmod 664 "$DB_FILE"
-    ok "Database file permissions set"
-fi
+start_queue_worker() {
+    section "Starting queue worker"
 
-# --- 6. Run PHPUnit tests to verify the installation ---
+    make -C "$SCRIPT_DIR" queue-worker-start
+    ok "Queue worker started"
+}
 
-echo ""
-echo "== Running tests =="
+main() {
+    check_configuration
+    check_prerequisites
+    install_dependencies
+    create_runtime_directories
+    set_bin_permissions
+    run_migrations
+    run_tests
+    start_queue_worker
 
-vendor/bin/phpunit --bootstrap tests/config.php tests/
-ok "All tests passed"
+    section "${GREEN}Installation complete${NC}"
+    echo ""
+    echo "There is only one step left: set up the Telegram webhook pointing to public/tg-bot.php (must be HTTPS)."
+    echo "If you've already done that, you're all set!"
+    echo ""
+}
 
-# --- 7. Print next steps for the user ---
-
-echo ""
-echo -e "${GREEN}== Installation complete ==${NC}"
-echo ""
-echo "Next steps:"
-echo "  1. Edit config/config.php and set your real values"
-echo "  2. Start the queue worker: make queue-worker-start"
-echo "  3. Set up the Telegram webhook pointing to public/tg-bot.php (must be HTTPS)"
-echo ""
+main
