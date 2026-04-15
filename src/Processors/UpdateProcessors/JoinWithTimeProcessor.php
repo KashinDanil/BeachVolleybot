@@ -16,7 +16,7 @@ class JoinWithTimeProcessor extends AbstractActionReplyProcessor
         $message = $update->message;
         $from = $message->from;
 
-        if (null === $message->replyToMessage) { //Ignore none replies
+        if (!$message->hasReplyToMessage()) {
             return;
         }
 

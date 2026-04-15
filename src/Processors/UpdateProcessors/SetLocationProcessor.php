@@ -14,11 +14,11 @@ class SetLocationProcessor extends AbstractActionReplyProcessor
     {
         $message = $update->message;
 
-        if (null === $message->location) {
+        if (!$message->hasLocation()) {
             return;
         }
 
-        if (null === $message->replyToMessage) {
+        if (!$message->hasReplyToMessage()) {
             return;
         }
 

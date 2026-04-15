@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Queue;
 
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
 use PHPUnit\Framework\TestCase;
 
@@ -16,42 +17,21 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
 
     public function testPrivateMessageRoutesToDmQueue(): void
     {
-        $this->router->route($this->privateMessagePayload(12345678, '/settings'));
+        $this->router->route($this->privateMessageUpdate(12345678, '/settings'));
 
         $this->assertEnqueuedOnce('dm_12345678');
     }
 
-    private function privateMessagePayload(int $userId, string $text): array
-    {
-        return [
-            'update_id' => 100,
-            'message' => [
-                'message_id' => 109,
-                'from' => ['id' => $userId, 'first_name' => 'Test', 'is_bot' => false],
-                'chat' => ['id' => $userId, 'type' => 'private'],
-                'date' => 1700000000,
-                'text' => $text,
-            ],
-        ];
-    }
-
-    private function assertEnqueuedOnce(string $expectedQueueName): void
-    {
-        $this->assertCount(1, SpyQueue::$instances);
-        $this->assertSame($expectedQueueName, SpyQueue::$instances[0]->queueName);
-        $this->assertSame(1, SpyQueue::$instances[0]->enqueueCount);
-    }
-
     public function testPrivateMessageWithAnyTextRoutesToDmQueue(): void
     {
-        $this->router->route($this->privateMessagePayload(12345, 'hello'));
+        $this->router->route($this->privateMessageUpdate(12345, 'hello'));
 
         $this->assertEnqueuedOnce('dm_12345');
     }
 
     public function testCallbackQueryWithoutInlineMessageIdRoutesToDmQueue(): void
     {
-        $payload = [
+        $update = TelegramUpdate::fromArray([
             'update_id' => 100,
             'callback_query' => [
                 'id' => 'cbq_1',
@@ -66,16 +46,16 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
                 ],
                 'data' => '{"aa":"logs"}',
             ],
-        ];
+        ]);
 
-        $this->router->route($payload);
+        $this->router->route($update);
 
         $this->assertEnqueuedOnce('dm_12345678');
     }
 
     public function testCallbackQueryWithInlineMessageIdStillGoesToGameQueue(): void
     {
-        $payload = [
+        $update = TelegramUpdate::fromArray([
             'update_id' => 100,
             'callback_query' => [
                 'id' => 'cbq_1',
@@ -84,9 +64,9 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
                 'inline_message_id' => 'inline_msg_abc',
                 'data' => '{"a":"j"}',
             ],
-        ];
+        ]);
 
-        $this->router->route($payload);
+        $this->router->route($update);
 
         $this->assertEnqueuedOnce('game_inline_msg_abc');
     }
@@ -95,5 +75,26 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
     {
         SpyQueue::reset();
         $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR);
+    }
+
+    private function privateMessageUpdate(int $userId, string $text): TelegramUpdate
+    {
+        return TelegramUpdate::fromArray([
+            'update_id' => 100,
+            'message' => [
+                'message_id' => 109,
+                'from' => ['id' => $userId, 'first_name' => 'Test', 'is_bot' => false],
+                'chat' => ['id' => $userId, 'type' => 'private'],
+                'date' => 1700000000,
+                'text' => $text,
+            ],
+        ]);
+    }
+
+    private function assertEnqueuedOnce(string $expectedQueueName): void
+    {
+        $this->assertCount(1, SpyQueue::$instances);
+        $this->assertSame($expectedQueueName, SpyQueue::$instances[0]->queueName);
+        $this->assertSame(1, SpyQueue::$instances[0]->enqueueCount);
     }
 }

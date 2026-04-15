@@ -16,6 +16,11 @@ readonly class TelegramCallbackQuery
     ) {
     }
 
+    public function isInline(): bool
+    {
+        return null !== $this->inlineMessageId;
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

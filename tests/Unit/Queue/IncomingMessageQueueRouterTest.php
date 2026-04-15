@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Queue;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
 use Medoo\Medoo;
 use PDO;
@@ -27,80 +28,81 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
     public function testChosenInlineResultRoutesToGameQueue(): void
     {
-        $this->router->route($this->chosenInlineResultPayload('inline_msg_abc'));
+        $this->router->route($this->chosenInlineResultUpdate('inline_msg_abc'));
 
         $this->assertEnqueuedOnce('game_inline_msg_abc');
     }
 
     public function testChosenInlineResultWithoutInlineMessageIdIsSkipped(): void
     {
-        $payload = [
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
             'chosen_inline_result' => [
                 'result_id' => 'new_game_123',
                 'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
                 'query' => 'Test game',
             ],
-        ];
+        ]);
 
-        $this->router->route($payload);
+        $this->router->route($update);
 
         $this->assertNothingEnqueued();
     }
 
     public function testCallbackQueryRoutesToGameQueueByInlineMessageId(): void
     {
-        $this->router->route($this->callbackQueryPayload('/eg_+p', 'inline_msg_abc'));
+        $this->router->route($this->callbackQueryUpdate('/eg_+p', 'inline_msg_abc'));
 
         $this->assertEnqueuedOnce('game_inline_msg_abc');
     }
 
     public function testCallbackQueryWithoutInlineMessageIdRoutesToDmQueue(): void
     {
-        $payload = [
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
             'callback_query' => [
+                'id' => 'cbq_1',
                 'data' => '/eg_+p',
                 'from' => ['id' => 456, 'first_name' => 'Test', 'is_bot' => false],
+                'chat_instance' => '-123',
             ],
-        ];
+        ]);
 
-        $this->router->route($payload);
+        $this->router->route($update);
 
         $this->assertEnqueuedOnce('dm_456');
-    }
-
-    public function testCallbackQueryWithoutInlineMessageIdOrFromIsSkipped(): void
-    {
-        $payload = ['callback_query' => ['data' => '/eg_+p']];
-
-        $this->router->route($payload);
-
-        $this->assertNothingEnqueued();
     }
 
     public function testReplyToViaBotMessageRoutesToGameQueue(): void
     {
         $this->seedGame(inlineQueryId: 'query_123', inlineMessageId: 'inline_msg_resolved');
 
-        $this->router->route($this->replyToViaBotPayload(inlineQueryId: 'query_123'));
+        $this->router->route($this->replyToViaBotUpdate(inlineQueryId: 'query_123'));
 
         $this->assertEnqueuedOnce('game_inline_msg_resolved');
     }
 
     public function testReplyToViaBotMessageWithoutMetaButtonIsSkipped(): void
     {
-        $payload = [
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
             'message' => [
                 'message_id' => 54,
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
                 'text' => '12:00',
                 'chat' => ['id' => -5127803306, 'type' => 'group'],
+                'date' => 1700000000,
                 'reply_to_message' => [
                     'message_id' => 53,
+                    'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true],
+                    'chat' => ['id' => -5127803306, 'type' => 'group'],
+                    'date' => 1700000000,
                     'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
                 ],
             ],
-        ];
+        ]);
 
-        $this->router->route($payload);
+        $this->router->route($update);
 
         $this->assertNothingEnqueued();
     }
@@ -109,72 +111,79 @@ final class IncomingMessageQueueRouterTest extends TestCase
     {
         $this->seedGame(inlineQueryId: 'other_query', inlineMessageId: 'other_msg');
 
-        $this->router->route($this->replyToViaBotPayload(inlineQueryId: 'unknown_query'));
+        $this->router->route($this->replyToViaBotUpdate(inlineQueryId: 'unknown_query'));
 
         $this->assertNothingEnqueued();
     }
 
     public function testPrivateMessageRoutesToDmQueue(): void
     {
-        $payload = [
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
             'message' => [
                 'message_id' => 54,
                 'from' => ['id' => 123, 'first_name' => 'Test', 'is_bot' => false],
                 'chat' => ['id' => 123, 'type' => 'private'],
+                'date' => 1700000000,
                 'reply_to_message' => [
                     'message_id' => 53,
+                    'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true],
+                    'chat' => ['id' => 123, 'type' => 'private'],
+                    'date' => 1700000000,
                     'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
                 ],
             ],
-        ];
+        ]);
 
-        $this->router->route($payload);
+        $this->router->route($update);
 
         $this->assertEnqueuedOnce('dm_123');
     }
 
     public function testNonReplyGroupMessageIsSkipped(): void
     {
-        $payload = [
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
             'message' => [
                 'message_id' => 54,
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
                 'text' => 'just a message',
                 'chat' => ['id' => 123, 'type' => 'group'],
+                'date' => 1700000000,
             ],
-        ];
+        ]);
 
-        $this->router->route($payload);
+        $this->router->route($update);
 
         $this->assertNothingEnqueued();
     }
 
     public function testReplyToNonViaBotMessageIsSkipped(): void
     {
-        $payload = [
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
             'message' => [
                 'message_id' => 54,
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
                 'chat' => ['id' => 123, 'type' => 'group'],
+                'date' => 1700000000,
                 'reply_to_message' => [
                     'message_id' => 53,
+                    'from' => ['id' => 2, 'first_name' => 'User', 'is_bot' => false],
+                    'chat' => ['id' => 123, 'type' => 'group'],
+                    'date' => 1700000000,
                 ],
             ],
-        ];
+        ]);
 
-        $this->router->route($payload);
+        $this->router->route($update);
 
         $this->assertNothingEnqueued();
     }
 
     public function testEditedMessageIsSkipped(): void
     {
-        $this->router->route($this->editedMessagePayload(inlineQueryId: 'query_456'));
-
-        $this->assertNothingEnqueued();
-    }
-
-    public function testUnsupportedPayloadFormatIsSkipped(): void
-    {
-        $this->router->route(['update_id' => 123]);
+        $this->router->route($this->editedMessageUpdate(inlineQueryId: 'query_456'));
 
         $this->assertNothingEnqueued();
     }
@@ -182,36 +191,37 @@ final class IncomingMessageQueueRouterTest extends TestCase
     public function testEnqueuedPayloadMatchesInput(): void
     {
         $payload = $this->chosenInlineResultPayload('inline_msg_abc');
+        $update = TelegramUpdate::fromArray($payload);
 
-        $this->router->route($payload);
+        $this->router->route($update);
 
         $this->assertSame($payload, SpyQueue::$instances[0]->lastPayload);
     }
 
     public function testPathTraversalInChosenInlineResultIsSanitized(): void
     {
-        $this->router->route($this->chosenInlineResultPayload('../../etc/evil'));
+        $this->router->route($this->chosenInlineResultUpdate('../../etc/evil'));
 
         $this->assertEnqueuedOnce('game_______etc_evil');
     }
 
     public function testPathTraversalInCallbackQueryIsSanitized(): void
     {
-        $this->router->route($this->callbackQueryPayload('/eg_+p', '../../etc/evil'));
+        $this->router->route($this->callbackQueryUpdate('/eg_+p', '../../etc/evil'));
 
         $this->assertEnqueuedOnce('game_______etc_evil');
     }
 
     public function testSpecialCharactersInInlineMessageIdAreSanitized(): void
     {
-        $this->router->route($this->chosenInlineResultPayload('AgAAA+Fsq/AP=='));
+        $this->router->route($this->chosenInlineResultUpdate('AgAAA+Fsq/AP=='));
 
         $this->assertEnqueuedOnce('game_AgAAA_Fsq_AP__');
     }
 
     public function testQueueReceivesCorrectBaseDir(): void
     {
-        $this->router->route($this->chosenInlineResultPayload('inline_msg_abc'));
+        $this->router->route($this->chosenInlineResultUpdate('inline_msg_abc'));
 
         $this->assertSame(self::BASE_DIR, SpyQueue::$instances[0]->baseDir);
     }
@@ -229,50 +239,68 @@ final class IncomingMessageQueueRouterTest extends TestCase
         ];
     }
 
-    private function callbackQueryPayload(string $data, string $inlineMessageId): array
+    private function chosenInlineResultUpdate(string $inlineMessageId): TelegramUpdate
     {
-        return [
-            'update_id' => 100,
-            'callback_query' => [
-                'data' => $data,
-                'inline_message_id' => $inlineMessageId,
-            ],
-        ];
+        return TelegramUpdate::fromArray($this->chosenInlineResultPayload($inlineMessageId));
     }
 
-    private function replyToViaBotPayload(string $inlineQueryId): array
+    private function callbackQueryUpdate(string $data, string $inlineMessageId): TelegramUpdate
     {
-        return [
+        return TelegramUpdate::fromArray([
+            'update_id' => 100,
+            'callback_query' => [
+                'id' => 'cbq_1',
+                'data' => $data,
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
+                'chat_instance' => '-123',
+                'inline_message_id' => $inlineMessageId,
+            ],
+        ]);
+    }
+
+    private function replyToViaBotUpdate(string $inlineQueryId): TelegramUpdate
+    {
+        return TelegramUpdate::fromArray([
             'update_id' => 100,
             'message' => [
                 'message_id' => 54,
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
                 'text' => '12:00',
                 'chat' => ['id' => -5127803306, 'type' => 'group'],
+                'date' => 1700000000,
                 'reply_to_message' => [
                     'message_id' => 53,
+                    'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true],
+                    'chat' => ['id' => -5127803306, 'type' => 'group'],
+                    'date' => 1700000000,
                     'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'rp', 'q' => $inlineQueryId])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'ap'])],
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],
                 ],
             ],
-        ];
+        ]);
     }
 
-    private function editedMessagePayload(string $inlineQueryId): array
+    private function editedMessageUpdate(string $inlineQueryId): TelegramUpdate
     {
-        return [
+        return TelegramUpdate::fromArray([
             'update_id' => 100,
             'edited_message' => [
                 'message_id' => 147,
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
                 'chat' => ['id' => -1003759398496, 'type' => 'supergroup'],
+                'date' => 1700000000,
                 'reply_to_message' => [
                     'message_id' => 146,
+                    'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true],
+                    'chat' => ['id' => -1003759398496, 'type' => 'supergroup'],
+                    'date' => 1700000000,
                     'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
                     'reply_markup' => [
                         'inline_keyboard' => [
@@ -291,7 +319,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
                     'horizontal_accuracy' => 6,
                 ],
             ],
-        ];
+        ]);
     }
 
     private function assertEnqueuedOnce(string $expectedQueueName): void

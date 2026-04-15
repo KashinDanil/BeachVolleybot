@@ -15,14 +15,14 @@ class SettingsMenuCallbackProcessor extends AbstractAdminCallbackProcessor
     {
         $message = new SettingsMessageBuilder()->buildMainMenu();
 
-        if (null !== $update->message) {
+        if ($update->hasMessage()) {
             $this->telegramSender->sendMessage($update->message->chat->id, $message);
             $this->telegramSender->deleteMessage($update->message->chat->id, $update->message->messageId);
 
             return;
         }
 
-        if (null !== $update->callbackQuery) {
+        if ($update->hasCallbackQuery()) {
             $this->editSettingsMessage($update->callbackQuery, $message);
             $this->answerCallbackQuery($update->callbackQuery, '');
         }

@@ -20,6 +20,21 @@ readonly class TelegramMessage
     ) {
     }
 
+    public function hasText(): bool
+    {
+        return null !== $this->text;
+    }
+
+    public function hasLocation(): bool
+    {
+        return null !== $this->location;
+    }
+
+    public function hasReplyToMessage(): bool
+    {
+        return null !== $this->replyToMessage;
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

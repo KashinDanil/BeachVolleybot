@@ -53,15 +53,15 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
 
     private function resolveProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
     {
-        if (null !== $update->chosenInlineResult) {
+        if ($update->hasChosenInlineResult()) {
             return new CreateGameProcessor($telegramSender);
         }
 
-        if (null !== $update->message) {
+        if ($update->hasMessage()) {
             return $this->resolveMessageProcessor($update, $telegramSender);
         }
 
-        if (null !== $update->callbackQuery) {
+        if ($update->hasCallbackQuery()) {
             return $this->resolveCallbackProcessor($update, $telegramSender);
         }
 
@@ -87,11 +87,11 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             return $this->resolvePrivateMessageProcessor($update, $telegramSender);
         }
 
-        if (null !== $update->message->location) {
+        if ($update->message->hasLocation()) {
             return new SetLocationProcessor($telegramSender);
         }
 
-        if (null !== $update->message->text) {
+        if ($update->message->hasText()) {
             return new JoinWithTimeProcessor($telegramSender);
         }
 

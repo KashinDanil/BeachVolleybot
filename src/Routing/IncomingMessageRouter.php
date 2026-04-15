@@ -16,20 +16,14 @@ readonly class IncomingMessageRouter
     ) {
     }
 
-    public function route(array $payload): void
+    public function route(TelegramUpdate $update): void
     {
-        if (isset($payload['inline_query'])) {
-            $this->processInlineQuery($payload);
+        if ($update->hasInlineQuery()) {
+            new InlineQueryProcessor($this->telegramSender)->process($update);
 
             return;
         }
 
-        $this->queueRouter->route($payload);
-    }
-
-    private function processInlineQuery(array $payload): void
-    {
-        $processor = new InlineQueryProcessor($this->telegramSender);
-        $processor->process(TelegramUpdate::fromArray($payload));
+        $this->queueRouter->route($update);
     }
 }
