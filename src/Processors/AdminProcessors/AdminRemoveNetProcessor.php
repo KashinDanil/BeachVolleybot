@@ -15,6 +15,7 @@ class AdminRemoveNetProcessor extends AbstractAdminGameMutationProcessor
         $gameId = $this->adminCallbackData->getGameId();
         $telegramUserId = $this->adminCallbackData->getUserId();
 
+        $this->logAdminAction($update->callbackQuery->from, 'admin_remove_net', "gameId=$gameId;userId=$telegramUserId");
         $result = new AdminGameManager()->removeNet($gameId, $telegramUserId);
 
         $this->refreshGameInlineMessage($gameId);

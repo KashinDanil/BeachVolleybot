@@ -18,6 +18,7 @@ class AdminRemoveSlotProcessor extends AbstractAdminGameMutationProcessor
         $gameId = $this->adminCallbackData->getGameId();
         $telegramUserId = $this->adminCallbackData->getUserId();
 
+        $this->logAdminAction($update->callbackQuery->from, 'admin_remove_slot', "gameId=$gameId;userId=$telegramUserId");
         $gameManager = new AdminGameManager();
         $result = $gameManager->leaveGame($gameId, $telegramUserId);
 

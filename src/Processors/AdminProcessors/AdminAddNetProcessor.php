@@ -15,6 +15,7 @@ class AdminAddNetProcessor extends AbstractAdminGameMutationProcessor
         $gameId = $this->adminCallbackData->getGameId();
         $telegramUserId = $this->adminCallbackData->getUserId();
 
+        $this->logAdminAction($update->callbackQuery->from, 'admin_add_net', "gameId=$gameId;userId=$telegramUserId");
         $result = new AdminGameManager()->adminAddNet($gameId, $telegramUserId);
 
         $this->refreshGameInlineMessage($gameId);
