@@ -27,6 +27,13 @@ final class PlayerSettingsMessageBuilderTest extends TestCase
         $this->assertStringContainsString('Alice', $message->getText()->getMessageText());
     }
 
+    public function testShowsPlayerId(): void
+    {
+        $message = $this->builder->buildPlayerSettings(1, 12345678, 'Alice', 1, 0, 0);
+
+        $this->assertStringContainsString('Telegram ID: 12345678', $message->getText()->getMessageText());
+    }
+
     public function testShowsSlotCount(): void
     {
         $message = $this->builder->buildPlayerSettings(1, 100, 'Alice', 3, 0, 0);
