@@ -27,8 +27,8 @@ class AddVolleyballProcessor extends AbstractCallbackProcessor
         }
 
         $from = $callbackQuery->from;
-        $this->logUserAction($from, 'add_volleyball', "gameId=$gameId");
         $result = $gameManager->addVolleyball($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
+        $this->logUserAction($from, 'add_volleyball', "gameId=$gameId");
 
         $callbackAnswer = match ($result) {
             EquipmentResult::Added => CallbackAnswer::VOLLEYBALL_ADDED,

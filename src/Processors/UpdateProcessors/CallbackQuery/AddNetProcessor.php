@@ -27,8 +27,8 @@ class AddNetProcessor extends AbstractCallbackProcessor
         }
 
         $from = $callbackQuery->from;
-        $this->logUserAction($from, 'add_net', "gameId=$gameId");
         $result = $gameManager->addNet($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
+        $this->logUserAction($from, 'add_net', "gameId=$gameId");
 
         $callbackAnswer = match ($result) {
             EquipmentResult::Added => CallbackAnswer::NET_ADDED,

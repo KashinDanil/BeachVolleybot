@@ -26,8 +26,8 @@ class LeaveProcessor extends AbstractCallbackProcessor
             return;
         }
 
-        $this->logUserAction($callbackQuery->from, 'leave', "gameId=$gameId");
         $result = $gameManager->leaveGame($gameId, $callbackQuery->from->id);
+        $this->logUserAction($callbackQuery->from, 'leave', "gameId=$gameId");
 
         $callbackAnswer = match ($result) {
             LeaveResult::Left => CallbackAnswer::LEFT,

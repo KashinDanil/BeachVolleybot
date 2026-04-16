@@ -26,8 +26,8 @@ class RemoveVolleyballProcessor extends AbstractCallbackProcessor
             return;
         }
 
-        $this->logUserAction($callbackQuery->from, 'remove_volleyball', "gameId=$gameId");
         $result = $gameManager->removeVolleyball($gameId, $callbackQuery->from->id);
+        $this->logUserAction($callbackQuery->from, 'remove_volleyball', "gameId=$gameId");
 
         $callbackAnswer = match ($result) {
             EquipmentResult::Removed => CallbackAnswer::VOLLEYBALL_REMOVED,
