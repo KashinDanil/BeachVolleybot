@@ -86,7 +86,6 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $this->assertReactedWithConfused();
         $this->assertMessageNotEdited();
     }
 
@@ -96,7 +95,6 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $this->assertReactedWithConfused();
         $this->assertMessageNotEdited();
     }
 
@@ -123,7 +121,6 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process(TelegramUpdate::fromArray($payload));
 
-        $this->assertReactedWithConfused();
         $this->assertMessageNotEdited();
     }
 

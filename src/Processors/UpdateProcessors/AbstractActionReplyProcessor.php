@@ -18,11 +18,6 @@ abstract class AbstractActionReplyProcessor extends AbstractActionProcessor
         $this->react($message, '👍');
     }
 
-    protected function reactConfused(TelegramMessage $message): void
-    {
-        $this->react($message, '👎');
-    }
-
     private function react(TelegramMessage $message, string $emoji): void
     {
         $this->telegramSender->setMessageReaction($message->chat->id, $message->messageId, $emoji);

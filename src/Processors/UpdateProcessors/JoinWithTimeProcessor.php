@@ -22,16 +22,12 @@ class JoinWithTimeProcessor extends AbstractActionReplyProcessor
 
         $time = TimeExtractor::extract($message->text ?? '');
         if (null === $time) {
-            $this->reactConfused($message);
-
             return;
         }
 
         $inlineQueryId = CallbackData::extractInlineQueryId($message->replyToMessage);
 
         if (null === $inlineQueryId) {
-            $this->reactConfused($message);
-
             return;
         }
 
@@ -39,8 +35,6 @@ class JoinWithTimeProcessor extends AbstractActionReplyProcessor
         $gameLookup = $gameManager->resolveGameByInlineQueryId($inlineQueryId);
 
         if (null === $gameLookup) {
-            $this->reactConfused($message);
-
             return;
         }
 
