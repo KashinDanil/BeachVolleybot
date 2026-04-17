@@ -39,6 +39,11 @@ readonly class TelegramMessage implements JsonSerializable
         return $this->viaBot?->isThisBot() ?? false;
     }
 
+    public function hasInlineKeyboard(): bool
+    {
+        return null !== $this->replyMarkup;
+    }
+
     public function hasReplyToMessage(): bool
     {
         return null !== $this->replyToMessage;

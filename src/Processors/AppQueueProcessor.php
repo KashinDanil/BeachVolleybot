@@ -93,7 +93,7 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             return $this->resolvePrivateMessageProcessor($update, $telegramSender);
         }
 
-        if ($update->message->isViaThisBot()) {
+        if ($update->message->isViaThisBot() && $update->message->hasInlineKeyboard()) {
             return new PinMessageProcessor($telegramSender);
         }
 
