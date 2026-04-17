@@ -131,4 +131,31 @@ readonly class TelegramMessageSender
             // Message not found or reaction not supported
         }
     }
+
+    public function pinChatMessage(int $chatId, int $messageId): bool
+    {
+        try {
+            $this->bot->pinChatMessage($chatId, $messageId, true);
+
+            return true;
+        } catch (HttpException $exception) {
+            Logger::logApp('pinChatMessage failed: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+
+    public function unpinChatMessage(int $chatId, int $messageId): bool
+    {
+        try {
+            $this->bot->unpinChatMessage($chatId, $messageId);
+
+            return true;
+        } catch (HttpException $exception) {
+            Logger::logApp('unpinChatMessage failed: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+
 }

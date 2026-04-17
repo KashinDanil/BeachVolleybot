@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Models;
 
-use BeachVolleybot\Common\TimeExtractor;
+use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use RuntimeException;

@@ -2,13 +2,18 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Common;
+namespace BeachVolleybot\Common\Extractors;
 
-final class TimeExtractor
+final class TimeExtractor implements ExtractorInterface
 {
-    public const string PATTERN = '/\b(\d{1,2}):(\d{2})\b/';
+    private const string PATTERN = '/\b(\d{1,2}):(\d{2})\b/';
 
     private const string NORMALIZED_FORMAT = '%02d:%02d';
+
+    public static function pattern(): string
+    {
+        return self::PATTERN;
+    }
 
     public static function extract(string $text): ?string
     {

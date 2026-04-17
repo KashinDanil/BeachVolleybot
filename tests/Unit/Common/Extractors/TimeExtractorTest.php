@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Tests\Unit\Common;
+namespace BeachVolleybot\Tests\Unit\Common\Extractors;
 
-use BeachVolleybot\Common\TimeExtractor;
+use BeachVolleybot\Common\Extractors\TimeExtractor;
 use PHPUnit\Framework\TestCase;
 
 final class TimeExtractorTest extends TestCase

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Tests\Unit\Common;
+namespace BeachVolleybot\Tests\Unit\Common\Extractors;
 
-use BeachVolleybot\Common\DayOfWeekExtractor;
+use BeachVolleybot\Common\Extractors\DayOfWeekExtractor;
 use PHPUnit\Framework\TestCase;
 
 final class DayOfWeekExtractorTest extends TestCase
@@ -72,4 +72,5 @@ final class DayOfWeekExtractorTest extends TestCase
     {
         $this->assertSame('Sábado', DayOfWeekExtractor::extract('Sábado Juego'));
     }
+
 }

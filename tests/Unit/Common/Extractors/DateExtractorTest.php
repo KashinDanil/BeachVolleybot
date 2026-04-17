@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Tests\Unit\Common;
+namespace BeachVolleybot\Tests\Unit\Common\Extractors;
 
-use BeachVolleybot\Common\DateExtractor;
+use BeachVolleybot\Common\Extractors\DateExtractor;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class DateExtractorTest extends TestCase
@@ -127,5 +128,98 @@ final class DateExtractorTest extends TestCase
     public function testReturnsNullForEmptyString(): void
     {
         $this->assertNull(DateExtractor::extract(''));
+    }
+
+    // --- resolveDate() ---
+
+    public function testResolvesNumericDateWithFullYear(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertSame('2026-04-12', DateExtractor::resolveDate('Game 12.04.2026 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolvesNumericDateWithShortYear(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertSame('2026-04-12', DateExtractor::resolveDate('Game 12.04.26 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolvesNumericDateWithoutYear(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertSame('2026-04-12', DateExtractor::resolveDate('Game 12.04 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolvesEnglishTextDate(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertSame('2026-04-12', DateExtractor::resolveDate('Game 12 April 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolvesEnglishMonthDayOrder(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertSame('2026-04-12', DateExtractor::resolveDate('Game April 12 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolvesEnglishOrdinal(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertSame('2026-04-05', DateExtractor::resolveDate('Game April 5th 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolvesEnglishOrdinalWithOf(): void
+    {
+        $now = new DateTimeImmutable('2026-02-01');
+
+        $this->assertSame('2026-03-01', DateExtractor::resolveDate('Game 1st of March 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolvesRussianGenitiveMonth(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertSame('2026-04-12', DateExtractor::resolveDate('Игра 12 апреля 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolvesRussianNominativeMonth(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertSame('2026-04-12', DateExtractor::resolveDate('Игра 12 апрель 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolvesSpanishWithDe(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertSame('2026-04-12', DateExtractor::resolveDate('Juego 12 de abril 18:00', $now)?->format('Y-m-d'));
+    }
+
+    public function testResolveDateReturnsNullWhenNoDate(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertNull(DateExtractor::resolveDate('Friday Game 18:00', $now));
+    }
+
+    public function testResolveDateReturnsNullForEmptyString(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertNull(DateExtractor::resolveDate('', $now));
+    }
+
+    public function testResolveDateReturnsNullForInvalidDate(): void
+    {
+        $now = new DateTimeImmutable('2026-03-01');
+
+        $this->assertNull(DateExtractor::resolveDate('Game 30.02 18:00', $now));
     }
 }

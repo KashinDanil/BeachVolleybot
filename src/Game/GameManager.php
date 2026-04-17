@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game;
 
-use BeachVolleybot\Common\TimeExtractor;
+use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GamePlayerRepository;
 use BeachVolleybot\Database\GameRepository;

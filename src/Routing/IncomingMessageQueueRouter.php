@@ -18,6 +18,7 @@ readonly class IncomingMessageQueueRouter
 {
     private const string GAME_QUEUE_PREFIX = 'game_';
     private const string DM_QUEUE_PREFIX = 'dm_';
+    private const string PIN_QUEUE_PREFIX = 'pin_';
 
     /** @var class-string<QueueInterface> */
     private string $queueClass;
@@ -81,7 +82,11 @@ readonly class IncomingMessageQueueRouter
             return $this->skip('Not a group message');
         }
 
-        if (BOT_USERNAME !== $message->replyToMessage?->viaBot?->username) {
+        if ($message->isViaThisBot()) {
+            return $this->pinQueueName($message->chat->id);
+        }
+
+        if (!$message->replyToMessage?->isViaThisBot()) {
             return $this->skip('Not a reply to a message from this bot');
         }
 
@@ -117,6 +122,11 @@ readonly class IncomingMessageQueueRouter
     private function dmQueueName(int $userId): string
     {
         return self::DM_QUEUE_PREFIX . $userId;
+    }
+
+    private function pinQueueName(int $chatId): string
+    {
+        return self::PIN_QUEUE_PREFIX . $chatId;
     }
 
     private function sanitizeForFilesystem(string $value): string

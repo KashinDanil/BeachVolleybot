@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\Messages\Incoming;
 
-readonly class TelegramMessage
+use JsonSerializable;
+
+readonly class TelegramMessage implements JsonSerializable
 {
     public function __construct(
         public int $messageId,
@@ -17,6 +19,8 @@ readonly class TelegramMessage
         public ?TelegramInlineKeyboardMarkup $replyMarkup = null,
         public ?self $replyToMessage = null,
         public ?TelegramUser $viaBot = null,
+        public ?self $pinnedMessage = null,
+        private array $rawPayload = [],
     ) {
     }
 
@@ -30,9 +34,29 @@ readonly class TelegramMessage
         return null !== $this->location;
     }
 
+    public function isViaThisBot(): bool
+    {
+        return $this->viaBot?->isThisBot() ?? false;
+    }
+
     public function hasReplyToMessage(): bool
     {
         return null !== $this->replyToMessage;
+    }
+
+    public function isPinMessage(): bool
+    {
+        return null !== $this->pinnedMessage;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return $this->rawPayload;
+    }
+
+    public function toJson(): string
+    {
+        return json_encode($this, JSON_THROW_ON_ERROR);
     }
 
     public static function fromArray(array $data): self
@@ -48,6 +72,7 @@ readonly class TelegramMessage
             replyMarkup: isset($data['reply_markup']) ? TelegramInlineKeyboardMarkup::fromArray($data['reply_markup']) : null,
             replyToMessage: isset($data['reply_to_message']) ? self::fromArray($data['reply_to_message']) : null,
             viaBot: isset($data['via_bot']) ? TelegramUser::fromArray($data['via_bot']) : null,
+            pinnedMessage: isset($data['pinned_message']) ? self::fromArray($data['pinned_message']) : null,
         );
     }
 }

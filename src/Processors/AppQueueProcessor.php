@@ -13,6 +13,7 @@ use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -90,6 +91,10 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
     {
         if ($update->message->chat->isPrivate()) {
             return $this->resolvePrivateMessageProcessor($update, $telegramSender);
+        }
+
+        if ($update->message->isViaThisBot()) {
+            return new PinMessageProcessor($telegramSender);
         }
 
         if ($update->message->hasLocation()) {

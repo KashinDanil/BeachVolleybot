@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\AddOns;
 
-use BeachVolleybot\Common\DateExtractor;
-use BeachVolleybot\Common\DayOfWeekExtractor;
-use BeachVolleybot\Common\TimeExtractor;
+use BeachVolleybot\Common\Extractors\DateExtractor;
+use BeachVolleybot\Common\Extractors\DayOfWeekExtractor;
+use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
@@ -25,9 +25,9 @@ final class StylizeTitleAddOn implements GameAddOnInterface
         $title = $game->getTitle();
 
         $segments = [
-            ...self::findAll(TimeExtractor::PATTERN, $title, $formatter->underline(...)),
-            ...self::findAll(DayOfWeekExtractor::PATTERN, $title, $formatter->italic(...)),
-            ...self::findAll(DateExtractor::PATTERN, $title, $formatter->italic(...)),
+            ...self::findAll(TimeExtractor::pattern(), $title, $formatter->underline(...)),
+            ...self::findAll(DayOfWeekExtractor::pattern(), $title, $formatter->italic(...)),
+            ...self::findAll(DateExtractor::pattern(), $title, $formatter->italic(...)),
         ];
 
         usort($segments, static fn(array $a, array $b) => $a[0] <=> $b[0]);

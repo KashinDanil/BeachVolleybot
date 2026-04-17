@@ -140,6 +140,32 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->assertEnqueuedOnce('dm_123');
     }
 
+    public function testViaBotPinMessageRoutesToPinQueue(): void
+    {
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
+            'message' => [
+                'message_id' => 55,
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
+                'chat' => ['id' => -5127803306, 'type' => 'group'],
+                'date' => 1700000000,
+                'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                'pinned_message' => [
+                    'message_id' => 50,
+                    'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true],
+                    'chat' => ['id' => -5127803306, 'type' => 'group'],
+                    'date' => 1700000000,
+                    'text' => 'Beach 12.04 18:00',
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                ],
+            ],
+        ]);
+
+        $this->router->route($update);
+
+        $this->assertEnqueuedOnce('pin_-5127803306');
+    }
+
     public function testNonReplyGroupMessageIsSkipped(): void
     {
         $update = TelegramUpdate::fromArray([

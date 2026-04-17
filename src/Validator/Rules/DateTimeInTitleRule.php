@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Validator\Rules;
 
-use BeachVolleybot\Common\DateExtractor;
-use BeachVolleybot\Common\DayOfWeekExtractor;
-use BeachVolleybot\Common\TimeExtractor;
+use BeachVolleybot\Common\Extractors\TimeExtractor;
+use BeachVolleybot\Common\GameDateResolver;
 use BeachVolleybot\Errors\ValidationError;
 
 class DateTimeInTitleRule implements RuleInterface
@@ -26,8 +25,7 @@ class DateTimeInTitleRule implements RuleInterface
         $rawTime = TimeExtractor::extractRaw($this->title);
         $hasTime = null !== $rawTime;
         $titleWithoutTime = null !== $rawTime ? str_replace($rawTime, '', $this->title) : $this->title;
-        $hasDate = null !== DateExtractor::extract($titleWithoutTime)
-            || null !== DayOfWeekExtractor::extract($titleWithoutTime);
+        $hasDate = null !== GameDateResolver::extractRaw($titleWithoutTime);
 
         if (!$hasDate && !$hasTime) {
             $this->errorMessage = self::ERROR_DATE_AND_TIME_MISSING;

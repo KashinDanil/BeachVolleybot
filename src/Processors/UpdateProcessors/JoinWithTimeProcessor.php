@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
-use BeachVolleybot\Common\TimeExtractor;
+use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;

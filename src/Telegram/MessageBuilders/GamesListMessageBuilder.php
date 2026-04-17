@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
-use BeachVolleybot\Common\DateExtractor;
-use BeachVolleybot\Common\DayOfWeekExtractor;
-use BeachVolleybot\Common\TimeExtractor;
+use BeachVolleybot\Common\Extractors\TimeExtractor;
+use BeachVolleybot\Common\GameDateResolver;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
@@ -65,7 +64,7 @@ final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
     {
         $parts = ["#$gameId"];
 
-        $date = DateExtractor::extract($title) ?? DayOfWeekExtractor::extract($title);
+        $date = GameDateResolver::extractRaw($title);
 
         if (null !== $date) {
             $parts[] = $date;

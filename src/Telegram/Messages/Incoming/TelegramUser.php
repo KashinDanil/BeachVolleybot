@@ -17,6 +17,11 @@ readonly class TelegramUser
     ) {
     }
 
+    public function isThisBot(): bool
+    {
+        return BOT_USERNAME === $this->username;
+    }
+
     public function isAdmin(): bool
     {
         return in_array($this->id, ADMINS_TELEGRAM_USER_IDS, true);
