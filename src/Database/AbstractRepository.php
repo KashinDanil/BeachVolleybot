@@ -17,12 +17,15 @@ abstract readonly class AbstractRepository
 
     abstract protected function primaryKeyColumn(): string;
 
-    public function findById(int $id): ?array
+    public function findById(int|string $id): ?array
     {
         return $this->db->get($this->table(), '*', [$this->primaryKeyColumn() => $id]) ?: null;
     }
 
-    /** @return list<array<string, mixed>> */
+    /**
+     * @param list<int|string> $ids
+     * @return list<array<string, mixed>>
+     */
     public function findByIds(array $ids): array
     {
         if (empty($ids)) {
@@ -32,7 +35,7 @@ abstract readonly class AbstractRepository
         return $this->db->select($this->table(), '*', [$this->primaryKeyColumn() => $ids]);
     }
 
-    public function delete(int $id): bool
+    public function delete(int|string $id): bool
     {
         $result = $this->db->delete($this->table(), [$this->primaryKeyColumn() => $id]);
 
