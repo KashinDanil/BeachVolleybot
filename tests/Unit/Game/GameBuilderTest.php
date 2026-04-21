@@ -212,12 +212,14 @@ final class GameBuilderTest extends TestCase
         string $inlineQueryId = 'query_1',
         string $inlineMessageId = 'msg_1',
         string $title = 'Beach Game 18:00',
+        string $createdAt = '2026-01-01 12:00:00',
     ): array {
         return [
             'game_id' => $gameId,
             'inline_query_id' => $inlineQueryId,
             'inline_message_id' => $inlineMessageId,
             'title' => $title,
+            'created_at' => $createdAt,
         ];
     }
 

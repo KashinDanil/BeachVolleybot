@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Game\AddOns;
 
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Tests\Unit\Game\AddOns\Stub\TitlePrefixAddOn;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class GameAddOnTest extends TestCase
@@ -81,6 +82,7 @@ final class GameAddOnTest extends TestCase
             inlineMessageId: 'msg_1',
             title: $title,
             players: [],
+            createdAt: new DateTimeImmutable(),
         );
     }
 }

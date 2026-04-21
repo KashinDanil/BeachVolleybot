@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Unit\Game\AddOns;
 use BeachVolleybot\Game\AddOns\MergeConsecutiveSlotsAddOn;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\Player;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class MergeConsecutiveSlotsAddOnTest extends TestCase
@@ -171,6 +172,7 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
             inlineMessageId: 'msg_1',
             title: $title,
             players: $players,
+            createdAt: new DateTimeImmutable(),
         );
     }
 

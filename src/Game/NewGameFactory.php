@@ -9,6 +9,7 @@ use BeachVolleybot\Game\AddOns\GameAddOnApplier;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\Player;
+use DateTimeImmutable;
 
 final class NewGameFactory
 {
@@ -32,6 +33,7 @@ final class NewGameFactory
             inlineMessageId: $data->inlineMessageId,
             title: $data->title,
             players: [$player],
+            createdAt: new DateTimeImmutable(),
         );
 
         return GameAddOnApplier::apply($game);

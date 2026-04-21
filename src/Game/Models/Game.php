@@ -7,6 +7,7 @@ namespace BeachVolleybot\Game\Models;
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use DateTimeImmutable;
 use RuntimeException;
 
 final class Game implements GameInterface
@@ -20,6 +21,7 @@ final class Game implements GameInterface
         private readonly string $inlineMessageId,
         public string $title,
         public array $players,
+        private readonly DateTimeImmutable $createdAt,
         public ?string $location = null,
         public GameMessageBuilder $telegramMessageBuilder = new GameMessageBuilder(),
     ) {
@@ -53,6 +55,11 @@ final class Game implements GameInterface
     public function getLocation(): ?string
     {
         return $this->location;
+    }
+
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
     }
 
     public function getTime(): string

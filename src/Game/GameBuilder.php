@@ -9,6 +9,7 @@ use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\Player;
+use DateTimeImmutable;
 
 readonly class GameBuilder
 {
@@ -38,6 +39,7 @@ readonly class GameBuilder
             inlineMessageId: (string)$this->gameRow['inline_message_id'],
             title: $title,
             players: $this->buildPlayersFromRows(),
+            createdAt: new DateTimeImmutable((string)$this->gameRow['created_at']),
             location: $this->gameRow['location'] ?? null,
         );
 
