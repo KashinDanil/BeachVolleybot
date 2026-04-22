@@ -78,6 +78,7 @@ readonly class TelegramMessage implements JsonSerializable
             replyToMessage: isset($data['reply_to_message']) ? self::fromArray($data['reply_to_message']) : null,
             viaBot: isset($data['via_bot']) ? TelegramUser::fromArray($data['via_bot']) : null,
             pinnedMessage: isset($data['pinned_message']) ? self::fromArray($data['pinned_message']) : null,
+            rawPayload: $data,
         );
     }
 }
