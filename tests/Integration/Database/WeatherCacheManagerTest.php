@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Weather\LocationCoordinates;
-use BeachVolleybot\Weather\WeatherCacheManager;
-use BeachVolleybot\Weather\WeatherHour;
-use BeachVolleybot\Weather\WeatherSnapshot;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
+use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
+use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 use DateTimeZone;
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\Stub;
 
-use BeachVolleybot\Weather\LocationCoordinates;
-use BeachVolleybot\Weather\WeatherApiClientInterface;
-use BeachVolleybot\Weather\WeatherHour;
-use BeachVolleybot\Weather\WeatherSnapshot;
+use BeachVolleybot\Weather\Forecast\Client\WeatherApiClientInterface;
+use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
+use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 use RuntimeException;
 

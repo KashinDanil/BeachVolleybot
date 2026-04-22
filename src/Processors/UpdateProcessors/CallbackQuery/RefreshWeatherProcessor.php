@@ -9,8 +9,8 @@ use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\Weather\GameWeatherLookup;
-use BeachVolleybot\Weather\WeatherEnqueuer;
+use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
+use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
 final class RefreshWeatherProcessor extends AbstractCallbackProcessor
 {

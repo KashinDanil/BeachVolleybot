@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Weather;
+namespace BeachVolleybot\Weather\Location;
 
 use BeachVolleybot\Common\Extractors\VenueExtractor;
 use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Weather\Location\Models\DefaultLocationCoordinates;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
+use BeachVolleybot\Weather\Location\Resolvers\LocationResolverInterface;
 
 final readonly class GameLocationResolver
 {

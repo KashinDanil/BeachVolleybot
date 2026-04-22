@@ -10,12 +10,12 @@ use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
-use BeachVolleybot\Weather\GameWeatherLookup;
-use BeachVolleybot\Weather\LocationCoordinates;
-use BeachVolleybot\Weather\WeatherCacheManager;
-use BeachVolleybot\Weather\WeatherFormatter;
-use BeachVolleybot\Weather\WeatherHour;
-use BeachVolleybot\Weather\WeatherSnapshot;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
+use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
+use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
+use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
+use BeachVolleybot\Weather\Forecast\WeatherFormatter;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 use DateTimeZone;
 

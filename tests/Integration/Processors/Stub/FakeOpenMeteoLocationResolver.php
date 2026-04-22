@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\Stub;
 
-use BeachVolleybot\Weather\LocationCacheManager;
-use BeachVolleybot\Weather\LocationCoordinates;
-use BeachVolleybot\Weather\LocationResolverInterface;
+use BeachVolleybot\Weather\Location\Cache\LocationCacheManager;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
+use BeachVolleybot\Weather\Location\Resolvers\LocationResolverInterface;
 
 /**
  * Test double for OpenMeteoLocationResolver: mirrors cache-first + write-back

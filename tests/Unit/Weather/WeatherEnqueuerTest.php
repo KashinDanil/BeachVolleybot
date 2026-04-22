@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Weather;
 
-use BeachVolleybot\Weather\WeatherEnqueuer;
-use BeachVolleybot\Weather\WeatherQueuePayload;
+use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
+use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use DanilKashin\FileQueue\Queue\FileQueue;
 use PHPUnit\Framework\TestCase;
 

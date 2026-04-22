@@ -10,8 +10,8 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
-use BeachVolleybot\Weather\GameWeatherLookup;
-use BeachVolleybot\Weather\WeatherFormatter;
+use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
+use BeachVolleybot\Weather\Forecast\WeatherFormatter;
 
 final class WeatherAddOn implements GameAddOnInterface
 {

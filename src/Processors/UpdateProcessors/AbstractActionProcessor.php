@@ -10,7 +10,7 @@ use BeachVolleybot\Telegram\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\Weather\WeatherEnqueuer;
+use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
 abstract class AbstractActionProcessor
 {

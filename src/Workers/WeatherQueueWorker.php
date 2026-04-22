@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Workers;
 
 use BeachVolleybot\Processors\WeatherQueueProcessor;
-use BeachVolleybot\Weather\WeatherEnqueuer;
+use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 use DanilKashin\FileQueue\Workers\FileQueueWorker as VendorFileQueueWorker;
 

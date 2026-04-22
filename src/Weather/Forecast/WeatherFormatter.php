@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Weather;
+namespace BeachVolleybot\Weather\Forecast;
 
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
+use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
+use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 
 final readonly class WeatherFormatter

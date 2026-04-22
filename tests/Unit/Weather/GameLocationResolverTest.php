@@ -6,9 +6,9 @@ namespace BeachVolleybot\Tests\Unit\Weather;
 
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Tests\Stub\FakeLocationResolver;
-use BeachVolleybot\Weather\DefaultLocationCoordinates;
-use BeachVolleybot\Weather\GameLocationResolver;
-use BeachVolleybot\Weather\LocationCoordinates;
+use BeachVolleybot\Weather\Location\GameLocationResolver;
+use BeachVolleybot\Weather\Location\Models\DefaultLocationCoordinates;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 

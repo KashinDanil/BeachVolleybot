@@ -9,11 +9,11 @@ use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Telegram\InlineMessageRefresher;
 use BeachVolleybot\Telegram\RateLimitedBotApi;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\Weather\GameLocationResolver;
-use BeachVolleybot\Weather\OpenMeteoLocationResolver;
-use BeachVolleybot\Weather\WeatherCacheUpdater;
-use BeachVolleybot\Weather\WeatherQueuePayload;
-use BeachVolleybot\Weather\WeatherWindowResolver;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
+use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
+use BeachVolleybot\Weather\Location\GameLocationResolver;
+use BeachVolleybot\Weather\Location\Resolvers\OpenMeteoLocationResolver;
+use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 
 final readonly class WeatherQueueProcessor implements QueueProcessorInterface

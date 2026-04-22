@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Weather;
 
-use BeachVolleybot\Weather\WeatherQueuePayload;
+use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use PHPUnit\Framework\TestCase;
 
 final class WeatherQueuePayloadTest extends TestCase

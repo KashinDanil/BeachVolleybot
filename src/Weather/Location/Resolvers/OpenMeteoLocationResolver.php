@@ -2,7 +2,11 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Weather;
+namespace BeachVolleybot\Weather\Location\Resolvers;
+
+use BeachVolleybot\Weather\AbstractOpenMeteoClient;
+use BeachVolleybot\Weather\Location\Cache\LocationCacheManager;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 
 final readonly class OpenMeteoLocationResolver extends AbstractOpenMeteoClient implements LocationResolverInterface
 {

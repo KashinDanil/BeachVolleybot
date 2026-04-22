@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Weather;
+namespace BeachVolleybot\Weather\Forecast;
 
 use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Weather\Forecast\Models\WeatherWindow;
 use DateTimeImmutable;
 
 final readonly class WeatherWindowResolver

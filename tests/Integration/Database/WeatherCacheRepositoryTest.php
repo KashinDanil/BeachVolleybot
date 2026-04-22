@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Database;
 
-use BeachVolleybot\Weather\WeatherCacheRepository;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheRepository;
 
 final class WeatherCacheRepositoryTest extends DatabaseTestCase
 {

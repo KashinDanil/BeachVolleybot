@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Weather;
+namespace BeachVolleybot\Weather\Queue;
 
 use DanilKashin\FileQueue\Queue\QueueInterface;
 use DanilKashin\FileQueue\Queue\QueueMessage;

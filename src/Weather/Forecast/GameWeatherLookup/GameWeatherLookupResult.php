@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Weather;
+namespace BeachVolleybot\Weather\Forecast\GameWeatherLookup;
 
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheRow;
 use DateTimeImmutable;
 
 final readonly class GameWeatherLookupResult

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Weather\LocationCacheManager;
-use BeachVolleybot\Weather\LocationCoordinates;
+use BeachVolleybot\Weather\Location\Cache\LocationCacheManager;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 
 final class LocationCacheTest extends DatabaseTestCase
 {

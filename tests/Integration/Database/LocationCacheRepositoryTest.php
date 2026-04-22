@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Database;
 
-use BeachVolleybot\Weather\LocationCacheRepository;
+use BeachVolleybot\Weather\Location\Cache\LocationCacheRepository;
 
 final class LocationCacheRepositoryTest extends DatabaseTestCase
 {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Stub;
 
-use BeachVolleybot\Weather\LocationCoordinates;
-use BeachVolleybot\Weather\LocationResolverInterface;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
+use BeachVolleybot\Weather\Location\Resolvers\LocationResolverInterface;
 
 final class FakeLocationResolver implements LocationResolverInterface
 {

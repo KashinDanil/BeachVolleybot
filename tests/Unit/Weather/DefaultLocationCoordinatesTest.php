@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Weather;
 
-use BeachVolleybot\Weather\DefaultLocationCoordinates;
-use BeachVolleybot\Weather\LocationCoordinates;
+use BeachVolleybot\Weather\Location\Models\DefaultLocationCoordinates;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use PHPUnit\Framework\TestCase;
 
 final class DefaultLocationCoordinatesTest extends TestCase

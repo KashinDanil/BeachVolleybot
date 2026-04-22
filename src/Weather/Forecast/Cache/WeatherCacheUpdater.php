@@ -2,9 +2,14 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Weather;
+namespace BeachVolleybot\Weather\Forecast\Cache;
 
 use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Weather\Forecast\Client\OpenMeteoWeatherClient;
+use BeachVolleybot\Weather\Forecast\Client\WeatherApiClientInterface;
+use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
+use BeachVolleybot\Weather\Forecast\Models\WeatherWindow;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 use DateTimeZone;
 use Throwable;

@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Weather;
+namespace BeachVolleybot\Weather\Forecast\Client;
 
+use BeachVolleybot\Weather\AbstractOpenMeteoClient;
+use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
+use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 use DateTimeZone;
 

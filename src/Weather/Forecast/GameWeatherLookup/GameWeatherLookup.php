@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Weather;
+namespace BeachVolleybot\Weather\Forecast\GameWeatherLookup;
 
 use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
+use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
+use BeachVolleybot\Weather\Location\GameLocationResolver;
+use BeachVolleybot\Weather\Location\Resolvers\CachedLocationResolver;
 use DateTimeZone;
 
 final readonly class GameWeatherLookup

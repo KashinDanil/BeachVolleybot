@@ -11,8 +11,8 @@ use BeachVolleybot\Database\PlayerRepository;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
-use BeachVolleybot\Weather\WeatherEnqueuer;
-use BeachVolleybot\Weather\WeatherQueuePayload;
+use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
+use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use DanilKashin\FileQueue\Queue\FileQueue;
 
 final class CreateGameProcessorTest extends ProcessorTestCase

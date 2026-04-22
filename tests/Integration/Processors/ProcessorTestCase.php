@@ -8,7 +8,7 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
-use BeachVolleybot\Weather\WeatherEnqueuer;
+use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
 abstract class ProcessorTestCase extends DatabaseTestCase
 {

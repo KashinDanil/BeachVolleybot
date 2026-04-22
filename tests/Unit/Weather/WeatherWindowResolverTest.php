@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Weather;
 
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Weather\WeatherWindowResolver;
+use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 

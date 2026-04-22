@@ -7,7 +7,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\Weather\WeatherEnqueuer;
+use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
 class CreateGameProcessor extends AbstractActionProcessor
 {

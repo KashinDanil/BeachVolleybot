@@ -7,12 +7,12 @@ namespace BeachVolleybot\Tests\Integration\Weather;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Integration\Processors\Stub\FakeWeatherApiClient;
-use BeachVolleybot\Weather\LocationCoordinates;
-use BeachVolleybot\Weather\WeatherCacheManager;
-use BeachVolleybot\Weather\WeatherCacheUpdater;
-use BeachVolleybot\Weather\WeatherHour;
-use BeachVolleybot\Weather\WeatherSnapshot;
-use BeachVolleybot\Weather\WeatherWindow;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
+use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
+use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
+use BeachVolleybot\Weather\Forecast\Models\WeatherWindow;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 use DateTimeZone;
 
