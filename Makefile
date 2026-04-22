@@ -1,18 +1,24 @@
 -include config/paths.env
 
-WORKER_CMD = $(CURDIR)/bin/run_worker 'BeachVolleybot\Workers\FileQueueWorker'
+APP_WORKER_CMD = $(CURDIR)/bin/run_worker 'BeachVolleybot\Workers\FileQueueWorker'
+WEATHER_WORKER_CMD = $(CURDIR)/bin/run_worker 'BeachVolleybot\Workers\WeatherQueueWorker'
 
-.PHONY: queue-worker-run queue-worker-start queue-worker-stop queue-worker-restart
+.PHONY: app-worker-run weather-worker-run workers-start workers-stop workers-restart
 
-queue-worker-run:
-	$(WORKER_CMD)
+app-worker-run:
+	$(APP_WORKER_CMD)
 
-queue-worker-start:
-	$(WORKER_CMD) 1>/dev/null 2>>$(CURDIR)/config/$(LOGS_DIR)/queue-worker-errors.log &
+weather-worker-run:
+	$(WEATHER_WORKER_CMD)
 
-queue-worker-stop:
+workers-start:
+	$(APP_WORKER_CMD) 1>/dev/null 2>>$(CURDIR)/config/$(LOGS_DIR)/app-worker-errors.log &
+	$(WEATHER_WORKER_CMD) 1>/dev/null 2>>$(CURDIR)/config/$(LOGS_DIR)/weather-worker-errors.log &
+
+workers-stop:
 	pkill -f '$(CURDIR)/bin/run_worker.*FileQueue[W]orker' || true
+	pkill -f '$(CURDIR)/bin/run_worker.*WeatherQueue[W]orker' || true
 
-queue-worker-restart:
-	$(MAKE) queue-worker-stop
-	$(MAKE) queue-worker-start
+workers-restart:
+	$(MAKE) workers-stop
+	$(MAKE) workers-start

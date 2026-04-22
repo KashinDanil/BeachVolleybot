@@ -10,14 +10,14 @@ use BeachVolleybot\Game\Models\GameInterface;
 final readonly class GameLocationResolver
 {
     public function __construct(
-        private GeocodingCacheManager $geocodingCache,
+        private GeocodingClientInterface $geocodingClient,
     ) {
     }
 
     public function resolve(GameInterface $game): LocationCoordinates
     {
         return $this->explicitCoordinates($game)
-            ?? $this->cachedVenueCoordinates($game)
+            ?? $this->venueCoordinates($game)
             ?? new DefaultLocationCoordinates();
     }
 
@@ -26,7 +26,7 @@ final readonly class GameLocationResolver
         return LocationCoordinates::tryParse($game->getLocation());
     }
 
-    private function cachedVenueCoordinates(GameInterface $game): ?LocationCoordinates
+    private function venueCoordinates(GameInterface $game): ?LocationCoordinates
     {
         $query = VenueExtractor::extract($game->getTitle());
 
@@ -34,15 +34,6 @@ final readonly class GameLocationResolver
             return null;
         }
 
-        return $this->geocodingCache->find($query)?->coordinates;
-    }
-
-    public function resolveVenueQuery(GameInterface $game): ?string
-    {
-        if (null !== $this->explicitCoordinates($game)) {
-            return null;
-        }
-
-        return VenueExtractor::extract($game->getTitle());
+        return $this->geocodingClient->resolve($query);
     }
 }

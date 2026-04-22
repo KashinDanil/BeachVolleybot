@@ -26,7 +26,7 @@ final class WeatherWindowResolverTest extends TestCase
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowFor($game);
+        $window = $this->resolver->windowForGame($game);
 
         $this->assertSame($kickoffDay->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
         $this->assertCount(5, $window->hours);
@@ -45,7 +45,7 @@ final class WeatherWindowResolverTest extends TestCase
         $expectedKickoffDay = $creationDate->modify('+1 day');
         $game = $this->makeGame('Bogatell Saturday 18:30', createdAt: $creationDate);
 
-        $window = $this->resolver->windowFor($game);
+        $window = $this->resolver->windowForGame($game);
 
         $this->assertSame($expectedKickoffDay->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
     }
@@ -55,7 +55,7 @@ final class WeatherWindowResolverTest extends TestCase
         $creationDate = new DateTimeImmutable()->setTime(10, 0);
         $game = $this->makeGame('Bogatell 18:30', createdAt: $creationDate);
 
-        $window = $this->resolver->windowFor($game);
+        $window = $this->resolver->windowForGame($game);
 
         $this->assertSame($creationDate->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
     }
@@ -65,7 +65,7 @@ final class WeatherWindowResolverTest extends TestCase
         // Fixed past date — reliably in the past regardless of when tests run.
         $game = $this->makeGame('Bogatell 10.04.2020 12:00', createdAt: new DateTimeImmutable('2020-04-01'));
 
-        $window = $this->resolver->windowFor($game);
+        $window = $this->resolver->windowForGame($game);
 
         $this->assertSame('2020-04-10 12:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
         $this->assertSame([], $window->hours);
@@ -79,7 +79,7 @@ final class WeatherWindowResolverTest extends TestCase
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowFor($game);
+        $window = $this->resolver->windowForGame($game);
 
         $this->assertSame([], $window->hours);
     }
@@ -93,7 +93,7 @@ final class WeatherWindowResolverTest extends TestCase
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowFor($game);
+        $window = $this->resolver->windowForGame($game);
 
         $this->assertCount(5, $window->hours);
     }
@@ -106,7 +106,7 @@ final class WeatherWindowResolverTest extends TestCase
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowFor($game);
+        $window = $this->resolver->windowForGame($game);
 
         $this->assertSame($kickoffDay->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
     }
@@ -115,7 +115,7 @@ final class WeatherWindowResolverTest extends TestCase
     {
         $game = $this->makeGame('Bogatell Saturday', createdAt: new DateTimeImmutable());
 
-        $window = $this->resolver->windowFor($game);
+        $window = $this->resolver->windowForGame($game);
 
         $this->assertSame([], $window->hours);
     }

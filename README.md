@@ -115,32 +115,35 @@ This checks prerequisites, installs dependencies, creates runtime directories, a
 
 Point Telegram to `public/tg-bot.php` on your server. The endpoint must be accessible over HTTPS.
 
-## Queue Worker
+## Workers
 
-The queue worker is started automatically by `install.sh`. To start it manually:
+The project runs two workers concurrently: the **app worker** (processes Telegram updates from the main queue) and the **weather worker** (fetches forecasts for games). Both are started automatically by `install.sh`.
+
+To start both in the background:
 
 ```bash
-make queue-worker-start
+make workers-start
 ```
 
-Starts the worker in the background with errors logged to `logs/queue-worker-errors.log`.
+App errors log to `logs/app-worker-errors.log`; weather errors log to `logs/weather-worker-errors.log`.
 
-To run in the foreground (stdout output):
+To restart both (stops running processes, then starts fresh ones):
 
 ```bash
-make queue-worker-run
+make workers-restart
 ```
 
-To restart the worker (stops the existing process and starts a new one):
+To stop both:
 
 ```bash
-make queue-worker-restart
+make workers-stop
 ```
 
-To stop the worker:
+To run a single worker in the foreground (stdout output, useful during development):
 
 ```bash
-make queue-worker-stop
+make app-worker-run
+make weather-worker-run
 ```
 
 ## Testing

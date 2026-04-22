@@ -14,7 +14,7 @@ final readonly class WeatherWindowResolver
     public const int HOURS_AFTER_KICKOFF   = 3;
     public const int FORECAST_HORIZON_DAYS = 7;
 
-    public function windowFor(GameInterface $game): WeatherWindow
+    public function windowForGame(GameInterface $game): WeatherWindow
     {
         $kickoffHour = $this->resolveKickoffHour($game);
 

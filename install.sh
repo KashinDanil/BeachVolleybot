@@ -63,6 +63,7 @@ create_runtime_directories() {
 
     ensure_directory "$LOGS_DIR" "Logs"
     ensure_directory "$QUEUES_DIR" "Queues"
+    ensure_directory "$QUEUES_DIR/weather" "Weather queue"
 }
 
 set_bin_permissions() {
@@ -95,11 +96,11 @@ run_tests() {
     ok "All tests passed"
 }
 
-start_queue_worker() {
-    section "Starting queue worker"
+start_workers() {
+    section "Starting workers"
 
-    make -C "$SCRIPT_DIR" queue-worker-start
-    ok "Queue worker started"
+    make -C "$SCRIPT_DIR" workers-start
+    ok "Workers started"
 }
 
 main() {
@@ -110,7 +111,7 @@ main() {
     set_bin_permissions
     run_migrations
     run_tests
-    start_queue_worker
+    start_workers
 
     section "${GREEN}Installation complete${NC}"
     echo ""
