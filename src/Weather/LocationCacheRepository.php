@@ -6,11 +6,11 @@ namespace BeachVolleybot\Weather;
 
 use BeachVolleybot\Database\AbstractRepository;
 
-final readonly class GeocodingCacheRepository extends AbstractRepository
+final readonly class LocationCacheRepository extends AbstractRepository
 {
     protected function table(): string
     {
-        return 'geocoding_cache';
+        return 'location_cache';
     }
 
     protected function primaryKeyColumn(): string

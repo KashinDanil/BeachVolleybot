@@ -35,18 +35,42 @@ abstract class AbstractMessageBuilder
         $this->overrides[$method] = $override;
     }
 
+    public function getEffective(string $method): Closure
+    {
+        if (isset($this->overrides[$method])) {
+            return $this->overrides[$method];
+        }
+
+        $default = $this->resolveDefault($method);
+        if (null !== $default) {
+            return $default;
+        }
+
+        throw new BadMethodCallException(sprintf('Method %s::%s does not exist', static::class, $method));
+    }
+
     public function __call(string $name, array $arguments): mixed
     {
         if (isset($this->overrides[$name])) {
             return ($this->overrides[$name])(...$arguments);
         }
 
-        $default = 'default' . ucfirst($name);
-        if (method_exists($this, $default)) {
-            return $this->$default(...$arguments);
+        $default = $this->resolveDefault($name);
+        if (null !== $default) {
+            return $default(...$arguments);
         }
 
         throw new BadMethodCallException(sprintf('Method %s::%s does not exist', static::class, $name));
+    }
+
+    private function resolveDefault(string $method): ?Closure
+    {
+        $default = 'default' . ucfirst($method);
+        if (!method_exists($this, $default)) {
+            return null;
+        }
+
+        return fn(...$arguments) => $this->$default(...$arguments);
     }
 
     protected function buildMessage(string $text, array $keyboard): TelegramMessage

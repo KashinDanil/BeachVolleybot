@@ -11,6 +11,9 @@ use BeachVolleybot\Database\PlayerRepository;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\Weather\WeatherEnqueuer;
+use BeachVolleybot\Weather\WeatherQueuePayload;
+use DanilKashin\FileQueue\Queue\FileQueue;
 
 final class CreateGameProcessorTest extends ProcessorTestCase
 {
@@ -64,6 +67,21 @@ final class CreateGameProcessorTest extends ProcessorTestCase
         $this->assertCount(1, $slots);
         $this->assertSame(1, (int) $slots[0]['position']);
         $this->assertSame(200, (int) $slots[0]['telegram_user_id']);
+    }
+
+    public function testEnqueuesWeatherJobAfterCreation(): void
+    {
+        $update = $this->buildUpdate('msg_1', 'query_1', 'Bogatell 18:00');
+
+        new CreateGameProcessor($this->telegramSender)->process($update);
+
+        $gameId = new GameRepository($this->db)->findGameIdByInlineMessageId('msg_1');
+        $message = new FileQueue('weather_' . $gameId, WeatherEnqueuer::QUEUE_DIR)->dequeue();
+
+        $this->assertNotNull($message);
+        $payload = WeatherQueuePayload::fromArray($message->payload);
+        $this->assertSame($gameId, $payload->gameId);
+        $this->assertFalse($payload->force);
     }
 
     private function buildUpdate(

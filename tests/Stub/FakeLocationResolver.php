@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Stub;
 
-use BeachVolleybot\Weather\GeocodingClientInterface;
 use BeachVolleybot\Weather\LocationCoordinates;
+use BeachVolleybot\Weather\LocationResolverInterface;
 
-final class FakeGeocodingClient implements GeocodingClientInterface
+final class FakeLocationResolver implements LocationResolverInterface
 {
     /** @var list<string> */
     public array $queries = [];

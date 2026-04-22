@@ -6,7 +6,7 @@ namespace BeachVolleybot\Weather;
 
 use DateTimeImmutable;
 
-final readonly class GeocodingCacheRow
+final readonly class CachedLocationRow
 {
     public function __construct(
         public ?LocationCoordinates $coordinates,

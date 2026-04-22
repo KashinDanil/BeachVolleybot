@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Weather;
 
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Tests\Stub\FakeGeocodingClient;
+use BeachVolleybot\Tests\Stub\FakeLocationResolver;
 use BeachVolleybot\Weather\DefaultLocationCoordinates;
 use BeachVolleybot\Weather\GameLocationResolver;
 use BeachVolleybot\Weather\LocationCoordinates;
@@ -16,12 +16,12 @@ final class GameLocationResolverTest extends TestCase
 {
     private GameLocationResolver $resolver;
 
-    private FakeGeocodingClient $geocodingClient;
+    private FakeLocationResolver $locationResolver;
 
     protected function setUp(): void
     {
-        $this->geocodingClient = new FakeGeocodingClient();
-        $this->resolver = new GameLocationResolver($this->geocodingClient);
+        $this->locationResolver = new FakeLocationResolver();
+        $this->resolver = new GameLocationResolver($this->locationResolver);
     }
 
     public function testExplicitCoordinatesInGameLocationWin(): void
@@ -32,12 +32,12 @@ final class GameLocationResolverTest extends TestCase
 
         $this->assertSame(40.0, $coordinates->latitude);
         $this->assertSame(-3.0, $coordinates->longitude);
-        $this->assertSame([], $this->geocodingClient->queries);
+        $this->assertSame([], $this->locationResolver->queries);
     }
 
     public function testExplicitCoordinatesWinEvenWhenGeocoderCouldResolveVenue(): void
     {
-        $this->geocodingClient->responses = ['Bogatell' => new LocationCoordinates(41.397, 2.211)];
+        $this->locationResolver->responses = ['Bogatell' => new LocationCoordinates(41.397, 2.211)];
 
         $game = $this->makeGame(title: 'Bogatell 18:30', location: '40.0,-3.0');
 
@@ -45,12 +45,12 @@ final class GameLocationResolverTest extends TestCase
 
         $this->assertSame(40.0, $coordinates->latitude);
         $this->assertSame(-3.0, $coordinates->longitude);
-        $this->assertSame([], $this->geocodingClient->queries);
+        $this->assertSame([], $this->locationResolver->queries);
     }
 
     public function testVenueCoordinatesResolvedViaGeocoderWhenLocationAbsent(): void
     {
-        $this->geocodingClient->responses = ['Bogatell' => new LocationCoordinates(41.397, 2.211)];
+        $this->locationResolver->responses = ['Bogatell' => new LocationCoordinates(41.397, 2.211)];
 
         $game = $this->makeGame(title: 'Bogatell 18:30');
 
@@ -58,7 +58,7 @@ final class GameLocationResolverTest extends TestCase
 
         $this->assertSame(41.397, $coordinates->latitude);
         $this->assertSame(2.211, $coordinates->longitude);
-        $this->assertSame(['Bogatell'], $this->geocodingClient->queries);
+        $this->assertSame(['Bogatell'], $this->locationResolver->queries);
     }
 
     public function testFallsBackToDefaultWhenGeocoderReturnsNull(): void
@@ -68,7 +68,7 @@ final class GameLocationResolverTest extends TestCase
         $coordinates = $this->resolver->resolve($game);
 
         $this->assertInstanceOf(DefaultLocationCoordinates::class, $coordinates);
-        $this->assertSame(['Bogatell'], $this->geocodingClient->queries);
+        $this->assertSame(['Bogatell'], $this->locationResolver->queries);
     }
 
     public function testFallsBackToDefaultWhenTitleHasNoVenue(): void
@@ -78,19 +78,19 @@ final class GameLocationResolverTest extends TestCase
         $coordinates = $this->resolver->resolve($game);
 
         $this->assertInstanceOf(DefaultLocationCoordinates::class, $coordinates);
-        $this->assertSame([], $this->geocodingClient->queries);
+        $this->assertSame([], $this->locationResolver->queries);
     }
 
     public function testUnparseableLocationFallsThroughToVenueExtraction(): void
     {
-        $this->geocodingClient->responses = ['Bogatell' => new LocationCoordinates(41.397, 2.211)];
+        $this->locationResolver->responses = ['Bogatell' => new LocationCoordinates(41.397, 2.211)];
 
         $game = $this->makeGame(title: 'Bogatell 18:30', location: 'not-a-coord');
 
         $coordinates = $this->resolver->resolve($game);
 
         $this->assertSame(41.397, $coordinates->latitude);
-        $this->assertSame(['Bogatell'], $this->geocodingClient->queries);
+        $this->assertSame(['Bogatell'], $this->locationResolver->queries);
     }
 
     private function makeGame(string $title, ?string $location = null): Game

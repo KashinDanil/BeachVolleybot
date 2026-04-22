@@ -10,7 +10,7 @@ use BeachVolleybot\Game\Models\GameInterface;
 final readonly class GameLocationResolver
 {
     public function __construct(
-        private GeocodingClientInterface $geocodingClient,
+        private LocationResolverInterface $locationResolver,
     ) {
     }
 
@@ -34,6 +34,6 @@ final readonly class GameLocationResolver
             return null;
         }
 
-        return $this->geocodingClient->resolve($query);
+        return $this->locationResolver->resolve($query);
     }
 }

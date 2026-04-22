@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS weather_cache
     PRIMARY KEY (latitude, longitude, forecast_ts)
 );
 
-CREATE TABLE IF NOT EXISTS geocoding_cache
+CREATE TABLE IF NOT EXISTS location_cache
 (
     query      TEXT      NOT NULL,
     latitude   REAL,

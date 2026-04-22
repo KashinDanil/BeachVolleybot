@@ -18,6 +18,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 /**
  * @method string  separator()
  * @method string  buildText(GameInterface $game)
+ * @method list<?string> getSections(GameInterface $game)
  * @method string  buildTitle(GameInterface $game)
  * @method string  buildPlayerList(GameInterface $game)
  * @method string  buildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime)
@@ -57,14 +58,18 @@ final class GameMessageBuilder extends AbstractMessageBuilder
 
     protected function defaultBuildText(GameInterface $game): string
     {
-        $sections = array_filter([
+        return implode($this->separator(), array_filter($this->getSections($game)));
+    }
+
+    /** @return list<?string> */
+    protected function defaultGetSections(GameInterface $game): array
+    {
+        return [
             $this->buildWarning($game->getPlayers()),
             $this->buildTitle($game),
             $this->buildPlayerList($game),
             $this->buildLocationLink($game->getLocation()),
-        ]);
-
-        return implode($this->separator(), $sections);
+        ];
     }
 
     /** @param PlayerInterface[] $players */

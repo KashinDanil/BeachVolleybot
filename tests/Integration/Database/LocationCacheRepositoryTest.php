@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Database;
 
-use BeachVolleybot\Weather\GeocodingCacheRepository;
+use BeachVolleybot\Weather\LocationCacheRepository;
 
-final class GeocodingCacheRepositoryTest extends DatabaseTestCase
+final class LocationCacheRepositoryTest extends DatabaseTestCase
 {
-    private GeocodingCacheRepository $repository;
+    private LocationCacheRepository $repository;
 
     protected function setUp(): void
     {
@@ -17,7 +17,7 @@ final class GeocodingCacheRepositoryTest extends DatabaseTestCase
         $schema = file_get_contents(__DIR__ . '/../../../migrations/003_create_weather_tables.sql');
         $this->db->pdo->exec($schema);
 
-        $this->repository = new GeocodingCacheRepository($this->db);
+        $this->repository = new LocationCacheRepository($this->db);
     }
 
     public function testFindByIdReturnsNullWhenNoRow(): void
@@ -53,7 +53,7 @@ final class GeocodingCacheRepositoryTest extends DatabaseTestCase
         $row = $this->repository->findById('Bogatell');
         $this->assertNotNull($row);
         $this->assertSame(41.397, (float) $row['latitude']);
-        $this->assertSame(1, $this->db->count('geocoding_cache'));
+        $this->assertSame(1, $this->db->count('location_cache'));
     }
 
     public function testLookupIsByteExactAndCaseSensitive(): void

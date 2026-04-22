@@ -5,9 +5,10 @@ declare(strict_types=1);
 $testTempDirectory = '/tmp/bvb_test_' . get_current_user();
 $logDirectory = $testTempDirectory . '/logs';
 $queueDirectory = $testTempDirectory . '/queues';
+$weatherQueueDirectory = $queueDirectory . '/weather';
 $databaseDirectory = $testTempDirectory . '/db';
 
-foreach ([$logDirectory, $queueDirectory, $databaseDirectory] as $directory) {
+foreach ([$logDirectory, $queueDirectory, $weatherQueueDirectory, $databaseDirectory] as $directory) {
     if (!@mkdir($directory, 0755, true) && !is_dir($directory)) {
         throw new RuntimeException('Failed to create directory: ' . $directory);
     }

@@ -6,11 +6,10 @@ namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Processors\WeatherQueueProcessor;
 use BeachVolleybot\Telegram\InlineMessageRefresher;
+use BeachVolleybot\Tests\Integration\Processors\Stub\FakeOpenMeteoLocationResolver;
 use BeachVolleybot\Tests\Integration\Processors\Stub\FakeWeatherApiClient;
-use BeachVolleybot\Tests\Stub\FakeGeocodingClient;
-use BeachVolleybot\Weather\CachingGeocodingClient;
 use BeachVolleybot\Weather\GameLocationResolver;
-use BeachVolleybot\Weather\GeocodingCacheManager;
+use BeachVolleybot\Weather\LocationCacheManager;
 use BeachVolleybot\Weather\LocationCoordinates;
 use BeachVolleybot\Weather\WeatherCacheManager;
 use BeachVolleybot\Weather\WeatherCacheUpdater;
@@ -24,9 +23,9 @@ use DateTimeZone;
 final class WeatherQueueProcessorTest extends ProcessorTestCase
 {
     private FakeWeatherApiClient $weatherClient;
-    private FakeGeocodingClient $geocodingClient;
+    private FakeOpenMeteoLocationResolver $geocodingClient;
     private WeatherCacheManager $weatherCache;
-    private GeocodingCacheManager $geocodingCache;
+    private LocationCacheManager $geocodingCache;
     private WeatherQueueProcessor $processor;
 
     protected function setUp(): void
@@ -37,14 +36,12 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $this->db->pdo->exec($schema);
 
         $this->weatherClient = new FakeWeatherApiClient();
-        $this->geocodingClient = new FakeGeocodingClient();
         $this->weatherCache = new WeatherCacheManager();
-        $this->geocodingCache = new GeocodingCacheManager();
+        $this->geocodingCache = new LocationCacheManager();
+        $this->geocodingClient = new FakeOpenMeteoLocationResolver($this->geocodingCache);
 
         $this->processor = new WeatherQueueProcessor(
-            locationResolver: new GameLocationResolver(
-                new CachingGeocodingClient($this->geocodingClient, $this->geocodingCache),
-            ),
+            locationResolver: new GameLocationResolver($this->geocodingClient),
             weatherCacheUpdater: new WeatherCacheUpdater($this->weatherClient, $this->weatherCache),
             inlineMessageRefresher: new InlineMessageRefresher($this->telegramSender),
         );
@@ -125,7 +122,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
     {
         $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
         $gameId = $this->insertGame(title: "Bogatell $kickoffDay 18:00");
-        $this->geocodingCache->save('Bogatell', new LocationCoordinates(41.397, 2.211));
+        $this->geocodingCache->remember('Bogatell', new LocationCoordinates(41.397, 2.211));
 
         $ok = $this->processor->process($this->messageFor($gameId));
 
@@ -139,7 +136,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
     {
         $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
         $gameId = $this->insertGame(title: "UnknownPlace $kickoffDay 18:00");
-        $this->geocodingCache->save('UnknownPlace', null);
+        $this->geocodingCache->remember('UnknownPlace', null);
 
         $ok = $this->processor->process($this->messageFor($gameId));
 

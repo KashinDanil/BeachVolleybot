@@ -9,10 +9,8 @@ use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Telegram\InlineMessageRefresher;
 use BeachVolleybot\Telegram\RateLimitedBotApi;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\Weather\CachingGeocodingClient;
 use BeachVolleybot\Weather\GameLocationResolver;
-use BeachVolleybot\Weather\GeocodingCacheManager;
-use BeachVolleybot\Weather\OpenMeteoGeocodingClient;
+use BeachVolleybot\Weather\OpenMeteoLocationResolver;
 use BeachVolleybot\Weather\WeatherCacheUpdater;
 use BeachVolleybot\Weather\WeatherQueuePayload;
 use BeachVolleybot\Weather\WeatherWindowResolver;
@@ -22,7 +20,7 @@ final readonly class WeatherQueueProcessor implements QueueProcessorInterface
 {
     public function __construct(
         private GameLocationResolver $locationResolver = new GameLocationResolver(
-            new CachingGeocodingClient(new OpenMeteoGeocodingClient(), new GeocodingCacheManager()),
+            new OpenMeteoLocationResolver(),
         ),
         private WeatherCacheUpdater $weatherCacheUpdater = new WeatherCacheUpdater(),
         private WeatherWindowResolver $windowResolver = new WeatherWindowResolver(),

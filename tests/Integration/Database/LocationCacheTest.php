@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Weather\GeocodingCacheManager;
+use BeachVolleybot\Weather\LocationCacheManager;
 use BeachVolleybot\Weather\LocationCoordinates;
 
-final class GeocodingCacheManagerTest extends DatabaseTestCase
+final class LocationCacheTest extends DatabaseTestCase
 {
-    private GeocodingCacheManager $manager;
+    private LocationCacheManager $cache;
 
     protected function setUp(): void
     {
@@ -20,7 +20,7 @@ final class GeocodingCacheManagerTest extends DatabaseTestCase
         $this->db->pdo->exec($schema);
 
         Connection::set($this->db);
-        $this->manager = new GeocodingCacheManager();
+        $this->cache = new LocationCacheManager();
     }
 
     protected function tearDown(): void
@@ -30,44 +30,44 @@ final class GeocodingCacheManagerTest extends DatabaseTestCase
 
     public function testFindReturnsNullWhenNoRow(): void
     {
-        $this->assertNull($this->manager->find('Bogatell'));
+        $this->assertNull($this->cache->find('Bogatell'));
     }
 
-    public function testSaveAndFindRoundTripHit(): void
+    public function testRememberAndFindRoundTripHit(): void
     {
-        $this->manager->save('Bogatell', new LocationCoordinates(41.397, 2.211));
+        $this->cache->remember('Bogatell', new LocationCoordinates(41.397, 2.211));
 
-        $row = $this->manager->find('Bogatell');
+        $row = $this->cache->find('Bogatell');
         $this->assertNotNull($row);
         $this->assertNotNull($row->coordinates);
         $this->assertSame(41.397, $row->coordinates->latitude);
         $this->assertSame(2.211, $row->coordinates->longitude);
     }
 
-    public function testSaveMissIsHydratedAsRowWithNullCoordinates(): void
+    public function testRememberMissIsHydratedAsRowWithNullCoordinates(): void
     {
-        $this->manager->save('nonexistent-place', null);
+        $this->cache->remember('nonexistent-place', null);
 
-        $row = $this->manager->find('nonexistent-place');
+        $row = $this->cache->find('nonexistent-place');
         $this->assertNotNull($row);
         $this->assertNull($row->coordinates);
     }
 
     public function testFetchedAtHydratedAsDateTimeImmutableInUtc(): void
     {
-        $this->manager->save('Bogatell', new LocationCoordinates(41.397, 2.211));
+        $this->cache->remember('Bogatell', new LocationCoordinates(41.397, 2.211));
 
-        $row = $this->manager->find('Bogatell');
+        $row = $this->cache->find('Bogatell');
         $this->assertNotNull($row);
         $this->assertSame('UTC', $row->fetchedAt->getTimezone()->getName());
     }
 
     public function testMissCanBeOverwrittenByHit(): void
     {
-        $this->manager->save('Bogatell', null);
-        $this->manager->save('Bogatell', new LocationCoordinates(41.397, 2.211));
+        $this->cache->remember('Bogatell', null);
+        $this->cache->remember('Bogatell', new LocationCoordinates(41.397, 2.211));
 
-        $row = $this->manager->find('Bogatell');
+        $row = $this->cache->find('Bogatell');
         $this->assertNotNull($row);
         $this->assertNotNull($row->coordinates);
         $this->assertSame(41.397, $row->coordinates->latitude);

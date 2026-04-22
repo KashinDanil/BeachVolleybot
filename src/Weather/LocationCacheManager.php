@@ -8,16 +8,16 @@ use BeachVolleybot\Database\Connection;
 use DateTimeImmutable;
 use DateTimeZone;
 
-final readonly class GeocodingCacheManager
+final readonly class LocationCacheManager
 {
-    private GeocodingCacheRepository $repository;
+    private LocationCacheRepository $repository;
 
     public function __construct()
     {
-        $this->repository = new GeocodingCacheRepository(Connection::get());
+        $this->repository = new LocationCacheRepository(Connection::get());
     }
 
-    public function find(string $query): ?GeocodingCacheRow
+    public function find(string $query): ?CachedLocationRow
     {
         $row = $this->repository->findById($query);
 
@@ -25,13 +25,13 @@ final readonly class GeocodingCacheManager
             return null;
         }
 
-        return new GeocodingCacheRow(
+        return new CachedLocationRow(
             coordinates: $this->coordinatesFromRow($row),
             fetchedAt: new DateTimeImmutable((string)$row['fetched_at'], new DateTimeZone('UTC')),
         );
     }
 
-    public function save(string $query, ?LocationCoordinates $coordinates): void
+    public function remember(string $query, ?LocationCoordinates $coordinates): void
     {
         $this->repository->upsert($query, $coordinates?->latitude, $coordinates?->longitude);
     }
