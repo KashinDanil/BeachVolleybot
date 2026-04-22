@@ -51,7 +51,7 @@ readonly class PinnedMessageRepository
         $rows = $this->db->select('pinned_messages', ['message_id'], [
             'chat_id' => $chatId,
             'message_id[!]' => $excludeMessageId,
-            'unpin_after[<]' => new DateTimeImmutable('today')->format('Y-m-d H:i:s'),
+            'unpin_after[<=]' => new DateTimeImmutable('today')->format('Y-m-d H:i:s'),
             'unpin_after[!]' => null,
         ]);
 
