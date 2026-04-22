@@ -6,24 +6,21 @@ namespace BeachVolleybot\Game\AddOns;
 
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
+use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
-use BeachVolleybot\Weather\CachedLocationResolver;
-use BeachVolleybot\Weather\GameLocationResolver;
-use BeachVolleybot\Weather\WeatherCacheManager;
+use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
+use BeachVolleybot\Weather\GameWeatherLookup;
 use BeachVolleybot\Weather\WeatherFormatter;
-use BeachVolleybot\Weather\WeatherWindowResolver;
-use DateTimeZone;
 
 final class WeatherAddOn implements GameAddOnInterface
 {
     private const int WEATHER_SECTION_POSITION = 3;
 
+    private const string REFRESH_BUTTON_LABEL = '🔄 Weather';
+
     public function __construct(
-        private readonly GameLocationResolver $locationResolver = new GameLocationResolver(
-            new CachedLocationResolver(),
-        ),
-        private readonly WeatherCacheManager $weatherCache = new WeatherCacheManager(),
-        private readonly WeatherWindowResolver $windowResolver = new WeatherWindowResolver(),
+        private readonly GameWeatherLookup $gameWeatherLookup = new GameWeatherLookup(),
         private readonly WeatherFormatter $weatherFormatter = new WeatherFormatter(new MarkdownV2()),
     ) {
     }
@@ -35,8 +32,15 @@ final class WeatherAddOn implements GameAddOnInterface
             return;
         }
 
-        $previousSections = $game->telegramMessageBuilder->getEffective('getSections');
-        $game->telegramMessageBuilder->override(
+        $this->installSectionOverride($game->telegramMessageBuilder, $section);
+        $this->installKeyboardOverride($game->telegramMessageBuilder);
+    }
+
+    private function installSectionOverride(GameMessageBuilder $builder, string $section): void
+    {
+        $previousSections = $builder->getEffective('getSections');
+
+        $builder->override(
             'getSections',
             static function (GameInterface $game) use ($previousSections, $section): array {
                 $sections = $previousSections($game);
@@ -47,20 +51,38 @@ final class WeatherAddOn implements GameAddOnInterface
         );
     }
 
+    private function installKeyboardOverride(GameMessageBuilder $builder): void
+    {
+        $previousKeyboard = $builder->getEffective('buildKeyboard');
+
+        $builder->override(
+            'buildKeyboard',
+            static function (GameInterface $game) use ($previousKeyboard, $builder): array {
+                $rows = $previousKeyboard($game);
+                $rows[] = [
+                    $builder->buildActionButton(
+                        self::REFRESH_BUTTON_LABEL,
+                        CallbackData::create(CallbackAction::RefreshWeather),
+                    ),
+                ];
+
+                return $rows;
+            }
+        );
+    }
+
     private function computeWeatherSection(Game $game): ?string
     {
-        $window = $this->windowResolver->windowForGame($game);
-        if (empty($window->hours)) {
+        $lookup = $this->gameWeatherLookup->find($game);
+        if (null === $lookup) {
             return null;
         }
 
-        $coordinates = $this->locationResolver->resolve($game)->rounded();
-        $kickoffUtc = $window->kickoffHour->setTimezone(new DateTimeZone('UTC'));
-        $row = $this->weatherCache->find($coordinates, $kickoffUtc);
-        if (null === $row) {
-            return null;
-        }
-
-        return $this->weatherFormatter->format($row->snapshot, $row->coordinates, $window->kickoffHour, $row->fetchedAt);
+        return $this->weatherFormatter->format(
+            $lookup->row->snapshot,
+            $lookup->row->coordinates,
+            $lookup->kickoffHour,
+            $lookup->row->fetchedAt,
+        );
     }
 }

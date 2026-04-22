@@ -10,15 +10,12 @@ use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
-use BeachVolleybot\Weather\CachedLocationResolver;
-use BeachVolleybot\Weather\GameLocationResolver;
-use BeachVolleybot\Weather\LocationCacheManager;
+use BeachVolleybot\Weather\GameWeatherLookup;
 use BeachVolleybot\Weather\LocationCoordinates;
 use BeachVolleybot\Weather\WeatherCacheManager;
 use BeachVolleybot\Weather\WeatherFormatter;
 use BeachVolleybot\Weather\WeatherHour;
 use BeachVolleybot\Weather\WeatherSnapshot;
-use BeachVolleybot\Weather\WeatherWindowResolver;
 use DateTimeImmutable;
 use DateTimeZone;
 
@@ -38,11 +35,7 @@ final class WeatherAddOnTest extends DatabaseTestCase
 
         $this->weatherCache = new WeatherCacheManager();
         $this->addOn = new WeatherAddOn(
-            locationResolver: new GameLocationResolver(
-                new CachedLocationResolver(new LocationCacheManager()),
-            ),
-            weatherCache: $this->weatherCache,
-            windowResolver: new WeatherWindowResolver(),
+            gameWeatherLookup: new GameWeatherLookup(),
             weatherFormatter: new WeatherFormatter(new MarkdownV2()),
         );
     }
@@ -132,6 +125,45 @@ final class WeatherAddOnTest extends DatabaseTestCase
         $this->assertNotNull($sections[3]);
         $this->assertStringContainsString('Weather', $sections[3]);
         $this->assertSame('[marker]', $sections[5]);
+    }
+
+    public function testRefreshButtonAppendedWhenSectionPresent(): void
+    {
+        $kickoffDay = new DateTimeImmutable('+2 days');
+        $coordinates = new LocationCoordinates(41.397, 2.211);
+        $kickoffUtc = $this->kickoffUtc($kickoffDay, 18);
+        $this->weatherCache->save($coordinates, $kickoffUtc, $this->snapshotForHour($kickoffUtc));
+        $game = $this->game(
+            title: 'Beach ' . $kickoffDay->format('d.m.Y') . ' 18:00',
+            location: '41.397,2.211',
+        );
+
+        $this->addOn->applyTo($game);
+        $keyboard = $game->telegramMessageBuilder->buildKeyboard($game);
+
+        $refreshRow = $keyboard[array_key_last($keyboard)];
+        $this->assertCount(1, $refreshRow);
+        $this->assertSame('🔄 Weather', $refreshRow[0]['text']);
+        $callbackData = json_decode($refreshRow[0]['callback_data'], true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame('rw', $callbackData['a']);
+    }
+
+    public function testRefreshButtonAbsentWhenSectionMissing(): void
+    {
+        $farFutureDay = new DateTimeImmutable('+10 days');
+        $game = $this->game(
+            title: 'Beach ' . $farFutureDay->format('d.m.Y') . ' 18:00',
+            location: '41.397,2.211',
+        );
+
+        $this->addOn->applyTo($game);
+        $keyboard = $game->telegramMessageBuilder->buildKeyboard($game);
+
+        foreach ($keyboard as $row) {
+            foreach ($row as $button) {
+                $this->assertStringNotContainsString('🔄', $button['text']);
+            }
+        }
     }
 
     public function testSectionIsCapturedAtApplyTimeAndUnaffectedByLaterCacheChanges(): void

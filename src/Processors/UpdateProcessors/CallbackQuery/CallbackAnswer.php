@@ -18,4 +18,6 @@ final class CallbackAnswer
     public const string NET_REMOVED          = "🕸️ Net removed";
     public const string NO_NETS              = "You don't have any nets to remove";
     public const string SOMETHING_WENT_WRONG = "Something went wrong";
+    public const string REFRESHING_WEATHER   = "🔄 Refreshing forecast…";
+    public const string REFRESH_COOLDOWN     = "🕒 Please wait a few minutes before refreshing again";
 }

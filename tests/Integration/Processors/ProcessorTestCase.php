@@ -8,6 +8,7 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
+use BeachVolleybot\Weather\WeatherEnqueuer;
 
 abstract class ProcessorTestCase extends DatabaseTestCase
 {
@@ -22,6 +23,13 @@ abstract class ProcessorTestCase extends DatabaseTestCase
 
         $this->bot = new BotApiStub();
         $this->telegramSender = new TelegramMessageSender($this->bot);
+
+        // Each test gets a fresh :memory: DB with gameId starting at 1, but the
+        // on-disk weather queue directory persists across tests — drain it so
+        // enqueues from prior tests don't leak into assertions.
+        foreach (glob(WeatherEnqueuer::QUEUE_DIR . '/*') ?: [] as $path) {
+            @unlink($path);
+        }
     }
 
     protected function tearDown(): void

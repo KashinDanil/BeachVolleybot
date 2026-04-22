@@ -6,6 +6,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\AddNetProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\AddVolleyballProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RefreshWeatherProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveNetProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveVolleyballProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
@@ -20,6 +21,7 @@ enum CallbackAction: string
     case RemoveVolleyball = 'rv';
     case AddNet = 'an';
     case RemoveNet = 'rn';
+    case RefreshWeather = 'rw';
 
     public function resolveProcessor(TelegramMessageSender $telegramSender): AbstractActionProcessor
     {
@@ -30,6 +32,7 @@ enum CallbackAction: string
             self::RemoveVolleyball => new RemoveVolleyballProcessor($telegramSender),
             self::AddNet => new AddNetProcessor($telegramSender),
             self::RemoveNet => new RemoveNetProcessor($telegramSender),
+            self::RefreshWeather => new RefreshWeatherProcessor($telegramSender),
         };
     }
 }
