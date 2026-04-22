@@ -33,7 +33,7 @@ final readonly class WeatherQueueProcessor implements QueueProcessorInterface
     public function process(QueueMessage $message): bool
     {
         $payload = WeatherQueuePayload::fromArray($message->payload);
-        $game = GameFactory::tryFromGameId($payload->gameId);
+        $game = GameFactory::tryFromGameId($payload->gameId, addOns: []);
 
         if (null === $game) {
             Logger::logVerbose('Weather fetch skipped: game gone (id=' . $payload->gameId . ')');
