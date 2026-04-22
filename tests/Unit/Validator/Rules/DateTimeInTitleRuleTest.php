@@ -85,4 +85,20 @@ final class DateTimeInTitleRuleTest extends TestCase
         $this->assertFalse($rule->isValid());
         $this->assertSame(DateTimeInTitleRule::ERROR_DATE_AND_TIME_MISSING, $rule->getError()->getMessage());
     }
+
+    public function testInvalidWhenOnlyTodayKeywordPresent(): void
+    {
+        // "today" is not an accepted date token (server runs UTC; "today" near
+        // midnight in other zones resolves to the wrong local date).
+        $rule = new DateTimeInTitleRule('today 18:00');
+
+        $this->assertFalse($rule->isValid());
+        $this->assertSame(DateTimeInTitleRule::ERROR_DATE_MISSING, $rule->getError()->getMessage());
+    }
+
+    public function testInvalidWhenOnlyLocalizedTodayKeywordPresent(): void
+    {
+        $this->assertFalse(new DateTimeInTitleRule('сегодня 18:00')->isValid());
+        $this->assertFalse(new DateTimeInTitleRule('hoy 18:00')->isValid());
+    }
 }

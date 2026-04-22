@@ -36,15 +36,11 @@ final class DayOfWeekExtractor implements ExtractorInterface
         'domingo' => 7,
     ];
 
-    public const array TODAY_WORDS = ['today', 'сегодня', 'hoy'];
-
     private static ?string $pattern = null;
 
     public static function pattern(): string
     {
-        return self::$pattern ??= '/(*UCP)\b(?:'
-            . implode('|', [...array_keys(self::DAY_OF_WEEK_MAP), ...self::TODAY_WORDS])
-            . ')\b/iu';
+        return self::$pattern ??= '/(*UCP)\b(?:' . implode('|', array_keys(self::DAY_OF_WEEK_MAP)) . ')\b/iu';
     }
 
     public static function extract(string $text): ?string
@@ -64,10 +60,6 @@ final class DayOfWeekExtractor implements ExtractorInterface
             return null;
         }
 
-        if (self::isTodayWord($dayOfWeekString)) {
-            return $creationDate->setTime(0, 0);
-        }
-
         $targetDay = self::toIsoDayNumber($dayOfWeekString);
 
         if (null === $targetDay) {
@@ -83,10 +75,5 @@ final class DayOfWeekExtractor implements ExtractorInterface
     private static function toIsoDayNumber(string $matched): ?int
     {
         return self::DAY_OF_WEEK_MAP[mb_strtolower($matched)] ?? null;
-    }
-
-    private static function isTodayWord(string $matched): bool
-    {
-        return in_array(mb_strtolower($matched), self::TODAY_WORDS, true);
     }
 }

@@ -27,9 +27,12 @@ final class GameDateResolverTest extends TestCase
         $this->assertSame('Friday', GameDateResolver::extractRaw('Friday 18:00'));
     }
 
-    public function testExtractRawReturnsTodayWord(): void
+    public function testExtractRawDoesNotMatchTodayWord(): void
     {
-        $this->assertSame('today', GameDateResolver::extractRaw('today 18:00'));
+        // "today" (and its localized variants) are intentionally not recognized —
+        // Telegram sends UTC timestamps, which would resolve "today" to the wrong
+        // local date near midnight. Users must pick a day name or explicit date.
+        $this->assertNull(GameDateResolver::extractRaw('today 18:00'));
     }
 
     public function testExtractRawPrefersDateOverDayOfWeek(): void
@@ -252,33 +255,29 @@ final class GameDateResolverTest extends TestCase
         $this->assertSame('2026-04-17', $result->format('Y-m-d'));
     }
 
-    // --- "Today" variants ---
+    // --- "Today" variants are intentionally rejected ---
+    // Telegram updates arrive in UTC, so "today" would resolve to the wrong
+    // local date near midnight. Users must pick a day name or explicit date.
 
-    public function testResolvesToday(): void
+    public function testDoesNotResolveEnglishToday(): void
     {
         $creationDate = new DateTimeImmutable('2026-04-16');
 
-        $result = GameDateResolver::resolve('Today 18:00', $creationDate);
-
-        $this->assertSame('2026-04-16', $result->format('Y-m-d'));
+        $this->assertNull(GameDateResolver::resolve('Today 18:00', $creationDate));
     }
 
-    public function testResolvesRussianToday(): void
+    public function testDoesNotResolveRussianToday(): void
     {
         $creationDate = new DateTimeImmutable('2026-04-16');
 
-        $result = GameDateResolver::resolve('Сегодня 18:00', $creationDate);
-
-        $this->assertSame('2026-04-16', $result->format('Y-m-d'));
+        $this->assertNull(GameDateResolver::resolve('Сегодня 18:00', $creationDate));
     }
 
-    public function testResolvesSpanishToday(): void
+    public function testDoesNotResolveSpanishToday(): void
     {
         $creationDate = new DateTimeImmutable('2026-04-16');
 
-        $result = GameDateResolver::resolve('Hoy 18:00', $creationDate);
-
-        $this->assertSame('2026-04-16', $result->format('Y-m-d'));
+        $this->assertNull(GameDateResolver::resolve('Hoy 18:00', $creationDate));
     }
 
     // --- No date / ambiguous ---

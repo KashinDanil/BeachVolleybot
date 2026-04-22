@@ -47,8 +47,11 @@ final class GameDateTimeResolverTest extends TestCase
         $this->assertSame('2026-04-11 18:30:00', $result->format('Y-m-d H:i:s'));
     }
 
-    public function testResolvesTodayKeyword(): void
+    public function testTodayKeywordFallsBackToCreationDateBecauseItIsNotExtractable(): void
     {
+        // "today" is intentionally not recognized (Telegram updates arrive in UTC,
+        // which would resolve "today" to the wrong local date near midnight).
+        // With no extractable date, resolution falls back to the creation date.
         $result = GameDateTimeResolver::resolve('today 18:30', new DateTimeImmutable('2026-04-10'));
 
         $this->assertNotNull($result);
