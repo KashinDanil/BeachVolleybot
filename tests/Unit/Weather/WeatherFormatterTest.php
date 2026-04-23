@@ -203,6 +203,25 @@ final class WeatherFormatterTest extends TestCase
         $this->assertStringContainsString('Updated at 12:34', $output);
     }
 
+    public function testFooterAnchorRendersFetchedAtInKickoffLocationZone(): void
+    {
+        // fetchedAt is persisted as UTC; the snapshot hours carry Open-Meteo's
+        // local zone for the kickoff location. The footer must show wall-clock
+        // time in that local zone, not UTC.
+        $snapshotZone = new DateTimeZone('Europe/Madrid');
+
+        $output = (string) $this->formatter->format(
+            new WeatherSnapshot([$this->weatherHour('2026-04-15 18:00:00', zone: $snapshotZone)]),
+            new LocationCoordinates(41.397, 2.211),
+            $this->hour('2026-04-15 18:00:00'),
+            // 12:34 UTC = 14:34 in Madrid (UTC+2 in April).
+            $this->hour('2026-04-15 12:34:56'),
+        );
+
+        $this->assertStringContainsString('Updated at 14:34', $output);
+        $this->assertStringNotContainsString('Updated at 12:34', $output);
+    }
+
     // --- wind direction compass ---
 
     #[DataProvider('compassBearings')]

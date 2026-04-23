@@ -39,9 +39,11 @@ final readonly class WeatherFormatter
             return null;
         }
 
+        $localFetchedAt = $fetchedAt->setTimezone($snapshot->timezone());
+
         $heading = $this->buildHeading();
         $rows = $this->buildRows($snapshot, $kickoffHour);
-        $footer = $this->buildFooter($fetchedAt, $coordinates);
+        $footer = $this->buildFooter($localFetchedAt, $coordinates);
         $section = implode($this->messageFormatter->newLine(), [$heading, ...$rows, $footer]);
 
         return $this->messageFormatter->blockquote($section);

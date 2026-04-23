@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Weather\Forecast\Models;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use JsonSerializable;
 
 final readonly class WeatherSnapshot implements JsonSerializable
@@ -20,6 +21,17 @@ final readonly class WeatherSnapshot implements JsonSerializable
         $targetKey = $target->format('Y-m-d H');
 
         return array_find($this->hours, static fn($hour) => $hour->hour->format('Y-m-d H') === $targetKey);
+    }
+
+    // Open-Meteo returns all hours in the location's local zone (timezone=auto),
+    // so every hour shares the same zone; the first one is representative.
+    public function timezone(): ?DateTimeZone
+    {
+        if (empty($this->hours)) {
+            return null;
+        }
+
+        return $this->hours[0]->hour->getTimezone();
     }
 
     /** @return list<array<string, mixed>> */
