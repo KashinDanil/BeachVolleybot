@@ -22,6 +22,8 @@ interface MessageFormatterInterface
 
     public function blockquote(string $text): string;
 
+    public function expandableBlockquote(string $text): string;
+
     public function link(string $text, string $url): string;
 
     public function newLine(): string;

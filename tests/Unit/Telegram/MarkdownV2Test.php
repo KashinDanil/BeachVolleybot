@@ -142,6 +142,14 @@ final class MarkdownV2Test extends TestCase
         $this->assertSame('>*bold*', $this->formatter->blockquote('*bold*'));
     }
 
+    public function testExpandableBlockquoteWrapsContent(): void
+    {
+        $this->assertSame(
+            "**>line1\n>line2||",
+            $this->formatter->expandableBlockquote("line1\nline2"),
+        );
+    }
+
     // --- link ---
 
     public function testLinkBasic(): void

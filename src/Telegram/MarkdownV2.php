@@ -56,6 +56,14 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
         return '>' . implode("\n>", explode("\n", $text));
     }
 
+    public function expandableBlockquote(string $text): string
+    {
+        // Collapsed-by-default blockquote: `**` prefix on the first line,
+        // `||` suffix on the last line. Telegram renders this as a quote
+        // with a tap-to-expand control when the content is tall.
+        return '**' . $this->blockquote($text) . '||';
+    }
+
     public function link(string $text, string $url): string
     {
         return '[' . $this->escape($text) . '](' . $this->escapeLinkUrl($url) . ')';
