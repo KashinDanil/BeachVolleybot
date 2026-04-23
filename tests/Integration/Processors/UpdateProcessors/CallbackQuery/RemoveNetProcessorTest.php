@@ -76,6 +76,35 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
+    public function testPastDayRemovesKeyboardAndAnswersGameFinishedAndDoesNotRemove(): void
+    {
+        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 2);
+        $this->db->update('games', ['title' => 'Bogatell 10.04.2020 18:00'], ['game_id' => $gameId]);
+        $update = $this->buildUpdate('msg_1');
+
+        new RemoveNetProcessor($this->telegramSender)->process($update);
+
+        $this->assertKeyboardRemoved();
+        $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
+        $this->assertMessageNotEdited();
+        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
+        $this->assertSame(2, $gamePlayer['net']);
+    }
+
+    public function testTodayPastHourStillRemovesBecauseDayHasNotEnded(): void
+    {
+        $today = new \DateTimeImmutable()->format('d.m.Y');
+        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 2);
+        $this->db->update('games', ['title' => "Bogatell {$today} 00:01"], ['game_id' => $gameId]);
+        $update = $this->buildUpdate('msg_1');
+
+        new RemoveNetProcessor($this->telegramSender)->process($update);
+
+        $this->assertAnsweredWith(CallbackAnswer::NET_REMOVED);
+        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
+        $this->assertSame(1, $gamePlayer['net']);
+    }
+
     private function buildUpdate(string $inlineMessageId): TelegramUpdate
     {
         return TelegramUpdate::fromArray(

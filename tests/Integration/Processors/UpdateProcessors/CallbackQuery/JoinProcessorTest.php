@@ -90,6 +90,31 @@ final class JoinProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
+    public function testPastDayRemovesKeyboardAndAnswersGameFinishedAndDoesNotJoin(): void
+    {
+        $gameId = $this->seedFullGame(title: 'Bogatell 10.04.2020 18:00');
+        $update = $this->buildUpdate('msg_1');
+
+        new JoinProcessor($this->telegramSender)->process($update);
+
+        $this->assertKeyboardRemoved();
+        $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
+        $this->assertMessageNotEdited();
+        $this->assertNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
+    }
+
+    public function testTodayPastHourStillJoinsBecauseDayHasNotEnded(): void
+    {
+        $today = new \DateTimeImmutable()->format('d.m.Y');
+        $gameId = $this->seedFullGame(title: "Bogatell {$today} 00:01");
+        $update = $this->buildUpdate('msg_1');
+
+        new JoinProcessor($this->telegramSender)->process($update);
+
+        $this->assertAnsweredWith(CallbackAnswer::JOINED);
+        $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
+    }
+
     private function buildUpdate(string $inlineMessageId, int $fromId = 200): TelegramUpdate
     {
         return TelegramUpdate::fromArray(

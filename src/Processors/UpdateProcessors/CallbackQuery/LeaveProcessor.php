@@ -6,27 +6,17 @@ namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\LeaveResult;
-use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
+use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class LeaveProcessor extends AbstractCallbackProcessor
+class LeaveProcessor extends AbstractGameCallbackProcessor
 {
-    public function process(TelegramUpdate $update): void
+    protected function handle(TelegramUpdate $update, GameInterface $game): void
     {
         $callbackQuery = $update->callbackQuery;
-        $inlineMessageId = $callbackQuery->inlineMessageId;
+        $gameId = $game->getGameId();
 
-        $gameManager = new GameManager();
-        $gameId = $gameManager->resolveGameIdByInlineMessageId($inlineMessageId);
-
-        if (null === $gameId) {
-            $this->telegramSender->removeInlineKeyboard($inlineMessageId);
-            $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_NOT_FOUND);
-
-            return;
-        }
-
-        $result = $gameManager->leaveGame($gameId, $callbackQuery->from->id);
+        $result = new GameManager()->leaveGame($gameId, $callbackQuery->from->id);
         $this->logUserAction($callbackQuery->from, 'leave', "gameId=$gameId");
 
         $callbackAnswer = match ($result) {
@@ -35,7 +25,7 @@ class LeaveProcessor extends AbstractCallbackProcessor
         };
 
         if (LeaveResult::Left === $result) {
-            $this->refreshInlineMessage($inlineMessageId);
+            $this->refreshInlineMessage($callbackQuery->inlineMessageId);
         }
 
         $this->answerCallbackQuery($callbackQuery, $callbackAnswer);

@@ -6,27 +6,17 @@ namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
+use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class RemoveVolleyballProcessor extends AbstractCallbackProcessor
+class RemoveVolleyballProcessor extends AbstractGameCallbackProcessor
 {
-    public function process(TelegramUpdate $update): void
+    protected function handle(TelegramUpdate $update, GameInterface $game): void
     {
         $callbackQuery = $update->callbackQuery;
-        $inlineMessageId = $callbackQuery->inlineMessageId;
+        $gameId = $game->getGameId();
 
-        $gameManager = new GameManager();
-        $gameId = $gameManager->resolveGameIdByInlineMessageId($inlineMessageId);
-
-        if (null === $gameId) {
-            $this->telegramSender->removeInlineKeyboard($inlineMessageId);
-            $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_NOT_FOUND);
-
-            return;
-        }
-
-        $result = $gameManager->removeVolleyball($gameId, $callbackQuery->from->id);
+        $result = new GameManager()->removeVolleyball($gameId, $callbackQuery->from->id);
         $this->logUserAction($callbackQuery->from, 'remove_volleyball', "gameId=$gameId");
 
         $callbackAnswer = match ($result) {
@@ -37,7 +27,7 @@ class RemoveVolleyballProcessor extends AbstractCallbackProcessor
         };
 
         if (EquipmentResult::Removed === $result) {
-            $this->refreshInlineMessage($inlineMessageId);
+            $this->refreshInlineMessage($callbackQuery->inlineMessageId);
         }
 
         $this->answerCallbackQuery($callbackQuery, $callbackAnswer);

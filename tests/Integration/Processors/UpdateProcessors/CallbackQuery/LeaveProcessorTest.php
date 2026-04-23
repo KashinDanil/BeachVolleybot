@@ -90,6 +90,34 @@ final class LeaveProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
+    public function testPastDayRemovesKeyboardAndAnswersGameFinishedAndDoesNotLeave(): void
+    {
+        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
+        $this->db->update('games', ['title' => 'Bogatell 10.04.2020 18:00'], ['game_id' => $gameId]);
+        $update = $this->buildUpdate('msg_1');
+
+        new LeaveProcessor($this->telegramSender)->process($update);
+
+        $this->assertKeyboardRemoved();
+        $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
+        $this->assertMessageNotEdited();
+        $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
+        $this->assertCount(1, new GameSlotRepository($this->db)->findByGameId($gameId));
+    }
+
+    public function testTodayPastHourStillLeavesBecauseDayHasNotEnded(): void
+    {
+        $today = new \DateTimeImmutable()->format('d.m.Y');
+        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
+        $this->db->update('games', ['title' => "Bogatell {$today} 00:01"], ['game_id' => $gameId]);
+        $update = $this->buildUpdate('msg_1');
+
+        new LeaveProcessor($this->telegramSender)->process($update);
+
+        $this->assertAnsweredWith(CallbackAnswer::LEFT);
+        $this->assertNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
+    }
+
     private function buildUpdate(string $inlineMessageId): TelegramUpdate
     {
         return TelegramUpdate::fromArray(

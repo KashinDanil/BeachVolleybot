@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
 use BeachVolleybot\Common\GameDateTimeResolver;
-use BeachVolleybot\Game\GameFactory;
-use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
 use BeachVolleybot\Telegram\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
-final class RefreshWeatherProcessor extends AbstractCallbackProcessor
+final class RefreshWeatherProcessor extends AbstractGameCallbackProcessor
 {
     public const int COOLDOWN_SECONDS = 300; //5 minutes
 
@@ -27,22 +24,13 @@ final class RefreshWeatherProcessor extends AbstractCallbackProcessor
         parent::__construct($telegramSender);
     }
 
-    public function process(TelegramUpdate $update): void
+    protected function handle(TelegramUpdate $update, GameInterface $game): void
     {
         $callbackQuery = $update->callbackQuery;
-        $inlineMessageId = $callbackQuery->inlineMessageId;
-
-        $gameId = new GameManager()->resolveGameIdByInlineMessageId($inlineMessageId);
-        if (null === $gameId || null === ($game = GameFactory::tryFromGameId($gameId))) {
-            $this->telegramSender->removeInlineKeyboard($inlineMessageId);
-            $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_NOT_FOUND);
-
-            return;
-        }
 
         if (GameDateTimeResolver::isKickoffPast($game->getTitle(), $game->getCreatedAt())) {
             // Self-heal the stale keyboard: rebuilding drops the refresh button via WeatherAddOn.
-            new InlineMessageRefresher($this->telegramSender)->refresh($inlineMessageId);
+            new InlineMessageRefresher($this->telegramSender)->refresh($callbackQuery->inlineMessageId);
             $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_ALREADY_STARTED);
 
             return;

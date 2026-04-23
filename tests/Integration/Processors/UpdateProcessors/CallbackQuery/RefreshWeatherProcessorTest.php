@@ -104,7 +104,7 @@ final class RefreshWeatherProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
-    public function testPastKickoffAnswersGameStartedToastEditsMessageAndDoesNotEnqueue(): void
+    public function testPastDayRemovesKeyboardAndAnswersGameFinishedAndDoesNotEnqueue(): void
     {
         $gameId = $this->seedFullGame(
             inlineMessageId: 'msg_1',
@@ -114,10 +114,28 @@ final class RefreshWeatherProcessorTest extends ProcessorTestCase
 
         $this->process('msg_1');
 
-        $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_STARTED);
+        $this->assertKeyboardRemoved();
+        $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
+        $this->assertMessageNotEdited();
         $this->assertNull($this->dequeueForGame($gameId));
-        // Self-heal: rebuilding the inline message strips the stale refresh button.
+    }
+
+    public function testTodayPastHourAnswersGameStartedAndRefreshesInlineMessageAndDoesNotEnqueue(): void
+    {
+        $today = new DateTimeImmutable()->format('d.m.Y');
+        $gameId = $this->seedFullGame(
+            inlineMessageId: 'msg_1',
+            title: "Bogatell {$today} 00:01",
+        );
+        $this->db->update('games', ['location' => '41.397,2.211'], ['game_id' => $gameId]);
+
+        $this->process('msg_1');
+
+        $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_STARTED);
+        // Self-heal: rebuilding the inline message strips the stale refresh button via WeatherAddOn.
         $this->assertMessageEdited();
+        $this->assertKeyboardNotRemoved();
+        $this->assertNull($this->dequeueForGame($gameId));
     }
 
     private function process(string $inlineMessageId): void
