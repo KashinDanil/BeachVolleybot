@@ -1,6 +1,6 @@
 -include config/paths.env
 
-APP_WORKER_CMD = $(CURDIR)/bin/run_worker 'BeachVolleybot\Workers\FileQueueWorker'
+APP_WORKER_CMD = $(CURDIR)/bin/run_worker 'BeachVolleybot\Workers\AppQueueWorker'
 WEATHER_WORKER_CMD = $(CURDIR)/bin/run_worker 'BeachVolleybot\Workers\WeatherQueueWorker'
 
 .PHONY: app-worker-run weather-worker-run workers-start workers-stop workers-restart
@@ -16,7 +16,7 @@ workers-start:
 	$(WEATHER_WORKER_CMD) 1>/dev/null 2>>$(CURDIR)/config/$(LOGS_DIR)/weather-worker-errors.log &
 
 workers-stop:
-	pkill -f '$(CURDIR)/bin/run_worker.*FileQueue[W]orker' || true
+	pkill -f '$(CURDIR)/bin/run_worker.*AppQueue[W]orker' || true
 	pkill -f '$(CURDIR)/bin/run_worker.*WeatherQueue[W]orker' || true
 
 workers-restart:

@@ -6,9 +6,9 @@ namespace BeachVolleybot\Workers;
 
 use BeachVolleybot\Processors\AppQueueProcessor;
 use DanilKashin\FileQueue\Queue\QueueMessage;
-use DanilKashin\FileQueue\Workers\FileQueueWorker as VendorFileQueueWorker;
+use DanilKashin\FileQueue\Workers\FileQueueWorker;
 
-final class FileQueueWorker extends VendorFileQueueWorker
+final class AppQueueWorker extends FileQueueWorker
 {
     private AppQueueProcessor $processor;
 

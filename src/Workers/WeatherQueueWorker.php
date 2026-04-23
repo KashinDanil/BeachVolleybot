@@ -10,9 +10,9 @@ use BeachVolleybot\Game\AddOns\WeatherAddOn;
 use BeachVolleybot\Processors\WeatherQueueProcessor;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 use DanilKashin\FileQueue\Queue\QueueMessage;
-use DanilKashin\FileQueue\Workers\FileQueueWorker as VendorFileQueueWorker;
+use DanilKashin\FileQueue\Workers\FileQueueWorker;
 
-final class WeatherQueueWorker extends VendorFileQueueWorker
+final class WeatherQueueWorker extends FileQueueWorker
 {
     private WeatherQueueProcessor $processor;
 

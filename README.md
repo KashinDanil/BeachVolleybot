@@ -34,7 +34,7 @@ Telegram Webhook
   → public/tg-bot.php (validation, authentication)
     → IncomingMessageRouter (routing)
       → IncomingMessageQueueRouter (enqueue)
-        → FileQueueWorker (async processing)
+        → AppQueueWorker (async processing)
           → AppQueueProcessor (dispatch)
             → UpdateProcessors (game logic)
               → RateLimitedBotApi (rate-limited Telegram API calls)
