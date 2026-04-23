@@ -6,13 +6,11 @@ namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Processors\WeatherQueueProcessor;
 use BeachVolleybot\Telegram\InlineMessageRefresher;
-use BeachVolleybot\Tests\Integration\Processors\Stub\FakeOpenMeteoLocationResolver;
 use BeachVolleybot\Tests\Integration\Processors\Stub\FakeWeatherApiClient;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
 use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
 use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
-use BeachVolleybot\Weather\Location\Cache\LocationCacheManager;
 use BeachVolleybot\Weather\Location\GameLocationResolver;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
@@ -23,9 +21,7 @@ use DateTimeZone;
 final class WeatherQueueProcessorTest extends ProcessorTestCase
 {
     private FakeWeatherApiClient $weatherClient;
-    private FakeOpenMeteoLocationResolver $geocodingClient;
     private WeatherCacheManager $weatherCache;
-    private LocationCacheManager $geocodingCache;
     private WeatherQueueProcessor $processor;
 
     protected function setUp(): void
@@ -37,11 +33,9 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
 
         $this->weatherClient = new FakeWeatherApiClient();
         $this->weatherCache = new WeatherCacheManager();
-        $this->geocodingCache = new LocationCacheManager();
-        $this->geocodingClient = new FakeOpenMeteoLocationResolver($this->geocodingCache);
 
         $this->processor = new WeatherQueueProcessor(
-            locationResolver: new GameLocationResolver($this->geocodingClient),
+            locationResolver: new GameLocationResolver(),
             weatherCacheUpdater: new WeatherCacheUpdater($this->weatherClient, $this->weatherCache),
             inlineMessageRefresher: new InlineMessageRefresher($this->telegramSender),
         );
@@ -89,7 +83,6 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $ok = $this->processor->process($this->messageFor($gameId));
 
         $this->assertTrue($ok);
-        $this->assertSame([], $this->geocodingClient->queries);
         $this->assertCount(1, $this->weatherClient->calls);
         $call = $this->weatherClient->calls[0];
         $this->assertSame(41.4, $call['coords']->latitude);
@@ -100,49 +93,29 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $this->assertSame(['inline_' . $gameId], $this->refreshedInlineMessageIds());
     }
 
-    public function testVenueQueryPopulatesGeocodingCacheAndThenFetches(): void
+    public function testTitleWithKnownVenueFetchesAtWhitelistCoords(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
         $gameId = $this->insertGame(title: "Bogatell $kickoffDay 18:00");
-        $this->geocodingClient->responses = ['Bogatell' => new LocationCoordinates(41.397, 2.211)];
 
         $ok = $this->processor->process($this->messageFor($gameId));
 
         $this->assertTrue($ok);
-        $this->assertSame(['Bogatell'], $this->geocodingClient->queries);
-        $cachedRow = $this->geocodingCache->find('Bogatell');
-        $this->assertNotNull($cachedRow);
-        $this->assertNotNull($cachedRow->coordinates);
-        $this->assertSame(41.397, $cachedRow->coordinates->latitude);
         $this->assertCount(1, $this->weatherClient->calls);
-        $this->assertSame(41.397, $this->weatherClient->calls[0]['coords']->latitude);
+        // KnownVenues → Bogatell is 41.394, 2.208.
+        $this->assertSame(41.394, $this->weatherClient->calls[0]['coords']->latitude);
+        $this->assertSame(2.208, $this->weatherClient->calls[0]['coords']->longitude);
     }
 
-    public function testCachedGeocodingHitDoesNotCallGeocoder(): void
-    {
-        $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
-        $gameId = $this->insertGame(title: "Bogatell $kickoffDay 18:00");
-        $this->geocodingCache->remember('Bogatell', new LocationCoordinates(41.397, 2.211));
-
-        $ok = $this->processor->process($this->messageFor($gameId));
-
-        $this->assertTrue($ok);
-        $this->assertSame([], $this->geocodingClient->queries);
-        $this->assertCount(1, $this->weatherClient->calls);
-        $this->assertSame(41.397, $this->weatherClient->calls[0]['coords']->latitude);
-    }
-
-    public function testCachedGeocodingMissFallsBackToDefaultCoords(): void
+    public function testUnknownVenueFallsBackToDefaultCoords(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
         $gameId = $this->insertGame(title: "UnknownPlace $kickoffDay 18:00");
-        $this->geocodingCache->remember('UnknownPlace', null);
 
         $ok = $this->processor->process($this->messageFor($gameId));
 
         $this->assertTrue($ok);
-        $this->assertSame([], $this->geocodingClient->queries);
-        // Default coords (Playa de Bogatell) after ->rounded() → 41.394, 2.207
+        // Default coords (Playa de Bogatell) after ->rounded() → 41.394, 2.207.
         $this->assertCount(1, $this->weatherClient->calls);
         $this->assertSame(41.394, $this->weatherClient->calls[0]['coords']->latitude);
         $this->assertSame(2.207, $this->weatherClient->calls[0]['coords']->longitude);

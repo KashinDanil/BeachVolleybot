@@ -12,16 +12,13 @@ use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
 use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use BeachVolleybot\Weather\Location\GameLocationResolver;
-use BeachVolleybot\Weather\Location\Resolvers\OpenMeteoLocationResolver;
 use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 
 final readonly class WeatherQueueProcessor implements QueueProcessorInterface
 {
     public function __construct(
-        private GameLocationResolver $locationResolver = new GameLocationResolver(
-            new OpenMeteoLocationResolver(),
-        ),
+        private GameLocationResolver $locationResolver = new GameLocationResolver(),
         private WeatherCacheUpdater $weatherCacheUpdater = new WeatherCacheUpdater(),
         private WeatherWindowResolver $windowResolver = new WeatherWindowResolver(),
         private InlineMessageRefresher $inlineMessageRefresher = new InlineMessageRefresher(

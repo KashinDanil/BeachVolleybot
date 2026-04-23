@@ -8,15 +8,12 @@ use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use BeachVolleybot\Weather\Location\GameLocationResolver;
-use BeachVolleybot\Weather\Location\Resolvers\CachedLocationResolver;
 use DateTimeZone;
 
 final readonly class GameWeatherLookup
 {
     public function __construct(
-        private GameLocationResolver $locationResolver = new GameLocationResolver(
-            new CachedLocationResolver(),
-        ),
+        private GameLocationResolver $locationResolver = new GameLocationResolver(),
         private WeatherCacheManager $weatherCache = new WeatherCacheManager(),
         private WeatherWindowResolver $windowResolver = new WeatherWindowResolver(),
     ) {

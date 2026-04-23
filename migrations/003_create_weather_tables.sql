@@ -7,12 +7,3 @@ CREATE TABLE IF NOT EXISTS weather_cache
     fetched_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (latitude, longitude, forecast_ts)
 );
-
-CREATE TABLE IF NOT EXISTS location_cache
-(
-    query      TEXT      NOT NULL,
-    latitude   REAL,
-    longitude  REAL,
-    fetched_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (query)
-);
