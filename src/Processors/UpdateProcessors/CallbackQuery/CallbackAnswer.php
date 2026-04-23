@@ -20,4 +20,5 @@ final class CallbackAnswer
     public const string SOMETHING_WENT_WRONG = "Something went wrong";
     public const string REFRESHING_WEATHER   = "🔄 Refreshing forecast…";
     public const string REFRESH_COOLDOWN     = "🕒 Please wait a few minutes before refreshing again";
+    public const string GAME_ALREADY_STARTED = "🕒 This game has already started — forecast no longer updates";
 }

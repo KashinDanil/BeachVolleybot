@@ -89,4 +89,72 @@ final class GameDateTimeResolverTest extends TestCase
     {
         $this->assertNull(GameDateTimeResolver::resolve('', new DateTimeImmutable('2026-04-10')));
     }
+
+    // --- isKickoffPast ---
+
+    public function testIsKickoffPastTrueWhenKickoffBeforeNow(): void
+    {
+        $this->assertTrue(GameDateTimeResolver::isKickoffPast(
+            'Bogatell 12.04.2026 18:00',
+            new DateTimeImmutable('2026-03-01'),
+            new DateTimeImmutable('2026-04-12 18:30:00'),
+        ));
+    }
+
+    public function testIsKickoffPastFalseWhenKickoffAfterNow(): void
+    {
+        $this->assertFalse(GameDateTimeResolver::isKickoffPast(
+            'Bogatell 12.04.2026 18:00',
+            new DateTimeImmutable('2026-03-01'),
+            new DateTimeImmutable('2026-04-12 17:30:00'),
+        ));
+    }
+
+    public function testIsKickoffPastFalseWhenTitleHasNoTime(): void
+    {
+        $this->assertFalse(GameDateTimeResolver::isKickoffPast(
+            'Bogatell Saturday',
+            new DateTimeImmutable('2026-04-10'),
+            new DateTimeImmutable('2100-01-01'),
+        ));
+    }
+
+    // --- isKickoffDayPast ---
+
+    public function testIsKickoffDayPastFalseForSameDayKickoffInThePast(): void
+    {
+        // Same-day check: kickoff at 10:00, "now" 18:00 same day → hour is past but day isn't.
+        $this->assertFalse(GameDateTimeResolver::isKickoffDayPast(
+            'Bogatell 12.04.2026 10:00',
+            new DateTimeImmutable('2026-03-01'),
+            new DateTimeImmutable('2026-04-12 18:00:00'),
+        ));
+    }
+
+    public function testIsKickoffDayPastTrueWhenKickoffOnPreviousDay(): void
+    {
+        $this->assertTrue(GameDateTimeResolver::isKickoffDayPast(
+            'Bogatell 12.04.2026 18:00',
+            new DateTimeImmutable('2026-03-01'),
+            new DateTimeImmutable('2026-04-13 00:00:00'),
+        ));
+    }
+
+    public function testIsKickoffDayPastFalseForTomorrowKickoff(): void
+    {
+        $this->assertFalse(GameDateTimeResolver::isKickoffDayPast(
+            'Bogatell 13.04.2026 18:00',
+            new DateTimeImmutable('2026-03-01'),
+            new DateTimeImmutable('2026-04-12 23:59:59'),
+        ));
+    }
+
+    public function testIsKickoffDayPastFalseWhenTitleHasNoTime(): void
+    {
+        $this->assertFalse(GameDateTimeResolver::isKickoffDayPast(
+            'Bogatell Saturday',
+            new DateTimeImmutable('2026-04-10'),
+            new DateTimeImmutable('2100-01-01'),
+        ));
+    }
 }

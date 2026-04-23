@@ -22,4 +22,30 @@ final class GameDateTimeResolver
 
         return $gameDate->setTime((int) $hour, (int) $minute);
     }
+
+    public static function isKickoffPast(
+        string $title,
+        DateTimeImmutable $creationDate,
+        ?DateTimeImmutable $now = null,
+    ): bool {
+        $kickoff = self::resolve($title, $creationDate);
+
+        return null !== $kickoff && $kickoff < ($now ?? new DateTimeImmutable());
+    }
+
+    public static function isKickoffDayPast(
+        string $title,
+        DateTimeImmutable $creationDate,
+        ?DateTimeImmutable $now = null,
+    ): bool {
+        $kickoff = self::resolve($title, $creationDate);
+
+        if (null === $kickoff) {
+            return false;
+        }
+
+        $startOfToday = ($now ?? new DateTimeImmutable())->setTime(0, 0);
+
+        return $kickoff < $startOfToday;
+    }
 }

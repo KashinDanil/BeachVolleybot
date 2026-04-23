@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\AddOns;
 
+use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
@@ -59,6 +60,11 @@ final class WeatherAddOn implements GameAddOnInterface
             'buildKeyboard',
             static function (GameInterface $game) use ($previousKeyboard, $builder): array {
                 $rows = $previousKeyboard($game);
+
+                if (GameDateTimeResolver::isKickoffPast($game->getTitle(), $game->getCreatedAt())) {
+                    return $rows;
+                }
+
                 $rows[] = [
                     $builder->buildActionButton(
                         self::REFRESH_BUTTON_LABEL,

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
+use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
+use BeachVolleybot\Telegram\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
@@ -30,33 +33,36 @@ final class RefreshWeatherProcessor extends AbstractCallbackProcessor
         $inlineMessageId = $callbackQuery->inlineMessageId;
 
         $gameId = new GameManager()->resolveGameIdByInlineMessageId($inlineMessageId);
-
-        if (null === $gameId) {
+        if (null === $gameId || null === ($game = GameFactory::tryFromGameId($gameId))) {
             $this->telegramSender->removeInlineKeyboard($inlineMessageId);
             $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_NOT_FOUND);
 
             return;
         }
 
-        if ($this->isOnCooldown($gameId)) {
+        if (GameDateTimeResolver::isKickoffPast($game->getTitle(), $game->getCreatedAt())) {
+            // Self-heal the stale keyboard: rebuilding drops the refresh button via WeatherAddOn.
+            new InlineMessageRefresher($this->telegramSender)->refresh($inlineMessageId);
+            $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_ALREADY_STARTED);
+
+            return;
+        }
+
+        if ($this->isOnCooldown($game)) {
             $this->answerCallbackQuery($callbackQuery, CallbackAnswer::REFRESH_COOLDOWN);
 
             return;
         }
 
-        $this->weatherEnqueuer->enqueue($gameId, force: true);
-        $this->logUserAction($callbackQuery->from, 'refresh_weather', "gameId=$gameId");
+        $this->weatherEnqueuer->enqueue($game->getGameId(), force: true);
+        $this->logUserAction($callbackQuery->from, 'refresh_weather', "gameId={$game->getGameId()}");
         $this->answerCallbackQuery($callbackQuery, CallbackAnswer::REFRESHING_WEATHER);
     }
 
-    private function isOnCooldown(int $gameId): bool
+    private function isOnCooldown(GameInterface $game): bool
     {
-        $game = GameFactory::tryFromGameId($gameId);
-        if (null === $game) {
-            return false;
-        }
-
         $lookup = $this->gameWeatherLookup->find($game);
+
         if (null === $lookup) {
             return false;
         }

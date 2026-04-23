@@ -166,6 +166,34 @@ final class WeatherAddOnTest extends DatabaseTestCase
         }
     }
 
+    public function testRefreshButtonAbsentWhenKickoffIsPastEvenIfSectionRenders(): void
+    {
+        // Kickoff 2 hours ago: forecast is cached at its original UTC kickoff, so the
+        // weather section still renders (display is not horizon-gated), but refresh is
+        // meaningless — the button must not appear.
+        $pastKickoff = new DateTimeImmutable('-2 hours');
+        $coordinates = new LocationCoordinates(41.397, 2.211);
+        $kickoffUtc = $pastKickoff->setTimezone(new DateTimeZone('UTC'))->setTime((int) $pastKickoff->format('G'), 0);
+        $this->weatherCache->save($coordinates, $kickoffUtc, $this->snapshotForHour($kickoffUtc));
+        $game = $this->game(
+            title: 'Beach ' . $pastKickoff->format('d.m.Y') . ' ' . $pastKickoff->format('H') . ':00',
+            location: '41.397,2.211',
+        );
+
+        $this->addOn->applyTo($game);
+
+        $sections = $game->telegramMessageBuilder->getSections($game);
+        $this->assertNotNull($sections[3]);
+        $this->assertStringContainsString('Weather', $sections[3]);
+
+        $keyboard = $game->telegramMessageBuilder->buildKeyboard($game);
+        foreach ($keyboard as $row) {
+            foreach ($row as $button) {
+                $this->assertStringNotContainsString('🔄', $button['text']);
+            }
+        }
+    }
+
     public function testSectionIsCapturedAtApplyTimeAndUnaffectedByLaterCacheChanges(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days');
