@@ -24,10 +24,10 @@ final readonly class GameWeatherLookup
 
     public function find(GameInterface $game): ?GameWeatherLookupResult
     {
+        // The display path is not horizon-gated: once a forecast is in the DB, we
+        // keep surfacing it, even past kickoff. Fetching is still horizon-gated
+        // via WeatherWindowResolver in WeatherQueueProcessor.
         $window = $this->windowResolver->windowForGame($game);
-        if (empty($window->hours)) {
-            return null;
-        }
 
         $coordinates = $this->locationResolver->resolve($game)->rounded();
         $kickoffUtc = $window->kickoffHour->setTimezone(new DateTimeZone('UTC'));

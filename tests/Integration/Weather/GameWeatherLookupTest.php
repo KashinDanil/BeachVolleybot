@@ -38,10 +38,11 @@ final class GameWeatherLookupTest extends DatabaseTestCase
         Connection::close();
     }
 
-    public function testReturnsNullWhenWindowHasNoHours(): void
+    public function testReturnsNullWhenTitleHasNoTime(): void
     {
-        $farFutureDay = new DateTimeImmutable('+10 days');
-        $game = $this->game('Beach ' . $farFutureDay->format('d.m.Y') . ' 18:00', '41.397,2.211');
+        // Without a kickoff time in the title we can't compute a cache key,
+        // so the lookup bails regardless of whether rows exist.
+        $game = $this->game('Beach Saturday', '41.397,2.211');
 
         $this->assertNull($this->lookup->find($game));
     }
@@ -52,6 +53,25 @@ final class GameWeatherLookupTest extends DatabaseTestCase
         $game = $this->game('Beach ' . $kickoffDay->format('d.m.Y') . ' 18:00', '41.397,2.211');
 
         $this->assertNull($this->lookup->find($game));
+    }
+
+    public function testReturnsRowEvenWhenKickoffIsInThePast(): void
+    {
+        // Cache seeded for a past kickoff — display must still surface it.
+        // Fetching is gated by WeatherWindowResolver, but display isn't.
+        $kickoffDay = new DateTimeImmutable('-1 day');
+        $kickoffUtc = $this->kickoffUtc($kickoffDay, 18);
+        $this->weatherCache->save(
+            new LocationCoordinates(41.397, 2.211),
+            $kickoffUtc,
+            $this->snapshotForHour($kickoffUtc),
+        );
+        $game = $this->game('Beach ' . $kickoffDay->format('d.m.Y') . ' 18:00', '41.397,2.211');
+
+        $result = $this->lookup->find($game);
+
+        $this->assertNotNull($result);
+        $this->assertSame('18:00', $result->kickoffHour->format('H:i'));
     }
 
     public function testReturnsRowAndKickoffHourWhenCacheHasRow(): void
