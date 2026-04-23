@@ -22,7 +22,7 @@ final readonly class WeatherFormatter
     private const int DEGREES_PER_COMPASS_POINT = 45;
 
     /** @var list<string> */
-    private const array COMPASS_POINTS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    private const array COMPASS_POINTS = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
 
     public function __construct(
         private MessageFormatterInterface $messageFormatter = new MarkdownV2(),
@@ -39,19 +39,17 @@ final readonly class WeatherFormatter
             return null;
         }
 
-        $heading = $this->buildHeading($snapshot, $kickoffHour);
+        $heading = $this->buildHeading();
         $rows = $this->buildRows($snapshot, $kickoffHour);
         $footer = $this->buildFooter($fetchedAt, $coordinates);
+        $section = implode($this->messageFormatter->newLine(), [$heading, ...$rows, $footer]);
 
-        return implode($this->messageFormatter->newLine(), [$heading, ...$rows, $footer]);
+        return $this->messageFormatter->blockquote($section);
     }
 
-    private function buildHeading(WeatherSnapshot $snapshot, DateTimeImmutable $kickoffHour): string
+    private function buildHeading(): string
     {
-        $kickoffCode = $snapshot->forHour($kickoffHour)?->weatherCode;
-        $emoji = $this->emojiForWeatherCode($kickoffCode);
-
-        return "$emoji Weather";
+        return $this->messageFormatter->bold('Weather');
     }
 
     /** @return list<string> */
@@ -117,12 +115,9 @@ final readonly class WeatherFormatter
      * @see https://open-meteo.com/en/docs
      * @see https://codes.wmo.int/bufr4/codeflag/_0-20-003
      */
-    private function emojiForWeatherCode(?int $weatherCode): string
+    private function emojiForWeatherCode(int $weatherCode): string
     {
         return match (true) {
-            // Kickoff hour missing from the snapshot — defensive fallback.
-            null === $weatherCode => self::DEFAULT_WEATHER_EMOJI,
-
             // Clear & cloud cover (WMO 00-03)
             0 === $weatherCode => '☀️',
             1 === $weatherCode => '🌤️',

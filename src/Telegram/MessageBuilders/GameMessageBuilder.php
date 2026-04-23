@@ -85,7 +85,9 @@ final class GameMessageBuilder extends AbstractMessageBuilder
             return null;
         }
 
-        return $this->formatter->blockquote('⚠️ ' . implode($this->formatter->newLine(), $messages)) . $this->formatter->newLine();
+        $warningText = $this->formatter->escape('⚠️ ' . implode($this->formatter->newLine(), $messages));
+
+        return $this->formatter->blockquote($warningText) . $this->formatter->newLine();
     }
 
     protected function defaultBuildTitle(GameInterface $game): string

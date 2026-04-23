@@ -34,9 +34,29 @@ final class WeatherFormatterTest extends TestCase
         $this->assertNull($output);
     }
 
+    // --- blockquote wrapping ---
+
+    public function testEveryLineIsBlockquoted(): void
+    {
+        $output = (string) $this->formatter->format(
+            new WeatherSnapshot([
+                $this->weatherHour('2026-04-15 17:00:00'),
+                $this->weatherHour('2026-04-15 18:00:00'),
+                $this->weatherHour('2026-04-15 19:00:00'),
+            ]),
+            new LocationCoordinates(41.397, 2.211),
+            $this->hour('2026-04-15 18:00:00'),
+            $this->hour('2026-04-15 12:00:00'),
+        );
+
+        foreach (explode("\n", $output) as $line) {
+            $this->assertStringStartsWith('>', $line);
+        }
+    }
+
     // --- heading ---
 
-    public function testHeadingEmojiReflectsKickoffHourWmoCode(): void
+    public function testHeadingIsBoldWeatherLabel(): void
     {
         $output = $this->formatter->format(
             new WeatherSnapshot([$this->weatherHour('2026-04-15 18:00:00', weatherCode: 0)]),
@@ -45,19 +65,7 @@ final class WeatherFormatterTest extends TestCase
             $this->hour('2026-04-15 12:00:00'),
         );
 
-        $this->assertStringStartsWith('☀️ Weather', (string) $output);
-    }
-
-    public function testHeadingFallsBackWhenKickoffHourIsNotInSnapshot(): void
-    {
-        $output = $this->formatter->format(
-            new WeatherSnapshot([$this->weatherHour('2026-04-15 17:00:00', weatherCode: 61)]),
-            new LocationCoordinates(41.397, 2.211),
-            $this->hour('2026-04-15 18:00:00'),
-            $this->hour('2026-04-15 12:00:00'),
-        );
-
-        $this->assertStringStartsWith('🌤️ Weather', (string) $output);
+        $this->assertStringStartsWith('>*Weather*', (string) $output);
     }
 
     // --- per-hour emoji ---
@@ -185,24 +193,24 @@ final class WeatherFormatterTest extends TestCase
             $this->hour('2026-04-15 12:00:00'),
         );
 
-        $this->assertMatchesRegularExpression('/m\/s ' . preg_quote($expected, '/') . '\b/', $output);
+        $this->assertStringContainsString('m/s ' . $expected, $output);
     }
 
     /** @return array<string, array{int, string}> */
     public static function compassBearings(): array
     {
         return [
-            'north at 0'      => [0, 'N'],
-            'north at 360'    => [360, 'N'],
-            'northeast at 45' => [45, 'NE'],
-            'east at 90'      => [90, 'E'],
-            'southeast at 135' => [135, 'SE'],
-            'south at 180'    => [180, 'S'],
-            'southwest at 225' => [225, 'SW'],
-            'west at 270'     => [270, 'W'],
-            'northwest at 315' => [315, 'NW'],
-            'near north 10'   => [10, 'N'],
-            'between n and ne 23'  => [23, 'NE'],
+            'north at 0'       => [0, '↑'],
+            'north at 360'     => [360, '↑'],
+            'northeast at 45'  => [45, '↗'],
+            'east at 90'       => [90, '→'],
+            'southeast at 135' => [135, '↘'],
+            'south at 180'     => [180, '↓'],
+            'southwest at 225' => [225, '↙'],
+            'west at 270'      => [270, '←'],
+            'northwest at 315' => [315, '↖'],
+            'near north 10'    => [10, '↑'],
+            'between n and ne 23'  => [23, '↗'],
         ];
     }
 

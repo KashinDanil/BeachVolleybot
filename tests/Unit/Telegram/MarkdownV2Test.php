@@ -135,9 +135,11 @@ final class MarkdownV2Test extends TestCase
         $this->assertSame(">line1\n>line2", $this->formatter->blockquote("line1\nline2"));
     }
 
-    public function testBlockquoteEscapesContent(): void
+    public function testBlockquoteDoesNotEscapeContent(): void
     {
-        $this->assertSame('>hello\!', $this->formatter->blockquote('hello!'));
+        // `>` is a structural wrapper: inner MarkdownV2 markers must pass through
+        // so blockquoted text can still contain bold, links, etc.
+        $this->assertSame('>*bold*', $this->formatter->blockquote('*bold*'));
     }
 
     // --- link ---

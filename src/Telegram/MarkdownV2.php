@@ -50,7 +50,10 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
 
     public function blockquote(string $text): string
     {
-        return '>' . implode("\n>", explode("\n", $this->escape($text)));
+        // Does not escape — `>` is a structural marker that wraps already-valid
+        // MarkdownV2 content (bold, links, etc. inside a blockquote render
+        // normally). Callers passing plain text should escape first.
+        return '>' . implode("\n>", explode("\n", $text));
     }
 
     public function link(string $text, string $url): string
