@@ -17,6 +17,7 @@ define('QUEUE_CLASS', \DanilKashin\FileQueue\Queue\FileQueue::class);
 define('GAME_ADD_ONS', [
     \BeachVolleybot\Game\AddOns\MergeConsecutiveSlotsAddOn::class,
     \BeachVolleybot\Game\AddOns\StylizeTitleAddOn::class,
+    \BeachVolleybot\Game\AddOns\WeatherAddOn::class,
 ]);
 define('TG_MAX_REQUESTS_PER_SECOND', 19);
 define('DB_CONNECTION', [
