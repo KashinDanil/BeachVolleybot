@@ -86,6 +86,10 @@ readonly class IncomingMessageQueueRouter
             return $this->pinQueueName($message->chat->id);
         }
 
+        if ($message->isPinMessage() && $message->from->isThisBot()) {
+            return $this->pinQueueName($message->chat->id);
+        }
+
         if (!$message->replyToMessage?->isViaThisBot()) {
             return $this->skip('Not a reply to a message from this bot');
         }

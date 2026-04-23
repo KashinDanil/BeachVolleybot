@@ -140,6 +140,55 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->assertEnqueuedOnce('dm_123');
     }
 
+    public function testPinServiceMessageFromThisBotRoutesToPinQueue(): void
+    {
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
+            'message' => [
+                'message_id' => 353,
+                'from' => ['id' => 999, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
+                'chat' => ['id' => -1003759398496, 'type' => 'supergroup'],
+                'date' => 1700000000,
+                'pinned_message' => [
+                    'message_id' => 352,
+                    'from' => ['id' => 1, 'first_name' => 'User', 'is_bot' => false],
+                    'chat' => ['id' => -1003759398496, 'type' => 'supergroup'],
+                    'date' => 1700000000,
+                    'text' => 'pinned text',
+                    'via_bot' => ['id' => 999, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                ],
+            ],
+        ]);
+
+        $this->router->route($update);
+
+        $this->assertEnqueuedOnce('pin_-1003759398496');
+    }
+
+    public function testPinServiceMessageFromOtherBotIsSkipped(): void
+    {
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
+            'message' => [
+                'message_id' => 353,
+                'from' => ['id' => 777, 'first_name' => 'Other', 'is_bot' => true, 'username' => 'some_other_bot'],
+                'chat' => ['id' => -1003759398496, 'type' => 'supergroup'],
+                'date' => 1700000000,
+                'pinned_message' => [
+                    'message_id' => 352,
+                    'from' => ['id' => 1, 'first_name' => 'User', 'is_bot' => false],
+                    'chat' => ['id' => -1003759398496, 'type' => 'supergroup'],
+                    'date' => 1700000000,
+                    'text' => 'pinned text',
+                ],
+            ],
+        ]);
+
+        $this->router->route($update);
+
+        $this->assertNothingEnqueued();
+    }
+
     public function testNonReplyGroupMessageIsSkipped(): void
     {
         $update = TelegramUpdate::fromArray([
