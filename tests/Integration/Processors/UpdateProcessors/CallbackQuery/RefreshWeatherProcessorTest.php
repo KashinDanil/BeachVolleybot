@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
+use BeachVolleybot\Game\AddOns\WeatherAddOn;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RefreshWeatherProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -144,7 +145,10 @@ final class RefreshWeatherProcessorTest extends ProcessorTestCase
             $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'rw'])),
         );
 
-        new RefreshWeatherProcessor($this->telegramSender)->process($update);
+        new RefreshWeatherProcessor(
+            $this->telegramSender,
+            weatherEnqueuer: new WeatherEnqueuer(addOns: [WeatherAddOn::class]),
+        )->process($update);
     }
 
     private function dequeueForGame(int $gameId): ?WeatherQueuePayload

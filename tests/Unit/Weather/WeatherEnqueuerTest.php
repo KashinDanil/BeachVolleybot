@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Weather;
 
+use BeachVolleybot\Game\AddOns\WeatherAddOn;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use DanilKashin\FileQueue\Queue\FileQueue;
@@ -28,7 +29,7 @@ final class WeatherEnqueuerTest extends TestCase
 
     public function testEnqueueWritesPayloadThatDequeuesBack(): void
     {
-        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir);
+        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
 
         $enqueuer->enqueue(42, force: true);
 
@@ -42,7 +43,7 @@ final class WeatherEnqueuerTest extends TestCase
 
     public function testDefaultForceIsFalse(): void
     {
-        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir);
+        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
 
         $enqueuer->enqueue(7);
 
@@ -53,7 +54,7 @@ final class WeatherEnqueuerTest extends TestCase
 
     public function testDifferentGamesWriteToSeparateQueueFiles(): void
     {
-        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir);
+        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
 
         $enqueuer->enqueue(1);
         $enqueuer->enqueue(2);
@@ -69,7 +70,7 @@ final class WeatherEnqueuerTest extends TestCase
 
     public function testMultipleEnqueuesForSameGameAppendToSameQueue(): void
     {
-        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir);
+        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
 
         $enqueuer->enqueue(5, force: false);
         $enqueuer->enqueue(5, force: true);
@@ -82,6 +83,15 @@ final class WeatherEnqueuerTest extends TestCase
         $this->assertNotNull($second);
         $this->assertFalse(WeatherQueuePayload::fromArray($first->payload)->force);
         $this->assertTrue(WeatherQueuePayload::fromArray($second->payload)->force);
+    }
+
+    public function testEnqueueSilentlySkipsWhenWeatherAddOnIsNotEnabled(): void
+    {
+        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: []);
+
+        $enqueuer->enqueue(42, force: true);
+
+        $this->assertNull(new FileQueue('weather_42', $this->baseDir)->dequeue());
     }
 
     private function removeDirectory(string $path): void
