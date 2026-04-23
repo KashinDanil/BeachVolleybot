@@ -242,6 +242,30 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    protected function pinNotificationPayload(int $chatId, int $messageId, int $pinnedMessageId): array
+    {
+        $pinned = [
+            'message_id' => $pinnedMessageId,
+            'from' => ['id' => 200, 'first_name' => 'Danil', 'is_bot' => false],
+            'chat' => ['id' => $chatId, 'type' => 'supergroup'],
+            'date' => 1700000000,
+            'text' => 'game body',
+            'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+        ];
+
+        return [
+            'update_id' => 1,
+            'message' => [
+                'message_id' => $messageId,
+                'from' => ['id' => 999, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                'chat' => ['id' => $chatId, 'type' => 'supergroup'],
+                'date' => 1700000001,
+                'reply_to_message' => $pinned,
+                'pinned_message' => $pinned,
+            ],
+        ];
+    }
+
     protected function privateMessagePayload(
         string $text,
         int $fromId = 12345678,
