@@ -122,6 +122,30 @@ final class WeatherFormatterTest extends TestCase
         $this->assertStringNotContainsString('*🕘 19:00', $output);
     }
 
+    public function testKickoffRowBoldMatchesWallClockEvenWhenZonesDiffer(): void
+    {
+        // Snapshot hours in Madrid local time (what Open-Meteo returns with timezone=auto).
+        $snapshotZone = new DateTimeZone('Europe/Madrid');
+        $kickoffZone = new DateTimeZone('UTC');
+
+        $output = (string) $this->formatter->format(
+            new WeatherSnapshot([
+                $this->weatherHour('2026-04-15 17:00:00', zone: $snapshotZone),
+                $this->weatherHour('2026-04-15 18:00:00', zone: $snapshotZone),
+                $this->weatherHour('2026-04-15 19:00:00', zone: $snapshotZone),
+                $this->weatherHour('2026-04-15 20:00:00', zone: $snapshotZone),
+            ]),
+            new LocationCoordinates(41.397, 2.211),
+            // Kickoff in UTC — same wall-clock 18:00 as the intended Madrid hour,
+            // but its epoch matches Madrid 20:00 (UTC+2). Bold must still land on 18:00.
+            new DateTimeImmutable('2026-04-15 18:00:00', $kickoffZone),
+            $this->hour('2026-04-15 12:00:00'),
+        );
+
+        $this->assertStringContainsString('*🕘 18:00', $output);
+        $this->assertStringNotContainsString('*🕘 20:00', $output);
+    }
+
     // --- footer ---
 
     public function testFooterIsLinkWithCoordsInUrl(): void
@@ -216,9 +240,10 @@ final class WeatherFormatterTest extends TestCase
         int $weatherCode = 0,
         float $windMetersPerSecond = 3.0,
         int $windDirectionDegrees = 0,
+        ?DateTimeZone $zone = null,
     ): WeatherHour {
         return new WeatherHour(
-            hour: $this->hour($at),
+            hour: new DateTimeImmutable($at, $zone ?? new DateTimeZone('UTC')),
             temperatureC: $temperatureC,
             weatherCode: $weatherCode,
             windMetersPerSecond: $windMetersPerSecond,

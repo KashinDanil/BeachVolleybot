@@ -95,7 +95,12 @@ final readonly class WeatherFormatter
 
     private function isKickoffHour(WeatherHour $hour, DateTimeImmutable $kickoffHour): bool
     {
-        return $hour->hour->getTimestamp() === $kickoffHour->getTimestamp();
+        // Wall-clock match (each side's own zone), not absolute timestamp: the
+        // snapshot's hours carry Open-Meteo's local zone while $kickoffHour
+        // typically arrives in UTC (from the game's created_at). Comparing
+        // `Y-m-d H` makes "kickoff is 18:00" pick the row labelled 18:00,
+        // regardless of zone offsets — same semantic as WeatherSnapshot::forHour.
+        return $hour->hour->format('Y-m-d H') === $kickoffHour->format('Y-m-d H');
     }
 
     private function buildFooter(DateTimeImmutable $fetchedAt, LocationCoordinates $coordinates): string
