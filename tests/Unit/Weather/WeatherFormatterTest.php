@@ -68,6 +68,28 @@ final class WeatherFormatterTest extends TestCase
         $this->assertStringStartsWith('>*Weather*', (string) $output);
     }
 
+    // --- row layout ---
+
+    public function testRowLaysOutTimeSkyAndWindGroupsInOrder(): void
+    {
+        $output = (string) $this->formatter->format(
+            new WeatherSnapshot([$this->weatherHour(
+                '2026-04-15 17:00:00',
+                temperatureC: 22.0,
+                weatherCode: 0,
+                windMetersPerSecond: 3.0,
+                windDirectionDegrees: 0,
+            )]),
+            new LocationCoordinates(41.397, 2.211),
+            // Kickoff at 18:00 so the 17:00 row isn't bold-wrapped — assertion
+            // reads the raw row contents.
+            $this->hour('2026-04-15 18:00:00'),
+            $this->hour('2026-04-15 12:00:00'),
+        );
+
+        $this->assertStringContainsString('17:00   ☀️ 22°   💨 ↑ 3 m/s', $output);
+    }
+
     // --- per-hour emoji ---
 
     #[DataProvider('wmoBuckets')]
@@ -125,9 +147,9 @@ final class WeatherFormatterTest extends TestCase
         );
 
         // MarkdownV2 bold wraps the line in *...*
-        $this->assertStringContainsString('*🕘 18:00', $output);
-        $this->assertStringNotContainsString('*🕘 17:00', $output);
-        $this->assertStringNotContainsString('*🕘 19:00', $output);
+        $this->assertStringContainsString('*18:00', $output);
+        $this->assertStringNotContainsString('*17:00', $output);
+        $this->assertStringNotContainsString('*19:00', $output);
     }
 
     public function testKickoffRowBoldMatchesWallClockEvenWhenZonesDiffer(): void
@@ -150,8 +172,8 @@ final class WeatherFormatterTest extends TestCase
             $this->hour('2026-04-15 12:00:00'),
         );
 
-        $this->assertStringContainsString('*🕘 18:00', $output);
-        $this->assertStringNotContainsString('*🕘 20:00', $output);
+        $this->assertStringContainsString('*18:00', $output);
+        $this->assertStringNotContainsString('*20:00', $output);
     }
 
     // --- footer ---
@@ -193,7 +215,7 @@ final class WeatherFormatterTest extends TestCase
             $this->hour('2026-04-15 12:00:00'),
         );
 
-        $this->assertStringContainsString('m/s ' . $expected, $output);
+        $this->assertStringContainsString('💨 ' . $expected, $output);
     }
 
     /** @return array<string, array{int, string}> */

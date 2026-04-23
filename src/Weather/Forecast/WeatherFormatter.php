@@ -14,8 +14,8 @@ use DateTimeImmutable;
 final readonly class WeatherFormatter
 {
     private const string DEFAULT_WEATHER_EMOJI = '🌤️';
-    private const string HOUR_PREFIX_EMOJI     = '🕘';
-    private const string WIND_EMOJI            = '💨';
+    private const string WIND_EMOJI          = '💨';
+    private const string ROW_GROUP_SEPARATOR = '   ';
 
     private const string OPEN_METEO_URL_TEMPLATE = 'https://open-meteo.com/en/docs?latitude=%.4f&longitude=%.4f';
 
@@ -63,13 +63,10 @@ final readonly class WeatherFormatter
 
     private function formatRow(WeatherHour $hour, DateTimeImmutable $kickoffHour): string
     {
-        $line = implode(' ', [
-            self::HOUR_PREFIX_EMOJI,
-            $hour->hour->format('H:i'),
-            $this->emojiForWeatherCode($hour->weatherCode),
-            $this->formatTemperature($hour->temperatureC),
-            $this->formatWind($hour),
-        ]);
+        $time = $hour->hour->format('H:i');
+        $sky = $this->emojiForWeatherCode($hour->weatherCode) . ' ' . $this->formatTemperature($hour->temperatureC);
+        $wind = $this->formatWind($hour);
+        $line = implode(self::ROW_GROUP_SEPARATOR, [$time, $sky, $wind]);
 
         return $this->isKickoffHour($hour, $kickoffHour)
             ? $this->messageFormatter->bold($line)
@@ -84,10 +81,10 @@ final readonly class WeatherFormatter
     private function formatWind(WeatherHour $hour): string
     {
         return sprintf(
-            '%s %d m/s %s',
+            '%s %s %d m/s',
             self::WIND_EMOJI,
-            (int)round($hour->windMetersPerSecond),
             $this->compassDirection($hour->windDirectionDegrees),
+            (int)round($hour->windMetersPerSecond),
         );
     }
 
