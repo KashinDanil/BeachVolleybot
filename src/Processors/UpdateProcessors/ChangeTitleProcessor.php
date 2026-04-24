@@ -9,7 +9,7 @@ use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
 use BeachVolleybot\Validator\Rules\GameCreatorOnlyRule;
-use BeachVolleybot\Validator\Rules\KickoffInTheFutureRule;
+use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Validator;
 
 class ChangeTitleProcessor extends AbstractActionReplyProcessor
@@ -36,7 +36,7 @@ class ChangeTitleProcessor extends AbstractActionReplyProcessor
 
         $validationState = new Validator([
             new GameCreatorOnlyRule($from->id, $gameRecord->createdBy),
-            new KickoffInTheFutureRule($gameRecord->title, $gameRecord->createdAt),
+            new KickoffDayInTheFutureRule($newTitle, $gameRecord->createdAt),
             new DateTimeInTitleRule($newTitle),
         ])->validate();
 
