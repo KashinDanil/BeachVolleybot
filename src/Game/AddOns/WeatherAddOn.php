@@ -9,7 +9,6 @@ use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
-use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
 use BeachVolleybot\Weather\Forecast\WeatherFormatter;
@@ -22,7 +21,6 @@ final class WeatherAddOn implements GameAddOnInterface
 
     public function __construct(
         private readonly GameWeatherLookup $gameWeatherLookup = new GameWeatherLookup(),
-        private readonly WeatherFormatter $weatherFormatter = new WeatherFormatter(new MarkdownV2()),
     ) {
     }
 
@@ -84,7 +82,9 @@ final class WeatherAddOn implements GameAddOnInterface
             return null;
         }
 
-        return $this->weatherFormatter->format(
+        $weatherFormatter = new WeatherFormatter($game->telegramMessageBuilder->getFormatter());
+
+        return $weatherFormatter->format(
             $lookup->row->snapshot,
             $lookup->row->coordinates,
             $lookup->kickoffHour,

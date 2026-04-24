@@ -8,13 +8,11 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\AddOns\WeatherAddOn;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
 use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
 use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
-use BeachVolleybot\Weather\Forecast\WeatherFormatter;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -36,7 +34,6 @@ final class WeatherAddOnTest extends DatabaseTestCase
         $this->weatherCache = new WeatherCacheManager();
         $this->addOn = new WeatherAddOn(
             gameWeatherLookup: new GameWeatherLookup(),
-            weatherFormatter: new WeatherFormatter(new MarkdownV2()),
         );
     }
 

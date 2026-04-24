@@ -35,6 +35,11 @@ abstract class AbstractMessageBuilder
         $this->overrides[$method] = $override;
     }
 
+    public function getFormatter(): MessageFormatterInterface
+    {
+        return $this->formatter;
+    }
+
     public function getEffective(string $method): Closure
     {
         if (isset($this->overrides[$method])) {
