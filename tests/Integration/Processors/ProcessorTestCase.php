@@ -203,6 +203,28 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    protected function viaBotKeyboardMessagePayload(int $chatId = -5127803306, int $fromId = 200): array
+    {
+        return [
+            'update_id' => 1,
+            'message' => [
+                'message_id' => 60,
+                'from' => ['id' => $fromId, 'first_name' => 'Danil', 'is_bot' => false],
+                'chat' => ['id' => $chatId, 'type' => 'group'],
+                'date' => 1700000000,
+                'text' => 'Game body',
+                'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                'reply_markup' => [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => 'Join', 'callback_data' => '{"a":"j"}'],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
     protected function editedLocationMessagePayload(
         float $latitude,
         float $longitude,

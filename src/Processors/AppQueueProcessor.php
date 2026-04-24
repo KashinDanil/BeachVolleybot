@@ -41,7 +41,7 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             return true;
         }
 
-        $telegramSender = new TelegramMessageSender(new RateLimitedBotApi(TG_BOT_ACCESS_TOKEN, TG_MAX_REQUESTS_PER_SECOND));
+        $telegramSender = $this->createTelegramSender();
 
         $processor = $this->resolveProcessor($update, $telegramSender);
 
@@ -56,7 +56,12 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
         return true;
     }
 
-    private function resolveProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
+    protected function createTelegramSender(): TelegramMessageSender
+    {
+        return new TelegramMessageSender(new RateLimitedBotApi(TG_BOT_ACCESS_TOKEN, TG_MAX_REQUESTS_PER_SECOND));
+    }
+
+    protected function resolveProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
     {
         if ($update->hasChosenInlineResult()) {
             return new CreateGameProcessor($telegramSender);
