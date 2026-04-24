@@ -10,6 +10,7 @@ use BeachVolleybot\Common\RecentUpdateIdTracker;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
@@ -110,6 +111,10 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
         if ($update->message->hasText()) {
             if (TimeExtractor::isTimeOnly($update->message->text)) {
                 return new JoinWithTimeProcessor($telegramSender);
+            }
+
+            if ($update->message->hasReplyToMessage() && $update->message->replyToMessage->isViaThisBot()) {
+                return new ChangeTitleProcessor($telegramSender);
             }
         }
 

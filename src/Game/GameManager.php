@@ -10,6 +10,7 @@ use BeachVolleybot\Database\GamePlayerRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\PlayerRepository;
+use DateTimeImmutable;
 
 readonly class GameManager
 {
@@ -180,6 +181,24 @@ readonly class GameManager
         $this->recalculateGameTime($gameId);
     }
 
+    public function changeTitle(
+        int $gameId,
+        int $telegramUserId,
+        string $firstName,
+        ?string $lastName,
+        ?string $username,
+        string $newTitle,
+    ): void {
+        $normalizedTitle = TimeExtractor::normalize($newTitle);
+        $proposedTime = TimeExtractor::extract($normalizedTitle);
+        if (null === $proposedTime) {
+            return;
+        }
+
+        $this->gameRepository->updateTitle($gameId, $normalizedTitle);
+        $this->setPlayerTime($gameId, $telegramUserId, $firstName, $lastName, $username, $proposedTime);
+    }
+
     public function isPlayerInGame(int $gameId, int $telegramUserId): bool
     {
         return $this->gamePlayerRepository->exists($gameId, $telegramUserId);
@@ -201,6 +220,23 @@ readonly class GameManager
         return new GameLookupResult(
             (int)$row['game_id'],
             (string)$row['inline_message_id'],
+        );
+    }
+
+    public function findGameRecord(string $inlineQueryId): ?GameRecord
+    {
+        $row = $this->gameRepository->findByInlineQueryId($inlineQueryId);
+
+        if (null === $row) {
+            return null;
+        }
+
+        return new GameRecord(
+            (int)$row['game_id'],
+            (string)$row['inline_message_id'],
+            (int)$row['created_by'],
+            (string)$row['title'],
+            new DateTimeImmutable((string)$row['created_at']),
         );
     }
 

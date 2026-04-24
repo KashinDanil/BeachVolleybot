@@ -475,6 +475,74 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Beach 18:00', $title);
     }
 
+    // --- changeTitle ---
+
+    public function testChangeTitleWhenCreatorIsOnlyPlayerUsesProposedTime(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+
+        $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Beach Saturday 20:00');
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Beach Saturday 20:00', $title);
+    }
+
+    public function testChangeTitleUpdatesCreatorPlayerTime(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+
+        $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Beach Saturday 20:00');
+
+        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
+        $this->assertSame('20:00', $gamePlayer['time']);
+    }
+
+    public function testChangeTitlePreservesEarlierPlayerTimeInTitle(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
+        $this->seedPlayer($gameId, 201, position: 2, net: 1, time: '16:00');
+
+        $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Picnic Sunday 20:00');
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Picnic Sunday 16:00', $title);
+    }
+
+    public function testChangeTitleLeavesOtherPlayersTimesUnchanged(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
+        $this->seedPlayer($gameId, 201, position: 2, net: 1, time: '16:00');
+
+        $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Picnic Sunday 20:00');
+
+        $creatorTime = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
+        $otherTime = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 201);
+        $this->assertSame('20:00', $creatorTime['time']);
+        $this->assertSame('16:00', $otherTime['time']);
+    }
+
+    public function testChangeTitleNormalizesShortTimeFormat(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+
+        $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Beach Saturday 9:00');
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Beach Saturday 09:00', $title);
+    }
+
+    public function testChangeTitleKeepsCreatorTimeWhenUnchanged(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+
+        $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Picnic Sunday 18:00');
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Picnic Sunday 18:00', $title);
+    }
+
     // --- Helpers ---
 
     private function newGameData(): NewGameData
