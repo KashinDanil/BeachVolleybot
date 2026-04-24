@@ -89,4 +89,46 @@ final class TimeExtractorTest extends TestCase
     {
         $this->assertSame('No time here', TimeExtractor::normalize('No time here'));
     }
+
+    // --- isTimeOnly ---
+
+    public function testIsTimeOnlyReturnsTrueForBareTime(): void
+    {
+        $this->assertTrue(TimeExtractor::isTimeOnly('15:30'));
+    }
+
+    public function testIsTimeOnlyReturnsTrueForSingleDigitHour(): void
+    {
+        $this->assertTrue(TimeExtractor::isTimeOnly('9:00'));
+    }
+
+    public function testIsTimeOnlyReturnsTrueForTimeWithSurroundingWhitespace(): void
+    {
+        $this->assertTrue(TimeExtractor::isTimeOnly("  15:30\n"));
+    }
+
+    public function testIsTimeOnlyReturnsFalseWhenTimeHasSurroundingText(): void
+    {
+        $this->assertFalse(TimeExtractor::isTimeOnly('Game 18:00'));
+    }
+
+    public function testIsTimeOnlyReturnsFalseForSentenceEndingInTime(): void
+    {
+        $this->assertFalse(TimeExtractor::isTimeOnly('Bla bla bla 10:00'));
+    }
+
+    public function testIsTimeOnlyReturnsFalseWhenTimeHasTrailingText(): void
+    {
+        $this->assertFalse(TimeExtractor::isTimeOnly('18:00 please'));
+    }
+
+    public function testIsTimeOnlyReturnsFalseForEmptyString(): void
+    {
+        $this->assertFalse(TimeExtractor::isTimeOnly(''));
+    }
+
+    public function testIsTimeOnlyReturnsFalseForTextWithoutTime(): void
+    {
+        $this->assertFalse(TimeExtractor::isTimeOnly('hello'));
+    }
 }

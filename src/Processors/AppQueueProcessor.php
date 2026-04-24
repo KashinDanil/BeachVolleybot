@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors;
 
+use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Common\RecentUpdateIdTracker;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
@@ -12,9 +13,9 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -107,7 +108,9 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
         }
 
         if ($update->message->hasText()) {
-            return new JoinWithTimeProcessor($telegramSender);
+            if (TimeExtractor::isTimeOnly($update->message->text)) {
+                return new JoinWithTimeProcessor($telegramSender);
+            }
         }
 
         return null;

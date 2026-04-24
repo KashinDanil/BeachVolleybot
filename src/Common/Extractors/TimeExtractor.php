@@ -43,4 +43,11 @@ final class TimeExtractor implements ExtractorInterface
 
         return str_replace($matches[0], $normalized, $text);
     }
+
+    public static function isTimeOnly(string $text): bool
+    {
+        $trimmed = trim($text);
+
+        return $trimmed === self::extractRaw($trimmed);
+    }
 }
