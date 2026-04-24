@@ -49,7 +49,7 @@ final class WeatherFormatterTest extends TestCase
             $this->hour('2026-04-15 12:00:00'),
         );
 
-        foreach (explode("\n", $output) as $line) {
+        foreach (array_filter(explode("\n", $output)) as $line) {
             $this->assertStringStartsWith('>', $line);
         }
     }

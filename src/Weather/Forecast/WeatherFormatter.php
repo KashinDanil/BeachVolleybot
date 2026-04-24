@@ -46,7 +46,7 @@ final readonly class WeatherFormatter
         $footer = $this->buildFooter($localFetchedAt, $coordinates);
         $section = implode($this->messageFormatter->newLine(), [$heading, ...$rows, $footer]);
 
-        return $this->messageFormatter->blockquote($section);
+        return $this->messageFormatter->blockquote($section) . $this->messageFormatter->newLine();
     }
 
     private function buildHeading(): string
