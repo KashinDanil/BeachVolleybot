@@ -39,10 +39,8 @@ readonly class GameManager
             $data->username,
         );
 
-        $title = TimeExtractor::normalize($data->title);
-
         $gameId = $this->gameRepository->create(
-            $title,
+            $data->title,
             $data->telegramUserId,
             $data->inlineMessageId,
             $data->inlineQueryId,
@@ -51,7 +49,7 @@ readonly class GameManager
         $this->gamePlayerRepository->create(
             $gameId,
             $data->telegramUserId,
-            TimeExtractor::extract($title),
+            TimeExtractor::extract($data->title),
             NewGameData::INITIAL_VOLLEYBALL,
             NewGameData::INITIAL_NET,
         );

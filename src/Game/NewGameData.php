@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game;
 
+use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 
 readonly class NewGameData
@@ -34,7 +35,7 @@ readonly class NewGameData
             firstName: $creator->firstName,
             lastName: $creator->lastName,
             username: $creator->username,
-            title: $title,
+            title: TimeExtractor::normalize($title),
             inlineQueryId: $inlineQueryId,
             inlineMessageId: $inlineMessageId,
         );
