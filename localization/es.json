@@ -26,6 +26,8 @@
     "E.g., Saturday or April 12": "P. ej., Sábado o 12 de abril",
     "⚠️ Include a time": "⚠️ Incluye una hora",
     "E.g., 18:00": "P. ej., 18:00",
+    "⚠️ Game cannot be in the past": "⚠️ El partido no puede estar en el pasado",
+    "Pick a date from today onwards": "Elige una fecha a partir de hoy",
     "Use the following pattern to create a new game:": "Usa el siguiente formato para crear un nuevo juego:",
     "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Sábado, 11.04\n🏖️ Bogatell\n🕙 10:00"
 }

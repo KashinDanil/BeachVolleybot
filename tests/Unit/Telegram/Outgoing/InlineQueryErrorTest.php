@@ -10,6 +10,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
 use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
+use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use PHPUnit\Framework\TestCase;
 
 final class InlineQueryErrorTest extends TestCase
@@ -39,6 +40,15 @@ final class InlineQueryErrorTest extends TestCase
 
         $this->assertSame(InlineQueryError::TIME_NOT_FOUND_TITLE, $inlineQueryError->title());
         $this->assertSame(InlineQueryError::TIME_NOT_FOUND_DESCRIPTION, $inlineQueryError->description());
+    }
+
+    public function testResolvesKickoffDayInThePast(): void
+    {
+        $error = new ValidationError(KickoffDayInTheFutureRule::ERROR_MESSAGE);
+        $inlineQueryError = InlineQueryError::fromError($error);
+
+        $this->assertSame(InlineQueryError::KICKOFF_DAY_IN_THE_PAST_TITLE, $inlineQueryError->title());
+        $this->assertSame(InlineQueryError::KICKOFF_DAY_IN_THE_PAST_DESCRIPTION, $inlineQueryError->description());
     }
 
     public function testFallsBackToUnknownForUnmappedError(): void

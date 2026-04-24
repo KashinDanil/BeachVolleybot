@@ -31,6 +31,17 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertSame(InlineQueryError::DATE_AND_TIME_NOT_FOUND_TITLE, $call['args'][1][0]->getTitle());
     }
 
+    public function testPastKickoffDayAnswersWithErrorArticle(): void
+    {
+        $update = $this->buildUpdate('query_1', 'Beach 01.01.20 18:00');
+
+        new InlineQueryProcessor($this->telegramSender)->process($update);
+
+        $this->assertInlineQueryAnswered();
+        $call = $this->lastInlineQueryCall();
+        $this->assertSame(InlineQueryError::KICKOFF_DAY_IN_THE_PAST_TITLE, $call['args'][1][0]->getTitle());
+    }
+
     private function buildUpdate(string $inlineQueryId, string $query): TelegramUpdate
     {
         return TelegramUpdate::fromArray(

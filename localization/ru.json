@@ -26,6 +26,8 @@
     "E.g., Saturday or April 12": "Например, Суббота или 12 апреля",
     "⚠️ Include a time": "⚠️ Укажите время",
     "E.g., 18:00": "Например, 18:00",
+    "⚠️ Game cannot be in the past": "⚠️ Игра не может быть в прошлом",
+    "Pick a date from today onwards": "Выберите дату начиная с сегодня",
     "Use the following pattern to create a new game:": "Используйте следующий шаблон для создания новой игры:",
     "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Суббота, 11.04\n🏖️ Bogatell\n🕙 10:00"
 }

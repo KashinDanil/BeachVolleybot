@@ -11,7 +11,9 @@ use BeachVolleybot\Telegram\Messages\Outgoing\ErrorArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
 use BeachVolleybot\Validator\Rules\RuleInterface;
 use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
+use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Validator;
+use DateTimeImmutable;
 
 class InlineQueryProcessor extends AbstractActionProcessor
 {
@@ -39,6 +41,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
     {
         return [
             new DateTimeInTitleRule($query),
+            new KickoffDayInTheFutureRule($query, new DateTimeImmutable()),
         ];
     }
 }
