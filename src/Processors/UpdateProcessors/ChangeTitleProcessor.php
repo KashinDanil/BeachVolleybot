@@ -5,33 +5,19 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
 use BeachVolleybot\Validator\Rules\GameCreatorOnlyRule;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Validator;
 
-class ChangeTitleProcessor extends AbstractActionReplyProcessor
+class ChangeTitleProcessor extends AbstractGameReplyProcessor
 {
-    public function process(TelegramUpdate $update): void
+    protected function handle(TelegramUpdate $update, GameRecord $gameRecord): void
     {
         $message = $update->message;
         $from = $message->from;
-
-        $inlineQueryId = CallbackData::extractInlineQueryId($message->replyToMessage);
-
-        if (null === $inlineQueryId) {
-            return;
-        }
-
-        $gameManager = new GameManager();
-        $gameRecord = $gameManager->findGameRecord($inlineQueryId);
-
-        if (null === $gameRecord) {
-            return;
-        }
-
         $newTitle = $message->text ?? '';
 
         $validationState = new Validator([
@@ -44,7 +30,7 @@ class ChangeTitleProcessor extends AbstractActionReplyProcessor
             return;
         }
 
-        $gameManager->changeTitle(
+        new GameManager()->changeTitle(
             $gameRecord->gameId,
             $from->id,
             $from->firstName,

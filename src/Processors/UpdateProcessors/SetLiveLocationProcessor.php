@@ -6,10 +6,11 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\LocationUpdateThrottle;
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Game\GameRecord;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class SetLiveLocationProcessor extends AbstractActionProcessor
+class SetLiveLocationProcessor extends AbstractGameReplyProcessor
 {
     private static ?LocationUpdateThrottle $throttle = null;
 
@@ -19,7 +20,12 @@ class SetLiveLocationProcessor extends AbstractActionProcessor
         self::$throttle = null;
     }
 
-    public function process(TelegramUpdate $update): void
+    protected function extractMessage(TelegramUpdate $update): ?TelegramMessage
+    {
+        return $update->editedMessage;
+    }
+
+    protected function handle(TelegramUpdate $update, GameRecord $gameRecord): void
     {
         $editedMessage = $update->editedMessage;
 
@@ -27,36 +33,21 @@ class SetLiveLocationProcessor extends AbstractActionProcessor
             return;
         }
 
-        if (!$editedMessage->hasReplyToMessage()) {
-            return;
-        }
-
-        $inlineQueryId = CallbackData::extractInlineQueryId($editedMessage->replyToMessage);
-
-        if (null === $inlineQueryId) {
-            return;
-        }
-
-        if (self::getThrottle()->isThrottled($inlineQueryId)) {
+        if (self::getThrottle()->isThrottled($gameRecord->inlineQueryId)) {
             return;
         }
 
         $gameManager = new GameManager();
-        $gameLookup = $gameManager->resolveGameByInlineQueryId($inlineQueryId);
 
-        if (null === $gameLookup) {
+        if (!$gameManager->isPlayerInGame($gameRecord->gameId, $editedMessage->from->id)) {
             return;
         }
 
-        if (!$gameManager->isPlayerInGame($gameLookup->gameId, $editedMessage->from->id)) {
-            return;
-        }
+        $location = $gameManager->setLocation($gameRecord->gameId, $editedMessage->location->latitude, $editedMessage->location->longitude);
+        $this->logUserAction($editedMessage->from, 'update_live_location', "gameId=$gameRecord->gameId;location=$location");
 
-        $location = $gameManager->setLocation($gameLookup->gameId, $editedMessage->location->latitude, $editedMessage->location->longitude);
-        $this->logUserAction($editedMessage->from, 'update_live_location', "gameId=$gameLookup->gameId;location=$location");
-
-        self::getThrottle()->touch($inlineQueryId);
-        $this->refreshInlineMessage($gameLookup->inlineMessageId);
+        self::getThrottle()->touch($gameRecord->inlineQueryId);
+        $this->refreshInlineMessage($gameRecord->inlineMessageId);
     }
 
     private static function getThrottle(): LocationUpdateThrottle

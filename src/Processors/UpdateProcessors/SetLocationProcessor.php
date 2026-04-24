@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class SetLocationProcessor extends AbstractActionReplyProcessor
+class SetLocationProcessor extends AbstractGameReplyProcessor
 {
-    public function process(TelegramUpdate $update): void
+    protected function handle(TelegramUpdate $update, GameRecord $gameRecord): void
     {
         $message = $update->message;
 
@@ -18,31 +18,16 @@ class SetLocationProcessor extends AbstractActionReplyProcessor
             return;
         }
 
-        if (!$message->hasReplyToMessage()) {
-            return;
-        }
-
-        $inlineQueryId = CallbackData::extractInlineQueryId($message->replyToMessage);
-
-        if (null === $inlineQueryId) {
-            return;
-        }
-
         $gameManager = new GameManager();
-        $gameLookup = $gameManager->resolveGameByInlineQueryId($inlineQueryId);
 
-        if (null === $gameLookup) {
+        if (!$gameManager->isPlayerInGame($gameRecord->gameId, $message->from->id)) {
             return;
         }
 
-        if (!$gameManager->isPlayerInGame($gameLookup->gameId, $message->from->id)) {
-            return;
-        }
-
-        $location = $gameManager->setLocation($gameLookup->gameId, $message->location->latitude, $message->location->longitude);
-        $this->logUserAction($message->from, 'set_location', "gameId=$gameLookup->gameId;location=$location");
+        $location = $gameManager->setLocation($gameRecord->gameId, $message->location->latitude, $message->location->longitude);
+        $this->logUserAction($message->from, 'set_location', "gameId=$gameRecord->gameId;location=$location");
 
         $this->reactWithCheckmark($message);
-        $this->refreshInlineMessage($gameLookup->inlineMessageId);
+        $this->refreshInlineMessage($gameRecord->inlineMessageId);
     }
 }

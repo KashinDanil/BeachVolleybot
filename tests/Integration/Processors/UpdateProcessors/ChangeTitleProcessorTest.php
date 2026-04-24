@@ -82,6 +82,23 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
+    public function testPastDayGameRejectsRename(): void
+    {
+        $gameId = $this->createGame(
+            title: 'Old Game 01.01.20 18:00',
+            createdBy: self::CREATOR_ID,
+            inlineMessageId: 'msg_1',
+            inlineQueryId: 'query_1',
+        );
+
+        new ChangeTitleProcessor($this->telegramSender)
+            ->process($this->buildUpdate('Beach Sunday 20:00', self::CREATOR_ID));
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Old Game 01.01.20 18:00', $title);
+        $this->assertMessageNotEdited();
+    }
+
     public function testCannotRenameToPastDate(): void
     {
         $gameId = $this->seedGameOwnedByCreator();

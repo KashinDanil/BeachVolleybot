@@ -61,11 +61,6 @@ readonly class GameRepository extends AbstractRepository
         return $gameId ? (int) $gameId : null;
     }
 
-    public function findGameAndInlineMessageIdsByInlineQueryId(string $inlineQueryId): ?array
-    {
-        return $this->db->get($this->table(), ['game_id', 'inline_message_id'], ['inline_query_id' => $inlineQueryId]) ?: null;
-    }
-
     public function findByInlineQueryId(string $inlineQueryId): ?array
     {
         return $this->db->get($this->table(), '*', ['inline_query_id' => $inlineQueryId]) ?: null;

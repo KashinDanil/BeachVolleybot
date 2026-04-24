@@ -6,49 +6,33 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class JoinWithTimeProcessor extends AbstractActionReplyProcessor
+class JoinWithTimeProcessor extends AbstractGameReplyProcessor
 {
-    public function process(TelegramUpdate $update): void
+    protected function handle(TelegramUpdate $update, GameRecord $gameRecord): void
     {
         $message = $update->message;
         $from = $message->from;
 
-        if (!$message->hasReplyToMessage()) {
-            return;
-        }
-
         $time = TimeExtractor::extract($message->text ?? '');
+
         if (null === $time) {
             return;
         }
 
-        $inlineQueryId = CallbackData::extractInlineQueryId($message->replyToMessage);
-
-        if (null === $inlineQueryId) {
-            return;
-        }
-
-        $gameManager = new GameManager();
-        $gameLookup = $gameManager->resolveGameByInlineQueryId($inlineQueryId);
-
-        if (null === $gameLookup) {
-            return;
-        }
-
-        $gameManager->setPlayerTime(
-            $gameLookup->gameId,
+        new GameManager()->setPlayerTime(
+            $gameRecord->gameId,
             $from->id,
             $from->firstName,
             $from->lastName,
             $from->username,
             $time,
         );
-        $this->logUserAction($from, 'join_with_time', "gameId=$gameLookup->gameId;time=$time");
+        $this->logUserAction($from, 'join_with_time', "gameId=$gameRecord->gameId;time=$time");
 
-        $this->refreshInlineMessage($gameLookup->inlineMessageId);
+        $this->refreshInlineMessage($gameRecord->inlineMessageId);
         $this->deleteMessage($message);
     }
 }

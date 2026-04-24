@@ -372,24 +372,6 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertNull($this->gameManager->resolveGameIdByInlineMessageId('nonexistent'));
     }
 
-    // --- resolveGameByInlineQueryId ---
-
-    public function testResolveGameByInlineQueryIdReturnsResult(): void
-    {
-        $gameId = $this->createGame(inlineMessageId: 'msg_42', inlineQueryId: 'query_42');
-
-        $result = $this->gameManager->resolveGameByInlineQueryId('query_42');
-
-        $this->assertNotNull($result);
-        $this->assertSame($gameId, $result->gameId);
-        $this->assertSame('msg_42', $result->inlineMessageId);
-    }
-
-    public function testResolveGameByInlineQueryIdReturnsNullWhenNotFound(): void
-    {
-        $this->assertNull($this->gameManager->resolveGameByInlineQueryId('nonexistent'));
-    }
-
     // --- recalculateGameTime ---
 
     public function testAddNetRecalculatesGameTimeToEarliestNetHolder(): void

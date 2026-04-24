@@ -209,20 +209,6 @@ readonly class GameManager
         return $this->gameRepository->findGameIdByInlineMessageId($inlineMessageId);
     }
 
-    public function resolveGameByInlineQueryId(string $inlineQueryId): ?GameLookupResult
-    {
-        $row = $this->gameRepository->findGameAndInlineMessageIdsByInlineQueryId($inlineQueryId);
-
-        if (null === $row) {
-            return null;
-        }
-
-        return new GameLookupResult(
-            (int)$row['game_id'],
-            (string)$row['inline_message_id'],
-        );
-    }
-
     public function findGameRecord(string $inlineQueryId): ?GameRecord
     {
         $row = $this->gameRepository->findByInlineQueryId($inlineQueryId);
@@ -233,6 +219,7 @@ readonly class GameManager
 
         return new GameRecord(
             (int)$row['game_id'],
+            (string)$row['inline_query_id'],
             (string)$row['inline_message_id'],
             (int)$row['created_by'],
             (string)$row['title'],
