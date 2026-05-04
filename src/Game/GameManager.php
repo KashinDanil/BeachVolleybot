@@ -50,7 +50,7 @@ readonly class GameManager
             $data->inlineQueryId,
         );
 
-        $this->gameInlineMessageRepository->create($gameId, $inlineMessageId);
+        $this->addInlineMessage($gameId, $inlineMessageId);
 
         $this->gamePlayerRepository->create(
             $gameId,
@@ -207,6 +207,11 @@ readonly class GameManager
     public function isPlayerInGame(int $gameId, int $telegramUserId): bool
     {
         return $this->gamePlayerRepository->exists($gameId, $telegramUserId);
+    }
+
+    public function addInlineMessage(int $gameId, string $inlineMessageId): void
+    {
+        $this->gameInlineMessageRepository->create($gameId, $inlineMessageId);
     }
 
     public function resolveGameIdByInlineQueryId(string $inlineQueryId): ?int
