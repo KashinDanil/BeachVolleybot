@@ -67,10 +67,6 @@ readonly class IncomingMessageQueueRouter
             return $this->dmQueueName($message->from->id);
         }
 
-        if (!$message->chat->isGroupChat()) {
-            return $this->skip('Not a group message');
-        }
-
         if ($message->isViaThisBot() && $message->hasInlineKeyboard()) {
             return $this->pinQueueName($message->chat->id);
         }
