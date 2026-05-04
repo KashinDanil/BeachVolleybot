@@ -12,8 +12,8 @@ use TelegramBot\Api\Types\Inline\QueryResult\Article;
 
 final readonly class ForwardGameArticleBuilder implements ArticleBuilderInterface
 {
-    private const string ARTICLE_TITLE_PREFIX = '🏐 Forward';
-    private const string ARTICLE_DESCRIPTION  = 'Tap to forward this game';
+    private const string ARTICLE_TITLE_PREFIX = '🏐 Game';
+    private const string ARTICLE_DESCRIPTION  = 'Tap to send this game';
 
     public function __construct(
         private TelegramInlineQuery $inlineQuery,

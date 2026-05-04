@@ -41,7 +41,7 @@ final class ForwardGameArticleBuilderTest extends DatabaseTestCase
 
         $article = $this->buildArticle($gameId, 'Saturday 18:00');
 
-        $this->assertSame("🏐 Forward #$gameId Saturday 18:00", $article->getTitle());
+        $this->assertSame("🏐 Game #$gameId Saturday 18:00", $article->getTitle());
     }
 
     public function testArticleTitleIsTranslated(): void
@@ -50,7 +50,7 @@ final class ForwardGameArticleBuilderTest extends DatabaseTestCase
 
         $article = $this->buildArticle($gameId, 'Saturday 18:00', language: Language::RU);
 
-        $this->assertStringStartsWith('🏐 Переслать ', $article->getTitle());
+        $this->assertStringStartsWith('🏐 Игра ', $article->getTitle());
     }
 
     public function testArticleDescriptionIsTranslated(): void
@@ -59,7 +59,7 @@ final class ForwardGameArticleBuilderTest extends DatabaseTestCase
 
         $article = $this->buildArticle($gameId, 'Saturday 18:00', language: Language::ES);
 
-        $this->assertSame('Toca para reenviar este partido', $article->getDescription());
+        $this->assertSame('Toca para enviar este partido', $article->getDescription());
     }
 
     public function testArticleHasInputMessageContent(): void

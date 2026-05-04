@@ -53,6 +53,22 @@ final class ForwardGameQueryExtractorTest extends TestCase
         );
     }
 
+    public function testIsCaseInsensitiveForEnglishPrefix(): void
+    {
+        $this->assertSame(
+            123,
+            ForwardGameQueryExtractor::extract('forward GAME 123', $this->translator(Language::EN)),
+        );
+    }
+
+    public function testIsCaseInsensitiveForRussianPrefix(): void
+    {
+        $this->assertSame(
+            7,
+            ForwardGameQueryExtractor::extract('пЕрЕсЛаТь ИгРу 7', $this->translator(Language::RU)),
+        );
+    }
+
     public function testReturnsNullWhenIdIsMissing(): void
     {
         $this->assertNull(

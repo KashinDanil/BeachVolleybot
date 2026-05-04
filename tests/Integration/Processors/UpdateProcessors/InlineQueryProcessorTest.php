@@ -52,7 +52,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertInlineQueryAnswered();
         $article = $this->lastInlineQueryCall()['args'][1][0];
         $this->assertSame('query_42', $article->getId());
-        $this->assertStringStartsWith('🏐 Forward', $article->getTitle());
+        $this->assertStringStartsWith('🏐 Game', $article->getTitle());
     }
 
     public function testForwardQueryByNonCreatorAnswersWithGameNotFoundError(): void

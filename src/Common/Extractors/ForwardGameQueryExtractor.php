@@ -13,7 +13,7 @@ final class ForwardGameQueryExtractor
     public static function extract(string $query, Translator $translator): ?int
     {
         $localizedPrefix = $translator->translate(self::TRANSLATION_KEY);
-        $pattern = '/^' . preg_quote($localizedPrefix, '/') . '\s+(\d+)$/u';
+        $pattern = '/^' . preg_quote($localizedPrefix, '/') . '\s+(\d+)$/iu';
 
         if (1 !== preg_match($pattern, $query, $matches)) {
             return null;
