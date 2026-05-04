@@ -11,7 +11,7 @@ use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramInlineQuery;
 use TelegramBot\Api\Types\Inline\QueryResult\Article;
 
-final readonly class ArticleBuilder implements ArticleBuilderInterface
+final readonly class NewGameArticleBuilder implements ArticleBuilderInterface
 {
     private const string ARTICLE_TITLE = '🏐 New game';
     private const string ARTICLE_DESCRIPTION = 'Tap to create a new game';

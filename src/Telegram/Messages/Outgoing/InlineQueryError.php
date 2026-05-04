@@ -25,6 +25,9 @@ final readonly class InlineQueryError
     public const string KICKOFF_DAY_IN_THE_PAST_TITLE = '⚠️ Game cannot be in the past';
     public const string KICKOFF_DAY_IN_THE_PAST_DESCRIPTION = 'Pick a date from today onwards';
 
+    public const string GAME_NOT_FOUND_TITLE = '⚠️ Game not found';
+    public const string GAME_NOT_FOUND_DESCRIPTION = 'Check the game number and try again';
+
     private function __construct(
         private string $title,
         private string $description,
@@ -40,6 +43,11 @@ final readonly class InlineQueryError
             KickoffDayInTheFutureRule::ERROR_MESSAGE => new self(self::KICKOFF_DAY_IN_THE_PAST_TITLE, self::KICKOFF_DAY_IN_THE_PAST_DESCRIPTION),
             default => new self(self::UNKNOWN_TITLE, self::UNKNOWN_DESCRIPTION),
         };
+    }
+
+    public static function gameNotFound(): self
+    {
+        return new self(self::GAME_NOT_FOUND_TITLE, self::GAME_NOT_FOUND_DESCRIPTION);
     }
 
     public function title(): string

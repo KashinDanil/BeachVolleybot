@@ -7,11 +7,11 @@ namespace BeachVolleybot\Tests\Unit\Telegram\Outgoing;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramInlineQuery;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
-use BeachVolleybot\Telegram\Messages\Outgoing\ArticleBuilder;
+use BeachVolleybot\Telegram\Messages\Outgoing\NewGameArticleBuilder;
 use PHPUnit\Framework\TestCase;
 use TelegramBot\Api\Types\Inline\QueryResult\Article;
 
-final class ArticleBuilderTest extends TestCase
+final class NewGameArticleBuilderTest extends TestCase
 {
     // --- Article-level properties ---
 
@@ -115,6 +115,6 @@ final class ArticleBuilderTest extends TestCase
             offset: '',
         );
 
-        return (new ArticleBuilder($inlineQuery, new Translator()))->build();
+        return (new NewGameArticleBuilder($inlineQuery, new Translator()))->build();
     }
 }

@@ -6,7 +6,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\Telegram\Messages\Outgoing\ArticleBuilder;
+use BeachVolleybot\Telegram\Messages\Outgoing\NewGameArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\ErrorArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
 use BeachVolleybot\Validator\Rules\RuleInterface;
@@ -26,7 +26,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
         $validationState = new Validator($this->validationRules($inlineQuery->query))->validate();
 
         if ($validationState->isSuccess()) {
-            $articleBuilder = new ArticleBuilder($inlineQuery, $translator);
+            $articleBuilder = new NewGameArticleBuilder($inlineQuery, $translator);
         } else {
             $inlineQueryError = InlineQueryError::fromError($validationState->getError());
             $articleBuilder = new ErrorArticleBuilder($inlineQueryError, $translator);

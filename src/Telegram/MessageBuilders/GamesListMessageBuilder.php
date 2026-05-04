@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
-use BeachVolleybot\Common\Extractors\TimeExtractor;
-use BeachVolleybot\Common\GameDateResolver;
+use BeachVolleybot\Game\GameLabel;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
@@ -55,27 +54,8 @@ final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
     private function buildGameButton(int $gameId, string $title): array
     {
         return $this->buildActionButton(
-            $this->buildGameLabel($gameId, $title),
+            GameLabel::format($gameId, $title),
             AdminCallbackData::create(AdminCallbackAction::GameDetail)->withGameId($gameId),
         );
-    }
-
-    private function buildGameLabel(int $gameId, string $title): string
-    {
-        $parts = ["#$gameId"];
-
-        $date = GameDateResolver::extractRaw($title);
-
-        if (null !== $date) {
-            $parts[] = $date;
-        }
-
-        $time = TimeExtractor::extract($title);
-
-        if (null !== $time) {
-            $parts[] = $time;
-        }
-
-        return implode(' ', $parts);
     }
 }
