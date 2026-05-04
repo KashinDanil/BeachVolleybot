@@ -81,7 +81,7 @@ final class JoinProcessorTest extends ProcessorTestCase
 
     public function testAnswersGameNotFoundWhenGameMissing(): void
     {
-        $update = $this->buildUpdate('nonexistent_msg');
+        $update = $this->buildUpdate('nonexistent_msg', inlineQueryId: 'nonexistent_query');
 
         new JoinProcessor($this->telegramSender)->process($update);
 
@@ -115,10 +115,10 @@ final class JoinProcessorTest extends ProcessorTestCase
         $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
     }
 
-    private function buildUpdate(string $inlineMessageId, int $fromId = 200): TelegramUpdate
+    private function buildUpdate(string $inlineMessageId, int $fromId = 200, string $inlineQueryId = 'query_1'): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'j']), $fromId),
+            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'j', 'q' => $inlineQueryId]), $fromId),
         );
     }
 }

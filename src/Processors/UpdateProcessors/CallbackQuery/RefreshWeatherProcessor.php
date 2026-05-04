@@ -30,7 +30,7 @@ final class RefreshWeatherProcessor extends AbstractGameCallbackProcessor
 
         if (GameDateTimeResolver::isKickoffPast($game->getTitle(), $game->getCreatedAt())) {
             // Self-heal the stale keyboard: rebuilding drops the refresh button via WeatherAddOn.
-            new InlineMessageRefresher($this->telegramSender)->refresh($callbackQuery->inlineMessageId);
+            new InlineMessageRefresher($this->telegramSender)->refresh($game->getGameId());
             $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_ALREADY_STARTED);
 
             return;

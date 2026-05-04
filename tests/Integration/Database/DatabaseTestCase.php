@@ -23,8 +23,8 @@ abstract class DatabaseTestCase extends TestCase
             ],
         ]);
 
-        $schema = file_get_contents(__DIR__ . '/../../../migrations/001_create_games_and_participants.sql');
-        $this->db->pdo->exec($schema);
+        $this->applyMigration('001_create_games_and_participants.sql');
+        $this->applyMigration('004_split_game_inline_messages.sql');
     }
 
     protected function createGame(
@@ -36,11 +36,21 @@ abstract class DatabaseTestCase extends TestCase
         $this->db->insert('games', [
             'title' => $title,
             'created_by' => $createdBy,
-            'inline_message_id' => $inlineMessageId,
             'inline_query_id' => $inlineQueryId,
         ]);
+        $gameId = (int) $this->db->id();
 
-        return (int) $this->db->id();
+        $this->attachInlineMessage($gameId, $inlineMessageId);
+
+        return $gameId;
+    }
+
+    protected function attachInlineMessage(int $gameId, string $inlineMessageId): void
+    {
+        $this->db->insert('game_inline_messages', [
+            'game_id' => $gameId,
+            'inline_message_id' => $inlineMessageId,
+        ]);
     }
 
     protected function createPlayer(
@@ -72,5 +82,11 @@ abstract class DatabaseTestCase extends TestCase
             'telegram_user_id' => $telegramUserId,
             'time' => $time,
         ]);
+    }
+
+    private function applyMigration(string $filename): void
+    {
+        $sql = file_get_contents(__DIR__ . '/../../../migrations/' . $filename);
+        $this->db->pdo->exec($sql);
     }
 }

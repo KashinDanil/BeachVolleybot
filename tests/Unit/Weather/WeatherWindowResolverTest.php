@@ -125,7 +125,7 @@ final class WeatherWindowResolverTest extends TestCase
         $game = new Game(
             gameId: 1,
             inlineQueryId: 'iq',
-            inlineMessageId: 'im',
+            inlineMessageIds: ['im'],
             title: $title,
             players: [],
             createdAt: $createdAt,

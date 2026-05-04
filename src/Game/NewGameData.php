@@ -20,7 +20,6 @@ readonly class NewGameData
         public ?string $username,
         public string $title,
         public string $inlineQueryId,
-        public string $inlineMessageId,
     ) {
     }
 
@@ -28,7 +27,6 @@ readonly class NewGameData
         TelegramUser $creator,
         string $title,
         string $inlineQueryId,
-        string $inlineMessageId = '',
     ): self {
         return new self(
             telegramUserId: $creator->id,
@@ -37,7 +35,6 @@ readonly class NewGameData
             username: $creator->username,
             title: TimeExtractor::normalize($title),
             inlineQueryId: $inlineQueryId,
-            inlineMessageId: $inlineMessageId,
         );
     }
 }

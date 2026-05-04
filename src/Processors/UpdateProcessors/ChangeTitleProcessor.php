@@ -40,7 +40,7 @@ class ChangeTitleProcessor extends AbstractGameReplyProcessor
         );
         $this->logUserAction($from, 'change_title', "gameId=$gameRecord->gameId;newTitle=$newTitle");
 
-        $this->refreshInlineMessage($gameRecord->inlineMessageId);
+        $this->refreshGameInlineMessages($gameRecord->gameId);
         $this->deleteMessage($message);
     }
 }

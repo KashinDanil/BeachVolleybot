@@ -13,11 +13,13 @@ readonly class InlineMessageRefresher
     ) {
     }
 
-    public function refresh(string $inlineMessageId): void
+    public function refresh(int $gameId): void
     {
-        $game = GameFactory::fromInlineMessageId($inlineMessageId);
+        $game = GameFactory::fromGameId($gameId);
         $message = $game->buildTelegramMessage();
 
-        $this->sender->editInlineMessage($inlineMessageId, $message);
+        foreach ($game->getInlineMessageIds() as $inlineMessageId) {
+            $this->sender->editInlineMessage($inlineMessageId, $message);
+        }
     }
 }

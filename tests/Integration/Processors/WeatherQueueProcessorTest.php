@@ -292,15 +292,11 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             'title' => $title,
             'location' => $location,
             'created_by' => 100,
-            'inline_message_id' => $inlineMessageId ?? 'pending_' . $sequence,
             'inline_query_id' => $inlineQueryId ?? 'query_' . $sequence,
         ]);
 
         $gameId = (int) $this->db->id();
-
-        if (null === $inlineMessageId) {
-            $this->db->update('games', ['inline_message_id' => 'inline_' . $gameId], ['game_id' => $gameId]);
-        }
+        $this->attachInlineMessage($gameId, $inlineMessageId ?? 'inline_' . $gameId);
 
         return $gameId;
     }

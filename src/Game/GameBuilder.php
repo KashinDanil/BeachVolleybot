@@ -15,6 +15,7 @@ readonly class GameBuilder
 {
     /**
      * @param array<string, mixed> $gameRow
+     * @param list<string> $inlineMessageIds
      * @param list<array<string, mixed>> $slotRows
      * @param list<array<string, mixed>> $gamePlayerRows
      * @param list<array<string, mixed>> $playerRows
@@ -22,6 +23,7 @@ readonly class GameBuilder
      */
     public function __construct(
         private array $gameRow,
+        private array $inlineMessageIds,
         private array $slotRows,
         private array $gamePlayerRows,
         private array $playerRows,
@@ -36,7 +38,7 @@ readonly class GameBuilder
         $game = new Game(
             gameId: (int)$this->gameRow['game_id'],
             inlineQueryId: (string)$this->gameRow['inline_query_id'],
-            inlineMessageId: (string)$this->gameRow['inline_message_id'],
+            inlineMessageIds: $this->inlineMessageIds,
             title: $title,
             players: $this->buildPlayersFromRows(),
             createdAt: new DateTimeImmutable((string)$this->gameRow['created_at']),

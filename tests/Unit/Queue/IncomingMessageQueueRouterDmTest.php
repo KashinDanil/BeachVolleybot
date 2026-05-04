@@ -53,7 +53,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
         $this->assertEnqueuedOnce('dm_12345678');
     }
 
-    public function testCallbackQueryWithInlineMessageIdStillGoesToGameQueue(): void
+    public function testCallbackQueryWithInlineMessageIdAndInlineQueryIdInDataGoesToGameQueue(): void
     {
         $update = TelegramUpdate::fromArray([
             'update_id' => 100,
@@ -62,13 +62,13 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
                 'from' => ['id' => 12345678, 'first_name' => 'Danil', 'is_bot' => false],
                 'chat_instance' => '-123',
                 'inline_message_id' => 'inline_msg_abc',
-                'data' => '{"a":"j"}',
+                'data' => '{"a":"j","q":"query_abc"}',
             ],
         ]);
 
         $this->router->route($update);
 
-        $this->assertEnqueuedOnce('game_inline_msg_abc');
+        $this->assertEnqueuedOnce('game_query_abc');
     }
 
     protected function setUp(): void

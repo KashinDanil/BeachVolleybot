@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game;
 
 use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Database\GameInlineMessageRepository;
 use BeachVolleybot\Database\GamePlayerRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
@@ -30,26 +31,16 @@ final class GameFactory
         return self::buildFromRow($gameRow, $addOns);
     }
 
-    public static function fromInlineMessageId(string $inlineMessageId): GameInterface
-    {
-        $gameRow = new GameRepository(Connection::get())->findByInlineMessageId($inlineMessageId);
-
-        if (null === $gameRow) {
-            throw new RuntimeException("Game not found by inline_message_id: $inlineMessageId");
-        }
-
-        return self::buildFromRow($gameRow);
-    }
-
     private static function buildFromRow(array $gameRow, array $addOns = GAME_ADD_ONS): GameInterface
     {
         $db = Connection::get();
         $gameId = (int)$gameRow['game_id'];
 
+        $inlineMessageIds = new GameInlineMessageRepository($db)->findInlineMessageIdsByGameId($gameId);
         $slotRows = new GameSlotRepository($db)->findByGameId($gameId);
         $gamePlayerRows = new GamePlayerRepository($db)->findByGameId($gameId);
         $playerRows = new PlayerRepository($db)->findByIds(array_column($gamePlayerRows, 'telegram_user_id'));
 
-        return new GameBuilder($gameRow, $slotRows, $gamePlayerRows, $playerRows, $addOns)->build();
+        return new GameBuilder($gameRow, $inlineMessageIds, $slotRows, $gamePlayerRows, $playerRows, $addOns)->build();
     }
 }

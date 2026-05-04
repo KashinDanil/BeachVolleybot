@@ -81,7 +81,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
 
     public function testAnswersGameNotFoundWhenGameMissing(): void
     {
-        $update = $this->buildUpdate('nonexistent_msg');
+        $update = $this->buildUpdate('nonexistent_msg', inlineQueryId: 'nonexistent_query');
 
         new LeaveProcessor($this->telegramSender)->process($update);
 
@@ -118,10 +118,10 @@ final class LeaveProcessorTest extends ProcessorTestCase
         $this->assertNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
     }
 
-    private function buildUpdate(string $inlineMessageId): TelegramUpdate
+    private function buildUpdate(string $inlineMessageId, string $inlineQueryId = 'query_1'): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'l'])),
+            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'l', 'q' => $inlineQueryId])),
         );
     }
 }

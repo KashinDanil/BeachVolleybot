@@ -20,7 +20,7 @@ final class NewGameDataTest extends TestCase
 
     public function testFromUserMapsCreatorFields(): void
     {
-        $data = NewGameData::fromUser($this->creator, 'Game 18:00', 'query_1', 'msg_1');
+        $data = NewGameData::fromUser($this->creator, 'Game 18:00', 'query_1');
 
         $this->assertSame(200, $data->telegramUserId);
         $this->assertSame('Alice', $data->firstName);
@@ -30,18 +30,10 @@ final class NewGameDataTest extends TestCase
 
     public function testFromUserMapsGameFields(): void
     {
-        $data = NewGameData::fromUser($this->creator, 'Friday Game 18:00', 'query_1', 'msg_1');
+        $data = NewGameData::fromUser($this->creator, 'Friday Game 18:00', 'query_1');
 
         $this->assertSame('Friday Game 18:00', $data->title);
         $this->assertSame('query_1', $data->inlineQueryId);
-        $this->assertSame('msg_1', $data->inlineMessageId);
-    }
-
-    public function testInlineMessageIdDefaultsToEmptyString(): void
-    {
-        $data = NewGameData::fromUser($this->creator, 'Game 18:00', 'query_1');
-
-        $this->assertSame('', $data->inlineMessageId);
     }
 
     public function testBuildFromNewGameDataProducesValidGame(): void

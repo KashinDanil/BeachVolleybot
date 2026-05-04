@@ -13,7 +13,8 @@ interface GameInterface
 
     public function getInlineQueryId(): string;
 
-    public function getInlineMessageId(): string;
+    /** @return list<string> */
+    public function getInlineMessageIds(): array;
 
     public function getTitle(): string;
 

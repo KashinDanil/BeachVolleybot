@@ -29,7 +29,7 @@ class AdminRemoveSlotProcessor extends AbstractAdminGameMutationProcessor
             return;
         }
 
-        $this->refreshGameInlineMessage($gameId);
+        $this->refreshGameInlineMessages($gameId);
 
         if ($gameManager->isPlayerInGame($gameId, $telegramUserId)) {
             $this->editSettingsMessage($update->callbackQuery, PlayerSettingsMessageFactory::build($gameId, $telegramUserId));

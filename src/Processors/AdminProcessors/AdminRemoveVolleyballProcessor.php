@@ -18,7 +18,7 @@ class AdminRemoveVolleyballProcessor extends AbstractAdminGameMutationProcessor
         $result = new AdminGameManager()->removeVolleyball($gameId, $telegramUserId);
         $this->logAdminAction($update->callbackQuery->from, 'admin_remove_volleyball', "gameId=$gameId;userId=$telegramUserId");
 
-        $this->refreshGameInlineMessage($gameId);
+        $this->refreshGameInlineMessages($gameId);
         $this->editSettingsMessage($update->callbackQuery, PlayerSettingsMessageFactory::build($gameId, $telegramUserId));
         $this->answerCallbackQuery($update->callbackQuery, $result->name);
     }

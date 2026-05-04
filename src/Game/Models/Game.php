@@ -14,11 +14,14 @@ final class Game implements GameInterface
 {
     private ?string $time = null;
 
-    /** @param PlayerInterface[] $players */
+    /**
+     * @param PlayerInterface[] $players
+     * @param list<string> $inlineMessageIds
+     */
     public function __construct(
         private readonly int $gameId,
         private readonly string $inlineQueryId,
-        private readonly string $inlineMessageId,
+        private readonly array $inlineMessageIds,
         public string $title,
         public array $players,
         private readonly DateTimeImmutable $createdAt,
@@ -42,9 +45,10 @@ final class Game implements GameInterface
         return $this->inlineQueryId;
     }
 
-    public function getInlineMessageId(): string
+    /** @return list<string> */
+    public function getInlineMessageIds(): array
     {
-        return $this->inlineMessageId;
+        return $this->inlineMessageIds;
     }
 
     public function getTitle(): string

@@ -31,8 +31,18 @@ final class GameFactoryTest extends DatabaseTestCase
         $game = GameFactory::fromGameId($gameId);
 
         $this->assertSame($gameId, $game->getGameId());
-        $this->assertSame('msg_1', $game->getInlineMessageId());
+        $this->assertSame(['msg_1'], $game->getInlineMessageIds());
         $this->assertSame('Sunday Game 18:00', $game->getTitle());
+    }
+
+    public function testFromGameIdLoadsAllAttachedInlineMessageIds(): void
+    {
+        $gameId = $this->createGame(inlineMessageId: 'msg_first');
+        $this->attachInlineMessage($gameId, 'msg_second');
+
+        $game = GameFactory::fromGameId($gameId);
+
+        $this->assertSame(['msg_first', 'msg_second'], $game->getInlineMessageIds());
     }
 
     public function testFromGameIdThrowsWhenNotFound(): void
@@ -40,26 +50,6 @@ final class GameFactoryTest extends DatabaseTestCase
         $this->expectException(RuntimeException::class);
 
         GameFactory::fromGameId(999);
-    }
-
-    // --- fromInlineMessageId ---
-
-    public function testFromInlineMessageIdReturnsGame(): void
-    {
-        $gameId = $this->createGame(title: 'Friday Game 19:00', inlineMessageId: 'msg_42');
-
-        $game = GameFactory::fromInlineMessageId('msg_42');
-
-        $this->assertSame($gameId, $game->getGameId());
-        $this->assertSame('msg_42', $game->getInlineMessageId());
-        $this->assertSame('Friday Game 19:00', $game->getTitle());
-    }
-
-    public function testFromInlineMessageIdThrowsWhenNotFound(): void
-    {
-        $this->expectException(RuntimeException::class);
-
-        GameFactory::fromInlineMessageId('nonexistent');
     }
 
     // --- Players ---

@@ -65,7 +65,7 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
 
     public function testAnswersGameNotFoundWhenGameMissing(): void
     {
-        $update = $this->buildUpdate('nonexistent_msg');
+        $update = $this->buildUpdate('nonexistent_msg', inlineQueryId: 'nonexistent_query');
 
         new AddVolleyballProcessor($this->telegramSender)->process($update);
 
@@ -103,10 +103,10 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
         $this->assertSame(2, $gamePlayer['volleyball']);
     }
 
-    private function buildUpdate(string $inlineMessageId): TelegramUpdate
+    private function buildUpdate(string $inlineMessageId, string $inlineQueryId = 'query_1'): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'av'])),
+            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'av', 'q' => $inlineQueryId])),
         );
     }
 }

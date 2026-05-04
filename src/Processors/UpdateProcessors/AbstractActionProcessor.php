@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Telegram\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
@@ -27,11 +26,9 @@ abstract class AbstractActionProcessor
         Logger::logUserAction($user->id, $name, $user->username, $action, $details);
     }
 
-    protected function refreshInlineMessage(string $inlineMessageId): void
+    protected function refreshGameInlineMessages(int $gameId): void
     {
-        new InlineMessageRefresher($this->telegramSender)->refresh($inlineMessageId);
-
-        $game = GameFactory::fromInlineMessageId($inlineMessageId);
-        new WeatherEnqueuer()->enqueue($game->getGameId());
+        new InlineMessageRefresher($this->telegramSender)->refresh($gameId);
+        new WeatherEnqueuer()->enqueue($gameId);
     }
 }

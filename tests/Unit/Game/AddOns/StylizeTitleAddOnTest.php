@@ -180,7 +180,7 @@ final class StylizeTitleAddOnTest extends TestCase
 
         $this->assertSame(42, $game->getGameId());
         $this->assertSame('query_1', $game->getInlineQueryId());
-        $this->assertSame('msg_1', $game->getInlineMessageId());
+        $this->assertSame(['msg_1'], $game->getInlineMessageIds());
     }
 
     // --- Helpers ---
@@ -204,7 +204,7 @@ final class StylizeTitleAddOnTest extends TestCase
         return new Game(
             gameId: $gameId,
             inlineQueryId: 'query_1',
-            inlineMessageId: 'msg_1',
+            inlineMessageIds: ['msg_1'],
             title: $title,
             players: $players,
             createdAt: new DateTimeImmutable(),

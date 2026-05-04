@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace BeachVolleybot\Routing;
 
 use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramCallbackQuery;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
@@ -48,13 +46,7 @@ readonly class IncomingMessageQueueRouter
     private function resolveQueueName(TelegramUpdate $update): ?string
     {
         if ($update->hasChosenInlineResult()) {
-            $inlineMessageId = $update->chosenInlineResult->inlineMessageId;
-
-            if (null === $inlineMessageId) {
-                return $this->skip('Chosen inline result missing inline_message_id');
-            }
-
-            return $this->inlineMessageQueueName($inlineMessageId);
+            return $this->gameQueueName($update->chosenInlineResult->resultId);
         }
 
         if ($update->hasCallbackQuery()) {
@@ -100,27 +92,27 @@ readonly class IncomingMessageQueueRouter
             return $this->skip('Meta-button missing inline_query_id');
         }
 
-        $inlineMessageId = new GameRepository(Connection::get())->findInlineMessageIdByInlineQueryId($inlineQueryId);
-
-        if (null === $inlineMessageId) {
-            return $this->skip('Game not found by inline_query_id: ' . $inlineQueryId);
-        }
-
-        return $this->inlineMessageQueueName($inlineMessageId);
+        return $this->gameQueueName($inlineQueryId);
     }
 
     private function resolveCallbackQueryQueue(TelegramCallbackQuery $callbackQuery): ?string
     {
-        if ($callbackQuery->isInline()) {
-            return $this->inlineMessageQueueName($callbackQuery->inlineMessageId);
+        if (!$callbackQuery->isInline()) {
+            return $this->dmQueueName($callbackQuery->from->id);
         }
 
-        return $this->dmQueueName($callbackQuery->from->id);
+        $inlineQueryId = CallbackData::fromJson($callbackQuery->data)?->getInlineQueryId();
+
+        if (null === $inlineQueryId) {
+            return $this->skip('Inline callback missing inline_query_id');
+        }
+
+        return $this->gameQueueName($inlineQueryId);
     }
 
-    private function inlineMessageQueueName(string $inlineMessageId): string
+    private function gameQueueName(string $inlineQueryId): string
     {
-        return self::GAME_QUEUE_PREFIX . $this->sanitizeForFilesystem($inlineMessageId);
+        return self::GAME_QUEUE_PREFIX . $this->sanitizeForFilesystem($inlineQueryId);
     }
 
     private function dmQueueName(int $userId): string

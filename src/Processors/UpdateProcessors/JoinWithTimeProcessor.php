@@ -32,7 +32,7 @@ class JoinWithTimeProcessor extends AbstractGameReplyProcessor
         );
         $this->logUserAction($from, 'join_with_time', "gameId=$gameRecord->gameId;time=$time");
 
-        $this->refreshInlineMessage($gameRecord->inlineMessageId);
+        $this->refreshGameInlineMessages($gameRecord->gameId);
         $this->deleteMessage($message);
     }
 }

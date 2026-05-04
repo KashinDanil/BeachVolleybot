@@ -26,7 +26,7 @@ class AddVolleyballProcessor extends AbstractGameCallbackProcessor
         };
 
         if (EquipmentResult::Added === $result) {
-            $this->refreshInlineMessage($callbackQuery->inlineMessageId);
+            $this->refreshGameInlineMessages($gameId);
         }
 
         $this->answerCallbackQuery($callbackQuery, $callbackAnswer);

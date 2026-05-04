@@ -47,7 +47,7 @@ class SetLiveLocationProcessor extends AbstractGameReplyProcessor
         $this->logUserAction($editedMessage->from, 'update_live_location', "gameId=$gameRecord->gameId;location=$location");
 
         self::getThrottle()->touch($gameRecord->inlineQueryId);
-        $this->refreshInlineMessage($gameRecord->inlineMessageId);
+        $this->refreshGameInlineMessages($gameRecord->gameId);
     }
 
     private static function getThrottle(): LocationUpdateThrottle

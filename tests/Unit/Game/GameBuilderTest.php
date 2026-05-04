@@ -20,11 +20,11 @@ final class GameBuilderTest extends TestCase
         $this->assertSame(42, $game->getGameId());
     }
 
-    public function testInlineMessageId(): void
+    public function testInlineMessageIds(): void
     {
-        $game = $this->buildGame(gameRow: $this->gameRow(inlineMessageId: 'msg_abc'));
+        $game = $this->buildGame(inlineMessageIds: ['msg_abc', 'msg_xyz']);
 
-        $this->assertSame('msg_abc', $game->getInlineMessageId());
+        $this->assertSame(['msg_abc', 'msg_xyz'], $game->getInlineMessageIds());
     }
 
     public function testTitle(): void
@@ -210,14 +210,12 @@ final class GameBuilderTest extends TestCase
     private function gameRow(
         int $gameId = 1,
         string $inlineQueryId = 'query_1',
-        string $inlineMessageId = 'msg_1',
         string $title = 'Beach Game 18:00',
         string $createdAt = '2026-01-01 12:00:00',
     ): array {
         return [
             'game_id' => $gameId,
             'inline_query_id' => $inlineQueryId,
-            'inline_message_id' => $inlineMessageId,
             'title' => $title,
             'created_at' => $createdAt,
         ];
@@ -263,12 +261,14 @@ final class GameBuilderTest extends TestCase
 
     private function buildGame(
         ?array $gameRow = null,
+        array $inlineMessageIds = ['msg_1'],
         array $slotRows = [],
         array $gamePlayerRows = [],
         array $playerRows = [],
     ): GameInterface {
         return new GameBuilder(
             gameRow: $gameRow ?? $this->gameRow(),
+            inlineMessageIds: $inlineMessageIds,
             slotRows: $slotRows,
             gamePlayerRows: $gamePlayerRows,
             playerRows: $playerRows,

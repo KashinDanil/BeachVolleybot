@@ -216,7 +216,7 @@ final class WeatherAddOnTest extends DatabaseTestCase
         $game = new Game(
             gameId: 1,
             inlineQueryId: 'iq',
-            inlineMessageId: 'im',
+            inlineMessageIds: ['im'],
             title: $title,
             players: [],
             createdAt: new DateTimeImmutable(),

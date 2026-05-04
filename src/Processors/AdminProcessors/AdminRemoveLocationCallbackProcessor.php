@@ -17,7 +17,7 @@ class AdminRemoveLocationCallbackProcessor extends AbstractAdminGameMutationProc
         new AdminGameManager()->removeLocation($gameId);
         $this->logAdminAction($update->callbackQuery->from, 'admin_remove_location', "gameId=$gameId");
 
-        $this->refreshGameInlineMessage($gameId);
+        $this->refreshGameInlineMessages($gameId);
 
         $this->editSettingsMessage($update->callbackQuery, GameDetailMessageFactory::build($gameId));
         $this->answerCallbackQuery($update->callbackQuery, 'Location removed');

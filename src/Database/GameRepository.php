@@ -16,13 +16,12 @@ readonly class GameRepository extends AbstractRepository
         return 'game_id';
     }
 
-    public function create(string $title, int $createdBy, string $inlineMessageId, string $inlineQueryId, ?string $location = null): int
+    public function create(string $title, int $createdBy, string $inlineQueryId, ?string $location = null): int
     {
         $this->db->insert($this->table(), [
             'title' => $title,
             'location' => $location,
             'created_by' => $createdBy,
-            'inline_message_id' => $inlineMessageId,
             'inline_query_id' => $inlineQueryId,
         ]);
 
@@ -44,31 +43,16 @@ readonly class GameRepository extends AbstractRepository
         return $this->db->get($this->table(), 'title', ['game_id' => $gameId]) ?: null;
     }
 
-    public function findInlineMessageIdByGameId(int $gameId): ?string
-    {
-        return $this->db->get($this->table(), 'inline_message_id', ['game_id' => $gameId]) ?: null;
-    }
-
-    public function findByInlineMessageId(string $inlineMessageId): ?array
-    {
-        return $this->db->get($this->table(), '*', ['inline_message_id' => $inlineMessageId]) ?: null;
-    }
-
-    public function findGameIdByInlineMessageId(string $inlineMessageId): ?int
-    {
-        $gameId = $this->db->get($this->table(), 'game_id', ['inline_message_id' => $inlineMessageId]);
-
-        return $gameId ? (int) $gameId : null;
-    }
-
     public function findByInlineQueryId(string $inlineQueryId): ?array
     {
         return $this->db->get($this->table(), '*', ['inline_query_id' => $inlineQueryId]) ?: null;
     }
 
-    public function findInlineMessageIdByInlineQueryId(string $inlineQueryId): ?string
+    public function findGameIdByInlineQueryId(string $inlineQueryId): ?int
     {
-        return $this->db->get($this->table(), 'inline_message_id', ['inline_query_id' => $inlineQueryId]) ?: null;
+        $gameId = $this->db->get($this->table(), 'game_id', ['inline_query_id' => $inlineQueryId]);
+
+        return $gameId ? (int)$gameId : null;
     }
 
     /** @return list<array<string, mixed>> */
