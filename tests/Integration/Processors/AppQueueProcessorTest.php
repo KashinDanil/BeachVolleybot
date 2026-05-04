@@ -9,7 +9,6 @@ use BeachVolleybot\Processors\AppQueueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
@@ -93,13 +92,6 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->processor->process(new QueueMessage($this->viaBotKeyboardMessagePayload()));
 
         $this->assertSame([PinMessageProcessor::class], $this->recorder->selections);
-    }
-
-    public function testRoutesChosenInlineResultToCreateGameProcessor(): void
-    {
-        $this->processor->process(new QueueMessage($this->chosenInlineResultPayload(inlineMessageId: 'inline_new', resultId: 'result_1', query: 'Bogatell 18:00')));
-
-        $this->assertSame([CreateGameProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesAdminPrivateSettingsCommandToSettingsMenuProcessor(): void

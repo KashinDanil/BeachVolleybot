@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Queue;
 
+use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
+use Medoo\Medoo;
+use PDO;
 use PHPUnit\Framework\TestCase;
 
 final class IncomingMessageQueueRouterTest extends TestCase
@@ -14,71 +17,65 @@ final class IncomingMessageQueueRouterTest extends TestCase
     private const string BASE_DIR = '/tmp/test_queues';
 
     private IncomingMessageQueueRouter $router;
+    private Medoo $db;
 
     protected function setUp(): void
     {
         @mkdir(BASE_LOG_DIR, 0777, true);
 
+        $this->db = new Medoo([
+            'type' => 'sqlite',
+            'database' => ':memory:',
+            'error' => PDO::ERRMODE_EXCEPTION,
+            'command' => ['PRAGMA foreign_keys = ON'],
+        ]);
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/001_create_games_and_participants.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/004_split_game_inline_messages.sql'));
+        Connection::set($this->db);
+
         SpyQueue::reset();
         $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR);
     }
 
-    // --- chosen_inline_result ---
+    protected function tearDown(): void
+    {
+        Connection::close();
+    }
 
-    public function testChosenInlineResultRoutesToGameQueueByResultId(): void
+    public function testChosenInlineResultIsNotEnqueuedBecauseItIsHandledSynchronously(): void
     {
         $this->router->route($this->chosenInlineResultUpdate(resultId: 'query_abc'));
 
-        $this->assertEnqueuedOnce('game_query_abc');
-    }
-
-    public function testPathTraversalInChosenInlineResultIsSanitized(): void
-    {
-        $this->router->route($this->chosenInlineResultUpdate(resultId: '../../etc/evil'));
-
-        $this->assertEnqueuedOnce('game_______etc_evil');
-    }
-
-    public function testSpecialCharactersInResultIdAreSanitized(): void
-    {
-        $this->router->route($this->chosenInlineResultUpdate(resultId: 'AgAAA+Fsq/AP=='));
-
-        $this->assertEnqueuedOnce('game_AgAAA_Fsq_AP__');
+        $this->assertNothingEnqueued();
     }
 
     // --- callback_query ---
 
-    public function testInlineCallbackQueryRoutesToGameQueueByInlineQueryIdFromCallbackData(): void
+    public function testInlineCallbackQueryRoutesToGameQueueByGameIdFromJunctionTable(): void
     {
-        $this->router->route($this->inlineCallbackQueryUpdate(inlineQueryId: 'query_abc'));
+        $gameId = $this->seedGame(inlineQueryId: 'q1', inlineMessageId: 'msg_a');
 
-        $this->assertEnqueuedOnce('game_query_abc');
+        $this->router->route($this->inlineCallbackQueryUpdate(inlineMessageId: 'msg_a'));
+
+        $this->assertEnqueuedOnce('game_' . $gameId);
     }
 
     public function testTwoCallbacksFromDifferentInlineMessagesOfTheSameGameShareTheQueueName(): void
     {
-        $this->router->route($this->inlineCallbackQueryUpdate(inlineQueryId: 'query_x', inlineMessageId: 'msg_a'));
-        $this->router->route($this->inlineCallbackQueryUpdate(inlineQueryId: 'query_x', inlineMessageId: 'msg_b'));
+        $gameId = $this->seedGame(inlineQueryId: 'q1', inlineMessageId: 'msg_a');
+        $this->attachInlineMessage($gameId, 'msg_b');
+
+        $this->router->route($this->inlineCallbackQueryUpdate(inlineMessageId: 'msg_a'));
+        $this->router->route($this->inlineCallbackQueryUpdate(inlineMessageId: 'msg_b'));
 
         $this->assertCount(2, SpyQueue::$instances);
-        $this->assertSame('game_query_x', SpyQueue::$instances[0]->queueName);
-        $this->assertSame('game_query_x', SpyQueue::$instances[1]->queueName);
+        $this->assertSame('game_' . $gameId, SpyQueue::$instances[0]->queueName);
+        $this->assertSame('game_' . $gameId, SpyQueue::$instances[1]->queueName);
     }
 
-    public function testInlineCallbackQueryWithoutInlineQueryIdInDataIsSkipped(): void
+    public function testInlineCallbackQueryForUnknownInlineMessageIdIsSkipped(): void
     {
-        $update = TelegramUpdate::fromArray([
-            'update_id' => 100,
-            'callback_query' => [
-                'id' => 'cbq_1',
-                'data' => '{"a":"j"}',
-                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
-                'chat_instance' => '-123',
-                'inline_message_id' => 'msg_x',
-            ],
-        ]);
-
-        $this->router->route($update);
+        $this->router->route($this->inlineCallbackQueryUpdate(inlineMessageId: 'nonexistent'));
 
         $this->assertNothingEnqueued();
     }
@@ -102,11 +99,13 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
     // --- reply messages ---
 
-    public function testReplyToViaBotMessageRoutesToGameQueueByInlineQueryIdFromMetaButton(): void
+    public function testReplyToViaBotMessageRoutesToGameQueueByGameIdFromMetaButtonInlineQueryId(): void
     {
+        $gameId = $this->seedGame(inlineQueryId: 'query_123', inlineMessageId: 'msg_x');
+
         $this->router->route($this->replyToViaBotUpdate(inlineQueryId: 'query_123'));
 
-        $this->assertEnqueuedOnce('game_query_123');
+        $this->assertEnqueuedOnce('game_' . $gameId);
     }
 
     public function testReplyToViaBotMessageWithoutMetaButtonIsSkipped(): void
@@ -130,6 +129,13 @@ final class IncomingMessageQueueRouterTest extends TestCase
         ]);
 
         $this->router->route($update);
+
+        $this->assertNothingEnqueued();
+    }
+
+    public function testReplyToViaBotMessageWithUnknownInlineQueryIdIsSkipped(): void
+    {
+        $this->router->route($this->replyToViaBotUpdate(inlineQueryId: 'unknown_query'));
 
         $this->assertNothingEnqueued();
     }
@@ -252,9 +258,11 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
     public function testEditedMessageWithLocationRoutesToGameQueue(): void
     {
+        $gameId = $this->seedGame(inlineQueryId: 'query_456', inlineMessageId: 'msg_loc');
+
         $this->router->route($this->editedMessageUpdate(inlineQueryId: 'query_456'));
 
-        $this->assertEnqueuedOnce('game_query_456');
+        $this->assertEnqueuedOnce('game_' . $gameId);
     }
 
     public function testEditedMessageWithoutLocationIsSkipped(): void
@@ -308,7 +316,8 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
     public function testEnqueuedPayloadMatchesInput(): void
     {
-        $payload = $this->chosenInlineResultPayload(resultId: 'query_abc');
+        $this->seedGame(inlineQueryId: 'q1', inlineMessageId: 'msg_a');
+        $payload = $this->inlineCallbackQueryPayload(inlineMessageId: 'msg_a');
         $update = TelegramUpdate::fromArray($payload);
 
         $this->router->route($update);
@@ -318,43 +327,65 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
     public function testQueueReceivesCorrectBaseDir(): void
     {
-        $this->router->route($this->chosenInlineResultUpdate(resultId: 'query_abc'));
+        $this->seedGame(inlineQueryId: 'q1', inlineMessageId: 'msg_a');
+        $this->router->route($this->inlineCallbackQueryUpdate(inlineMessageId: 'msg_a'));
 
         $this->assertSame(self::BASE_DIR, SpyQueue::$instances[0]->baseDir);
     }
 
     // --- Helpers ---
 
-    private function chosenInlineResultPayload(string $resultId, string $inlineMessageId = 'msg_x'): array
+    private function seedGame(string $inlineQueryId, string $inlineMessageId): int
     {
-        return [
+        $this->db->insert('games', [
+            'title' => 'Test',
+            'created_by' => 1,
+            'inline_query_id' => $inlineQueryId,
+        ]);
+        $gameId = (int) $this->db->id();
+        $this->attachInlineMessage($gameId, $inlineMessageId);
+
+        return $gameId;
+    }
+
+    private function attachInlineMessage(int $gameId, string $inlineMessageId): void
+    {
+        $this->db->insert('game_inline_messages', [
+            'game_id' => $gameId,
+            'inline_message_id' => $inlineMessageId,
+        ]);
+    }
+
+    private function chosenInlineResultUpdate(string $resultId): TelegramUpdate
+    {
+        return TelegramUpdate::fromArray([
             'update_id' => 100,
             'chosen_inline_result' => [
                 'result_id' => $resultId,
                 'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
                 'query' => 'Test game',
+                'inline_message_id' => 'msg_x',
+            ],
+        ]);
+    }
+
+    private function inlineCallbackQueryPayload(string $inlineMessageId): array
+    {
+        return [
+            'update_id' => 100,
+            'callback_query' => [
+                'id' => 'cbq_1',
+                'data' => '{"a":"j"}',
+                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
+                'chat_instance' => '-123',
                 'inline_message_id' => $inlineMessageId,
             ],
         ];
     }
 
-    private function chosenInlineResultUpdate(string $resultId): TelegramUpdate
+    private function inlineCallbackQueryUpdate(string $inlineMessageId): TelegramUpdate
     {
-        return TelegramUpdate::fromArray($this->chosenInlineResultPayload($resultId));
-    }
-
-    private function inlineCallbackQueryUpdate(string $inlineQueryId, string $inlineMessageId = 'msg_x'): TelegramUpdate
-    {
-        return TelegramUpdate::fromArray([
-            'update_id' => 100,
-            'callback_query' => [
-                'id' => 'cbq_1',
-                'data' => json_encode(['a' => 'j', 'q' => $inlineQueryId]),
-                'from' => ['id' => 1, 'first_name' => 'Test', 'is_bot' => false],
-                'chat_instance' => '-123',
-                'inline_message_id' => $inlineMessageId,
-            ],
-        ]);
+        return TelegramUpdate::fromArray($this->inlineCallbackQueryPayload($inlineMessageId));
     }
 
     private function replyToViaBotUpdate(string $inlineQueryId): TelegramUpdate

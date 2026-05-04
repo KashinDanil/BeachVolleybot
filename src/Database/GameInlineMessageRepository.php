@@ -29,4 +29,11 @@ readonly class GameInlineMessageRepository
             'ORDER' => ['created_at' => 'ASC'],
         ]);
     }
+
+    public function findGameIdByInlineMessageId(string $inlineMessageId): ?int
+    {
+        $gameId = $this->db->get('game_inline_messages', 'game_id', ['inline_message_id' => $inlineMessageId]);
+
+        return $gameId ? (int)$gameId : null;
+    }
 }

@@ -214,6 +214,11 @@ readonly class GameManager
         return $this->gameRepository->findGameIdByInlineQueryId($inlineQueryId);
     }
 
+    public function resolveGameIdByInlineMessageId(string $inlineMessageId): ?int
+    {
+        return $this->gameInlineMessageRepository->findGameIdByInlineMessageId($inlineMessageId);
+    }
+
     public function findGameRecord(string $inlineQueryId): ?GameRecord
     {
         $row = $this->gameRepository->findByInlineQueryId($inlineQueryId);

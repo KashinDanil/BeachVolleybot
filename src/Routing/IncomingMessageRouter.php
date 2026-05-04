@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Routing;
 
+use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\InlineQueryProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
@@ -20,6 +21,12 @@ readonly class IncomingMessageRouter
     {
         if ($update->hasInlineQuery()) {
             new InlineQueryProcessor($this->telegramSender)->process($update);
+
+            return;
+        }
+
+        if ($update->hasChosenInlineResult()) {
+            new CreateGameProcessor($this->telegramSender)->process($update);
 
             return;
         }

@@ -30,6 +30,18 @@ final class GameInlineMessageRepositoryTest extends DatabaseTestCase
         $this->assertSame([], $this->repository->findInlineMessageIdsByGameId(999));
     }
 
+    public function testFindGameIdByInlineMessageIdReturnsId(): void
+    {
+        $gameId = $this->createGame(inlineMessageId: 'msg_one', inlineQueryId: 'query_1');
+
+        $this->assertSame($gameId, $this->repository->findGameIdByInlineMessageId('msg_one'));
+    }
+
+    public function testFindGameIdByInlineMessageIdReturnsNullWhenUnknown(): void
+    {
+        $this->assertNull($this->repository->findGameIdByInlineMessageId('nonexistent'));
+    }
+
     public function testDuplicatePairIsRejectedByPrimaryKey(): void
     {
         $gameId = $this->createGame(inlineMessageId: 'msg_x', inlineQueryId: 'query_1');

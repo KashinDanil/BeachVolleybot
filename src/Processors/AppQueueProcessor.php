@@ -11,7 +11,6 @@ use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
@@ -63,10 +62,6 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
 
     protected function resolveProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
     {
-        if ($update->hasChosenInlineResult()) {
-            return new CreateGameProcessor($telegramSender);
-        }
-
         if ($update->hasMessage()) {
             return $this->resolveMessageProcessor($update, $telegramSender);
         }
