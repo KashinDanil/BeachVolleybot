@@ -42,6 +42,42 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertSame(InlineQueryError::KICKOFF_DAY_IN_THE_PAST_TITLE, $call['args'][1][0]->getTitle());
     }
 
+    public function testForwardQueryByCreatorAnswersWithForwardArticle(): void
+    {
+        $gameId = $this->createGame(title: 'Saturday 18:00', createdBy: 200);
+        $update = $this->buildUpdate('query_42', "Forward game $gameId");
+
+        new InlineQueryProcessor($this->telegramSender)->process($update);
+
+        $this->assertInlineQueryAnswered();
+        $article = $this->lastInlineQueryCall()['args'][1][0];
+        $this->assertSame('query_42', $article->getId());
+        $this->assertStringStartsWith('🏐 Forward', $article->getTitle());
+    }
+
+    public function testForwardQueryByNonCreatorAnswersWithGameNotFoundError(): void
+    {
+        $gameId = $this->createGame(title: 'Saturday 18:00', createdBy: 100);
+        $update = $this->buildUpdate('query_1', "Forward game $gameId");
+
+        new InlineQueryProcessor($this->telegramSender)->process($update);
+
+        $this->assertInlineQueryAnswered();
+        $article = $this->lastInlineQueryCall()['args'][1][0];
+        $this->assertSame(InlineQueryError::GAME_NOT_FOUND_TITLE, $article->getTitle());
+    }
+
+    public function testForwardQueryForNonExistentGameAnswersWithGameNotFoundError(): void
+    {
+        $update = $this->buildUpdate('query_1', 'Forward game 9999');
+
+        new InlineQueryProcessor($this->telegramSender)->process($update);
+
+        $this->assertInlineQueryAnswered();
+        $article = $this->lastInlineQueryCall()['args'][1][0];
+        $this->assertSame(InlineQueryError::GAME_NOT_FOUND_TITLE, $article->getTitle());
+    }
+
     private function buildUpdate(string $inlineQueryId, string $query): TelegramUpdate
     {
         return TelegramUpdate::fromArray(

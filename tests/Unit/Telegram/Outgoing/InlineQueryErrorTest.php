@@ -7,11 +7,10 @@ namespace BeachVolleybot\Tests\Unit\Telegram\Outgoing;
 use BeachVolleybot\Errors\ValidationError;
 use BeachVolleybot\Processors\UpdateProcessors\InlineQueryProcessor;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
-use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
 use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 final class InlineQueryErrorTest extends TestCase
 {
@@ -62,19 +61,30 @@ final class InlineQueryErrorTest extends TestCase
 
     public function testAllProcessorValidationRulesAreCovered(): void
     {
-        $processor = new InlineQueryProcessor(new TelegramMessageSender(new BotApiStub()));
-        $rules = $processor->validationRules('');
+        foreach (InlineQueryProcessor::newGameValidationRules('') as $rule) {
+            foreach ($this->errorMessageConstantsOf($rule::class) as $constantName => $errorMessage) {
+                $inlineQueryError = InlineQueryError::fromError(new ValidationError($errorMessage));
 
-        foreach ($rules as $rule) {
-            $rule->isValid();
-            $error = $rule->getError();
-            $inlineQueryError = InlineQueryError::fromError($error);
-
-            $this->assertNotSame(
-                InlineQueryError::UNKNOWN_TITLE,
-                $inlineQueryError->title(),
-                sprintf('Validation rule %s error "%s" is not covered in InlineQueryError', $rule::class, $error->getMessage()),
-            );
+                $this->assertNotSame(
+                    InlineQueryError::UNKNOWN_TITLE,
+                    $inlineQueryError->title(),
+                    sprintf('%s::%s ("%s") is not mapped in InlineQueryError::fromError', $rule::class, $constantName, $errorMessage),
+                );
+            }
         }
+    }
+
+    /** @return array<string, string> */
+    private function errorMessageConstantsOf(string $ruleClass): array
+    {
+        $errorMessages = [];
+
+        foreach (new ReflectionClass($ruleClass)->getConstants() as $name => $value) {
+            if (str_starts_with($name, 'ERROR_') && is_string($value)) {
+                $errorMessages[$name] = $value;
+            }
+        }
+
+        return $errorMessages;
     }
 }

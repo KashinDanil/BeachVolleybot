@@ -8,7 +8,7 @@ use BeachVolleybot\Errors\ValidationError;
 
 readonly class GameCreatorOnlyRule implements RuleInterface
 {
-    public const string ERROR_MESSAGE = 'Only the game creator can change the title';
+    public const string ERROR_MESSAGE = 'Only the game creator can do that';
 
     public function __construct(
         private int $senderId,

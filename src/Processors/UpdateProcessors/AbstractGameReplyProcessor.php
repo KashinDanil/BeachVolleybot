@@ -27,7 +27,7 @@ abstract class AbstractGameReplyProcessor extends AbstractActionReplyProcessor
             return;
         }
 
-        $gameRecord = new GameManager()->findGameRecord($inlineQueryId);
+        $gameRecord = new GameManager()->findGameRecordByInlineQueryId($inlineQueryId);
 
         if (null === $gameRecord) {
             return;
