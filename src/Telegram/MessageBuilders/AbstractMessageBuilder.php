@@ -17,6 +17,7 @@ use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 /**
  * @method array   buildActionButton(string $text, CallbackDataInterface $callbackData, ?InlineButtonStyleEnum $style = null)
  * @method array   buildButton(string $text, string $callbackData, ?InlineButtonStyleEnum $style = null)
+ * @method array   buildSwitchInlineQueryButton(string $text, string $query)
  */
 abstract class AbstractMessageBuilder
 {
@@ -99,5 +100,10 @@ abstract class AbstractMessageBuilder
         }
 
         return $button;
+    }
+
+    protected function defaultBuildSwitchInlineQueryButton(string $text, string $query): array
+    {
+        return ['text' => $text, 'switch_inline_query' => $query];
     }
 }

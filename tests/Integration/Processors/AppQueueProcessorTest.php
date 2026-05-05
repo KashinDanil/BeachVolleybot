@@ -12,6 +12,7 @@ use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -99,6 +100,13 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/settings', fromId: 12345678)));
 
         $this->assertSame([SettingsMenuCallbackProcessor::class], $this->recorder->selections);
+    }
+
+    public function testRoutesPrivateViaBotGameMessageToSendShareButtonProcessor(): void
+    {
+        $this->processor->process(new QueueMessage($this->privateViaBotGameMessagePayload(inlineQueryId: 'query_42')));
+
+        $this->assertSame([SendShareButtonProcessor::class], $this->recorder->selections);
     }
 
     public function testReturnsNullForNonAdminPrivateSettingsCommand(): void

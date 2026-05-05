@@ -94,6 +94,26 @@ readonly class TelegramMessageSender
         }
     }
 
+    public function sendReply(int $chatId, int $replyToMessageId, TelegramMessage $message): int
+    {
+        try {
+            $result = $this->bot->sendMessage(
+                $chatId,
+                $message->getText()->getMessageText(),
+                $message->getText()->getParseMode(),
+                $message->getText()->isDisableWebPagePreview(),
+                $replyToMessageId,
+                $message->getKeyboard(),
+            );
+
+            return (int)$result->getMessageId();
+        } catch (HttpException $exception) {
+            Logger::logApp('sendReply failed: ' . $exception->getMessage());
+
+            return 0;
+        }
+    }
+
     public function editMessage(int $chatId, int $messageId, TelegramMessage $message): void
     {
         try {

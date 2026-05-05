@@ -305,6 +305,33 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    protected function privateViaBotGameMessagePayload(
+        string $inlineQueryId,
+        int $fromId = 200,
+        string $firstName = 'Danil',
+        int $messageId = 139,
+    ): array {
+        return [
+            'update_id' => 1,
+            'message' => [
+                'message_id' => $messageId,
+                'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                'chat' => ['id' => $fromId, 'first_name' => $firstName, 'type' => 'private'],
+                'date' => 1700000000,
+                'text' => 'Saturday 10:00',
+                'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                'reply_markup' => [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                            ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
     protected function adminCallbackQueryPayload(
         string $data,
         int $fromId = 12345678,

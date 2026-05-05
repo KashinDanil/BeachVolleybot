@@ -14,6 +14,7 @@ use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
@@ -123,6 +124,10 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
 
     private function resolvePrivateMessageProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
     {
+        if ($update->message->isViaThisBot() && $update->message->hasInlineKeyboard()) {
+            return new SendShareButtonProcessor($telegramSender);
+        }
+
         if (SettingsMenuCallbackProcessor::COMMAND === $update->message->text && $update->message->from->isAdmin()) {
             return new SettingsMenuCallbackProcessor($telegramSender, AdminCallbackData::create(AdminCallbackAction::Settings));
         }
