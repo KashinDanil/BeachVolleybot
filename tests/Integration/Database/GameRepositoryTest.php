@@ -77,4 +77,60 @@ final class GameRepositoryTest extends DatabaseTestCase
     {
         $this->assertFalse($this->repository->delete(999));
     }
+
+    public function testFindByCreatorReturnsOnlyGamesOfThatCreator(): void
+    {
+        $firstUserGameId = $this->repository->create('Friday Game', 100, 'query_a');
+        $this->repository->create('Saturday Game', 200, 'query_b');
+        $secondUserGameId = $this->repository->create('Sunday Game', 100, 'query_c');
+
+        $games = $this->repository->findByCreator(100, 10, 0);
+
+        $this->assertCount(2, $games);
+        $gameIds = array_map(static fn (array $game): int => (int)$game['game_id'], $games);
+        $this->assertSame([$secondUserGameId, $firstUserGameId], $gameIds);
+    }
+
+    public function testFindByCreatorReturnsEmptyArrayWhenCreatorHasNoGames(): void
+    {
+        $this->repository->create('Friday Game', 100, 'query_a');
+
+        $games = $this->repository->findByCreator(999, 10, 0);
+
+        $this->assertSame([], $games);
+    }
+
+    public function testFindByCreatorRespectsLimitAndOffset(): void
+    {
+        $firstGameId = $this->repository->create('Game 1', 100, 'query_1');
+        $secondGameId = $this->repository->create('Game 2', 100, 'query_2');
+        $thirdGameId = $this->repository->create('Game 3', 100, 'query_3');
+
+        $firstPage = $this->repository->findByCreator(100, 2, 0);
+        $secondPage = $this->repository->findByCreator(100, 2, 2);
+
+        $this->assertCount(2, $firstPage);
+        $this->assertSame($thirdGameId, (int)$firstPage[0]['game_id']);
+        $this->assertSame($secondGameId, (int)$firstPage[1]['game_id']);
+
+        $this->assertCount(1, $secondPage);
+        $this->assertSame($firstGameId, (int)$secondPage[0]['game_id']);
+    }
+
+    public function testCountByCreatorReturnsCountForThatCreatorOnly(): void
+    {
+        $this->repository->create('Friday Game', 100, 'query_a');
+        $this->repository->create('Saturday Game', 200, 'query_b');
+        $this->repository->create('Sunday Game', 100, 'query_c');
+
+        $this->assertSame(2, $this->repository->countByCreator(100));
+        $this->assertSame(1, $this->repository->countByCreator(200));
+    }
+
+    public function testCountByCreatorReturnsZeroWhenCreatorHasNoGames(): void
+    {
+        $this->repository->create('Friday Game', 100, 'query_a');
+
+        $this->assertSame(0, $this->repository->countByCreator(999));
+    }
 }

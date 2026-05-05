@@ -68,4 +68,19 @@ readonly class GameRepository extends AbstractRepository
     {
         return $this->db->count($this->table());
     }
+
+    /** @return list<array<string, mixed>> */
+    public function findByCreator(int $createdBy, int $limit, int $offset): array
+    {
+        return $this->db->select($this->table(), '*', [
+            'created_by' => $createdBy,
+            'ORDER' => ['game_id' => 'DESC'],
+            'LIMIT' => [$offset, $limit],
+        ]);
+    }
+
+    public function countByCreator(int $createdBy): int
+    {
+        return $this->db->count($this->table(), ['created_by' => $createdBy]);
+    }
 }
