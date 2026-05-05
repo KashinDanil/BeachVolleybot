@@ -109,6 +109,27 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([SendShareButtonProcessor::class], $this->recorder->selections);
     }
 
+    public function testRoutesPrivateLocationReplyToSetLocationProcessor(): void
+    {
+        $this->processor->process(new QueueMessage($this->privateLocationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'q1')));
+
+        $this->assertSame([SetLocationProcessor::class], $this->recorder->selections);
+    }
+
+    public function testRoutesPrivateTimeOnlyReplyToJoinWithTimeProcessor(): void
+    {
+        $this->processor->process(new QueueMessage($this->privateReplyMessagePayload(text: '18:00', inlineQueryId: 'q1')));
+
+        $this->assertSame([JoinWithTimeProcessor::class], $this->recorder->selections);
+    }
+
+    public function testRoutesPrivateNonTimeReplyToChangeTitleProcessor(): void
+    {
+        $this->processor->process(new QueueMessage($this->privateReplyMessagePayload(text: 'New title', inlineQueryId: 'q1')));
+
+        $this->assertSame([ChangeTitleProcessor::class], $this->recorder->selections);
+    }
+
     public function testReturnsNullForNonAdminPrivateSettingsCommand(): void
     {
         $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/settings', fromId: 999)));

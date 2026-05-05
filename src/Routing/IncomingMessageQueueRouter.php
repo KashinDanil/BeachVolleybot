@@ -63,22 +63,29 @@ readonly class IncomingMessageQueueRouter
 
     private function resolveMessageQueue(TelegramMessage $message): ?string
     {
+        if ($message->chat->isGroupChat()) {
+            if ($message->isViaThisBot() && $message->hasInlineKeyboard()) {
+                return $this->pinQueueName($message->chat->id);
+            }
+
+            if ($message->isPinMessage() && $message->from->isThisBot()) {
+                return $this->pinQueueName($message->chat->id);
+            }
+        }
+
+        if ($message->hasReplyToMessage() && $message->replyToMessage->isViaThisBot()) {
+            return $this->resolveGameQueueFromReply($message);
+        }
+
         if ($message->chat->isPrivate()) {
             return $this->dmQueueName($message->from->id);
         }
 
-        if ($message->isViaThisBot() && $message->hasInlineKeyboard()) {
-            return $this->pinQueueName($message->chat->id);
-        }
+        return $this->skip('Not a reply to a message from this bot');
+    }
 
-        if ($message->isPinMessage() && $message->from->isThisBot()) {
-            return $this->pinQueueName($message->chat->id);
-        }
-
-        if (!$message->replyToMessage?->isViaThisBot()) {
-            return $this->skip('Not a reply to a message from this bot');
-        }
-
+    private function resolveGameQueueFromReply(TelegramMessage $message): ?string
+    {
         $inlineQueryId = CallbackData::extractInlineQueryId($message->replyToMessage);
 
         if (null === $inlineQueryId) {

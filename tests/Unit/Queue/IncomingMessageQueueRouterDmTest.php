@@ -57,6 +57,43 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
         $this->assertEnqueuedOnce('dm_12345678');
     }
 
+    public function testPrivateReplyToViaBotGameMessageRoutesToGameQueueByGameId(): void
+    {
+        $this->db->insert('games', ['title' => 'Test', 'created_by' => 1, 'inline_query_id' => 'query_dm']);
+        $gameId = (int) $this->db->id();
+        $this->db->insert('game_inline_messages', ['game_id' => $gameId, 'inline_message_id' => 'msg_dm']);
+
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 100,
+            'message' => [
+                'message_id' => 54,
+                'from' => ['id' => 123, 'first_name' => 'Test', 'is_bot' => false],
+                'chat' => ['id' => 123, 'type' => 'private'],
+                'date' => 1700000000,
+                'text' => '19:30',
+                'reply_to_message' => [
+                    'message_id' => 53,
+                    'from' => ['id' => 123, 'first_name' => 'Test', 'is_bot' => false],
+                    'chat' => ['id' => 123, 'type' => 'private'],
+                    'date' => 1700000000,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                    'reply_markup' => [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => 'query_dm'])],
+                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->router->route($update);
+
+        $this->assertEnqueuedOnce('game_' . $gameId);
+    }
+
     public function testCallbackQueryWithInlineMessageIdGoesToGameQueueByGameId(): void
     {
         $this->db->insert('games', ['title' => 'Test', 'created_by' => 1, 'inline_query_id' => 'q1']);

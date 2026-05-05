@@ -97,6 +97,11 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             return $this->resolvePrivateMessageProcessor($update, $telegramSender);
         }
 
+        return $this->resolveGroupMessageProcessor($update, $telegramSender);
+    }
+
+    private function resolveGroupMessageProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
+    {
         if ($update->message->isPinMessage() && $update->message->from->isThisBot()) {
             return new DeletePinNotificationProcessor($telegramSender);
         }
@@ -105,6 +110,24 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             return new PinMessageProcessor($telegramSender);
         }
 
+        return $this->resolveGameActionProcessor($update, $telegramSender);
+    }
+
+    private function resolvePrivateMessageProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
+    {
+        if ($update->message->isViaThisBot() && $update->message->hasInlineKeyboard()) {
+            return new SendShareButtonProcessor($telegramSender);
+        }
+
+        if (SettingsMenuCallbackProcessor::COMMAND === $update->message->text && $update->message->from->isAdmin()) {
+            return new SettingsMenuCallbackProcessor($telegramSender, AdminCallbackData::create(AdminCallbackAction::Settings));
+        }
+
+        return $this->resolveGameActionProcessor($update, $telegramSender);
+    }
+
+    private function resolveGameActionProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
+    {
         if ($update->message->hasLocation()) {
             return new SetLocationProcessor($telegramSender);
         }
@@ -117,19 +140,6 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             if ($update->message->hasReplyToMessage() && $update->message->replyToMessage->isViaThisBot()) {
                 return new ChangeTitleProcessor($telegramSender);
             }
-        }
-
-        return null;
-    }
-
-    private function resolvePrivateMessageProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor
-    {
-        if ($update->message->isViaThisBot() && $update->message->hasInlineKeyboard()) {
-            return new SendShareButtonProcessor($telegramSender);
-        }
-
-        if (SettingsMenuCallbackProcessor::COMMAND === $update->message->text && $update->message->from->isAdmin()) {
-            return new SettingsMenuCallbackProcessor($telegramSender, AdminCallbackData::create(AdminCallbackAction::Settings));
         }
 
         return null;

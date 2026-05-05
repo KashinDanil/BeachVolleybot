@@ -332,6 +332,73 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    protected function privateLocationMessagePayload(
+        float $latitude,
+        float $longitude,
+        string $inlineQueryId,
+        int $fromId = 200,
+        string $firstName = 'Danil',
+    ): array {
+        return [
+            'update_id' => 1,
+            'message' => [
+                'message_id' => 154,
+                'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                'chat' => ['id' => $fromId, 'first_name' => $firstName, 'type' => 'private'],
+                'date' => 1700000000,
+                'location' => ['latitude' => $latitude, 'longitude' => $longitude],
+                'reply_to_message' => [
+                    'message_id' => 153,
+                    'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                    'chat' => ['id' => $fromId, 'first_name' => $firstName, 'type' => 'private'],
+                    'date' => 1699999000,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                    'reply_markup' => [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    protected function privateReplyMessagePayload(
+        string $text,
+        string $inlineQueryId,
+        int $fromId = 200,
+        string $firstName = 'Danil',
+    ): array {
+        return [
+            'update_id' => 1,
+            'message' => [
+                'message_id' => 154,
+                'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                'chat' => ['id' => $fromId, 'first_name' => $firstName, 'type' => 'private'],
+                'date' => 1700000000,
+                'text' => $text,
+                'reply_to_message' => [
+                    'message_id' => 153,
+                    'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
+                    'chat' => ['id' => $fromId, 'first_name' => $firstName, 'type' => 'private'],
+                    'date' => 1699999000,
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                    'reply_markup' => [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
     protected function adminCallbackQueryPayload(
         string $data,
         int $fromId = 12345678,
