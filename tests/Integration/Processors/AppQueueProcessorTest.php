@@ -15,6 +15,9 @@ use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserGameDetailCallbackProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserGamesListCallbackProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Processors\Stub\ProcessorSelectionRecorder;
@@ -102,6 +105,13 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([SettingsMenuCallbackProcessor::class], $this->recorder->selections);
     }
 
+    public function testRoutesPrivateGamesCommandToUserGamesListCommandProcessor(): void
+    {
+        $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/games', fromId: 555)));
+
+        $this->assertSame([UserGamesListCommandProcessor::class], $this->recorder->selections);
+    }
+
     public function testRoutesPrivateViaBotGameMessageToSendShareButtonProcessor(): void
     {
         $this->processor->process(new QueueMessage($this->privateViaBotGameMessagePayload(inlineQueryId: 'query_42')));
@@ -149,6 +159,20 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->processor->process(new QueueMessage($this->adminCallbackQueryPayload(data: '{"aa":"st"}')));
 
         $this->assertSame([SettingsMenuCallbackProcessor::class], $this->recorder->selections);
+    }
+
+    public function testRoutesUserGamesListCallbackToUserGamesListCallbackProcessor(): void
+    {
+        $this->processor->process(new QueueMessage($this->adminCallbackQueryPayload(data: '{"ua":"ugl"}', fromId: 555, chatId: 555)));
+
+        $this->assertSame([UserGamesListCallbackProcessor::class], $this->recorder->selections);
+    }
+
+    public function testRoutesUserGameDetailCallbackToUserGameDetailCallbackProcessor(): void
+    {
+        $this->processor->process(new QueueMessage($this->adminCallbackQueryPayload(data: '{"ua":"ugd","g":1}', fromId: 555, chatId: 555)));
+
+        $this->assertSame([UserGameDetailCallbackProcessor::class], $this->recorder->selections);
     }
 
     public function testReturnsNullForInlineQuery(): void

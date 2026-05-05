@@ -35,5 +35,9 @@
     "⚠️ Game cannot be in the past": "⚠️ Игра не может быть в прошлом",
     "Pick a date from today onwards": "Выберите дату начиная с сегодня",
     "Use the following pattern to create a new game:": "Используйте следующий шаблон для создания новой игры:",
-    "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Суббота, 11.04\n🏖️ Bogatell\n🕙 10:00"
+    "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Суббота, 11.04\n🏖️ Bogatell\n🕙 10:00",
+
+    "Your games": "Ваши игры",
+    "You haven't created any games yet": "Вы ещё не создали ни одной игры",
+    "Game #%d": "Игра #%d"
 }

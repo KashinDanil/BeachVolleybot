@@ -17,8 +17,10 @@ use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\RateLimitedBotApi;
 use BeachVolleybot\Telegram\TelegramMessageSender;
@@ -88,6 +90,12 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             }
         }
 
+        $userCallback = UserCallbackData::fromJson($update->callbackQuery->data);
+
+        if (null !== $userCallback) {
+            return $userCallback->getAction()->resolveProcessor($telegramSender, $userCallback);
+        }
+
         return CallbackData::fromJson($update->callbackQuery->data)?->getAction()->resolveProcessor($telegramSender);
     }
 
@@ -117,6 +125,10 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
     {
         if ($update->message->isViaThisBot() && $update->message->hasInlineKeyboard()) {
             return new SendShareButtonProcessor($telegramSender);
+        }
+
+        if (UserGamesListCommandProcessor::COMMAND === $update->message->text) {
+            return new UserGamesListCommandProcessor($telegramSender);
         }
 
         if (SettingsMenuCallbackProcessor::COMMAND === $update->message->text && $update->message->from->isAdmin()) {

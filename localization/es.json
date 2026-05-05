@@ -35,5 +35,9 @@
     "⚠️ Game cannot be in the past": "⚠️ El partido no puede estar en el pasado",
     "Pick a date from today onwards": "Elige una fecha a partir de hoy",
     "Use the following pattern to create a new game:": "Usa el siguiente formato para crear un nuevo juego:",
-    "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Sábado, 11.04\n🏖️ Bogatell\n🕙 10:00"
+    "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Sábado, 11.04\n🏖️ Bogatell\n🕙 10:00",
+
+    "Your games": "Tus partidos",
+    "You haven't created any games yet": "Aún no has creado ningún partido",
+    "Game #%d": "Partido #%d"
 }
