@@ -13,7 +13,6 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 /**
  * @method string buildShareText()
  * @method string buildButtonText()
- * @method string buildSwitchQuery(int $gameId)
  * @method array  buildShareKeyboard(int $gameId)
  */
 final class ShareGameMessageBuilder extends AbstractMessageBuilder
@@ -36,6 +35,11 @@ final class ShareGameMessageBuilder extends AbstractMessageBuilder
         );
     }
 
+    public static function switchQuery(int $gameId): string
+    {
+        return ForwardGameQueryExtractor::PREFIX . ' ' . $gameId;
+    }
+
     protected function defaultBuildShareText(): string
     {
         return $this->formatter->escape($this->translator->translate(self::SHARE_TEXT));
@@ -46,18 +50,13 @@ final class ShareGameMessageBuilder extends AbstractMessageBuilder
         return $this->translator->translate(self::BUTTON_TEXT);
     }
 
-    protected function defaultBuildSwitchQuery(int $gameId): string
-    {
-        return ForwardGameQueryExtractor::PREFIX . ' ' . $gameId;
-    }
-
     protected function defaultBuildShareKeyboard(int $gameId): array
     {
         return [
             [
                 $this->buildSwitchInlineQueryButton(
                     $this->buildButtonText(),
-                    $this->buildSwitchQuery($gameId),
+                    self::switchQuery($gameId),
                 ),
             ],
         ];
