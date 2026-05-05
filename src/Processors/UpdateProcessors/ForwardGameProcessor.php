@@ -7,7 +7,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 use BeachVolleybot\Common\Extractors\ForwardGameQueryExtractor;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\Validator\Rules\GameCreatorOnlyRule;
+use BeachVolleybot\Validator\Rules\GameCreatorOrAdminRule;
 use BeachVolleybot\Validator\Validator;
 
 class ForwardGameProcessor extends AbstractActionProcessor
@@ -30,7 +30,11 @@ class ForwardGameProcessor extends AbstractActionProcessor
 
         $validationState = new Validator(
             [
-                new GameCreatorOnlyRule($result->from->id, $gameRecord->createdBy),
+                new GameCreatorOrAdminRule(
+                    $result->from->id,
+                    $gameRecord->createdBy,
+                    $result->from->isAdmin(),
+                ),
             ]
         )->validate();
 

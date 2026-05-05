@@ -58,6 +58,12 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
 
         $keyboard = [
             [
+                $this->buildSwitchInlineQueryButton(
+                    ShareGameMessageBuilder::BUTTON_TEXT,
+                    ShareGameMessageBuilder::switchQuery($gameId),
+                ),
+            ],
+            [
                 $this->buildActionButton(
                     'Players',
                     AdminCallbackData::create(AdminCallbackAction::GamePlayers)

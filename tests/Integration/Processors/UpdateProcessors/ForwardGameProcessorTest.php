@@ -43,6 +43,17 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
         $this->assertSame(['msg_original'], $attachedIds);
     }
 
+    public function testAttachesNewInlineMessageIdWhenCallerIsAdminButNotCreator(): void
+    {
+        $gameId = $this->createGame(title: 'Saturday 18:00', createdBy: 100, inlineMessageId: 'msg_original');
+        $update = $this->buildUpdate(inlineMessageId: 'msg_forwarded', query: "Forward game $gameId", fromId: 12345678);
+
+        new ForwardGameProcessor($this->telegramSender)->process($update);
+
+        $attachedIds = new GameInlineMessageRepository($this->db)->findInlineMessageIdsByGameId($gameId);
+        $this->assertEqualsCanonicalizing(['msg_original', 'msg_forwarded'], $attachedIds);
+    }
+
     public function testDoesNothingWhenQueryIsNotForwardPattern(): void
     {
         $gameId = $this->createGame(title: 'Saturday 18:00', createdBy: 200, inlineMessageId: 'msg_original');

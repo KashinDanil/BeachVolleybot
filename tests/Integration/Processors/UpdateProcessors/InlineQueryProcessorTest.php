@@ -67,6 +67,21 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertSame(InlineQueryError::GAME_NOT_FOUND_TITLE, $article->getTitle());
     }
 
+    public function testForwardQueryByAdminAnswersWithForwardArticleEvenWhenNotCreator(): void
+    {
+        $gameId = $this->createGame(title: 'Saturday 18:00', createdBy: 100);
+        $update = TelegramUpdate::fromArray(
+            $this->inlineQueryPayload('query_admin', "Forward game $gameId", fromId: 12345678),
+        );
+
+        new InlineQueryProcessor($this->telegramSender)->process($update);
+
+        $this->assertInlineQueryAnswered();
+        $article = $this->lastInlineQueryCall()['args'][1][0];
+        $this->assertSame('query_admin', $article->getId());
+        $this->assertStringStartsWith('🏐 Game', $article->getTitle());
+    }
+
     public function testForwardQueryForNonExistentGameAnswersWithGameNotFoundError(): void
     {
         $update = $this->buildUpdate('query_1', 'Forward game 9999');

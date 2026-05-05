@@ -15,7 +15,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\ForwardGameArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
 use BeachVolleybot\Telegram\Messages\Outgoing\NewGameArticleBuilder;
 use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
-use BeachVolleybot\Validator\Rules\GameCreatorOnlyRule;
+use BeachVolleybot\Validator\Rules\GameCreatorOrAdminRule;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Rules\RuleInterface;
 use BeachVolleybot\Validator\Validator;
@@ -59,7 +59,11 @@ class InlineQueryProcessor extends AbstractActionProcessor
 
         $validationState = new Validator(
             [
-                new GameCreatorOnlyRule($inlineQuery->from->id, $gameRecord->createdBy),
+                new GameCreatorOrAdminRule(
+                    $inlineQuery->from->id,
+                    $gameRecord->createdBy,
+                    $inlineQuery->from->isAdmin(),
+                ),
             ]
         )->validate();
 

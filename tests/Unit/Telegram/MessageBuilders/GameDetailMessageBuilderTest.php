@@ -117,6 +117,17 @@ final class GameDetailMessageBuilderTest extends TestCase
         $this->assertStringNotContainsString('Location', $message->getText()->getMessageText());
     }
 
+    public function testGameDetailHasShareButtonAsFirstRow(): void
+    {
+        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', players: []);
+
+        $message = $this->builder->buildGameDetail($game);
+        $keyboard = $this->extractKeyboard($message);
+
+        $this->assertSame('Share', $keyboard[0][0]['text']);
+        $this->assertSame('Forward game 42', $keyboard[0][0]['switch_inline_query']);
+    }
+
     public function testGameDetailHasPlayersButton(): void
     {
         $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
@@ -124,7 +135,7 @@ final class GameDetailMessageBuilderTest extends TestCase
         $message = $this->builder->buildGameDetail($game);
         $keyboard = $this->extractKeyboard($message);
 
-        $this->assertSame('Players', $keyboard[0][0]['text']);
+        $this->assertSame('Players', $keyboard[1][0]['text']);
     }
 
     public function testGameDetailShowsRemoveLocationWhenLocationPresent(): void
