@@ -6,7 +6,7 @@ namespace BeachVolleybot\Telegram\CallbackData;
 
 use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 
-final readonly class UserCallbackData implements CallbackDataInterface
+final readonly class UserCallbackData implements PageableCallbackDataInterface
 {
     private const string KEY_ACTION  = 'ua';
     private const string KEY_GAME_ID = 'g';
@@ -49,7 +49,7 @@ final readonly class UserCallbackData implements CallbackDataInterface
         return new self($this->action, $gameId, $this->page);
     }
 
-    public function withPage(int $page): self
+    public function withPage(int $page): static
     {
         return new self($this->action, $this->gameId, $page);
     }

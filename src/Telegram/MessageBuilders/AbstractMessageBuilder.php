@@ -6,6 +6,7 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BadMethodCallException;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
+use BeachVolleybot\Telegram\CallbackData\PageableCallbackDataInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyleEnum;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
@@ -21,7 +22,10 @@ use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
  */
 abstract class AbstractMessageBuilder
 {
-    protected const bool DISABLE_PREVIEW = true;
+    protected const bool   DISABLE_PREVIEW = true;
+    public const string    LABEL_PREVIOUS  = '<< Prev';
+    public const string    LABEL_NEXT      = 'Next >>';
+    public const string    LABEL_BACK      = '↩ Back';
 
     /** @var array<string, Closure> */
     private array $overrides = [];
@@ -105,5 +109,39 @@ abstract class AbstractMessageBuilder
     protected function defaultBuildSwitchInlineQueryButton(string $text, string $query): array
     {
         return ['text' => $text, 'switch_inline_query' => $query];
+    }
+
+    /** @return list<array{text: string, callback_data: string}> */
+    protected function backButtonRow(
+        CallbackDataInterface $callbackData,
+        string $label = self::LABEL_BACK,
+    ): array {
+        return [$this->buildActionButton($label, $callbackData)];
+    }
+
+    /** @return ?list<array{text: string, callback_data: string}> */
+    protected function paginationRow(
+        KeyboardPagination $pagination,
+        PageableCallbackDataInterface $callbackData,
+        string $previousLabel = self::LABEL_PREVIOUS,
+        string $nextLabel = self::LABEL_NEXT,
+    ): ?array {
+        $row = [];
+        $previousPage = $pagination->getPreviousPage();
+        $nextPage = $pagination->getNextPage();
+
+        if (null !== $previousPage) {
+            $row[] = $this->buildActionButton($previousLabel, $callbackData->withPage($previousPage));
+        }
+
+        if (null !== $nextPage) {
+            $row[] = $this->buildActionButton($nextLabel, $callbackData->withPage($nextPage));
+        }
+
+        if ([] === $row) {
+            return null;
+        }
+
+        return $row;
     }
 }
