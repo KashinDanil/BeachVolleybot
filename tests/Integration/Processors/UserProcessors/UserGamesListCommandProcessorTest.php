@@ -33,6 +33,18 @@ final class UserGamesListCommandProcessorTest extends ProcessorTestCase
         $this->assertSame([], $keyboard);
     }
 
+    public function testDeletesTheGamesCommandMessage(): void
+    {
+        $this->processCommand();
+
+        $deleteCalls = array_filter($this->bot->calls, fn($call) => 'deleteMessage' === $call['method']);
+        $this->assertCount(1, $deleteCalls);
+
+        $deleteCall = end($deleteCalls);
+        $this->assertSame(self::SENDER_ID, $deleteCall['args'][0]); // chatId
+        $this->assertSame(109, $deleteCall['args'][1]);             // messageId from privateMessagePayload
+    }
+
     public function testListsOnlyGamesCreatedByTheSender(): void
     {
         $myGameId = $this->createGame(title: 'Mine 18:00',  createdBy: self::SENDER_ID, inlineQueryId: 'q_mine',  inlineMessageId: 'msg_mine');

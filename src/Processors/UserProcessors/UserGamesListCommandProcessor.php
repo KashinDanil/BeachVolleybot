@@ -24,6 +24,7 @@ class UserGamesListCommandProcessor extends AbstractActionProcessor
         );
 
         $this->telegramSender->sendMessage($message->chat->id, $listMessage);
+        $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);
         $this->logUserAction($message->from, 'games_list_opened');
     }
 }
