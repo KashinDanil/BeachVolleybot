@@ -37,7 +37,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
 
     private function resolveArticleBuilder(TelegramInlineQuery $inlineQuery, Translator $translator): ArticleBuilderInterface
     {
-        $forwardGameId = ForwardGameQueryExtractor::extract($inlineQuery->query, $translator);
+        $forwardGameId = ForwardGameQueryExtractor::extract($inlineQuery->query);
 
         if (null !== $forwardGameId) {
             return $this->buildForwardArticleBuilder($inlineQuery, $translator, $forwardGameId);

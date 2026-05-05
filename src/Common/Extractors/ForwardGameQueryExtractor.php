@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Common\Extractors;
 
-use BeachVolleybot\Localization\Translator;
-
 final class ForwardGameQueryExtractor
 {
-    public const string TRANSLATION_KEY = 'Forward game';
+    public const string PREFIX = 'Forward game';
 
-    public static function extract(string $query, Translator $translator): ?int
+    public static function extract(string $query): ?int
     {
-        $localizedPrefix = $translator->translate(self::TRANSLATION_KEY);
-        $pattern = '/^' . preg_quote($localizedPrefix, '/') . '\s+(\d+)$/iu';
+        $pattern = '/^' . preg_quote(self::PREFIX, '/') . '\s+(\d+)$/iu';
 
         if (1 !== preg_match($pattern, $query, $matches)) {
             return null;

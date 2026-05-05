@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace BeachVolleybot\Routing;
 
 use BeachVolleybot\Common\Extractors\ForwardGameQueryExtractor;
-use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ForwardGameProcessor;
@@ -50,7 +49,7 @@ readonly class IncomingMessageRouter
 
     private function resolveChosenInlineResultProcessor(TelegramChosenInlineResult $result): AbstractActionProcessor
     {
-        $forwardGameId = ForwardGameQueryExtractor::extract($result->query, Translator::fromUser($result->from));
+        $forwardGameId = ForwardGameQueryExtractor::extract($result->query);
 
         if (null !== $forwardGameId) {
             return new ForwardGameProcessor($this->telegramSender);
