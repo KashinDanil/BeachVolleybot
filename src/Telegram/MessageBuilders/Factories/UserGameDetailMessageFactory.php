@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 
+use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Localization\Translator;
@@ -60,10 +61,17 @@ final class UserGameDetailMessageFactory
 
         $builder->override(
             'buildKeyboard',
-            static fn (GameInterface $game): array => [
-                [$builder->buildSwitchInlineQueryButton($shareLabel, $shareQuery)],
-                [$builder->buildActionButton($backLabel, $backCallback)],
-            ],
+            static function (GameInterface $game) use ($builder, $shareLabel, $shareQuery, $backLabel, $backCallback): array {
+                $rows = [];
+
+                if (!GameDateTimeResolver::isKickoffPast($game->getTitle(), $game->getCreatedAt())) {
+                    $rows[] = [$builder->buildSwitchInlineQueryButton($shareLabel, $shareQuery)];
+                }
+
+                $rows[] = [$builder->buildActionButton($backLabel, $backCallback)];
+
+                return $rows;
+            },
         );
     }
 }

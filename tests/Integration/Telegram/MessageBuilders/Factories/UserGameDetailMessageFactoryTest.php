@@ -72,6 +72,27 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
         $this->assertCount(2, $this->extractKeyboard($message));
     }
 
+    public function testPastGameKeyboardHasOnlyBackRow(): void
+    {
+        $gameId = $this->createGame(title: 'Saturday 01.01.2020 18:00');
+
+        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+
+        $keyboard = $this->extractKeyboard($message);
+        $this->assertCount(1, $keyboard, 'Past game should expose only Back; no Share row');
+        $this->assertStringContainsString('Back', $keyboard[0][0]['text']);
+    }
+
+    public function testPastGameKeyboardOmitsShareButton(): void
+    {
+        $gameId = $this->createGame(title: 'Saturday 01.01.2020 18:00');
+
+        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+
+        $keyboard = $this->extractKeyboard($message);
+        $this->assertArrayNotHasKey('switch_inline_query', $keyboard[0][0]);
+    }
+
     public function testFirstRowIsShareButton(): void
     {
         $gameId = $this->createGame(title: self::GAME_TITLE);
