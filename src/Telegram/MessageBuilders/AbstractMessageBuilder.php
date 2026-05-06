@@ -23,8 +23,8 @@ use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 abstract class AbstractMessageBuilder
 {
     protected const bool   DISABLE_PREVIEW = true;
-    public const string    LABEL_PREVIOUS  = '<< Prev';
-    public const string    LABEL_NEXT      = 'Next >>';
+    public const string    LABEL_PREVIOUS  = '« Prev';
+    public const string    LABEL_NEXT      = 'Next »';
     public const string    LABEL_BACK      = '↩ Back';
 
     /** @var array<string, Closure> */

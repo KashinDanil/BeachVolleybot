@@ -40,5 +40,9 @@
     "Your games": "Ваши игры",
     "You haven't created any games yet": "Вы ещё не создали ни одной игры",
     "Game #%d": "Игра #%d",
-    "You cannot share a finished game": "Нельзя поделиться завершённой игрой"
+    "You cannot share a finished game": "Нельзя поделиться завершённой игрой",
+    "Page %d of %d": "Страница %d из %d",
+    "« Prev": "« Пред.",
+    "Next »": "След. »",
+    "↩ Back": "↩ Назад"
 }

@@ -112,7 +112,7 @@ final class PlayersListMessageBuilderTest extends TestCase
         $keyboard = $this->extractKeyboard($message);
 
         $allButtonTexts = $this->flattenButtonTexts($keyboard);
-        $this->assertContains('Next >>', $allButtonTexts);
+        $this->assertContains('Next »', $allButtonTexts);
     }
 
     // --- helpers ---

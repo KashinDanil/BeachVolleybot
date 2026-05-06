@@ -16,6 +16,7 @@ final class UserGamesListMessageBuilder extends AbstractMessageBuilder
 {
     public const string HEADER_TEXT      = 'Your games';
     public const string EMPTY_STATE_TEXT = "You haven't created any games yet";
+    public const string PAGE_INDICATOR   = 'Page %d of %d';
 
     public function __construct(
         private readonly Translator $translator,
@@ -44,9 +45,15 @@ final class UserGamesListMessageBuilder extends AbstractMessageBuilder
                 . $this->formatter->escape($this->translator->translate(self::EMPTY_STATE_TEXT));
         }
 
+        $pageIndicator = sprintf(
+            $this->translator->translate(self::PAGE_INDICATOR),
+            $pagination->page,
+            $pagination->totalPages,
+        );
+
         return $header
             . $this->formatter->newLine()
-            . $this->formatter->escape("Page $pagination->page of $pagination->totalPages");
+            . $this->formatter->escape($pageIndicator);
     }
 
     /** @param list<array<string, mixed>> $games */

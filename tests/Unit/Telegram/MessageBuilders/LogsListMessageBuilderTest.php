@@ -88,7 +88,7 @@ final class LogsListMessageBuilderTest extends TestCase
         $keyboard = $this->extractKeyboard($message);
 
         $allButtonTexts = $this->flattenButtonTexts($keyboard);
-        $this->assertContains('Next >>', $allButtonTexts);
+        $this->assertContains('Next »', $allButtonTexts);
     }
 
     private function flattenButtonTexts(array $keyboard): array
@@ -114,8 +114,8 @@ final class LogsListMessageBuilderTest extends TestCase
         $keyboard = $this->extractKeyboard($message);
 
         $allButtonTexts = $this->flattenButtonTexts($keyboard);
-        $this->assertNotContains('<< Prev', $allButtonTexts);
-        $this->assertNotContains('Next >>', $allButtonTexts);
+        $this->assertNotContains('« Prev', $allButtonTexts);
+        $this->assertNotContains('Next »', $allButtonTexts);
     }
 
     // --- helpers ---

@@ -113,7 +113,7 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
         // row 0: game button, row 1: pagination, row 2: back button
         $this->assertCount(3, $keyboard);
-        $this->assertSame('Next >>', $keyboard[1][0]['text']);
+        $this->assertSame('Next »', $keyboard[1][0]['text']);
         $this->assertSame('↩ Back', $keyboard[2][0]['text']);
     }
 
@@ -126,8 +126,8 @@ final class GameMessageBuilderTest extends DatabaseTestCase
         $keyboard = $this->extractKeyboard($message);
 
         $this->assertCount(3, $keyboard);
-        $this->assertSame('<< Prev', $keyboard[1][0]['text']);
-        $this->assertSame('Next >>', $keyboard[1][1]['text']);
+        $this->assertSame('« Prev', $keyboard[1][0]['text']);
+        $this->assertSame('Next »', $keyboard[1][1]['text']);
     }
 
     // --- helpers ---
