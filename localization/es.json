@@ -39,5 +39,6 @@
 
     "Your games": "Tus partidos",
     "You haven't created any games yet": "Aún no has creado ningún partido",
-    "Game #%d": "Partido #%d"
+    "Game #%d": "Partido #%d",
+    "You cannot share a finished game": "No puedes compartir un partido finalizado"
 }

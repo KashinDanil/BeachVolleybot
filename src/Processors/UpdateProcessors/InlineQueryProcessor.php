@@ -64,14 +64,18 @@ class InlineQueryProcessor extends AbstractActionProcessor
                     $gameRecord->createdBy,
                     $inlineQuery->from->isAdmin(),
                 ),
+                new KickoffDayInTheFutureRule($gameRecord->title, $gameRecord->createdAt),
             ]
         )->validate();
 
-        if (!$validationState->isSuccess()) {
-            return new ErrorArticleBuilder(InlineQueryError::gameNotFound(), $translator);
+        if ($validationState->isSuccess()) {
+            return new ForwardGameArticleBuilder($inlineQuery, $gameId, $gameRecord->title, $translator);
         }
 
-        return new ForwardGameArticleBuilder($inlineQuery, $gameId, $gameRecord->title, $translator);
+        return new ErrorArticleBuilder(
+            InlineQueryError::fromForwardError($validationState->getError()),
+            $translator,
+        );
     }
 
     private function buildNewGameArticleBuilder(TelegramInlineQuery $inlineQuery, Translator $translator): ArticleBuilderInterface

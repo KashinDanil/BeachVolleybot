@@ -28,6 +28,9 @@ final readonly class InlineQueryError
     public const string GAME_NOT_FOUND_TITLE = '⚠️ Game not found';
     public const string GAME_NOT_FOUND_DESCRIPTION = 'Check the game number and try again';
 
+    public const string GAME_FINISHED_TITLE = '🏁 This game has already finished';
+    public const string GAME_FINISHED_DESCRIPTION = 'You cannot share a finished game';
+
     private function __construct(
         private string $title,
         private string $description,
@@ -42,6 +45,14 @@ final readonly class InlineQueryError
             DateTimeInTitleRule::ERROR_TIME_MISSING => new self(self::TIME_NOT_FOUND_TITLE, self::TIME_NOT_FOUND_DESCRIPTION),
             KickoffDayInTheFutureRule::ERROR_MESSAGE => new self(self::KICKOFF_DAY_IN_THE_PAST_TITLE, self::KICKOFF_DAY_IN_THE_PAST_DESCRIPTION),
             default => new self(self::UNKNOWN_TITLE, self::UNKNOWN_DESCRIPTION),
+        };
+    }
+
+    public static function fromForwardError(ErrorInterface $error): self
+    {
+        return match ($error->getMessage()) {
+            KickoffDayInTheFutureRule::ERROR_MESSAGE => new self(self::GAME_FINISHED_TITLE, self::GAME_FINISHED_DESCRIPTION),
+            default => self::gameNotFound(),
         };
     }
 
