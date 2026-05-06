@@ -20,12 +20,13 @@ final class PlayerSettingsMessageBuilder extends AbstractAdminMessageBuilder
         int $gameId,
         int $telegramUserId,
         string $playerName,
+        ?string $playerLink,
         int $slotCount,
         int $volleyball,
         int $net,
     ): TelegramMessage {
         return $this->buildMessage(
-            $this->buildPlayerSettingsText($gameId, $telegramUserId, $playerName, $slotCount, $volleyball, $net),
+            $this->buildPlayerSettingsText($gameId, $telegramUserId, $playerName, $playerLink, $slotCount, $volleyball, $net),
             $this->buildPlayerSettingsKeyboard($gameId, $telegramUserId, $slotCount),
         );
     }
@@ -34,13 +35,18 @@ final class PlayerSettingsMessageBuilder extends AbstractAdminMessageBuilder
         int $gameId,
         int $telegramUserId,
         string $playerName,
+        ?string $playerLink,
         int $slotCount,
         int $volleyball,
         int $net,
     ): string {
+        $namePart = null !== $playerLink
+            ? $this->formatter->link($playerName, $playerLink)
+            : $this->formatter->escape($playerName);
+
         return implode($this->formatter->newLine(), [
             $this->formatHeader("Player Settings #$gameId"),
-            $this->formatter->escape($playerName),
+            $namePart,
             $this->formatter->escape("Telegram ID: $telegramUserId"),
             $this->formatter->escape("Slots: $slotCount"),
             $this->formatter->escape("Volleyball: $volleyball"),

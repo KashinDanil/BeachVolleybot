@@ -55,7 +55,7 @@ final class PlayersListMessageBuilder extends AbstractAdminMessageBuilder
     private function buildPlayersListText(int $gameId, string $gameTitle, KeyboardPagination $pagination): string
     {
         return $this->formatHeader("Players #$gameId")
-            . $this->formatter->newLine() . $this->formatter->escape($gameTitle)
+            . $this->formatter->newLine() . $this->formatter->blockquote($this->formatter->escape($gameTitle))
             . $this->formatter->newLine() . $this->formatter->escape("Page $pagination->page of $pagination->totalPages");
     }
 

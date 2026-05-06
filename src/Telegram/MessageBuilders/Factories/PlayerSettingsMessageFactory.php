@@ -11,7 +11,6 @@ use BeachVolleybot\Database\PlayerRepository;
 use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Telegram\MessageBuilders\PlayerSettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
-use Medoo\Medoo;
 
 final class PlayerSettingsMessageFactory
 {
@@ -24,27 +23,22 @@ final class PlayerSettingsMessageFactory
             return new PlayerSettingsMessageBuilder()->buildPlayerNotFound($gameId);
         }
 
-        $playerName = self::resolvePlayerName($db, $telegramUserId);
+        $playerRow = new PlayerRepository($db)->findById($telegramUserId);
+        $playerName = null !== $playerRow
+            ? Player::buildName($playerRow['first_name'], $playerRow['last_name'] ?? null)
+            : "User $telegramUserId";
+        $playerLink = null !== $playerRow ? Player::buildLink($playerRow['username'] ?? null) : null;
+
         $slotCount = count(new GameSlotRepository($db)->findPositionsByPlayer($gameId, $telegramUserId));
 
         return new PlayerSettingsMessageBuilder()->buildPlayerSettings(
             $gameId,
             $telegramUserId,
             $playerName,
+            $playerLink,
             $slotCount,
             (int)($gamePlayerRow['volleyball'] ?? 0),
             (int)($gamePlayerRow['net'] ?? 0),
         );
-    }
-
-    private static function resolvePlayerName(Medoo $db, int $telegramUserId): string
-    {
-        $playerRow = new PlayerRepository($db)->findById($telegramUserId);
-
-        if (null === $playerRow) {
-            return "User $telegramUserId";
-        }
-
-        return Player::buildName($playerRow['first_name'], $playerRow['last_name'] ?? null);
     }
 }

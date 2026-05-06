@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\Player;
+use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\PlayersListMessageBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -39,6 +40,17 @@ final class PlayersListMessageBuilderTest extends TestCase
         $message = $this->builder->build($game, 1);
 
         $this->assertStringContainsString('Friday Game 18:00', $message->getText()->getMessageText());
+    }
+
+    public function testBuildWrapsGameTitleInBlockquote(): void
+    {
+        $game = $this->createGameWithPlayers(1, 'Friday Game 18:00', []);
+
+        $message = $this->builder->build($game, 1);
+
+        $formatter = new MarkdownV2();
+        $expectedTitleLine = $formatter->blockquote($formatter->escape('Friday Game 18:00'));
+        $this->assertStringContainsString($expectedTitleLine, $message->getText()->getMessageText());
     }
 
     public function testBuildShowsPlayerButtons(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
@@ -22,20 +23,26 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
         ]);
     }
 
-    public function buildGameDetail(GameInterface $game): TelegramMessage
+    public function buildGameDetail(GameInterface $game, ?array $creatorRow): TelegramMessage
     {
         return $this->buildMessage(
-            $this->buildGameDetailText($game),
+            $this->buildGameDetailText($game, $creatorRow),
             $this->buildGameDetailKeyboard($game),
         );
     }
 
-    private function buildGameDetailText(GameInterface $game): string
+    private function buildGameDetailText(GameInterface $game, ?array $creatorRow): string
     {
         $lines = [
             $this->formatHeader("Game #{$game->getGameId()}"),
-            $this->formatter->escape($game->getTitle()),
+            $this->formatter->blockquote($this->formatter->escape($game->getTitle())),
         ];
+
+        $creatorLine = $this->buildCreatorLine($creatorRow);
+
+        if (null !== $creatorLine) {
+            $lines[] = $creatorLine;
+        }
 
         if (null !== $game->getLocation()) {
             $lines[] = $this->formatter->escape("Location: {$game->getLocation()}");
@@ -50,6 +57,22 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
         $lines[] = $this->formatter->escape("Slots: " . count($players));
 
         return implode($this->formatter->newLine(), $lines);
+    }
+
+    private function buildCreatorLine(?array $creatorRow): ?string
+    {
+        if (null === $creatorRow) {
+            return null;
+        }
+
+        $name = Player::buildName($creatorRow['first_name'], $creatorRow['last_name'] ?? null);
+        $link = Player::buildLink($creatorRow['username'] ?? null);
+
+        $namePart = null !== $link
+            ? $this->formatter->link($name, $link)
+            : $this->formatter->escape($name);
+
+        return $this->formatter->escape('Creator: ') . $namePart;
     }
 
     private function buildGameDetailKeyboard(GameInterface $game): array
