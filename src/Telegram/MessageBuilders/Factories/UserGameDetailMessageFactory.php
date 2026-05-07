@@ -17,7 +17,8 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class UserGameDetailMessageFactory
 {
-    public const string HEADER_FORMAT = 'Game #%d';
+    public const string HEADER_FORMAT           = 'Game #%d';
+    public const string SHARING_DISABLED_NOTICE = '🏁 This game has finished and can no longer be shared';
 
     public static function build(int $gameId, int $listPage, Translator $translator): ?TelegramMessage
     {
@@ -28,50 +29,82 @@ final class UserGameDetailMessageFactory
         }
 
         $builder = $game->telegramMessageBuilder;
-        self::installHeaderOverride($builder, $gameId, $translator);
-        self::installKeyboardOverride($builder, $gameId, $listPage, $translator);
+        $isKickoffPast = GameDateTimeResolver::isKickoffPast($game->getTitle(), $game->getCreatedAt());
+
+        self::prependSection($builder, self::buildLeadingSection($builder, $gameId, $translator, $isKickoffPast));
+        self::overrideKeyboard($builder, $gameId, $listPage, $translator, $isKickoffPast);
 
         return $game->buildTelegramMessage();
     }
 
-    private static function installHeaderOverride(GameMessageBuilder $builder, int $gameId, Translator $translator): void
+    private static function buildLeadingSection(
+        GameMessageBuilder $builder,
+        int $gameId,
+        Translator $translator,
+        bool $isKickoffPast,
+    ): string {
+        $header = self::buildHeader($builder, $gameId, $translator);
+
+        if (!$isKickoffPast) {
+            return $header;
+        }
+
+        $newLine = $builder->getFormatter()->newLine();
+
+        // Single newline glues the notice to the header; trailing newline stacks on
+        // top of the section separator (`\n\n`) for an extra gap before the body.
+        return $header . $newLine . self::buildSharingDisabledNotice($builder, $translator) . $newLine;
+    }
+
+    private static function buildHeader(GameMessageBuilder $builder, int $gameId, Translator $translator): string
+    {
+        return $builder->getFormatter()->bold(
+            sprintf($translator->translate(self::HEADER_FORMAT), $gameId),
+        );
+    }
+
+    private static function buildSharingDisabledNotice(GameMessageBuilder $builder, Translator $translator): string
+    {
+        $formatter = $builder->getFormatter();
+
+        return $formatter->blockquote(
+            $formatter->escape($translator->translate(self::SHARING_DISABLED_NOTICE)),
+        );
+    }
+
+    private static function prependSection(GameMessageBuilder $builder, string $section): void
     {
         $previousSections = $builder->getEffective('getSections');
-        $formatter = $builder->getFormatter();
-        $headerText = sprintf($translator->translate(self::HEADER_FORMAT), $gameId);
 
         $builder->override(
             'getSections',
-            static function (GameInterface $game) use ($previousSections, $formatter, $headerText): array {
-                return [$formatter->bold($headerText), ...$previousSections($game)];
+            static function (GameInterface $game) use ($previousSections, $section): array {
+                return [$section, ...$previousSections($game)];
             },
         );
     }
 
-    private static function installKeyboardOverride(
+    private static function overrideKeyboard(
         GameMessageBuilder $builder,
         int $gameId,
         int $listPage,
         Translator $translator,
+        bool $isKickoffPast,
     ): void {
-        $shareLabel = $translator->translate(ShareGameMessageBuilder::BUTTON_TEXT);
-        $backLabel = $translator->translate(AbstractMessageBuilder::LABEL_BACK);
-        $shareQuery = ShareGameMessageBuilder::switchQuery($gameId);
-        $backCallback = UserCallbackData::create(UserCallbackAction::GamesList)->withPage($listPage);
+        $rows = [];
 
-        $builder->override(
-            'buildKeyboard',
-            static function (GameInterface $game) use ($builder, $shareLabel, $shareQuery, $backLabel, $backCallback): array {
-                $rows = [];
+        if (!$isKickoffPast) {
+            $rows[] = [$builder->buildSwitchInlineQueryButton(
+                $translator->translate(ShareGameMessageBuilder::BUTTON_TEXT),
+                ShareGameMessageBuilder::switchQuery($gameId),
+            )];
+        }
 
-                if (!GameDateTimeResolver::isKickoffPast($game->getTitle(), $game->getCreatedAt())) {
-                    $rows[] = [$builder->buildSwitchInlineQueryButton($shareLabel, $shareQuery)];
-                }
+        $rows[] = [$builder->buildActionButton(
+            $translator->translate(AbstractMessageBuilder::LABEL_BACK),
+            UserCallbackData::create(UserCallbackAction::GamesList)->withPage($listPage),
+        )];
 
-                $rows[] = [$builder->buildActionButton($backLabel, $backCallback)];
-
-                return $rows;
-            },
-        );
+        $builder->override('buildKeyboard', static fn(): array => $rows);
     }
 }

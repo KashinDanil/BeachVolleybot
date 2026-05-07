@@ -93,6 +93,37 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
         $this->assertArrayNotHasKey('switch_inline_query', $keyboard[0][0]);
     }
 
+    public function testPastGameRendersHeaderNoticeAndBodyWithExpectedSpacing(): void
+    {
+        $gameId = $this->createGame(title: 'Saturday 01.01.2020 18:00');
+
+        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+
+        $this->assertNotNull($message);
+        $formatter = new MarkdownV2();
+        $header = $formatter->bold("Game #$gameId");
+        $notice = $formatter->blockquote(
+            $formatter->escape(UserGameDetailMessageFactory::SHARING_DISABLED_NOTICE),
+        );
+        $body = $formatter->escape('Saturday 01.01.2020 18:00');
+
+        // Single newline between header and notice; triple newline before the body.
+        $this->assertStringContainsString($header . "\n" . $notice . "\n\n\n" . $body, $message->getText()->getMessageText());
+    }
+
+    public function testFutureGameOmitsSharingDisabledNotice(): void
+    {
+        $gameId = $this->createGame(title: self::GAME_TITLE);
+
+        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+
+        $this->assertNotNull($message);
+        $this->assertStringNotContainsString(
+            UserGameDetailMessageFactory::SHARING_DISABLED_NOTICE,
+            $message->getText()->getMessageText(),
+        );
+    }
+
     public function testFirstRowIsShareButton(): void
     {
         $gameId = $this->createGame(title: self::GAME_TITLE);
