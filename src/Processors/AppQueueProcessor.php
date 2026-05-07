@@ -18,6 +18,7 @@ use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserStartCommandProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
@@ -133,6 +134,10 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
 
         if (SettingsMenuCallbackProcessor::COMMAND === $update->message->text && $update->message->from->isAdmin()) {
             return new SettingsMenuCallbackProcessor($telegramSender, AdminCallbackData::create(AdminCallbackAction::Settings));
+        }
+
+        if (UserStartCommandProcessor::COMMAND === $update->message->text) {
+            return new UserStartCommandProcessor($telegramSender);
         }
 
         return $this->resolveGameActionProcessor($update, $telegramSender);

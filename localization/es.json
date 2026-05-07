@@ -35,7 +35,16 @@
     "⚠️ Game cannot be in the past": "⚠️ El partido no puede estar en el pasado",
     "Pick a date from today onwards": "Elige una fecha a partir de hoy",
     "Use the following pattern to create a new game:": "Usa el siguiente formato para crear un nuevo juego:",
-    "@%s \n📅 Saturday, 11.04\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Sábado, 11.04\n🏖️ Bogatell\n🕙 10:00",
+    "@%s \n📅 Saturday\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Sábado\n🏖️ Bogatell\n🕙 10:00",
+
+    "**To create a game**, add **@%s** to the start of the message. The text can be anything — just include a **date and time** 📆🕙": "**Para crear un partido**, añade **@%s** al inicio del mensaje. El texto puede ser cualquiera — solo incluye **fecha y hora** 📆🕙",
+    "Example:": "Ejemplo:",
+    "Then just tap the bot's hint to send the message.": "Luego solo toca la sugerencia del bot para enviar el mensaje.",
+    "**To join a game or leave it**, use the buttons under the message.": "**Para unirte a un partido o salir**, usa los botones debajo del mensaje.",
+    "**To come later**, just reply to the game message with the time only, e.g.: 17:30.": "**Si quieres llegar más tarde**, simplemente responde al mensaje del partido indicando solo la hora, p. ej.: 17:30.",
+    "**To add a location** 📍, reply to the game message with a geo point.": "**Para añadir una ubicación** 📍, responde al mensaje del partido con una geolocalización.",
+    "**Volleyballs and nets** can also be marked with the buttons under the game: +🏐 / −🏐 and +🕸 / −🕸. If something is missing, the bot will show it.": "**Balones y red** también se pueden marcar con los botones debajo del partido: +🏐 / −🏐 y +🕸 / −🕸. Si falta algo, el bot lo mostrará.",
+    "**To share a game across multiple chats**, use the /games command — the game stays in sync everywhere.": "**Para compartir un partido en varios chats**, usa el comando /games — el partido se mantiene sincronizado en todos.",
 
     "Your games": "Tus partidos",
     "You haven't created any games yet": "Aún no has creado ningún partido",
