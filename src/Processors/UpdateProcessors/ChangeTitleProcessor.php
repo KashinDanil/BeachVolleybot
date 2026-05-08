@@ -9,6 +9,7 @@ use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
 use BeachVolleybot\Validator\Rules\GameCreatorOnlyRule;
+use BeachVolleybot\Validator\Rules\GameCreatorOrAdminRule;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Validator;
 
@@ -20,8 +21,12 @@ class ChangeTitleProcessor extends AbstractGameReplyProcessor
         $from = $message->from;
         $newTitle = $message->text ?? '';
 
+        $authorRule = $message->chat->isPrivate()
+            ? new GameCreatorOrAdminRule($from->id, $gameRecord->createdBy, $from->isAdmin())
+            : new GameCreatorOnlyRule($from->id, $gameRecord->createdBy);
+
         $validationState = new Validator([
-            new GameCreatorOnlyRule($from->id, $gameRecord->createdBy),
+            $authorRule,
             new KickoffDayInTheFutureRule($newTitle, $gameRecord->createdAt),
             new DateTimeInTitleRule($newTitle),
         ])->validate();

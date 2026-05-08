@@ -70,6 +70,29 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
+    public function testAdminCanRenameGameOwnedByAnotherUserInPrivateChat(): void
+    {
+        $gameId = $this->seedGameOwnedByCreator();
+
+        new ChangeTitleProcessor($this->telegramSender)
+            ->process($this->buildPrivateChatUpdate('Picnic Sunday 18:00', ADMINS_TELEGRAM_USER_IDS[0]));
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Picnic Sunday 18:00', $title);
+    }
+
+    public function testAdminCannotRenameGameOwnedByAnotherUserInGroupChat(): void
+    {
+        $gameId = $this->seedGameOwnedByCreator();
+
+        new ChangeTitleProcessor($this->telegramSender)
+            ->process($this->buildUpdate('Picnic Sunday 20:00', ADMINS_TELEGRAM_USER_IDS[0]));
+
+        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $this->assertSame('Friday Game 18:00', $title);
+        $this->assertMessageNotEdited();
+    }
+
     public function testInvalidTitleIsRejected(): void
     {
         $gameId = $this->seedGameOwnedByCreator();
@@ -152,5 +175,14 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         return TelegramUpdate::fromArray(
             $this->replyMessagePayload($text, 'query_1', fromId: $fromId),
         );
+    }
+
+    private function buildPrivateChatUpdate(string $text, int $fromId): TelegramUpdate
+    {
+        $payload = $this->replyMessagePayload($text, 'query_1', fromId: $fromId);
+        $payload['message']['chat'] = ['id' => $fromId, 'type' => 'private'];
+        $payload['message']['reply_to_message']['chat'] = ['id' => $fromId, 'type' => 'private'];
+
+        return TelegramUpdate::fromArray($payload);
     }
 }
