@@ -16,7 +16,9 @@ use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 
 final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
 {
-    private const string GAME_TITLE = 'Friday Game 18:00';
+    // Anchored to an explicit far-future date so `isKickoffPast` is stable regardless of when
+    // the suite runs. Past-game tests in this file use the symmetric `01.01.2020` past-anchor.
+    private const string GAME_TITLE = 'Friday 31.12.2099 18:00';
 
     protected function setUp(): void
     {

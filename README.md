@@ -13,14 +13,19 @@ This project was created to address a common frustration: _manually copying part
 - **Game creation** via Telegram inline queries
 - **Join / Leave** with a single button click
 - **Equipment tracking** — volleyballs and nets per player
-- **Time extraction** from game titles (e.g. "Beach Volleyball 18:00")
-- **Location setting** with Google Maps link
+- **Time extraction** from game titles (e.g. "Beach Volleyball 18:00"); plain time replies (e.g. `19:30`) join the game at that slot
+- **Location setting** with Google Maps link, including live-location updates
+- **Game sharing** — one game can be reposted into multiple chats. Creating a game in a private DM yields a `Share` button to forward it to a chat; the same game keeps its participant list synchronized across every chat it appears in
+- **Title editing** — the game creator can rename a game by replying to its message; in the bot's DM, admins can rename any game the same way (kickoff day must remain in the future)
+- **My games** — the `/games` command in DM lists the games a user has created, with pagination and a per-game detail view from which the game can be shared again
+- **Welcome flow** — the `/start` command shows a welcome message
 - **Weather forecasts** — hourly forecast for the game window, attached to the message and refreshable on demand; powered by Open-Meteo, resolved per known venue, cached in SQLite, and computed off the request path by a dedicated worker
 - **Multi-language support** — English (default), Russian, Spanish
 - **Concurrency handling** via file-based locking
 - **Asynchronous processing** via file-based queues and workers
 - **Rate limiting** — respects Telegram API rate limits via `RateLimitedBotApi`
 - **Message pinning** — game messages are automatically pinned if the bot has permissions; past-date games are auto-unpinned when the next game is pinned, and the bot's own pin service notifications are cleaned up automatically
+- **Past-game safeguards** — once a game's kickoff has passed, weather refresh is disabled, sharing is blocked, and inline keyboards are stripped on interaction so old messages don't accept further actions
 - **Admin panel** — manage games, players, equipment, and view logs via Telegram callback interface
 - **Game add-ons** — pipeline of post-processing add-ons (merge consecutive slots, stylize title, weather)
 
@@ -33,18 +38,25 @@ The architecture is designed with **future scalability in mind**. While the curr
 ```
 Telegram Webhook
   → public/tg-bot.php (validation, authentication)
-    → IncomingMessageRouter (routing)
-      → IncomingMessageQueueRouter (enqueue into per-chat/per-game/pin queue)
-        → AppQueueWorker (async processing)
-          → AppQueueProcessor (dispatch)
-            → UpdateProcessors (game logic)
-              ├→ RateLimitedBotApi (rate-limited Telegram API calls)
-              └→ WeatherEnqueuer (when a game needs a forecast)
-                 → weather queue
-                   → WeatherQueueWorker
-                     → WeatherQueueProcessor
-                       → OpenMeteoWeatherClient (forecast fetch + cache)
-                         → InlineMessageRefresher (re-render the game message with weather)
+    → IncomingMessageRouter
+        ├→ inline queries / chosen inline results          (handled inline)
+        │     ├→ InlineQueryProcessor
+        │     ├→ CreateGameProcessor
+        │     └→ ForwardGameProcessor
+        └→ IncomingMessageQueueRouter
+              ├→ game_<id>  queue   (per-game serialization)
+              ├→ dm_<user>  queue   (per-user DM serialization)
+              └→ pin_<chat> queue   (per-chat pinning serialization)
+                  → AppQueueWorker
+                    → AppQueueProcessor (dispatch)
+                      → UpdateProcessors / UserProcessors / AdminProcessors
+                          ├→ RateLimitedBotApi (rate-limited Telegram API calls)
+                          └→ WeatherEnqueuer (when a game needs a forecast)
+                             → weather queue
+                               → WeatherQueueWorker
+                                 → WeatherQueueProcessor
+                                   → OpenMeteoWeatherClient (forecast fetch + cache)
+                                     → InlineMessageRefresher (re-render every inline message of the game)
 ```
 
 ### Project Structure
@@ -59,16 +71,28 @@ Telegram Webhook
 │   ├── Common/          # Logger, extractors, input strategies, date/time resolvers, update-id tracker
 │   ├── Database/        # Connection, repositories, migrator
 │   ├── Errors/          # Error types
-│   ├── Game/            # Core game logic, models, add-ons (including WeatherAddOn)
+│   ├── Game/            # Core game logic, models, add-ons (registry + WeatherAddOn, MergeConsecutiveSlotsAddOn, StylizeTitleAddOn)
 │   ├── Localization/    # Translator
 │   ├── Log/             # Log file management
-│   ├── Processors/      # Queue processors and update/admin/callback processors
-│   ├── Routing/         # Message routing and queue selection
-│   ├── Telegram/        # Message sender, builders, MarkdownV2, inline refresher, rate-limited API
-│   ├── Validator/       # Request validation rules
+│   ├── Processors/
+│   │   ├── AdminProcessors/    # Admin panel callbacks (game / player / equipment / logs / settings)
+│   │   ├── UserProcessors/     # /start, /games command and pagination/detail callbacks
+│   │   ├── UpdateProcessors/   # Game lifecycle: create, forward, join-with-time, change-title, set-location, pin-message…
+│   │   │   └── CallbackQuery/  # Per-game callbacks (join, leave, add/remove volleyball/net, refresh weather)
+│   │   ├── AppQueueProcessor.php
+│   │   └── WeatherQueueProcessor.php
+│   ├── Routing/         # IncomingMessageRouter + IncomingMessageQueueRouter (game/dm/pin queue selection)
+│   ├── Telegram/        # Sender, MarkdownV2, rate-limited API, inline refresher
+│   │   ├── CallbackData/       # CallbackData / AdminCallbackData / UserCallbackData (+ pageable interface)
+│   │   ├── MessageBuilders/    # Game / list / detail / settings / share / welcome / log builders + factories, keyboards, warnings
+│   │   └── Messages/           # Incoming and Outgoing Telegram message types
+│   ├── Validator/       # Validator + rules (auth, date/time-in-title, kickoff-in-future, post request, secret token, …)
 │   ├── Weather/         # Open-Meteo client, forecast cache, known venues, weather queue payloads
+│   │   ├── Forecast/           # Cache, Client, GameWeatherLookup, Models, Formatter, WindowResolver
+│   │   ├── Location/           # GameLocationResolver, KnownVenues, Venue / VenueAlias
+│   │   └── Queue/              # WeatherEnqueuer, WeatherQueuePayload
 │   └── Workers/         # AppQueueWorker, WeatherQueueWorker
-└── tests/               # PHPUnit tests
+└── tests/               # PHPUnit tests (Unit + Integration)
 ```
 
 ## Setup
@@ -125,7 +149,7 @@ Point Telegram to `public/tg-bot.php` on your server. The endpoint must be acces
 
 ## Workers
 
-The project runs two workers concurrently: the **app worker** (processes Telegram updates from the main queue) and the **weather worker** (fetches forecasts for games). Both are started automatically by `install.sh`.
+The project runs two workers concurrently: the **app worker** (processes Telegram updates from per-game / per-DM / per-chat queues) and the **weather worker** (fetches forecasts for games). Both are started automatically by `install.sh`.
 
 To start both in the background:
 

@@ -66,7 +66,10 @@ final class UserGameDetailCallbackProcessorTest extends ProcessorTestCase
 
     public function testBackButtonPreservesGivenListPage(): void
     {
-        $gameId = $this->createGame(title: 'Mine 18:00', createdBy: self::SENDER_ID, inlineQueryId: 'q_mine');
+        // Anchored to an explicit far-future date so the rendered keyboard always has the
+        // future-game shape (Share + Back). A title like 'Mine 18:00' would resolve to today
+        // at 18:00 and flip from future to past as the day progresses.
+        $gameId = $this->createGame(title: 'Mine 31.12.2099 18:00', createdBy: self::SENDER_ID, inlineQueryId: 'q_mine');
 
         $this->processCallback(gameId: $gameId, listPage: 4);
 
