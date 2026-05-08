@@ -48,7 +48,7 @@ final class WeatherCacheUpdaterTest extends DatabaseTestCase
         $coordinates = new LocationCoordinates(41.397, 2.211);
         $window = $this->buildWindow(kickoffHour: '2030-04-25 18:00:00');
 
-        $updated = $this->updater->update($coordinates, $window, force: false);
+        $updated = $this->updater->update($coordinates, $window);
 
         $this->assertTrue($updated);
         $this->assertCount(1, $this->weatherClient->calls);
@@ -64,47 +64,23 @@ final class WeatherCacheUpdaterTest extends DatabaseTestCase
         $updated = $this->updater->update(
             $coordinates,
             $this->buildWindow(kickoffHour: '2030-04-25 18:00:00'),
-            force: false,
         );
 
         $this->assertFalse($updated);
         $this->assertSame([], $this->weatherClient->calls);
     }
 
-    public function testForceBypassesFreshCacheAndOverwrites(): void
+    public function testExpiredCacheTriggersFetchAndOverwrites(): void
     {
         $coordinates = new LocationCoordinates(41.397, 2.211);
         $kickoffUtc = new DateTimeImmutable('2030-04-25 18:00:00', new DateTimeZone('UTC'));
         $this->cache->save($coordinates, $kickoffUtc, $this->snapshot(temperature: 22.0));
-        $this->weatherClient->nextSnapshot = $this->snapshot(temperature: 15.5);
-
-        $updated = $this->updater->update(
-            $coordinates,
-            $this->buildWindow(kickoffHour: '2030-04-25 18:00:00'),
-            force: true,
-        );
-
-        $this->assertTrue($updated);
-        $this->assertCount(1, $this->weatherClient->calls);
-        $row = $this->cache->find($coordinates, $kickoffUtc);
-        $this->assertNotNull($row);
-        $this->assertSame(15.5, $row->snapshot->hours[0]->temperatureC);
-    }
-
-    public function testExpiredCacheTriggersFetchAndReturnsTrue(): void
-    {
-        $coordinates = new LocationCoordinates(41.397, 2.211);
-        $kickoffUtc = new DateTimeImmutable('2030-04-25 18:00:00', new DateTimeZone('UTC'));
-        $this->cache->save($coordinates, $kickoffUtc, $this->snapshot(temperature: 22.0));
-        $this->db->pdo->exec(
-            "UPDATE weather_cache SET fetched_at = datetime('now', '-2 hours') WHERE latitude = 41.397 AND longitude = 2.211",
-        );
+        $this->expireCache();
         $this->weatherClient->nextSnapshot = $this->snapshot(temperature: 18.0);
 
         $updated = $this->updater->update(
             $coordinates,
             $this->buildWindow(kickoffHour: '2030-04-25 18:00:00'),
-            force: false,
         );
 
         $this->assertTrue($updated);
@@ -114,17 +90,17 @@ final class WeatherCacheUpdaterTest extends DatabaseTestCase
         $this->assertSame(18.0, $row->snapshot->hours[0]->temperatureC);
     }
 
-    public function testHttpFailureLeavesCacheUntouchedAndReturnsFalse(): void
+    public function testHttpFailureOnExpiredCacheLeavesPreviousRowUntouchedAndReturnsFalse(): void
     {
         $coordinates = new LocationCoordinates(41.397, 2.211);
         $kickoffUtc = new DateTimeImmutable('2030-04-25 18:00:00', new DateTimeZone('UTC'));
         $this->cache->save($coordinates, $kickoffUtc, $this->snapshot(temperature: 22.0));
+        $this->expireCache();
         $this->weatherClient->shouldThrow = true;
 
         $updated = $this->updater->update(
             $coordinates,
             $this->buildWindow(kickoffHour: '2030-04-25 18:00:00'),
-            force: true,
         );
 
         $this->assertFalse($updated);
@@ -142,7 +118,6 @@ final class WeatherCacheUpdaterTest extends DatabaseTestCase
         $updated = $this->updater->update(
             $coordinates,
             $this->buildWindow(kickoffHour: '2030-04-25 18:00:00'),
-            force: false,
         );
 
         $this->assertFalse($updated);
@@ -162,7 +137,7 @@ final class WeatherCacheUpdaterTest extends DatabaseTestCase
             ],
         );
 
-        $updated = $this->updater->update($coordinates, $window, force: false);
+        $updated = $this->updater->update($coordinates, $window);
 
         $this->assertTrue($updated);
         $row = $this->db->get('weather_cache', '*');
@@ -175,12 +150,19 @@ final class WeatherCacheUpdaterTest extends DatabaseTestCase
         $coordinates = new LocationCoordinates(41.397, 2.211);
         $window = $this->buildWindow(kickoffHour: '2030-04-25 18:00:00');
 
-        $this->updater->update($coordinates, $window, force: false);
+        $this->updater->update($coordinates, $window);
 
         $this->assertCount(1, $this->weatherClient->calls);
         $call = $this->weatherClient->calls[0];
         $this->assertSame('2030-04-25 17:00:00', $call['startHour']->format('Y-m-d H:i:s'));
         $this->assertSame('2030-04-25 21:00:00', $call['endHour']->format('Y-m-d H:i:s'));
+    }
+
+    private function expireCache(): void
+    {
+        $this->db->pdo->exec(
+            "UPDATE weather_cache SET fetched_at = datetime('now', '-1 hour')",
+        );
     }
 
     private function buildWindow(string $kickoffHour): WeatherWindow

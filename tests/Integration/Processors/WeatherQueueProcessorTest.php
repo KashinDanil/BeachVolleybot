@@ -130,27 +130,11 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         );
         $this->seedCacheForGame($gameId, temperature: 22.0);
 
-        $ok = $this->processor->process($this->messageFor($gameId, force: false));
+        $ok = $this->processor->process($this->messageFor($gameId));
 
         $this->assertTrue($ok);
         $this->assertSame([], $this->weatherClient->calls);
         $this->assertSame([], $this->refreshedInlineMessageIds());
-    }
-
-    public function testForceFlagBypassesFreshCache(): void
-    {
-        $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
-        $gameId = $this->insertGame(
-            title: "Bogatell $kickoffDay 18:00",
-            location: '41.397,2.211',
-        );
-        $this->seedCacheForGame($gameId, temperature: 22.0);
-
-        $ok = $this->processor->process($this->messageFor($gameId, force: true));
-
-        $this->assertTrue($ok);
-        $this->assertCount(1, $this->weatherClient->calls);
-        $this->assertSame(['inline_' . $gameId], $this->refreshedInlineMessageIds());
     }
 
     public function testExpiredCacheTriggersFetch(): void
@@ -161,16 +145,16 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             location: '41.397,2.211',
         );
         $this->seedCacheForGame($gameId, temperature: 22.0);
-        $this->db->pdo->exec("UPDATE weather_cache SET fetched_at = datetime('now', '-2 hours') WHERE latitude = 41.397 AND longitude = 2.211");
+        $this->expireCache();
 
-        $ok = $this->processor->process($this->messageFor($gameId, force: false));
+        $ok = $this->processor->process($this->messageFor($gameId));
 
         $this->assertTrue($ok);
         $this->assertCount(1, $this->weatherClient->calls);
         $this->assertSame(['inline_' . $gameId], $this->refreshedInlineMessageIds());
     }
 
-    public function testHttpFailureLeavesCacheUntouchedAndAcksMessage(): void
+    public function testHttpFailureOnExpiredCacheLeavesPreviousRowUntouchedAndAcksMessage(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
         $gameId = $this->insertGame(
@@ -178,9 +162,10 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             location: '41.397,2.211',
         );
         $this->seedCacheForGame($gameId, temperature: 22.0);
+        $this->expireCache();
         $this->weatherClient->shouldThrow = true;
 
-        $ok = $this->processor->process($this->messageFor($gameId, force: true));
+        $ok = $this->processor->process($this->messageFor($gameId));
 
         $this->assertTrue($ok);
         $this->assertCount(1, $this->weatherClient->calls);
@@ -227,7 +212,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
 
         $this->processor->process($this->messageFor($gameId));
         $this->db->update('games', ['title' => "Bogatell $kickoffDay 10:00"], ['game_id' => $gameId]);
-        $this->processor->process($this->messageFor($gameId, force: true));
+        $this->processor->process($this->messageFor($gameId));
 
         $this->assertSame(2, $this->db->count('weather_cache'));
     }
@@ -255,7 +240,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             title: "Bogatell $kickoffDay 18:00",
             location: '41.397,2.211',
         );
-        $payload = new WeatherQueuePayload($gameId, force: true);
+        $payload = new WeatherQueuePayload($gameId);
 
         $this->processor->process(new QueueMessage($payload->jsonSerialize()));
 
@@ -264,11 +249,16 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
 
     // --- helpers ---
 
-    private function messageFor(int $gameId, bool $force = false): QueueMessage
+    private function messageFor(int $gameId): QueueMessage
     {
-        $payload = new WeatherQueuePayload($gameId, $force);
+        $payload = new WeatherQueuePayload($gameId);
 
         return new QueueMessage($payload->jsonSerialize());
+    }
+
+    private function expireCache(): void
+    {
+        $this->db->pdo->exec("UPDATE weather_cache SET fetched_at = datetime('now', '-1 hour')");
     }
 
     /** @return list<string> */

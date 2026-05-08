@@ -31,25 +31,13 @@ final class WeatherEnqueuerTest extends TestCase
     {
         $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
 
-        $enqueuer->enqueue(42, force: true);
+        $enqueuer->enqueue(42);
 
         $message = new FileQueue('weather_42', $this->baseDir)->dequeue();
         $this->assertNotNull($message);
 
         $payload = WeatherQueuePayload::fromArray($message->payload);
         $this->assertSame(42, $payload->gameId);
-        $this->assertTrue($payload->force);
-    }
-
-    public function testDefaultForceIsFalse(): void
-    {
-        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
-
-        $enqueuer->enqueue(7);
-
-        $message = new FileQueue('weather_7', $this->baseDir)->dequeue();
-        $this->assertNotNull($message);
-        $this->assertFalse(WeatherQueuePayload::fromArray($message->payload)->force);
     }
 
     public function testDifferentGamesWriteToSeparateQueueFiles(): void
@@ -72,8 +60,8 @@ final class WeatherEnqueuerTest extends TestCase
     {
         $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
 
-        $enqueuer->enqueue(5, force: false);
-        $enqueuer->enqueue(5, force: true);
+        $enqueuer->enqueue(5);
+        $enqueuer->enqueue(5);
 
         $queue = new FileQueue('weather_5', $this->baseDir);
         $first = $queue->dequeue();
@@ -81,15 +69,13 @@ final class WeatherEnqueuerTest extends TestCase
 
         $this->assertNotNull($first);
         $this->assertNotNull($second);
-        $this->assertFalse(WeatherQueuePayload::fromArray($first->payload)->force);
-        $this->assertTrue(WeatherQueuePayload::fromArray($second->payload)->force);
     }
 
     public function testEnqueueSilentlySkipsWhenWeatherAddOnIsNotEnabled(): void
     {
         $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: []);
 
-        $enqueuer->enqueue(42, force: true);
+        $enqueuer->enqueue(42);
 
         $this->assertNull(new FileQueue('weather_42', $this->baseDir)->dequeue());
     }

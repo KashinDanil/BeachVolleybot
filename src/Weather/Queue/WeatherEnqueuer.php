@@ -25,13 +25,13 @@ final readonly class WeatherEnqueuer
     ) {
     }
 
-    public function enqueue(int $gameId, bool $force = false): void
+    public function enqueue(int $gameId): void
     {
         if (!GameAddOnRegistry::isEnabled(WeatherAddOn::class, $this->addOns)) {
             return;
         }
 
-        $payload = new WeatherQueuePayload($gameId, $force);
+        $payload = new WeatherQueuePayload($gameId);
         $queue = new ($this->queueClass)(self::QUEUE_PREFIX . $gameId, $this->baseDir);
 
         $queue->enqueue(new QueueMessage($payload->jsonSerialize()));

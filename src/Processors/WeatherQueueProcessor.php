@@ -45,7 +45,7 @@ final readonly class WeatherQueueProcessor implements QueueProcessorInterface
         }
 
         $coordinates = $this->locationResolver->resolve($game)->rounded();
-        $updated = $this->weatherCacheUpdater->update($coordinates, $window, $payload->force);
+        $updated = $this->weatherCacheUpdater->update($coordinates, $window);
 
         if ($updated) {
             $this->inlineMessageRefresher->refresh($game->getGameId());

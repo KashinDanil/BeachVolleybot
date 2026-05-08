@@ -10,6 +10,7 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RefreshWeatherProce
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
 use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
 use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
@@ -33,7 +34,7 @@ final class RefreshWeatherProcessorTest extends ProcessorTestCase
         $this->weatherCache = new WeatherCacheManager();
     }
 
-    public function testColdCacheEnqueuesForceRefreshWithRefreshingToast(): void
+    public function testColdCacheEnqueuesRefreshWithRefreshingToast(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days');
         $gameId = $this->seedFullGame(
@@ -48,7 +49,6 @@ final class RefreshWeatherProcessorTest extends ProcessorTestCase
         $payload = $this->dequeueForGame($gameId);
         $this->assertNotNull($payload);
         $this->assertSame($gameId, $payload->gameId);
-        $this->assertTrue($payload->force);
     }
 
     public function testWithinCooldownAnswersCooldownToastAndDoesNotEnqueue(): void
@@ -75,7 +75,7 @@ final class RefreshWeatherProcessorTest extends ProcessorTestCase
             title: "Bogatell {$kickoffDay->format('d.m.Y')} 18:00",
         );
         $this->db->update('games', ['location' => '41.397,2.211'], ['game_id' => $gameId]);
-        $this->seedWeatherCache($kickoffDay, secondsAgo: RefreshWeatherProcessor::COOLDOWN_SECONDS + 60);
+        $this->seedWeatherCache($kickoffDay, secondsAgo: WeatherCacheUpdater::CACHE_TTL_SECONDS + 60);
 
         $this->process('msg_1');
 

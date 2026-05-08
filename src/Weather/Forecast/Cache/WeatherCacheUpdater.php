@@ -16,7 +16,7 @@ use Throwable;
 
 final readonly class WeatherCacheUpdater
 {
-    private const int CACHE_TTL_SECONDS = 3600;
+    public const int CACHE_TTL_SECONDS = 300;
 
     public function __construct(
         private WeatherApiClientInterface $weatherClient = new OpenMeteoWeatherClient(),
@@ -24,11 +24,11 @@ final readonly class WeatherCacheUpdater
     ) {
     }
 
-    public function update(LocationCoordinates $coordinates, WeatherWindow $window, bool $force): bool
+    public function update(LocationCoordinates $coordinates, WeatherWindow $window): bool
     {
         $kickoffUtc = $window->kickoffHour->setTimezone(new DateTimeZone('UTC'));
 
-        if (!$this->needsUpdate($force, $coordinates, $kickoffUtc)) {
+        if (!$this->needsUpdate($coordinates, $kickoffUtc)) {
             return false;
         }
 
@@ -43,19 +43,18 @@ final readonly class WeatherCacheUpdater
         return true;
     }
 
-    private function needsUpdate(bool $force, LocationCoordinates $coordinates, DateTimeImmutable $kickoffUtc): bool
+    public static function isFresh(?WeatherCacheRow $row): bool
     {
-        if ($force) {
-            return true;
-        }
-
-        $row = $this->cache->find($coordinates, $kickoffUtc);
-
         if (null === $row) {
-            return true;
+            return false;
         }
 
-        return time() - $row->fetchedAt->getTimestamp() >= self::CACHE_TTL_SECONDS;
+        return time() - $row->fetchedAt->getTimestamp() < self::CACHE_TTL_SECONDS;
+    }
+
+    private function needsUpdate(LocationCoordinates $coordinates, DateTimeImmutable $kickoffUtc): bool
+    {
+        return !self::isFresh($this->cache->find($coordinates, $kickoffUtc));
     }
 
     private function tryFetchSnapshot(LocationCoordinates $coordinates, WeatherWindow $window): ?WeatherSnapshot

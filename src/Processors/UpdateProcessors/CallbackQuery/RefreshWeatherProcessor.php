@@ -9,13 +9,12 @@ use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\InlineMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
 final class RefreshWeatherProcessor extends AbstractGameCallbackProcessor
 {
-    public const int COOLDOWN_SECONDS = 300; //5 minutes
-
     public function __construct(
         TelegramMessageSender $telegramSender,
         private readonly GameWeatherLookup $gameWeatherLookup = new GameWeatherLookup(),
@@ -42,19 +41,13 @@ final class RefreshWeatherProcessor extends AbstractGameCallbackProcessor
             return;
         }
 
-        $this->weatherEnqueuer->enqueue($game->getGameId(), force: true);
+        $this->weatherEnqueuer->enqueue($game->getGameId());
         $this->logUserAction($callbackQuery->from, 'refresh_weather', "gameId={$game->getGameId()}");
         $this->answerCallbackQuery($callbackQuery, CallbackAnswer::REFRESHING_WEATHER);
     }
 
     private function isOnCooldown(GameInterface $game): bool
     {
-        $lookup = $this->gameWeatherLookup->find($game);
-
-        if (null === $lookup) {
-            return false;
-        }
-
-        return time() - $lookup->row->fetchedAt->getTimestamp() < self::COOLDOWN_SECONDS;
+        return WeatherCacheUpdater::isFresh($this->gameWeatherLookup->find($game)?->row);
     }
 }
