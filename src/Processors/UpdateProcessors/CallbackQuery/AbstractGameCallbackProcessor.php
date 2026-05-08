@@ -9,6 +9,7 @@ use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramCallbackQuery;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 abstract class AbstractGameCallbackProcessor extends AbstractCallbackProcessor
@@ -17,19 +18,16 @@ abstract class AbstractGameCallbackProcessor extends AbstractCallbackProcessor
     {
         $callbackQuery = $update->callbackQuery;
         $inlineMessageId = $callbackQuery->inlineMessageId;
+        $game = $this->resolveGame($inlineMessageId);
 
-        $gameId = new GameManager()->resolveGameIdByInlineMessageId($inlineMessageId);
-
-        if (null === $gameId || null === ($game = GameFactory::tryFromGameId($gameId))) {
-            $this->telegramSender->removeInlineKeyboard($inlineMessageId);
-            $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_NOT_FOUND);
+        if (null === $game) {
+            $this->respondGameNotFound($callbackQuery, $inlineMessageId);
 
             return;
         }
 
-        if (GameDateTimeResolver::isKickoffDayPast($game->getTitle(), $game->getCreatedAt())) {
-            $this->telegramSender->removeInlineKeyboard($inlineMessageId);
-            $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_ALREADY_FINISHED);
+        if ($this->isKickoffPast($game)) {
+            $this->respondGameFinished($callbackQuery, $game);
 
             return;
         }
@@ -38,4 +36,39 @@ abstract class AbstractGameCallbackProcessor extends AbstractCallbackProcessor
     }
 
     abstract protected function handle(TelegramUpdate $update, GameInterface $game): void;
+
+    private function resolveGame(string $inlineMessageId): ?GameInterface
+    {
+        $gameId = new GameManager()->resolveGameIdByInlineMessageId($inlineMessageId);
+
+        if (null === $gameId) {
+            return null;
+        }
+
+        return GameFactory::tryFromGameId($gameId);
+    }
+
+    private function isKickoffPast(GameInterface $game): bool
+    {
+        return GameDateTimeResolver::isKickoffDayPast($game->getTitle(), $game->getCreatedAt());
+    }
+
+    private function respondGameNotFound(TelegramCallbackQuery $callbackQuery, string $inlineMessageId): void
+    {
+        $this->telegramSender->removeInlineKeyboard($inlineMessageId);
+        $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_NOT_FOUND);
+    }
+
+    private function respondGameFinished(TelegramCallbackQuery $callbackQuery, GameInterface $game): void
+    {
+        $this->removeAllInlineKeyboards($game);
+        $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_ALREADY_FINISHED);
+    }
+
+    private function removeAllInlineKeyboards(GameInterface $game): void
+    {
+        foreach ($game->getInlineMessageIds() as $inlineMessageId) {
+            $this->telegramSender->removeInlineKeyboard($inlineMessageId);
+        }
+    }
 }
