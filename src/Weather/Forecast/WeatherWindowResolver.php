@@ -37,7 +37,7 @@ final readonly class WeatherWindowResolver
             return null;
         }
 
-        return $this->truncateToHour($kickoff);
+        return $this->roundToNearestHour($kickoff);
     }
 
     private function isWithinForecastHorizon(DateTimeImmutable $kickoffHour): bool
@@ -52,6 +52,14 @@ final readonly class WeatherWindowResolver
     private function truncateToHour(DateTimeImmutable $dateTime): DateTimeImmutable
     {
         return $dateTime->setTime((int)$dateTime->format('G'), 0);
+    }
+
+    private function roundToNearestHour(DateTimeImmutable $dateTime): DateTimeImmutable
+    {
+        $minutes = (int)$dateTime->format('i');
+        $base = 30 <= $minutes ? $dateTime->modify('+1 hour') : $dateTime;
+
+        return $this->truncateToHour($base);
     }
 
     /** @return list<DateTimeImmutable> */

@@ -22,7 +22,7 @@ final class WeatherWindowResolverTest extends TestCase
     {
         $kickoffDay = new DateTimeImmutable('+3 days');
         $game = $this->makeGame(
-            title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:30',
+            title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:00',
             createdAt: new DateTimeImmutable(),
         );
 
@@ -43,7 +43,7 @@ final class WeatherWindowResolverTest extends TestCase
         // To keep kickoff in the future for the horizon check, the creation date is today minus 0 days.
         $creationDate = new DateTimeImmutable('next friday')->setTime(10, 0);
         $expectedKickoffDay = $creationDate->modify('+1 day');
-        $game = $this->makeGame('Bogatell Saturday 18:30', createdAt: $creationDate);
+        $game = $this->makeGame('Bogatell Saturday 18:00', createdAt: $creationDate);
 
         $window = $this->resolver->windowForGame($game);
 
@@ -53,7 +53,7 @@ final class WeatherWindowResolverTest extends TestCase
     public function testFallsBackToCreationDateWhenNoDateInTitle(): void
     {
         $creationDate = new DateTimeImmutable()->setTime(10, 0);
-        $game = $this->makeGame('Bogatell 18:30', createdAt: $creationDate);
+        $game = $this->makeGame('Bogatell 18:00', createdAt: $creationDate);
 
         $window = $this->resolver->windowForGame($game);
 
@@ -98,11 +98,37 @@ final class WeatherWindowResolverTest extends TestCase
         $this->assertCount(5, $window->hours);
     }
 
-    public function testTruncatesHalfHourKickoffToTopOfHour(): void
+    public function testRoundsKickoffAfterHalfPastUpToNextHour(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days');
         $game = $this->makeGame(
             title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:45',
+            createdAt: new DateTimeImmutable(),
+        );
+
+        $window = $this->resolver->windowForGame($game);
+
+        $this->assertSame($kickoffDay->format('Y-m-d') . ' 19:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
+    }
+
+    public function testRoundsKickoffAtHalfPastUpToNextHour(): void
+    {
+        $kickoffDay = new DateTimeImmutable('+2 days');
+        $game = $this->makeGame(
+            title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:30',
+            createdAt: new DateTimeImmutable(),
+        );
+
+        $window = $this->resolver->windowForGame($game);
+
+        $this->assertSame($kickoffDay->format('Y-m-d') . ' 19:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
+    }
+
+    public function testRoundsKickoffBeforeHalfPastDownToCurrentHour(): void
+    {
+        $kickoffDay = new DateTimeImmutable('+2 days');
+        $game = $this->makeGame(
+            title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:15',
             createdAt: new DateTimeImmutable(),
         );
 
