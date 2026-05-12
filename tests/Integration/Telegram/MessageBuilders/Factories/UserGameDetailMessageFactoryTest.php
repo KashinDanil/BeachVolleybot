@@ -11,6 +11,7 @@ use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Factories\UserGameDetailMessageFactory;
+use BeachVolleybot\Telegram\MessageBuilders\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 
@@ -105,7 +106,7 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
         $formatter = new MarkdownV2();
         $header = $formatter->bold("Game #$gameId");
         $notice = $formatter->blockquote(
-            $formatter->escape(UserGameDetailMessageFactory::SHARING_DISABLED_NOTICE),
+            $formatter->escape(ShareGameMessageBuilder::DISABLED_NOTICE),
         );
         $body = $formatter->escape('Saturday 01.01.2020 18:00');
 
@@ -121,7 +122,7 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
 
         $this->assertNotNull($message);
         $this->assertStringNotContainsString(
-            UserGameDetailMessageFactory::SHARING_DISABLED_NOTICE,
+            ShareGameMessageBuilder::DISABLED_NOTICE,
             $message->getText()->getMessageText(),
         );
     }

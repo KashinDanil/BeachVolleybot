@@ -17,8 +17,9 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
  */
 final class ShareGameMessageBuilder extends AbstractMessageBuilder
 {
-    public const string SHARE_TEXT  = 'Share this game to another chat';
-    public const string BUTTON_TEXT = 'Share';
+    public const string SHARE_TEXT      = 'Share this game to another chat';
+    public const string BUTTON_TEXT     = 'Share';
+    public const string DISABLED_NOTICE = '🏁 This game has finished and can no longer be shared';
 
     public function __construct(
         private readonly Translator $translator,
@@ -38,6 +39,15 @@ final class ShareGameMessageBuilder extends AbstractMessageBuilder
     public static function switchQuery(int $gameId): string
     {
         return ForwardGameQueryExtractor::PREFIX . ' ' . $gameId;
+    }
+
+    public static function renderDisabledNotice(
+        MessageFormatterInterface $formatter,
+        ?Translator $translator = null,
+    ): string {
+        $text = $translator?->translate(self::DISABLED_NOTICE) ?? self::DISABLED_NOTICE;
+
+        return $formatter->blockquote($formatter->escape($text));
     }
 
     protected function defaultBuildShareText(): string

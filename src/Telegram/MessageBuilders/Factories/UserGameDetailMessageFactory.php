@@ -17,8 +17,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class UserGameDetailMessageFactory
 {
-    public const string HEADER_FORMAT           = 'Game #%d';
-    public const string SHARING_DISABLED_NOTICE = '🏁 This game has finished and can no longer be shared';
+    public const string HEADER_FORMAT = 'Game #%d';
 
     public static function build(int $gameId, int $listPage, Translator $translator): ?TelegramMessage
     {
@@ -29,10 +28,12 @@ final class UserGameDetailMessageFactory
         }
 
         $builder = $game->telegramMessageBuilder;
-        $isKickoffPast = GameDateTimeResolver::isKickoffPast($game->getTitle(), $game->getCreatedAt());
+        // Mirrors the inline-share gate (`KickoffDayInTheFutureRule`): share stays available
+        // until the kickoff day is over, not just until the kickoff hour.
+        $sharingEnabled = !GameDateTimeResolver::isKickoffDayPast($game->getTitle(), $game->getCreatedAt());
 
-        self::prependSection($builder, self::buildLeadingSection($builder, $gameId, $translator, $isKickoffPast));
-        self::overrideKeyboard($builder, $gameId, $listPage, $translator, $isKickoffPast);
+        self::prependSection($builder, self::buildLeadingSection($builder, $gameId, $translator, $sharingEnabled));
+        self::overrideKeyboard($builder, $gameId, $listPage, $translator, $sharingEnabled);
 
         return $game->buildTelegramMessage();
     }
@@ -41,34 +42,26 @@ final class UserGameDetailMessageFactory
         GameMessageBuilder $builder,
         int $gameId,
         Translator $translator,
-        bool $isKickoffPast,
+        bool $sharingEnabled,
     ): string {
         $header = self::buildHeader($builder, $gameId, $translator);
 
-        if (!$isKickoffPast) {
+        if ($sharingEnabled) {
             return $header;
         }
 
-        $newLine = $builder->getFormatter()->newLine();
+        $formatter = $builder->getFormatter();
+        $newLine = $formatter->newLine();
 
         // Single newline glues the notice to the header; trailing newline stacks on
         // top of the section separator (`\n\n`) for an extra gap before the body.
-        return $header . $newLine . self::buildSharingDisabledNotice($builder, $translator) . $newLine;
+        return $header . $newLine . ShareGameMessageBuilder::renderDisabledNotice($formatter, $translator) . $newLine;
     }
 
     private static function buildHeader(GameMessageBuilder $builder, int $gameId, Translator $translator): string
     {
         return $builder->getFormatter()->bold(
             sprintf($translator->translate(self::HEADER_FORMAT), $gameId),
-        );
-    }
-
-    private static function buildSharingDisabledNotice(GameMessageBuilder $builder, Translator $translator): string
-    {
-        $formatter = $builder->getFormatter();
-
-        return $formatter->blockquote(
-            $formatter->escape($translator->translate(self::SHARING_DISABLED_NOTICE)),
         );
     }
 
@@ -89,11 +82,11 @@ final class UserGameDetailMessageFactory
         int $gameId,
         int $listPage,
         Translator $translator,
-        bool $isKickoffPast,
+        bool $sharingEnabled,
     ): void {
         $rows = [];
 
-        if (!$isKickoffPast) {
+        if ($sharingEnabled) {
             $rows[] = [$builder->buildSwitchInlineQueryButton(
                 $translator->translate(ShareGameMessageBuilder::BUTTON_TEXT),
                 ShareGameMessageBuilder::switchQuery($gameId),

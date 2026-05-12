@@ -8,6 +8,7 @@ use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\GameDetailMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use PHPUnit\Framework\TestCase;
 
@@ -221,9 +222,59 @@ final class GameDetailMessageBuilderTest extends TestCase
         $this->assertStringContainsString('https://t.me/danil_kashin', $text);
     }
 
-    private function buildDetail(GameInterface $game, ?array $creatorRow = null): TelegramMessage
+    private function buildDetail(GameInterface $game, ?array $creatorRow = null, bool $sharingEnabled = true): TelegramMessage
     {
-        return $this->builder->buildGameDetail($game, $creatorRow);
+        return $this->builder->buildGameDetail($game, $creatorRow, $sharingEnabled);
+    }
+
+    // --- past-kickoff behavior ---
+
+    public function testPastGameOmitsShareButton(): void
+    {
+        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', players: []);
+
+        $message = $this->buildDetail($game, sharingEnabled: false);
+        $keyboard = $this->extractKeyboard($message);
+
+        foreach ($keyboard as $row) {
+            foreach ($row as $button) {
+                $this->assertArrayNotHasKey('switch_inline_query', $button);
+            }
+        }
+    }
+
+    public function testPastGameShowsFinishedNoticeInBody(): void
+    {
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
+
+        $message = $this->buildDetail($game, sharingEnabled: false);
+
+        $this->assertStringContainsString(
+            ShareGameMessageBuilder::DISABLED_NOTICE,
+            $message->getText()->getMessageText(),
+        );
+    }
+
+    public function testFutureGameOmitsFinishedNotice(): void
+    {
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
+
+        $message = $this->buildDetail($game, sharingEnabled: true);
+
+        $this->assertStringNotContainsString(
+            ShareGameMessageBuilder::DISABLED_NOTICE,
+            $message->getText()->getMessageText(),
+        );
+    }
+
+    public function testPastGameFirstKeyboardRowIsPlayersNotShare(): void
+    {
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
+
+        $message = $this->buildDetail($game, sharingEnabled: false);
+        $keyboard = $this->extractKeyboard($message);
+
+        $this->assertSame('Players', $keyboard[0][0]['text']);
     }
 
     protected function setUp(): void

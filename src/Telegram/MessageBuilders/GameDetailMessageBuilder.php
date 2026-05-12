@@ -23,20 +23,26 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
         ]);
     }
 
-    public function buildGameDetail(GameInterface $game, ?array $creatorRow): TelegramMessage
+    public function buildGameDetail(GameInterface $game, ?array $creatorRow, bool $sharingEnabled = true): TelegramMessage
     {
         return $this->buildMessage(
-            $this->buildGameDetailText($game, $creatorRow),
-            $this->buildGameDetailKeyboard($game),
+            $this->buildGameDetailText($game, $creatorRow, $sharingEnabled),
+            $this->buildGameDetailKeyboard($game, $sharingEnabled),
         );
     }
 
-    private function buildGameDetailText(GameInterface $game, ?array $creatorRow): string
+    private function buildGameDetailText(GameInterface $game, ?array $creatorRow, bool $sharingEnabled): string
     {
-        $lines = [
-            $this->formatHeader("Game #{$game->getGameId()}"),
-            $this->formatter->blockquote($this->formatter->escape($game->getTitle())),
-        ];
+        $lines = [$this->formatHeader("Game #{$game->getGameId()}")];
+
+        if (!$sharingEnabled) {
+            // Empty line breaks the notice's blockquote from the title's blockquote below,
+            // which Telegram would otherwise merge into a single quote block.
+            $lines[] = ShareGameMessageBuilder::renderDisabledNotice($this->formatter);
+            $lines[] = '';
+        }
+
+        $lines[] = $this->formatter->blockquote($this->formatter->escape($game->getTitle()));
 
         $creatorLine = $this->buildCreatorLine($creatorRow);
 
@@ -75,25 +81,28 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
         return $this->formatter->escape('Creator: ') . $namePart;
     }
 
-    private function buildGameDetailKeyboard(GameInterface $game): array
+    private function buildGameDetailKeyboard(GameInterface $game, bool $sharingEnabled): array
     {
         $gameId = $game->getGameId();
 
-        $keyboard = [
-            [
+        $keyboard = [];
+
+        if ($sharingEnabled) {
+            $keyboard[] = [
                 $this->buildSwitchInlineQueryButton(
                     ShareGameMessageBuilder::BUTTON_TEXT,
                     ShareGameMessageBuilder::switchQuery($gameId),
                 ),
-            ],
-            [
-                $this->buildActionButton(
-                    'Players',
-                    AdminCallbackData::create(AdminCallbackAction::GamePlayers)
-                        ->withGameId($gameId)
-                        ->withPage(1),
-                ),
-            ],
+            ];
+        }
+
+        $keyboard[] = [
+            $this->buildActionButton(
+                'Players',
+                AdminCallbackData::create(AdminCallbackAction::GamePlayers)
+                    ->withGameId($gameId)
+                    ->withPage(1),
+            ),
         ];
 
         if (null !== $game->getLocation()) {

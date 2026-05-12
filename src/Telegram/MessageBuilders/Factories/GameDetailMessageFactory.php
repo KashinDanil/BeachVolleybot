@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 
+use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\PlayerRepository;
 use BeachVolleybot\Game\GameFactory;
@@ -24,7 +25,10 @@ final class GameDetailMessageFactory
 
         $gameRecord = new GameManager()->findGameRecordById($gameId);
         $creatorRow = new PlayerRepository(Connection::get())->findById($gameRecord->createdBy);
+        // Mirrors the inline-share gate (`KickoffDayInTheFutureRule`): share stays available
+        // until the kickoff day is over, not just until the kickoff hour.
+        $sharingEnabled = !GameDateTimeResolver::isKickoffDayPast($game->getTitle(), $game->getCreatedAt());
 
-        return $builder->buildGameDetail($game, $creatorRow);
+        return $builder->buildGameDetail($game, $creatorRow, $sharingEnabled);
     }
 }
