@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Processors\Handlers;
+namespace BeachVolleybot\Processors\Handlers\GameHandlers;
 
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\CallbackData\CallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-abstract class AbstractGameReplyQueueHandler extends AbstractGameQueueHandler
+abstract readonly class AbstractGameReplyQueueHandler extends AbstractGameQueueHandler
 {
     protected function resolveGameId(TelegramUpdate $update): ?int
     {

@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Processors\AdminProcessors;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -16,7 +17,7 @@ final class SettingsMenuProcessorTest extends ProcessorTestCase
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings'));
 
-        new SettingsMenuCallbackProcessor($this->telegramSender, AdminCallbackData::create(AdminCallbackAction::Settings))->process($update);
+        new SettingsMenuCommandProcessor($this->telegramSender)->process($update);
 
         $this->assertMessageSent();
     }

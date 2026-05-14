@@ -9,4 +9,6 @@ use JsonSerializable;
 interface CallbackDataInterface extends JsonSerializable
 {
     public function toJson(): string;
+
+    public function getAction(): CallbackActionInterface;
 }

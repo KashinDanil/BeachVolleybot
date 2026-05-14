@@ -83,18 +83,6 @@ final class SetLocationProcessorTest extends ProcessorTestCase
         $this->assertEmpty($this->bot->calls);
     }
 
-    public function testIgnoresMessageWithoutLocation(): void
-    {
-        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
-        $update = TelegramUpdate::fromArray(
-            $this->replyMessagePayload('hello', 'query_1'),
-        );
-
-        new SetLocationProcessor($this->telegramSender)->process($update);
-
-        $this->assertEmpty($this->bot->calls);
-    }
-
     public function testIgnoresMessageWithoutReplyMarkup(): void
     {
         $this->seedGameWithPlayer(inlineMessageId: 'msg_1');

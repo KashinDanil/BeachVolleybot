@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
 use BeachVolleybot\Processors\AppQueueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
@@ -102,7 +103,7 @@ final class AppQueueProcessorTest extends ProcessorTestCase
     {
         $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/settings', fromId: 12345678)));
 
-        $this->assertSame([SettingsMenuCallbackProcessor::class], $this->recorder->selections);
+        $this->assertSame([SettingsMenuCommandProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesPrivateGamesCommandToUserGamesListCommandProcessor(): void

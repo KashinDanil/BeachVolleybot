@@ -14,10 +14,6 @@ class SetLocationProcessor extends AbstractGameReplyProcessor
     {
         $message = $update->message;
 
-        if (!$message->hasLocation()) {
-            return;
-        }
-
         $gameManager = new GameManager();
 
         if (!$gameManager->isPlayerInGame($gameRecord->gameId, $message->from->id)) {

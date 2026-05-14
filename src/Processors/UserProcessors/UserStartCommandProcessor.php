@@ -11,8 +11,6 @@ use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class UserStartCommandProcessor extends AbstractActionProcessor
 {
-    public const string COMMAND = '/start';
-
     public function process(TelegramUpdate $update): void
     {
         $message = $update->message;

@@ -8,7 +8,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 
-abstract class AbstractProcessorHandler
+abstract readonly class AbstractProcessorHandler
 {
     abstract public function matches(TelegramUpdate $update): bool;
 
@@ -17,5 +17,5 @@ abstract class AbstractProcessorHandler
     abstract public function createProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
-    ): ?AbstractActionProcessor;
+    ): AbstractActionProcessor;
 }

@@ -7,8 +7,10 @@ namespace BeachVolleybot\Processors;
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Common\RecentUpdateIdTracker;
-use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
-use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\SettingsMenuCommandHandler;
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserGamesListCommandHandler;
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserStartCommandHandler;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
@@ -128,15 +130,15 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             return new SendShareButtonProcessor($telegramSender);
         }
 
-        if (UserGamesListCommandProcessor::COMMAND === $update->message->text) {
+        if (UserGamesListCommandHandler::COMMAND === $update->message->text) {
             return new UserGamesListCommandProcessor($telegramSender);
         }
 
-        if (SettingsMenuCallbackProcessor::COMMAND === $update->message->text && $update->message->from->isAdmin()) {
-            return new SettingsMenuCallbackProcessor($telegramSender, AdminCallbackData::create(AdminCallbackAction::Settings));
+        if (SettingsMenuCommandHandler::COMMAND === $update->message->text && $update->message->from->isAdmin()) {
+            return new SettingsMenuCommandProcessor($telegramSender);
         }
 
-        if (UserStartCommandProcessor::COMMAND === $update->message->text) {
+        if (UserStartCommandHandler::COMMAND === $update->message->text) {
             return new UserStartCommandProcessor($telegramSender);
         }
 

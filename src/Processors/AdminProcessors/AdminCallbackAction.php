@@ -6,9 +6,11 @@ namespace BeachVolleybot\Processors\AdminProcessors;
 
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
+use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
+use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 
-enum AdminCallbackAction: string
+enum AdminCallbackAction: string implements CallbackActionInterface
 {
     case Settings = 'st';
     case Logs = 'lgs';
@@ -27,25 +29,33 @@ enum AdminCallbackAction: string
     case AddVolleyball = 'av';
     case RemoveVolleyball = 'rv';
 
-    public function resolveProcessor(TelegramMessageSender $telegramSender, AdminCallbackData $adminCallbackData): AbstractActionProcessor
-    {
+    /**
+     * @param TelegramMessageSender $telegramSender
+     * @param AdminCallbackData $callbackData
+     *
+     * @return AbstractActionProcessor
+     */
+    public function resolveProcessor(
+        TelegramMessageSender $telegramSender,
+        ?CallbackDataInterface $callbackData
+    ): AbstractActionProcessor {
         return match ($this) {
-            self::Settings => new SettingsMenuCallbackProcessor($telegramSender, $adminCallbackData),
-            self::Logs => new LogsListCallbackProcessor($telegramSender, $adminCallbackData),
-            self::LogFile => new LogFileActionsCallbackProcessor($telegramSender, $adminCallbackData),
-            self::LogGet => new LogGetCallbackProcessor($telegramSender, $adminCallbackData),
-            self::LogTail => new LogTailCallbackProcessor($telegramSender, $adminCallbackData),
-            self::LogClear => new LogClearCallbackProcessor($telegramSender, $adminCallbackData),
-            self::GamesList => new AdminGamesListCallbackProcessor($telegramSender, $adminCallbackData),
-            self::GameDetail => new AdminGameDetailCallbackProcessor($telegramSender, $adminCallbackData),
-            self::GamePlayers => new AdminPlayersListCallbackProcessor($telegramSender, $adminCallbackData),
-            self::PlayerSettings => new AdminPlayerSettingsProcessor($telegramSender, $adminCallbackData),
-            self::RemoveSlot => new AdminRemoveSlotProcessor($telegramSender, $adminCallbackData),
-            self::RemoveLocation => new AdminRemoveLocationCallbackProcessor($telegramSender, $adminCallbackData),
-            self::AddNet => new AdminAddNetProcessor($telegramSender, $adminCallbackData),
-            self::RemoveNet => new AdminRemoveNetProcessor($telegramSender, $adminCallbackData),
-            self::AddVolleyball => new AdminAddVolleyballProcessor($telegramSender, $adminCallbackData),
-            self::RemoveVolleyball => new AdminRemoveVolleyballProcessor($telegramSender, $adminCallbackData),
+            self::Settings => new SettingsMenuCallbackProcessor($telegramSender, $callbackData),
+            self::Logs => new LogsListCallbackProcessor($telegramSender, $callbackData),
+            self::LogFile => new LogFileActionsCallbackProcessor($telegramSender, $callbackData),
+            self::LogGet => new LogGetCallbackProcessor($telegramSender, $callbackData),
+            self::LogTail => new LogTailCallbackProcessor($telegramSender, $callbackData),
+            self::LogClear => new LogClearCallbackProcessor($telegramSender, $callbackData),
+            self::GamesList => new AdminGamesListCallbackProcessor($telegramSender, $callbackData),
+            self::GameDetail => new AdminGameDetailCallbackProcessor($telegramSender, $callbackData),
+            self::GamePlayers => new AdminPlayersListCallbackProcessor($telegramSender, $callbackData),
+            self::PlayerSettings => new AdminPlayerSettingsProcessor($telegramSender, $callbackData),
+            self::RemoveSlot => new AdminRemoveSlotProcessor($telegramSender, $callbackData),
+            self::RemoveLocation => new AdminRemoveLocationCallbackProcessor($telegramSender, $callbackData),
+            self::AddNet => new AdminAddNetProcessor($telegramSender, $callbackData),
+            self::RemoveNet => new AdminRemoveNetProcessor($telegramSender, $callbackData),
+            self::AddVolleyball => new AdminAddVolleyballProcessor($telegramSender, $callbackData),
+            self::RemoveVolleyball => new AdminRemoveVolleyballProcessor($telegramSender, $callbackData),
         };
     }
 }

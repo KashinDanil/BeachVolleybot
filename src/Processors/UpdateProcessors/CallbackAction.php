@@ -6,14 +6,16 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\AddNetProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\AddVolleyballProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\LeaveProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RefreshWeatherProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveNetProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveVolleyballProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\LeaveProcessor;
+use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
+use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 
-enum CallbackAction: string
+enum CallbackAction: string implements CallbackActionInterface
 {
     case Join = 'j';
     case Leave = 'l';
@@ -23,7 +25,7 @@ enum CallbackAction: string
     case RemoveNet = 'rn';
     case RefreshWeather = 'rw';
 
-    public function resolveProcessor(TelegramMessageSender $telegramSender): AbstractActionProcessor
+    public function resolveProcessor(TelegramMessageSender $telegramSender, ?CallbackDataInterface $callbackData = null): AbstractActionProcessor
     {
         return match ($this) {
             self::Join => new JoinProcessor($telegramSender),

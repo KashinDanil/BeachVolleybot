@@ -29,10 +29,6 @@ class SetLiveLocationProcessor extends AbstractGameReplyProcessor
     {
         $editedMessage = $update->editedMessage;
 
-        if (!$editedMessage->hasLocation()) {
-            return;
-        }
-
         if (self::getThrottle()->isThrottled($gameRecord->inlineQueryId)) {
             return;
         }

@@ -9,22 +9,11 @@ use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class SettingsMenuCallbackProcessor extends AbstractAdminCallbackProcessor
 {
-    public const string COMMAND = '/settings';
-
     public function process(TelegramUpdate $update): void
     {
         $message = new SettingsMessageBuilder()->buildMainMenu();
 
-        if ($update->hasMessage()) {
-            $this->telegramSender->sendMessage($update->message->chat->id, $message);
-            $this->telegramSender->deleteMessage($update->message->chat->id, $update->message->messageId);
-
-            return;
-        }
-
-        if ($update->hasCallbackQuery()) {
-            $this->editSettingsMessage($update->callbackQuery, $message);
-            $this->answerCallbackQuery($update->callbackQuery, '');
-        }
+        $this->editSettingsMessage($update->callbackQuery, $message);
+        $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

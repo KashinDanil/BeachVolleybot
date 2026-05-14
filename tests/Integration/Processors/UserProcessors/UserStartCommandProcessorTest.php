@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UserProcessors;
 
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserStartCommandHandler;
 use BeachVolleybot\Processors\UserProcessors\UserStartCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -44,7 +45,7 @@ final class UserStartCommandProcessorTest extends ProcessorTestCase
     private function processCommand(): void
     {
         $update = TelegramUpdate::fromArray(
-            $this->privateMessagePayload(UserStartCommandProcessor::COMMAND, fromId: self::SENDER_ID),
+            $this->privateMessagePayload(UserStartCommandHandler::COMMAND, fromId: self::SENDER_ID),
         );
 
         new UserStartCommandProcessor($this->telegramSender)->process($update);
