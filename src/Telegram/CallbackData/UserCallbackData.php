@@ -24,7 +24,7 @@ final readonly class UserCallbackData implements PageableCallbackDataInterface
         return new self($action);
     }
 
-    public static function fromJson(?string $json): ?self
+    public static function fromJson(?string $json): ?static
     {
         if (null === $json) {
             return null;

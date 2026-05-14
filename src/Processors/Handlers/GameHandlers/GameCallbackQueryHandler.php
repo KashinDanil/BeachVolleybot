@@ -15,7 +15,9 @@ final readonly class GameCallbackQueryHandler extends AbstractGameQueueHandler
 
     public function matches(TelegramUpdate $update): bool
     {
-        return $update->hasCallbackQuery() && $update->callbackQuery->isInline();
+        return $update->hasCallbackQuery()
+            && $update->callbackQuery->isInline()
+            && null !== GameCallbackData::fromJson($update->callbackQuery->data);
     }
 
     protected function resolveGameId(TelegramUpdate $update): ?int

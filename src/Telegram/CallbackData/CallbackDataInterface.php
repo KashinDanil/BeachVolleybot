@@ -10,5 +10,7 @@ interface CallbackDataInterface extends JsonSerializable
 {
     public function toJson(): string;
 
+    public static function fromJson(?string $json): ?static;
+
     public function getAction(): CallbackActionInterface;
 }
