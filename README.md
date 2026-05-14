@@ -43,12 +43,12 @@ Telegram Webhook
         │     ├→ InlineQueryProcessor
         │     ├→ CreateGameProcessor
         │     └→ ForwardGameProcessor
-        └→ IncomingMessageQueueRouter
+        └→ IncomingMessageQueueRouter → ProcessorRegistry.resolveQueueName(update)
               ├→ game_<id>  queue   (per-game serialization)
               ├→ dm_<user>  queue   (per-user DM serialization)
               └→ pin_<chat> queue   (per-chat pinning serialization)
                   → AppQueueWorker
-                    → AppQueueProcessor (dispatch)
+                    → AppQueueProcessor → ProcessorRegistry.resolveProcessor(update)
                       → UpdateProcessors / UserProcessors / AdminProcessors
                           ├→ RateLimitedBotApi (rate-limited Telegram API calls)
                           └→ WeatherEnqueuer (when a game needs a forecast)
@@ -58,6 +58,8 @@ Telegram Webhook
                                    → OpenMeteoWeatherClient (forecast fetch + cache)
                                      → InlineMessageRefresher (re-render every inline message of the game)
 ```
+
+Both the queue router (request path) and the worker dispatch (queue-drain path) consult a single `ProcessorRegistry`: a list of handlers, each declaring `matches(update)`, `routeToQueue(update)`, and `createProcessor(sender, update)`. The registry returns the first handler whose `matches()` is true; mutual exclusivity is enforced by `HandlerExclusivityTest`.
 
 ### Project Structure
 
@@ -79,9 +81,17 @@ Telegram Webhook
 │   │   ├── UserProcessors/     # /start, /games command and pagination/detail callbacks
 │   │   ├── UpdateProcessors/   # Game lifecycle: create, forward, join-with-time, change-title, set-location, pin-message…
 │   │   │   └── CallbackQuery/  # Per-game callbacks (join, leave, add/remove volleyball/net, refresh weather)
+│   │   ├── Handlers/           # Per-update handlers (matches / routeToQueue / createProcessor)
+│   │   │   ├── GameHandlers/      # Routed onto game_<id> queue
+│   │   │   ├── PinHandlers/       # Routed onto pin_<chat> queue
+│   │   │   ├── PrivateHandlers/   # Routed onto dm_<user> queue
+│   │   │   └── Traits/            # CallbackProcessorResolverTrait — shared callback dispatch
+│   │   ├── AbstractProcessorHandler.php
+│   │   ├── ProcessorRegistry.php
+│   │   ├── ProcessorRegistryFactory.php
 │   │   ├── AppQueueProcessor.php
 │   │   └── WeatherQueueProcessor.php
-│   ├── Routing/         # IncomingMessageRouter + IncomingMessageQueueRouter (game/dm/pin queue selection)
+│   ├── Routing/         # IncomingMessageRouter + IncomingMessageQueueRouter (delegate to ProcessorRegistry)
 │   ├── Telegram/        # Sender, MarkdownV2, rate-limited API, inline refresher
 │   │   ├── CallbackData/       # CallbackData / AdminCallbackData / UserCallbackData (+ pageable interface)
 │   │   ├── MessageBuilders/    # Game / list / detail / settings / share / welcome / log builders + factories, keyboards, warnings
