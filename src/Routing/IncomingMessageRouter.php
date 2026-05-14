@@ -47,8 +47,12 @@ readonly class IncomingMessageRouter
         return null;
     }
 
-    private function resolveChosenInlineResultProcessor(TelegramChosenInlineResult $result): AbstractActionProcessor
+    private function resolveChosenInlineResultProcessor(TelegramChosenInlineResult $result): ?AbstractActionProcessor
     {
+        if (null === $result->inlineMessageId) {
+            return null;
+        }
+
         $forwardGameId = ForwardGameQueryExtractor::extract($result->query);
 
         if (null !== $forwardGameId) {
