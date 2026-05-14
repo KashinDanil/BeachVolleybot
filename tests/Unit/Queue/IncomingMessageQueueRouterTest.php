@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Queue;
 
 use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
@@ -34,7 +35,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
         Connection::set($this->db);
 
         SpyQueue::reset();
-        $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR);
+        $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR, ProcessorRegistryFactory::create());
     }
 
     protected function tearDown(): void
@@ -80,13 +81,13 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->assertNothingEnqueued();
     }
 
-    public function testCallbackQueryWithoutInlineMessageIdRoutesToDmQueue(): void
+    public function testNonInlineUserCallbackQueryRoutesToDmQueue(): void
     {
         $update = TelegramUpdate::fromArray([
             'update_id' => 100,
             'callback_query' => [
                 'id' => 'cbq_1',
-                'data' => '{"a":"j"}',
+                'data' => '{"ua":"ugl"}',
                 'from' => ['id' => 456, 'first_name' => 'Test', 'is_bot' => false],
                 'chat_instance' => '-123',
             ],
@@ -362,7 +363,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->assertNothingEnqueued();
     }
 
-    public function testEditedMessageInPrivateChatRoutesToDmQueue(): void
+    public function testEditedPrivateMessageWithoutReplyToBotIsSkipped(): void
     {
         $update = TelegramUpdate::fromArray([
             'update_id' => 100,
@@ -381,7 +382,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
         $this->router->route($update);
 
-        $this->assertEnqueuedOnce('dm_123');
+        $this->assertNothingEnqueued();
     }
 
     // --- payload preservation / wiring ---

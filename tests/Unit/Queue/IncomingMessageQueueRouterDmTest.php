@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Queue;
 
 use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
@@ -26,14 +27,14 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
         $this->assertEnqueuedOnce('dm_12345678');
     }
 
-    public function testPrivateMessageWithAnyTextRoutesToDmQueue(): void
+    public function testUnrecognizedPrivateTextIsNotRouted(): void
     {
         $this->router->route($this->privateMessageUpdate(12345, 'hello'));
 
-        $this->assertEnqueuedOnce('dm_12345');
+        $this->assertSame([], SpyQueue::$instances);
     }
 
-    public function testCallbackQueryWithoutInlineMessageIdRoutesToDmQueue(): void
+    public function testNonInlineAdminCallbackQueryRoutesToDmQueue(): void
     {
         $update = TelegramUpdate::fromArray([
             'update_id' => 100,
@@ -48,7 +49,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
                     'date' => 1700000000,
                     'text' => 'Settings',
                 ],
-                'data' => '{"aa":"logs"}',
+                'data' => '{"aa":"st"}',
             ],
         ]);
 
@@ -129,7 +130,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
         Connection::set($this->db);
 
         SpyQueue::reset();
-        $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR);
+        $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR, ProcessorRegistryFactory::create());
     }
 
     protected function tearDown(): void

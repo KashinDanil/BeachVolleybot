@@ -7,15 +7,16 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use BeachVolleybot\Common\InputStrategies\InputStrategyFactory;
 use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Routing\IncomingMessageRouter;
-use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\Validator\Rules\ValidPayloadRule;
-use BeachVolleybot\Validator\Rules\PostRequestRule;
-use BeachVolleybot\Validator\Rules\AppSecretTokenRule;
-use BeachVolleybot\Validator\Validator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\RateLimitedBotApi;
+use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\Validator\Rules\AppSecretTokenRule;
+use BeachVolleybot\Validator\Rules\PostRequestRule;
+use BeachVolleybot\Validator\Rules\ValidPayloadRule;
+use BeachVolleybot\Validator\Validator;
 
 $inputStrategy = InputStrategyFactory::getStrategy();
 $validator = new Validator(
@@ -38,6 +39,6 @@ $payload = json_decode($inputStrategy->getPayload(), true);
 $update = TelegramUpdate::fromArray($payload);
 
 $telegramSender = new TelegramMessageSender(new RateLimitedBotApi(TG_BOT_ACCESS_TOKEN, TG_MAX_REQUESTS_PER_SECOND));
-$queueRouter = new IncomingMessageQueueRouter(QUEUE_CLASS, BASE_QUEUE_DIR);
+$queueRouter = new IncomingMessageQueueRouter(QUEUE_CLASS, BASE_QUEUE_DIR, ProcessorRegistryFactory::create());
 $router = new IncomingMessageRouter($telegramSender, $queueRouter);
 $router->route($update);
