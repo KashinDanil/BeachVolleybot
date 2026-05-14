@@ -9,7 +9,7 @@ use BeachVolleybot\Processors\Handlers\Traits\CallbackProcessorResolverTrait;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-final readonly class CallbackQueryHandler extends AbstractGameQueueHandler
+final readonly class GameCallbackQueryHandler extends AbstractGameQueueHandler
 {
     use CallbackProcessorResolverTrait;
 

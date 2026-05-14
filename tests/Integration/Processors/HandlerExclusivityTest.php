@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Processors\AbstractProcessorHandler;
-use BeachVolleybot\Processors\Handlers\GameHandlers\CallbackQueryHandler;
+use BeachVolleybot\Processors\Handlers\GameHandlers\GameCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\ChangeTitleHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\JoinWithTimeHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\SetLiveLocationHandler;
@@ -48,7 +48,7 @@ final class HandlerExclusivityTest extends ProcessorTestCase
     private function allHandlers(): array
     {
         return [
-            new CallbackQueryHandler(),
+            new GameCallbackQueryHandler(),
             new SetLiveLocationHandler(),
             new SetLocationHandler(),
             new JoinWithTimeHandler(),

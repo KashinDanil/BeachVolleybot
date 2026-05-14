@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors;
 
-use BeachVolleybot\Processors\Handlers\GameHandlers\CallbackQueryHandler;
+use BeachVolleybot\Processors\Handlers\GameHandlers\GameCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\ChangeTitleHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\JoinWithTimeHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\SetLiveLocationHandler;
@@ -25,7 +25,7 @@ final readonly class ProcessorRegistryFactory
         return new ProcessorRegistry([
             new DeletePinNotificationHandler(),
             new PinMessageHandler(),
-            new CallbackQueryHandler(),
+            new GameCallbackQueryHandler(),
             new AdminCallbackQueryHandler(),
             new UserCallbackQueryHandler(),
             new SetLiveLocationHandler(),
