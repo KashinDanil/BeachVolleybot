@@ -22,7 +22,7 @@ use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserStartCommandProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\RateLimitedBotApi;
@@ -99,7 +99,7 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
             return $userCallback->getAction()->resolveProcessor($telegramSender, $userCallback);
         }
 
-        return CallbackData::fromJson($update->callbackQuery->data)?->getAction()->resolveProcessor($telegramSender);
+        return GameCallbackData::fromJson($update->callbackQuery->data)?->getAction()->resolveProcessor($telegramSender);
     }
 
     private function resolveMessageProcessor(TelegramUpdate $update, TelegramMessageSender $telegramSender): ?AbstractActionProcessor

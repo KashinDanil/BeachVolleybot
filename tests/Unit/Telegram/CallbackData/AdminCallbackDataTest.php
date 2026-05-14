@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\CallbackData;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
+use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use PHPUnit\Framework\TestCase;
 
 final class AdminCallbackDataTest extends TestCase
@@ -168,14 +168,14 @@ final class AdminCallbackDataTest extends TestCase
         foreach (AdminCallbackAction::cases() as $action) {
             $json = AdminCallbackData::create($action)->toJson();
 
-            $this->assertNull(CallbackData::fromJson($json), "Admin action '{$action->value}' was recognized as a game callback");
+            $this->assertNull(GameCallbackData::fromJson($json), "Admin action '{$action->value}' was recognized as a game callback");
         }
     }
 
     public function testGameCallbackNotRecognizedAsAdminCallback(): void
     {
-        foreach (CallbackAction::cases() as $action) {
-            $json = CallbackData::create($action)->toJson();
+        foreach (GameCallbackAction::cases() as $action) {
+            $json = GameCallbackData::create($action)->toJson();
 
             $this->assertNull(AdminCallbackData::fromJson($json), "Game action '{$action->value}' was recognized as an admin callback");
         }

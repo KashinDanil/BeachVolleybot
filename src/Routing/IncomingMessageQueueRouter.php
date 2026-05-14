@@ -6,7 +6,7 @@ namespace BeachVolleybot\Routing;
 
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramCallbackQuery;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -86,7 +86,7 @@ readonly class IncomingMessageQueueRouter
 
     private function resolveGameQueueFromReply(TelegramMessage $message): ?string
     {
-        $inlineQueryId = CallbackData::extractInlineQueryId($message->replyToMessage);
+        $inlineQueryId = GameCallbackData::extractInlineQueryId($message->replyToMessage);
 
         if (null === $inlineQueryId) {
             return $this->skip('Meta-button missing inline_query_id');

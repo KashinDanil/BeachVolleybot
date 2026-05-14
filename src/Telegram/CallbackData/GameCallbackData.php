@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\CallbackData;
 
-use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
+use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 
-final readonly class CallbackData implements CallbackDataInterface
+final readonly class GameCallbackData implements CallbackDataInterface
 {
     private const string KEY_ACTION          = 'a';
     private const string KEY_INLINE_QUERY_ID = 'q';
 
     private function __construct(
-        private CallbackAction $action,
+        private GameCallbackAction $action,
         private ?string $inlineQueryId = null,
     ) {
     }
 
-    public static function create(CallbackAction $action): self
+    public static function create(GameCallbackAction $action): self
     {
         return new self($action);
     }
@@ -30,7 +30,7 @@ final readonly class CallbackData implements CallbackDataInterface
         }
 
         $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        $action = CallbackAction::tryFrom($data[self::KEY_ACTION] ?? '');
+        $action = GameCallbackAction::tryFrom($data[self::KEY_ACTION] ?? '');
 
         if (null === $action) {
             return null;
@@ -58,7 +58,7 @@ final readonly class CallbackData implements CallbackDataInterface
         return new self($this->action, $inlineQueryId);
     }
 
-    public function getAction(): CallbackAction
+    public function getAction(): GameCallbackAction
     {
         return $this->action;
     }

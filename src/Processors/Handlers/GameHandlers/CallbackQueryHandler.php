@@ -6,7 +6,7 @@ namespace BeachVolleybot\Processors\Handlers\GameHandlers;
 
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\Handlers\Traits\CallbackProcessorResolverTrait;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 final readonly class CallbackQueryHandler extends AbstractGameQueueHandler
@@ -25,6 +25,6 @@ final readonly class CallbackQueryHandler extends AbstractGameQueueHandler
 
     protected function getCallbackDataClass(): string
     {
-        return CallbackData::class;
+        return GameCallbackData::class;
     }
 }

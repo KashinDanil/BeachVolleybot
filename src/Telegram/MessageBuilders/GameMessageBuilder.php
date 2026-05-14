@@ -6,8 +6,8 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\PlayerInterface;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
+use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyleEnum;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\GameWarningCollector;
@@ -187,16 +187,16 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     {
         return [
             [ // The first button is the meta-button — it carries the inline query ID
-                $this->buildActionButton('Leave', CallbackData::create(CallbackAction::Leave)->withInlineQueryId($game->getInlineQueryId()), InlineButtonStyleEnum::DANGER),
-                $this->buildActionButton('Join', CallbackData::create(CallbackAction::Join), InlineButtonStyleEnum::SUCCESS),
+                $this->buildActionButton('Leave', GameCallbackData::create(GameCallbackAction::Leave)->withInlineQueryId($game->getInlineQueryId()), InlineButtonStyleEnum::DANGER),
+                $this->buildActionButton('Join', GameCallbackData::create(GameCallbackAction::Join), InlineButtonStyleEnum::SUCCESS),
             ],
             [
-                $this->buildActionButton('-' . self::VOLLEYBALL_EMOJI, CallbackData::create(CallbackAction::RemoveVolleyball)),
-                $this->buildActionButton('+' . self::VOLLEYBALL_EMOJI, CallbackData::create(CallbackAction::AddVolleyball)),
+                $this->buildActionButton('-' . self::VOLLEYBALL_EMOJI, GameCallbackData::create(GameCallbackAction::RemoveVolleyball)),
+                $this->buildActionButton('+' . self::VOLLEYBALL_EMOJI, GameCallbackData::create(GameCallbackAction::AddVolleyball)),
             ],
             [
-                $this->buildActionButton('-' . self::NET_EMOJI, CallbackData::create(CallbackAction::RemoveNet)),
-                $this->buildActionButton('+' . self::NET_EMOJI, CallbackData::create(CallbackAction::AddNet)),
+                $this->buildActionButton('-' . self::NET_EMOJI, GameCallbackData::create(GameCallbackAction::RemoveNet)),
+                $this->buildActionButton('+' . self::NET_EMOJI, GameCallbackData::create(GameCallbackAction::AddNet)),
             ],
         ];
     }

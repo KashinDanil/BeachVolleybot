@@ -7,8 +7,8 @@ namespace BeachVolleybot\Game\AddOns;
 use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
+use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
 use BeachVolleybot\Weather\Forecast\WeatherFormatter;
@@ -66,7 +66,7 @@ final class WeatherAddOn implements GameAddOnInterface
                 $rows[] = [
                     $builder->buildActionButton(
                         self::REFRESH_BUTTON_LABEL,
-                        CallbackData::create(CallbackAction::RefreshWeather),
+                        GameCallbackData::create(GameCallbackAction::RefreshWeather),
                     ),
                 ];
 

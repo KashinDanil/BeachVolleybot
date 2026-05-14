@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\CallbackData;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackAction;
+use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
 use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use PHPUnit\Framework\TestCase;
 
@@ -164,7 +164,7 @@ final class UserCallbackDataTest extends TestCase
         foreach (UserCallbackAction::cases() as $action) {
             $json = UserCallbackData::create($action)->toJson();
 
-            $this->assertNull(CallbackData::fromJson($json), "User action '{$action->value}' was recognized as a game callback");
+            $this->assertNull(GameCallbackData::fromJson($json), "User action '{$action->value}' was recognized as a game callback");
         }
     }
 
@@ -179,8 +179,8 @@ final class UserCallbackDataTest extends TestCase
 
     public function testGameCallbackNotRecognizedAsUserCallback(): void
     {
-        foreach (CallbackAction::cases() as $action) {
-            $json = CallbackData::create($action)->toJson();
+        foreach (GameCallbackAction::cases() as $action) {
+            $json = GameCallbackData::create($action)->toJson();
 
             $this->assertNull(UserCallbackData::fromJson($json), "Game action '{$action->value}' was recognized as a user callback");
         }

@@ -7,7 +7,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
-use BeachVolleybot\Telegram\CallbackData\CallbackData;
+use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
@@ -21,7 +21,7 @@ abstract class AbstractGameReplyProcessor extends AbstractActionReplyProcessor
             return;
         }
 
-        $inlineQueryId = CallbackData::extractInlineQueryId($message->replyToMessage);
+        $inlineQueryId = GameCallbackData::extractInlineQueryId($message->replyToMessage);
 
         if (null === $inlineQueryId) {
             return;

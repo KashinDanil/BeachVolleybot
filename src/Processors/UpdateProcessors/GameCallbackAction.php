@@ -15,7 +15,7 @@ use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 
-enum CallbackAction: string implements CallbackActionInterface
+enum GameCallbackAction: string implements CallbackActionInterface
 {
     case Join = 'j';
     case Leave = 'l';
