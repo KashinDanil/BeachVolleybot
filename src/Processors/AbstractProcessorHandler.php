@@ -10,6 +10,7 @@ use BeachVolleybot\Telegram\TelegramMessageSender;
 
 abstract readonly class AbstractProcessorHandler
 {
+    // Must be pure (content-only, no I/O): runs once at routing, again at worker dispatch.
     abstract public function matches(TelegramUpdate $update): bool;
 
     abstract public function routeToQueue(TelegramUpdate $update): ?string;

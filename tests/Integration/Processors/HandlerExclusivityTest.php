@@ -21,6 +21,8 @@ use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserStartCommandHandler;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use ReflectionClass;
 
+// When adding a new handler, also add a representative update fixture in fixtures():
+// exclusivity is enforced over these fixtures, not by static analysis.
 final class HandlerExclusivityTest extends ProcessorTestCase
 {
     public function testNoUpdateMatchesMoreThanOneHandler(): void
