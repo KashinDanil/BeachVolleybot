@@ -10,9 +10,9 @@ use BeachVolleybot\Processors\ProcessorRegistry;
 use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CompositeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
@@ -128,13 +128,13 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         );
     }
 
-    public function testResolvesViaBotKeyboardMessageToPinQueueAndPinMessageProcessor(): void
+    public function testResolvesViaBotKeyboardMessageToPinQueueAndCompositeProcessor(): void
     {
         $update = TelegramUpdate::fromArray($this->viaBotKeyboardMessagePayload(chatId: -200));
 
         $this->assertSame('pin_-200', $this->registry->resolveQueueName($update));
         $this->assertInstanceOf(
-            PinMessageProcessor::class,
+            CompositeProcessor::class,
             $this->registry->resolveProcessor($update, $this->telegramSender),
         );
     }

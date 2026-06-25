@@ -10,9 +10,9 @@ use BeachVolleybot\Processors\AppQueueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CompositeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
@@ -92,11 +92,11 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([ChangeTitleProcessor::class], $this->recorder->selections);
     }
 
-    public function testRoutesViaBotMessageWithKeyboardToPinMessageProcessor(): void
+    public function testRoutesViaBotMessageWithKeyboardToCompositeProcessor(): void
     {
         $this->processor->process(new QueueMessage($this->viaBotKeyboardMessagePayload()));
 
-        $this->assertSame([PinMessageProcessor::class], $this->recorder->selections);
+        $this->assertSame([CompositeProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesAdminPrivateSettingsCommandToSettingsMenuProcessor(): void

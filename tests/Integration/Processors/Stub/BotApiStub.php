@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors\Stub;
 
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\Types\ChatMember;
 use TelegramBot\Api\Types\Message;
 
 class BotApiStub extends BotApi
 {
     /** @var list<array{method: string, args: list<mixed>}> */
     public array $calls = [];
+
+    /** @var array<int, string> */
+    public array $chatMemberStatuses = [];
 
     /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct()
@@ -96,6 +100,16 @@ class BotApiStub extends BotApi
         $this->calls[] = ['method' => 'deleteMessage', 'args' => func_get_args()];
 
         return true;
+    }
+
+    public function getChatMember($chatId, $userId): ChatMember
+    {
+        $this->calls[] = ['method' => 'getChatMember', 'args' => func_get_args()];
+
+        return ChatMember::fromResponse([
+            'user' => ['id' => $userId, 'first_name' => 'Admin', 'is_bot' => false],
+            'status' => $this->chatMemberStatuses[$userId] ?? 'left',
+        ]);
     }
 
     public function call($method, ?array $data = null, $timeout = 10): true
