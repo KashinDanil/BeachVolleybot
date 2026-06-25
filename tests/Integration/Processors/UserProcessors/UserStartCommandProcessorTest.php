@@ -25,7 +25,9 @@ final class UserStartCommandProcessorTest extends ProcessorTestCase
 
         $text = (string)$args[1];
         $this->assertStringContainsString('@' . BOT_USERNAME, $text);
-        $this->assertStringContainsString('17:30', $text);
+        $this->assertStringContainsString('*To join at another time*', $text);
+        $this->assertStringContainsString('like *17:30*', $text);
+        $this->assertStringContainsString('use the /games command here', $text);
 
         $this->assertSame('MarkdownV2', $args[2]);
     }

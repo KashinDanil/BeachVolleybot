@@ -16,10 +16,10 @@ final class WelcomeMessageBuilder extends AbstractMessageBuilder
     public const string EXAMPLE_TEMPLATE      = "@%s \n📅 Saturday\n🏖️ Bogatell\n🕙 10:00";
     public const string AFTER_EXAMPLE         = "Then just tap the bot's hint to send the message.";
     public const string JOIN_LEAVE_PARAGRAPH  = '**To join a game or leave it**, use the buttons under the message.';
-    public const string LATE_PARAGRAPH        = '**To come later**, just reply to the game message with the time only, e.g.: 17:30.';
+    public const string LATE_PARAGRAPH        = '**To join at another time**, reply to the game message with just the time, like **17:30**.';
     public const string LOCATION_PARAGRAPH    = '**To add a location** 📍, reply to the game message with a geo point.';
     public const string GEAR_PARAGRAPH        = '**Volleyballs and nets** can also be marked with the buttons under the game: +🏐 / −🏐 and +🕸 / −🕸. If something is missing, the bot will show it.';
-    public const string GAMES_LIST_PARAGRAPH  = '**To share a game across multiple chats**, use the /games command — the game stays in sync everywhere.';
+    public const string GAMES_LIST_PARAGRAPH  = '**To share a game across multiple chats**, use the /games command here — the game stays in sync everywhere.';
 
     public function __construct(
         private readonly Translator $translator,
