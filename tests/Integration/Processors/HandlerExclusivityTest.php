@@ -11,7 +11,7 @@ use BeachVolleybot\Processors\Handlers\GameHandlers\JoinWithTimeHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\SetLiveLocationHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\SetLocationHandler;
 use BeachVolleybot\Processors\Handlers\PinHandlers\DeletePinNotificationHandler;
-use BeachVolleybot\Processors\Handlers\PinHandlers\PinMessageHandler;
+use BeachVolleybot\Processors\Handlers\PinHandlers\GameCreatedMessageHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\AdminCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\SendShareButtonHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\SettingsMenuCommandHandler;
@@ -56,7 +56,7 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             new JoinWithTimeHandler(),
             new ChangeTitleHandler(),
             new DeletePinNotificationHandler(),
-            new PinMessageHandler(),
+            new GameCreatedMessageHandler(),
             new AdminCallbackQueryHandler(),
             new UserCallbackQueryHandler(),
             new SendShareButtonHandler(),

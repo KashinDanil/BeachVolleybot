@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\Handlers\PinHandlers;
 
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\AdminPresenceCheckProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CompositeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 
-final readonly class PinMessageHandler extends AbstractPinQueueHandler
+final readonly class GameCreatedMessageHandler extends AbstractPinQueueHandler
 {
     public function matches(TelegramUpdate $update): bool
     {
@@ -23,6 +25,10 @@ final readonly class PinMessageHandler extends AbstractPinQueueHandler
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
     ): AbstractActionProcessor {
-        return new PinMessageProcessor($telegramSender);
+        return new CompositeProcessor(
+            $telegramSender,
+            new PinMessageProcessor($telegramSender),
+            new AdminPresenceCheckProcessor($telegramSender),
+        );
     }
 }

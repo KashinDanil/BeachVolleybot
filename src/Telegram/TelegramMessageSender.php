@@ -178,4 +178,17 @@ readonly class TelegramMessageSender
         }
     }
 
+    public function isChatMemberPresent(int $chatId, int $userId): bool
+    {
+        try {
+            $chatMember = $this->bot->getChatMember($chatId, $userId);
+
+            return !in_array($chatMember->getStatus(), ['left', 'kicked'], true);
+        } catch (HttpException $exception) {
+            Logger::logApp('getChatMember failed: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+
 }
