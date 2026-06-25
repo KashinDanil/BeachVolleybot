@@ -25,10 +25,11 @@ abstract class DatabaseTestCase extends TestCase
 
         $this->applyMigration('001_create_games_and_participants.sql');
         $this->applyMigration('004_split_game_inline_messages.sql');
+        $this->applyMigration('005_require_game_player_time.sql');
     }
 
     protected function createGame(
-        string $title = 'Friday Game',
+        string $title = 'Friday Game 18:00',
         int $createdBy = 100,
         string $inlineMessageId = 'msg_1',
         string $inlineQueryId = 'query_1',
@@ -74,7 +75,7 @@ abstract class DatabaseTestCase extends TestCase
     protected function createGamePlayer(
         int $gameId,
         int $telegramUserId = 200,
-        ?string $time = null,
+        string $time = '18:00',
     ): void {
         $this->createPlayer($telegramUserId);
         $this->db->insert('game_players', [

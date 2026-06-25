@@ -8,6 +8,8 @@ use BeachVolleybot\Database\GamePlayerRepository;
 
 final class GamePlayerRepositoryTest extends DatabaseTestCase
 {
+    private const string DEFAULT_TIME = '18:00';
+
     private GamePlayerRepository $repository;
 
     private int $gameId;
@@ -31,6 +33,15 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
         $this->assertSame('15:20', $entry['time']);
     }
 
+    public function testTimeColumnIsRequired(): void
+    {
+        $columns = $this->db->pdo->query('PRAGMA table_info(game_players)')->fetchAll(\PDO::FETCH_ASSOC);
+        $timeColumn = array_values(array_filter($columns, fn (array $column) => 'time' === $column['name']))[0] ?? null;
+
+        $this->assertNotNull($timeColumn);
+        $this->assertSame(1, (int)$timeColumn['notnull']);
+    }
+
     public function testFindByGameAndPlayerReturnsNullWhenNotFound(): void
     {
         $this->assertNull($this->repository->findByGamePlayer($this->gameId, 999));
@@ -39,8 +50,8 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
     public function testFindByGameIdReturnsList(): void
     {
         $this->createPlayer(201, 'Bob');
-        $this->repository->create($this->gameId, 200);
-        $this->repository->create($this->gameId, 201);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
+        $this->repository->create($this->gameId, 201, self::DEFAULT_TIME);
 
         $entries = $this->repository->findByGameId($this->gameId);
 
@@ -54,7 +65,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
     public function testIncrementVolleyball(): void
     {
-        $this->repository->create($this->gameId, 200);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
 
         $this->repository->incrementVolleyball($this->gameId, 200);
         $this->repository->incrementVolleyball($this->gameId, 200);
@@ -64,7 +75,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
     public function testDecrementVolleyballFloorsAtZero(): void
     {
-        $this->repository->create($this->gameId, 200);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
 
         $this->repository->decrementVolleyball($this->gameId, 200);
 
@@ -73,7 +84,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
     public function testDecrementVolleyballDecrementsFromPositive(): void
     {
-        $this->repository->create($this->gameId, 200);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
 
         $this->repository->incrementVolleyball($this->gameId, 200);
         $this->repository->incrementVolleyball($this->gameId, 200);
@@ -84,7 +95,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
     public function testIncrementNet(): void
     {
-        $this->repository->create($this->gameId, 200);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
 
         $this->repository->incrementNet($this->gameId, 200);
 
@@ -93,7 +104,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
     public function testDecrementNetFloorsAtZero(): void
     {
-        $this->repository->create($this->gameId, 200);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
 
         $this->repository->decrementNet($this->gameId, 200);
 
@@ -102,7 +113,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
     public function testDeleteRemovesEntry(): void
     {
-        $this->repository->create($this->gameId, 200);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
 
         $this->assertTrue($this->repository->delete($this->gameId, 200));
         $this->assertNull($this->repository->findByGamePlayer($this->gameId, 200));
@@ -115,7 +126,7 @@ final class GamePlayerRepositoryTest extends DatabaseTestCase
 
     public function testCascadeDeleteOnGameRemoval(): void
     {
-        $this->repository->create($this->gameId, 200);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
 
         $this->db->delete('games', ['game_id' => $this->gameId]);
 

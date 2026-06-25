@@ -76,7 +76,7 @@ final class PlayersListMessageBuilderTest extends TestCase
             link: null,
             volleyball: 0,
             net: 0,
-            time: null,
+            time: '18:00',
         );
     }
 

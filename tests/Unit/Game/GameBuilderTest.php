@@ -92,7 +92,7 @@ final class GameBuilderTest extends TestCase
         $this->assertSame('19:30', $game->getPlayers()[0]->getTime());
     }
 
-    public function testPlayerTimeNullWhenNotSet(): void
+    public function testPlayerTimeMapsDefaultRowTime(): void
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
@@ -100,7 +100,7 @@ final class GameBuilderTest extends TestCase
             playerRows: [$this->playerRow()],
         );
 
-        $this->assertNull($game->getPlayers()[0]->getTime());
+        $this->assertSame('18:00', $game->getPlayers()[0]->getTime());
     }
 
     // --- Name composition ---
@@ -234,7 +234,7 @@ final class GameBuilderTest extends TestCase
         int $userId = 100,
         int $volleyball = 0,
         int $net = 0,
-        ?string $time = null,
+        string $time = '18:00',
     ): array {
         return [
             'game_id' => 1,

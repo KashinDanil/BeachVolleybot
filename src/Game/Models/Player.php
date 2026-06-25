@@ -15,7 +15,7 @@ readonly class Player implements PlayerInterface
         public ?string $link,
         public int $volleyball,
         public int $net,
-        public ?string $time,
+        public string $time,
     ) {
     }
 
@@ -63,7 +63,7 @@ readonly class Player implements PlayerInterface
         return $this->net;
     }
 
-    public function getTime(): ?string
+    public function getTime(): string
     {
         return $this->time;
     }

@@ -18,5 +18,5 @@ interface PlayerInterface
 
     public function getNet(): int;
 
-    public function getTime(): ?string;
+    public function getTime(): string;
 }

@@ -37,7 +37,7 @@ final class GameMessageBuilderTest extends TestCase
 
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1\. Alice 🏐 🕸️', $text);
+        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1\. Alice 🏐 🕸️ 18:00', $text);
     }
 
     // --- Text: location ---
@@ -50,7 +50,7 @@ final class GameMessageBuilderTest extends TestCase
 
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1\. Alice 🏐 🕸️' . self::SEPARATOR . '[📍 Location](https://maps.google.com/?q=41.399747,2.20778)', $text);
+        $this->assertSame('Beach Game 18:00' . self::SEPARATOR . '1\. Alice 🏐 🕸️ 18:00' . self::SEPARATOR . '[📍 Location](https://maps.google.com/?q=41.399747,2.20778)', $text);
     }
 
     public function testLocationOmittedWhenNull(): void
@@ -251,16 +251,7 @@ final class GameMessageBuilderTest extends TestCase
 
     // --- Text: time ---
 
-    public function testPlayerTimeHiddenWhenNull(): void
-    {
-        $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 1, net: 1, time: null),
-        ]);
-
-        $this->assertSame('Game 18:00' . self::SEPARATOR . '1\. Alice 🏐 🕸️', $this->builder->build($game)->getText()->getMessageText());
-    }
-
-    public function testPlayerTimeHiddenWhenMatchesGameTime(): void
+    public function testPlayerTimeShownWhenMatchesGameTime(): void
     {
         $game = $this->game('Game', [
             $this->player('1', 'Alice', volleyball: 1, net: 1, time: '18:00'),
@@ -268,7 +259,7 @@ final class GameMessageBuilderTest extends TestCase
 
         $text = $this->builder->build($game)->getText()->getMessageText();
 
-        $this->assertSame('Game' . self::SEPARATOR . '1\. Alice 🏐 🕸️', $text);
+        $this->assertSame('Game' . self::SEPARATOR . '1\. Alice 🏐 🕸️ 18:00', $text);
     }
 
     public function testPlayerTimeShownWhenDifferentFromGameTime(): void
@@ -454,7 +445,7 @@ final class GameMessageBuilderTest extends TestCase
         ?string $link = null,
         int $volleyball = 0,
         int $net = 0,
-        ?string $time = null,
+        string $time = '18:00',
     ): PlayerInterface {
         $player = $this->createStub(PlayerInterface::class);
         $player->method('getNumber')->willReturn($number);

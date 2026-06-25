@@ -24,7 +24,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
  * @method string  buildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime)
  * @method string  displayName(PlayerInterface $player, int $appearance)
  * @method int     plusCount(PlayerInterface $player, int $appearance)
- * @method string  displayTime(?string $playerTime, string $gameTime)
+ * @method string  displayTime(string $playerTime, string $gameTime)
  * @method string|null buildLocationLink(?string $location)
  * @method string|null buildWarning(array $players)
  * @method string  playerKey(PlayerInterface $player)
@@ -151,12 +151,8 @@ final class GameMessageBuilder extends AbstractMessageBuilder
         return $appearance - 1;
     }
 
-    protected function defaultDisplayTime(?string $playerTime, string $gameTime): string
+    protected function defaultDisplayTime(string $playerTime, string $gameTime): string
     {
-        if (null === $playerTime || $playerTime === $gameTime) {
-            return '';
-        }
-
         return $this->formatter->escape($playerTime);
     }
 

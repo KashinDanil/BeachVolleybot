@@ -551,7 +551,7 @@ final class GameManagerTest extends DatabaseTestCase
         int $position,
         int $volleyball = 0,
         int $net = 0,
-        ?string $time = null,
+        string $time = '18:00',
     ): void {
         $this->createPlayer($telegramUserId);
         $this->db->insert('game_players', [

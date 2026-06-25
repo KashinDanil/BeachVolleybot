@@ -35,6 +35,7 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->db->insert('game_players', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
+            'time' => '18:00',
         ]);
         $this->addSlot($gameId, $telegramUserId, $position);
 

@@ -183,7 +183,7 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
         ?string $link = null,
         int $volleyball = 0,
         int $net = 0,
-        ?string $time = null,
+        string $time = '18:00',
     ): Player {
         return new Player(
             telegramUserId: $telegramUserId,

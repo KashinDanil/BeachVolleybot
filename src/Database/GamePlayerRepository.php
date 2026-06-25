@@ -13,7 +13,7 @@ readonly class GamePlayerRepository
     ) {
     }
 
-    public function create(int $gameId, int $telegramUserId, ?string $time = null, int $volleyball = 0, int $net = 0): void
+    public function create(int $gameId, int $telegramUserId, string $time, int $volleyball = 0, int $net = 0): void
     {
         $this->db->insert('game_players', [
             'game_id' => $gameId,

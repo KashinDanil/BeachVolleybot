@@ -58,12 +58,14 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         int $net = 0,
         int $position = 1,
         string $inlineMessageId = 'msg_1',
+        string $time = '18:00',
     ): int {
         $gameId = $this->seedFullGame(inlineMessageId: $inlineMessageId);
         $this->createPlayer($telegramUserId, $firstName);
         $this->db->insert('game_players', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
+            'time' => $time,
             'volleyball' => $volleyball,
             'net' => $net,
         ]);

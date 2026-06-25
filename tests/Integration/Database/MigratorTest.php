@@ -12,6 +12,8 @@ use RuntimeException;
 
 final class MigratorTest extends TestCase
 {
+    private const string REAL_MIGRATIONS_DIR = __DIR__ . '/../../../migrations';
+
     private string $migrationsDir;
     private Medoo $db;
 
@@ -127,5 +129,72 @@ final class MigratorTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $migrator->run();
+    }
+
+    public function testRequireGamePlayerTimeMigrationPreservesSlots(): void
+    {
+        $this->db->pdo->exec('PRAGMA foreign_keys = ON');
+
+        $this->copyRealMigration('001_create_games_and_participants.sql');
+        $this->copyRealMigration('004_split_game_inline_messages.sql');
+
+        $migrator = new Migrator($this->migrationsDir, $this->db);
+        $migrator->run();
+
+        $this->insertGameWithPlayerAndSlot();
+
+        $this->copyRealMigration('005_require_game_player_time.sql');
+        $this->assertSame(1, $migrator->run());
+
+        $gamePlayer = $this->db->get('game_players', '*', [
+            'game_id' => 1,
+            'telegram_user_id' => 200,
+        ]);
+        $this->assertSame('18:00', $gamePlayer['time']);
+
+        $slots = $this->db->select('game_slots', '*', ['game_id' => 1]);
+        $this->assertCount(1, $slots);
+        $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
+        $this->assertSame(1, (int)$slots[0]['position']);
+
+        $columns = $this->db->pdo->query('PRAGMA table_info(game_players)')->fetchAll(PDO::FETCH_ASSOC);
+        $timeColumn = array_values(array_filter($columns, fn (array $column) => 'time' === $column['name']))[0] ?? null;
+        $this->assertNotNull($timeColumn);
+        $this->assertSame(1, (int)$timeColumn['notnull']);
+    }
+
+    private function copyRealMigration(string $filename): void
+    {
+        copy(self::REAL_MIGRATIONS_DIR . '/' . $filename, $this->migrationsDir . '/' . $filename);
+    }
+
+    private function insertGameWithPlayerAndSlot(): void
+    {
+        $this->db->insert('games', [
+            'game_id' => 1,
+            'inline_query_id' => 'query_1',
+            'title' => 'Friday Game 18:00',
+            'created_by' => 200,
+        ]);
+        $this->db->insert('game_inline_messages', [
+            'game_id' => 1,
+            'inline_message_id' => 'msg_1',
+        ]);
+        $this->db->insert('players', [
+            'telegram_user_id' => 200,
+            'first_name' => 'Danil',
+        ]);
+        $this->db->insert('game_players', [
+            'game_id' => 1,
+            'telegram_user_id' => 200,
+            'time' => '18:00',
+            'volleyball' => 1,
+            'net' => 1,
+        ]);
+        $this->db->insert('game_slots', [
+            'game_id' => 1,
+            'telegram_user_id' => 200,
+            'position' => 1,
+        ]);
     }
 }
