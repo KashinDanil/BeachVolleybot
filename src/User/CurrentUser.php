@@ -31,4 +31,14 @@ final readonly class CurrentUser
     {
         return $this->role->isRoot();
     }
+
+    public function role(): Role
+    {
+        return $this->role;
+    }
+
+    public function hasAtLeast(Role $required): bool
+    {
+        return $this->role->isAtLeast($required);
+    }
 }

@@ -9,6 +9,7 @@ use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\Role;
 
 enum AdminCallbackAction: string implements CallbackActionInterface
 {
@@ -56,6 +57,18 @@ enum AdminCallbackAction: string implements CallbackActionInterface
             self::RemoveNet => new AdminRemoveNetProcessor($telegramSender, $callbackData),
             self::AddVolleyball => new AdminAddVolleyballProcessor($telegramSender, $callbackData),
             self::RemoveVolleyball => new AdminRemoveVolleyballProcessor($telegramSender, $callbackData),
+        };
+    }
+
+    public function requiredRole(): Role
+    {
+        return match ($this) {
+            self::Logs,
+            self::LogFile,
+            self::LogGet,
+            self::LogTail,
+            self::LogClear => Role::Root,
+            default => Role::Admin,
         };
     }
 }

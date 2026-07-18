@@ -9,12 +9,12 @@ use BeachVolleybot\Processors\AdminProcessors\AdminAddVolleyballProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\AdminGameDetailCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminGamesListCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminUserSettingsProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminUsersListCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveLocationCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveNetProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveSlotProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveVolleyballProcessor;
+use BeachVolleybot\Processors\AdminProcessors\AdminUserSettingsProcessor;
+use BeachVolleybot\Processors\AdminProcessors\AdminUsersListCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\LogClearCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\LogFileActionsCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\LogGetCallbackProcessor;
@@ -23,6 +23,7 @@ use BeachVolleybot\Processors\AdminProcessors\LogTailCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\Role;
 use PHPUnit\Framework\TestCase;
 
 final class AdminCallbackActionTest extends TestCase
@@ -53,6 +54,42 @@ final class AdminCallbackActionTest extends TestCase
         foreach ($mapping as [$action, $expectedClass]) {
             $processor = $action->resolveProcessor($this->sender, AdminCallbackData::create($action));
             $this->assertInstanceOf($expectedClass, $processor, "Failed for action '$action->value'");
+        }
+    }
+
+    public function testLogActionsRequireRoot(): void
+    {
+        $logActions = [
+            AdminCallbackAction::Logs,
+            AdminCallbackAction::LogFile,
+            AdminCallbackAction::LogGet,
+            AdminCallbackAction::LogTail,
+            AdminCallbackAction::LogClear,
+        ];
+
+        foreach ($logActions as $action) {
+            $this->assertSame(Role::Root, $action->requiredRole(), "Failed for action '$action->value'");
+        }
+    }
+
+    public function testNonLogActionsRequireAdmin(): void
+    {
+        $adminActions = [
+            AdminCallbackAction::Settings,
+            AdminCallbackAction::GamesList,
+            AdminCallbackAction::GameDetail,
+            AdminCallbackAction::GameUsers,
+            AdminCallbackAction::UserSettings,
+            AdminCallbackAction::RemoveSlot,
+            AdminCallbackAction::RemoveLocation,
+            AdminCallbackAction::AddNet,
+            AdminCallbackAction::RemoveNet,
+            AdminCallbackAction::AddVolleyball,
+            AdminCallbackAction::RemoveVolleyball,
+        ];
+
+        foreach ($adminActions as $action) {
+            $this->assertSame(Role::Admin, $action->requiredRole(), "Failed for action '$action->value'");
         }
     }
 

@@ -59,6 +59,30 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
         $this->assertEnqueuedOnce('dm_12345678');
     }
 
+    public function testGamesCallbackByAdminRoutesToDmQueue(): void
+    {
+        $this->router->route($this->dmCallbackUpdate(12345678, '{"aa":"gl"}'));
+
+        $this->assertEnqueuedOnce('dm_12345678');
+    }
+
+    public function testLogsCallbackByAdminRoutesToDmQueue(): void
+    {
+        // An admin is still routed (they can be in the admin UI); the root-only
+        // restriction is enforced at processing time, which answers the callback
+        // instead of silently dropping it and hanging the client spinner.
+        $this->router->route($this->dmCallbackUpdate(12345678, '{"aa":"lgs"}'));
+
+        $this->assertEnqueuedOnce('dm_12345678');
+    }
+
+    public function testLogsCallbackByRootRoutesToDmQueue(): void
+    {
+        $this->router->route($this->dmCallbackUpdate(87654321, '{"aa":"lgs"}'));
+
+        $this->assertEnqueuedOnce('dm_87654321');
+    }
+
     public function testPrivateReplyToViaBotGameMessageRoutesToGameQueueByGameId(): void
     {
         $this->db->insert('games', ['title' => 'Test', 'created_by' => 1, 'inline_query_id' => 'query_dm']);
@@ -141,6 +165,13 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
             'role' => Role::Admin->value,
         ]);
 
+        // Logs actions are root-only; seed a root sender for those fixtures.
+        $this->db->insert('users', [
+            'telegram_user_id' => 87654321,
+            'first_name' => 'Root',
+            'role' => Role::Root->value,
+        ]);
+
         SpyQueue::reset();
         $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR, ProcessorRegistryFactory::create());
     }
@@ -148,6 +179,26 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
     protected function tearDown(): void
     {
         Connection::close();
+    }
+
+    private function dmCallbackUpdate(int $userId, string $data): TelegramUpdate
+    {
+        return TelegramUpdate::fromArray([
+            'update_id' => 100,
+            'callback_query' => [
+                'id' => 'cbq_1',
+                'from' => ['id' => $userId, 'first_name' => 'Danil', 'is_bot' => false],
+                'chat_instance' => '-123',
+                'message' => [
+                    'message_id' => 109,
+                    'from' => ['id' => 999, 'first_name' => 'Bot', 'is_bot' => true],
+                    'chat' => ['id' => $userId, 'type' => 'private'],
+                    'date' => 1700000000,
+                    'text' => 'Settings',
+                ],
+                'data' => $data,
+            ],
+        ]);
     }
 
     private function privateMessageUpdate(int $userId, string $text): TelegramUpdate

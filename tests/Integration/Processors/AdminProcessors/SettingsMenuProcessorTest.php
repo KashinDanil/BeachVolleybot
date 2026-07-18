@@ -33,4 +33,34 @@ final class SettingsMenuProcessorTest extends ProcessorTestCase
 
         $this->assertMessageEdited();
     }
+
+    public function testCommandShowsLogsButtonForRoot(): void
+    {
+        $this->seedRoot();
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings'));
+
+        new SettingsMenuCommandProcessor($this->telegramSender)->process($update);
+
+        $this->assertContains('Logs', $this->sentKeyboardLabels());
+    }
+
+    public function testCommandHidesLogsButtonForAdmin(): void
+    {
+        $this->seedAdmin();
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings'));
+
+        new SettingsMenuCommandProcessor($this->telegramSender)->process($update);
+
+        $this->assertNotContains('Logs', $this->sentKeyboardLabels());
+    }
+
+    /** @return list<string> */
+    private function sentKeyboardLabels(): array
+    {
+        $sendCalls = array_values(array_filter($this->bot->calls, fn($c) => 'sendMessage' === $c['method']));
+        $keyboard = end($sendCalls)['args'][5];
+        $rows = json_decode($keyboard->toJson(), true)['inline_keyboard'];
+
+        return array_column(array_merge(...$rows), 'text');
+    }
 }

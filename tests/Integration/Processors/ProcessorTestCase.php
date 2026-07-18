@@ -49,6 +49,11 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         $this->createUser(self::ADMIN_TELEGRAM_USER_ID, role: Role::Admin->value);
     }
 
+    protected function seedRoot(): void
+    {
+        $this->createUser(self::ADMIN_TELEGRAM_USER_ID, role: Role::Root->value);
+    }
+
     protected function seedFullGame(
         string $inlineMessageId = 'msg_1',
         string $inlineQueryId = 'query_1',

@@ -157,11 +157,14 @@ Point Telegram to `public/tg-bot.php` on your server. The endpoint must be acces
 
 #### 4. Grant admin access
 
-Admin access is stored per user in the `role` column of the `users` table. Each user has one role: `0` = root, `1` = player (default), `2` = admin. Admin actions require the **admin** or **root** role; root-only actions require **root**.
+Admin access is stored per user in the `role` column of the `users` table, ordered ascending by privilege: `0` = player (default), `1` = admin, `2` = root. Admin actions require the **admin** or **root** role; root-only actions (e.g. logs) require **root**.
 
 A user row is created the first time someone interacts with the bot. Once it exists, promote them with:
 
 ```bash
+# admin
+sqlite3 <db> "UPDATE users SET role = 1 WHERE telegram_user_id = <telegram_user_id>;"
+# root
 sqlite3 <db> "UPDATE users SET role = 2 WHERE telegram_user_id = <telegram_user_id>;"
 ```
 
