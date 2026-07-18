@@ -9,7 +9,7 @@ use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
-use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyleEnum;
+use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\GameWarningCollector;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoEquipmentWarning;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
@@ -183,8 +183,8 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     {
         return [
             [ // The first button is the meta-button — it carries the inline query ID
-                $this->buildActionButton('Leave', GameCallbackData::create(GameCallbackAction::Leave)->withInlineQueryId($game->getInlineQueryId()), InlineButtonStyleEnum::DANGER),
-                $this->buildActionButton('Join', GameCallbackData::create(GameCallbackAction::Join), InlineButtonStyleEnum::SUCCESS),
+                $this->buildActionButton('Leave', GameCallbackData::create(GameCallbackAction::Leave)->withInlineQueryId($game->getInlineQueryId()), InlineButtonStyle::DANGER),
+                $this->buildActionButton('Join', GameCallbackData::create(GameCallbackAction::Join), InlineButtonStyle::SUCCESS),
             ],
             [
                 $this->buildActionButton('-' . self::VOLLEYBALL_EMOJI, GameCallbackData::create(GameCallbackAction::RemoveVolleyball)),

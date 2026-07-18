@@ -2,7 +2,7 @@
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Keyboard;
 
-enum InlineButtonStyleEnum: string
+enum InlineButtonStyle: string
 {
     case DANGER = 'danger';
     case SUCCESS = 'success';
