@@ -8,7 +8,7 @@ use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Game\AddOns\GameAddOnApplier;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\Player;
+use BeachVolleybot\Game\Models\User;
 use DateTimeImmutable;
 
 final class NewGameFactory
@@ -17,11 +17,11 @@ final class NewGameFactory
 
     public static function create(NewGameData $data): GameInterface
     {
-        $player = new Player(
+        $user = new User(
             telegramUserId: $data->telegramUserId,
             number: (string)NewGameData::INITIAL_POSITION,
-            name: Player::buildName($data->firstName, $data->lastName),
-            link: Player::buildLink($data->username),
+            name: User::buildName($data->firstName, $data->lastName),
+            link: User::buildLink($data->username),
             volleyball: NewGameData::INITIAL_VOLLEYBALL,
             net: NewGameData::INITIAL_NET,
             time: TimeExtractor::extract($data->title),
@@ -32,7 +32,7 @@ final class NewGameFactory
             inlineQueryId: $data->inlineQueryId,
             inlineMessageIds: [],
             title: $data->title,
-            players: [$player],
+            users: [$user],
             createdAt: new DateTimeImmutable(),
         );
 

@@ -8,7 +8,7 @@ use BeachVolleybot\Game\AddOns\GameAddOnApplier;
 use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\Player;
+use BeachVolleybot\Game\Models\User;
 use DateTimeImmutable;
 
 readonly class GameBuilder
@@ -17,16 +17,16 @@ readonly class GameBuilder
      * @param array<string, mixed> $gameRow
      * @param list<string> $inlineMessageIds
      * @param list<array<string, mixed>> $slotRows
-     * @param list<array<string, mixed>> $gamePlayerRows
-     * @param list<array<string, mixed>> $playerRows
+     * @param list<array<string, mixed>> $gameUserRows
+     * @param list<array<string, mixed>> $userRows
      * @param list<class-string<GameAddOnInterface>> $addOns
      */
     public function __construct(
         private array $gameRow,
         private array $inlineMessageIds,
         private array $slotRows,
-        private array $gamePlayerRows,
-        private array $playerRows,
+        private array $gameUserRows,
+        private array $userRows,
         private array $addOns = GAME_ADD_ONS,
     ) {
     }
@@ -40,7 +40,7 @@ readonly class GameBuilder
             inlineQueryId: (string)$this->gameRow['inline_query_id'],
             inlineMessageIds: $this->inlineMessageIds,
             title: $title,
-            players: $this->buildPlayersFromRows(),
+            users: $this->buildUsersFromRows(),
             createdAt: new DateTimeImmutable((string)$this->gameRow['created_at']),
             location: $this->gameRow['location'] ?? null,
         );
@@ -48,32 +48,32 @@ readonly class GameBuilder
         return GameAddOnApplier::apply($game, $this->addOns);
     }
 
-    /** @return Player[] */
-    private function buildPlayersFromRows(): array
+    /** @return User[] */
+    private function buildUsersFromRows(): array
     {
-        $gamePlayersIndex = array_column($this->gamePlayerRows, null, 'telegram_user_id');
-        $playersIndex = array_column($this->playerRows, null, 'telegram_user_id');
+        $gameUsersIndex = array_column($this->gameUserRows, null, 'telegram_user_id');
+        $usersIndex = array_column($this->userRows, null, 'telegram_user_id');
 
-        $players = [];
+        $users = [];
 
         foreach ($this->slotRows as $slot) {
             $telegramUserId = $slot['telegram_user_id'];
-            $players[] = $this->buildPlayerFromRow($slot, $gamePlayersIndex[$telegramUserId], $playersIndex[$telegramUserId]);
+            $users[] = $this->buildUserFromRow($slot, $gameUsersIndex[$telegramUserId], $usersIndex[$telegramUserId]);
         }
 
-        return $players;
+        return $users;
     }
 
-    private function buildPlayerFromRow(array $slot, array $gamePlayerRow, array $playerRow): Player
+    private function buildUserFromRow(array $slot, array $gameUserRow, array $userRow): User
     {
-        return new Player(
+        return new User(
             telegramUserId: (int)$slot['telegram_user_id'],
             number: (string)$slot['position'],
-            name: Player::buildName($playerRow['first_name'], $playerRow['last_name'] ?? null),
-            link: Player::buildLink($playerRow['username'] ?? null),
-            volleyball: (int)$gamePlayerRow['volleyball'],
-            net: (int)$gamePlayerRow['net'],
-            time: $gamePlayerRow['time'],
+            name: User::buildName($userRow['first_name'], $userRow['last_name'] ?? null),
+            link: User::buildLink($userRow['username'] ?? null),
+            volleyball: (int)$gameUserRow['volleyball'],
+            net: (int)$gameUserRow['net'],
+            time: $gameUserRow['time'],
         );
     }
 }

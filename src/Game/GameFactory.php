@@ -6,10 +6,10 @@ namespace BeachVolleybot\Game;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameInlineMessageRepository;
-use BeachVolleybot\Database\GamePlayerRepository;
+use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\PlayerRepository;
+use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Game\Models\GameInterface;
 use RuntimeException;
 
@@ -38,9 +38,9 @@ final class GameFactory
 
         $inlineMessageIds = new GameInlineMessageRepository($db)->findInlineMessageIdsByGameId($gameId);
         $slotRows = new GameSlotRepository($db)->findByGameId($gameId);
-        $gamePlayerRows = new GamePlayerRepository($db)->findByGameId($gameId);
-        $playerRows = new PlayerRepository($db)->findByIds(array_column($gamePlayerRows, 'telegram_user_id'));
+        $gameUserRows = new GameUserRepository($db)->findByGameId($gameId);
+        $userRows = new UserRepository($db)->findByIds(array_column($gameUserRows, 'telegram_user_id'));
 
-        return new GameBuilder($gameRow, $inlineMessageIds, $slotRows, $gamePlayerRows, $playerRows, $addOns)->build();
+        return new GameBuilder($gameRow, $inlineMessageIds, $slotRows, $gameUserRows, $userRows, $addOns)->build();
     }
 }

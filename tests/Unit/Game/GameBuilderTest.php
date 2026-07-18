@@ -38,8 +38,8 @@ final class GameBuilderTest extends TestCase
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
-            gamePlayerRows: [$this->gamePlayerRow()],
-            playerRows: [$this->playerRow()],
+            gameUserRows: [$this->gameUserRow()],
+            userRows: [$this->userRow()],
         );
 
         $this->assertInstanceOf(TelegramMessage::class, $game->buildTelegramMessage());
@@ -47,60 +47,60 @@ final class GameBuilderTest extends TestCase
 
     // --- No slots ---
 
-    public function testGameWithNoSlotsHasEmptyPlayers(): void
+    public function testGameWithNoSlotsHasEmptyUsers(): void
     {
         $game = $this->buildGame();
 
-        $this->assertSame([], $game->getPlayers());
+        $this->assertSame([], $game->getUsers());
     }
 
-    // --- Single player mapping ---
+    // --- Single user mapping ---
 
-    public function testSinglePlayerNumber(): void
+    public function testSingleUserNumber(): void
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow(position: 3)],
-            gamePlayerRows: [$this->gamePlayerRow()],
-            playerRows: [$this->playerRow()],
+            gameUserRows: [$this->gameUserRow()],
+            userRows: [$this->userRow()],
         );
 
-        $this->assertSame('3', $game->getPlayers()[0]->getNumber());
+        $this->assertSame('3', $game->getUsers()[0]->getNumber());
     }
 
-    public function testSinglePlayerVolleyballAndNet(): void
+    public function testSingleUserVolleyballAndNet(): void
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
-            gamePlayerRows: [$this->gamePlayerRow(volleyball: 5, net: 2)],
-            playerRows: [$this->playerRow()],
+            gameUserRows: [$this->gameUserRow(volleyball: 5, net: 2)],
+            userRows: [$this->userRow()],
         );
 
-        $player = $game->getPlayers()[0];
+        $user = $game->getUsers()[0];
 
-        $this->assertSame(5, $player->getVolleyball());
-        $this->assertSame(2, $player->getNet());
+        $this->assertSame(5, $user->getVolleyball());
+        $this->assertSame(2, $user->getNet());
     }
 
-    public function testSinglePlayerTime(): void
+    public function testSingleUserTime(): void
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
-            gamePlayerRows: [$this->gamePlayerRow(time: '19:30')],
-            playerRows: [$this->playerRow()],
+            gameUserRows: [$this->gameUserRow(time: '19:30')],
+            userRows: [$this->userRow()],
         );
 
-        $this->assertSame('19:30', $game->getPlayers()[0]->getTime());
+        $this->assertSame('19:30', $game->getUsers()[0]->getTime());
     }
 
-    public function testPlayerTimeMapsDefaultRowTime(): void
+    public function testUserTimeMapsDefaultRowTime(): void
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
-            gamePlayerRows: [$this->gamePlayerRow()],
-            playerRows: [$this->playerRow()],
+            gameUserRows: [$this->gameUserRow()],
+            userRows: [$this->userRow()],
         );
 
-        $this->assertSame('18:00', $game->getPlayers()[0]->getTime());
+        $this->assertSame('18:00', $game->getUsers()[0]->getTime());
     }
 
     // --- Name composition ---
@@ -109,22 +109,22 @@ final class GameBuilderTest extends TestCase
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
-            gamePlayerRows: [$this->gamePlayerRow()],
-            playerRows: [$this->playerRow(lastName: 'Smith')],
+            gameUserRows: [$this->gameUserRow()],
+            userRows: [$this->userRow(lastName: 'Smith')],
         );
 
-        $this->assertSame('Alice Smith', $game->getPlayers()[0]->getName());
+        $this->assertSame('Alice Smith', $game->getUsers()[0]->getName());
     }
 
     public function testNameWithFirstNameOnly(): void
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
-            gamePlayerRows: [$this->gamePlayerRow()],
-            playerRows: [$this->playerRow()],
+            gameUserRows: [$this->gameUserRow()],
+            userRows: [$this->userRow()],
         );
 
-        $this->assertSame('Alice', $game->getPlayers()[0]->getName());
+        $this->assertSame('Alice', $game->getUsers()[0]->getName());
     }
 
     // --- Link ---
@@ -133,76 +133,76 @@ final class GameBuilderTest extends TestCase
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
-            gamePlayerRows: [$this->gamePlayerRow()],
-            playerRows: [$this->playerRow(username: 'alice')],
+            gameUserRows: [$this->gameUserRow()],
+            userRows: [$this->userRow(username: 'alice')],
         );
 
-        $this->assertSame('https://t.me/alice', $game->getPlayers()[0]->getLink());
+        $this->assertSame('https://t.me/alice', $game->getUsers()[0]->getLink());
     }
 
     public function testLinkNullWhenUsernameNull(): void
     {
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
-            gamePlayerRows: [$this->gamePlayerRow()],
-            playerRows: [$this->playerRow()],
+            gameUserRows: [$this->gameUserRow()],
+            userRows: [$this->userRow()],
         );
 
-        $this->assertNull($game->getPlayers()[0]->getLink());
+        $this->assertNull($game->getUsers()[0]->getLink());
     }
 
-    // --- Multiple players ---
+    // --- Multiple users ---
 
-    public function testMultiplePlayersOrderedBySlotPosition(): void
+    public function testMultipleUsersOrderedBySlotPosition(): void
     {
         $game = $this->buildGame(
             slotRows: [
                 $this->slotRow(),
                 $this->slotRow(userId: 200, position: 2),
             ],
-            gamePlayerRows: [
-                $this->gamePlayerRow(),
-                $this->gamePlayerRow(userId: 200),
+            gameUserRows: [
+                $this->gameUserRow(),
+                $this->gameUserRow(userId: 200),
             ],
-            playerRows: [
-                $this->playerRow(),
-                $this->playerRow(userId: 200, firstName: 'Bob'),
+            userRows: [
+                $this->userRow(),
+                $this->userRow(userId: 200, firstName: 'Bob'),
             ],
         );
 
-        $players = $game->getPlayers();
+        $users = $game->getUsers();
 
-        $this->assertCount(2, $players);
-        $this->assertSame('1', $players[0]->getNumber());
-        $this->assertSame('Alice', $players[0]->getName());
-        $this->assertSame('2', $players[1]->getNumber());
-        $this->assertSame('Bob', $players[1]->getName());
+        $this->assertCount(2, $users);
+        $this->assertSame('1', $users[0]->getNumber());
+        $this->assertSame('Alice', $users[0]->getName());
+        $this->assertSame('2', $users[1]->getNumber());
+        $this->assertSame('Bob', $users[1]->getName());
     }
 
-    // --- Multiple slots per player ---
+    // --- Multiple slots per user ---
 
-    public function testPlayerWithMultipleSlotsCreatesSeparatePlayers(): void
+    public function testUserWithMultipleSlotsCreatesSeparateUsers(): void
     {
         $game = $this->buildGame(
             slotRows: [
                 $this->slotRow(),
                 $this->slotRow(position: 3),
             ],
-            gamePlayerRows: [
-                $this->gamePlayerRow(),
+            gameUserRows: [
+                $this->gameUserRow(),
             ],
-            playerRows: [
-                $this->playerRow(),
+            userRows: [
+                $this->userRow(),
             ],
         );
 
-        $players = $game->getPlayers();
+        $users = $game->getUsers();
 
-        $this->assertCount(2, $players);
-        $this->assertSame('1', $players[0]->getNumber());
-        $this->assertSame('3', $players[1]->getNumber());
-        $this->assertSame('Alice', $players[0]->getName());
-        $this->assertSame('Alice', $players[1]->getName());
+        $this->assertCount(2, $users);
+        $this->assertSame('1', $users[0]->getNumber());
+        $this->assertSame('3', $users[1]->getNumber());
+        $this->assertSame('Alice', $users[0]->getName());
+        $this->assertSame('Alice', $users[1]->getName());
     }
 
     // --- Helpers ---
@@ -230,7 +230,7 @@ final class GameBuilderTest extends TestCase
         ];
     }
 
-    private function gamePlayerRow(
+    private function gameUserRow(
         int $userId = 100,
         int $volleyball = 0,
         int $net = 0,
@@ -245,7 +245,7 @@ final class GameBuilderTest extends TestCase
         ];
     }
 
-    private function playerRow(
+    private function userRow(
         int $userId = 100,
         string $firstName = 'Alice',
         ?string $lastName = null,
@@ -263,15 +263,15 @@ final class GameBuilderTest extends TestCase
         ?array $gameRow = null,
         array $inlineMessageIds = ['msg_1'],
         array $slotRows = [],
-        array $gamePlayerRows = [],
-        array $playerRows = [],
+        array $gameUserRows = [],
+        array $userRows = [],
     ): GameInterface {
         return new GameBuilder(
             gameRow: $gameRow ?? $this->gameRow(),
             inlineMessageIds: $inlineMessageIds,
             slotRows: $slotRows,
-            gamePlayerRows: $gamePlayerRows,
-            playerRows: $playerRows,
+            gameUserRows: $gameUserRows,
+            userRows: $userRows,
             addOns: [],
         )->build();
     }

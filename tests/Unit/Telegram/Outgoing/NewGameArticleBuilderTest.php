@@ -52,9 +52,9 @@ final class NewGameArticleBuilderTest extends TestCase
         $this->assertNotNull($article->getReplyMarkup());
     }
 
-    // --- Player built from inline query user ---
+    // --- User built from inline query user ---
 
-    public function testPlayerNameWithFirstAndLastName(): void
+    public function testUserNameWithFirstAndLastName(): void
     {
         $article = $this->buildArticle(firstName: 'Alice', lastName: 'Smith');
 
@@ -63,7 +63,7 @@ final class NewGameArticleBuilderTest extends TestCase
         $this->assertStringContainsString('Alice Smith', $text);
     }
 
-    public function testPlayerNameWithFirstNameOnly(): void
+    public function testUserNameWithFirstNameOnly(): void
     {
         $article = $this->buildArticle(firstName: 'Alice', lastName: 'Smith');
         $textWithLastName = $article->getInputMessageContent()->getMessageText();
@@ -76,7 +76,7 @@ final class NewGameArticleBuilderTest extends TestCase
         $this->assertStringNotContainsString('Alice Smith', $text);
     }
 
-    public function testPlayerLinkBuiltFromUsername(): void
+    public function testUserLinkBuiltFromUsername(): void
     {
         $article = $this->buildArticle(firstName: 'Alice', username: 'alice');
 
@@ -85,7 +85,7 @@ final class NewGameArticleBuilderTest extends TestCase
         $this->assertStringContainsString('https://t.me/alice', $text);
     }
 
-    public function testPlayerLinkNullWhenUsernameNull(): void
+    public function testUserLinkNullWhenUsernameNull(): void
     {
         $article = $this->buildArticle(firstName: 'Alice');
 

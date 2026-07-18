@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\AddOns;
 
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Game\Models\Player;
-use BeachVolleybot\Game\Models\PlayerInterface;
+use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Models\UserInterface;
 
 /**
- * Merges consecutive slots belonging to the same player into a single entry.
+ * Merges consecutive slots belonging to the same user into a single entry.
  *
  * Before: 1. Alice, 2. Alice, 3. Bob
  * After: 1-2. Alice, 3. Bob
@@ -18,13 +18,13 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
 {
     public function applyTo(Game $game): void
     {
-        $game->players = $this->mergeConsecutive($game->players);
+        $game->users = $this->mergeConsecutive($game->users);
         $game->telegramMessageBuilder->override('plusCount', self::plusCount(...));
     }
 
-    private static function plusCount(PlayerInterface $player, int $appearance): int
+    private static function plusCount(UserInterface $user, int $appearance): int
     {
-        $number = $player->getNumber();
+        $number = $user->getNumber();
 
         if (str_contains($number, '-')) {
             $parts = explode('-', $number);
@@ -36,46 +36,46 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
     }
 
     /**
-     * @param PlayerInterface[] $players
+     * @param UserInterface[] $users
      *
-     * @return PlayerInterface[]
+     * @return UserInterface[]
      */
-    private function mergeConsecutive(array $players): array
+    private function mergeConsecutive(array $users): array
     {
-        $groups = $this->groupConsecutive($players);
+        $groups = $this->groupConsecutive($users);
 
         return array_map($this->mergeGroup(...), $groups);
     }
 
     /**
-     * @param PlayerInterface[] $players
+     * @param UserInterface[] $users
      *
-     * @return list<PlayerInterface[]>
+     * @return list<UserInterface[]>
      */
-    private function groupConsecutive(array $players): array
+    private function groupConsecutive(array $users): array
     {
         $groups = [];
         $previousUserId = null;
 
-        foreach ($players as $player) {
-            if ($player->getTelegramUserId() === $previousUserId) {
-                $groups[array_key_last($groups)][] = $player;
+        foreach ($users as $user) {
+            if ($user->getTelegramUserId() === $previousUserId) {
+                $groups[array_key_last($groups)][] = $user;
             } else {
-                $groups[] = [$player];
-                $previousUserId = $player->getTelegramUserId();
+                $groups[] = [$user];
+                $previousUserId = $user->getTelegramUserId();
             }
         }
 
         return $groups;
     }
 
-    /** @param PlayerInterface[] $group */
-    private function mergeGroup(array $group): Player
+    /** @param UserInterface[] $group */
+    private function mergeGroup(array $group): User
     {
         $first = $group[0];
         $last = $group[array_key_last($group)];
 
-        return new Player(
+        return new User(
             telegramUserId: $first->getTelegramUserId(),
             number: $this->buildNumber($first, $last),
             name: $first->getName(),
@@ -86,7 +86,7 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
         );
     }
 
-    private function buildNumber(PlayerInterface $first, PlayerInterface $last): string
+    private function buildNumber(UserInterface $first, UserInterface $last): string
     {
         if ($first === $last) {
             return $first->getNumber();

@@ -13,7 +13,7 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
 {
     public function testUpdatesGameLocation(): void
     {
-        $gameId = $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $gameId = $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.413023, 2.194859, 'query_1');
 
         new SetLiveLocationProcessor($this->telegramSender)->process($update);
@@ -31,7 +31,7 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
 
     public function testRefreshesInlineMessage(): void
     {
-        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.413023, 2.194859, 'query_1');
 
         new SetLiveLocationProcessor($this->telegramSender)->process($update);
@@ -41,7 +41,7 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
 
     public function testThrottlesWithinFiveSeconds(): void
     {
-        $gameId = $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $gameId = $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $firstUpdate = $this->buildUpdate(41.413023, 2.194859, 'query_1');
         $secondUpdate = $this->buildUpdate(41.414000, 2.195000, 'query_1');
 
@@ -55,7 +55,7 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
 
     public function testDoesNotReact(): void
     {
-        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.413023, 2.194859, 'query_1');
 
         new SetLiveLocationProcessor($this->telegramSender)->process($update);
@@ -64,7 +64,7 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
         $this->assertEmpty($reactionCalls);
     }
 
-    public function testIgnoresWhenPlayerNotInGame(): void
+    public function testIgnoresWhenUserNotInGame(): void
     {
         $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate(41.413023, 2.194859, 'query_1');
@@ -80,7 +80,7 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
         $logFile = BASE_LOG_DIR . '/user_actions.log';
         @unlink($logFile);
 
-        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.413023, 2.194859, 'query_1');
 
         new SetLiveLocationProcessor($this->telegramSender)->process($update);

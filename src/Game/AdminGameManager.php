@@ -8,7 +8,7 @@ readonly class AdminGameManager extends GameManager
 {
     public function adminAddNet(int $gameId, int $telegramUserId): EquipmentResult
     {
-        if (!$this->gamePlayerRepository->exists($gameId, $telegramUserId)) {
+        if (!$this->gameUserRepository->exists($gameId, $telegramUserId)) {
             return EquipmentResult::NotJoined;
         }
 
@@ -17,7 +17,7 @@ readonly class AdminGameManager extends GameManager
 
     public function adminAddVolleyball(int $gameId, int $telegramUserId): EquipmentResult
     {
-        if (!$this->gamePlayerRepository->exists($gameId, $telegramUserId)) {
+        if (!$this->gameUserRepository->exists($gameId, $telegramUserId)) {
             return EquipmentResult::NotJoined;
         }
 

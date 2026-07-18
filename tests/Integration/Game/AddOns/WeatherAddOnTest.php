@@ -42,7 +42,7 @@ final class WeatherAddOnTest extends DatabaseTestCase
         Connection::close();
     }
 
-    public function testWeatherSectionSplicedBetweenPlayerListAndLocation(): void
+    public function testWeatherSectionSplicedBetweenUserListAndLocation(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days');
         $coordinates = new LocationCoordinates(41.397, 2.211);
@@ -218,7 +218,7 @@ final class WeatherAddOnTest extends DatabaseTestCase
             inlineQueryId: 'iq',
             inlineMessageIds: ['im'],
             title: $title,
-            players: [],
+            users: [],
             createdAt: new DateTimeImmutable(),
             location: $location,
         );

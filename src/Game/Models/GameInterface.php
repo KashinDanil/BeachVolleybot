@@ -24,8 +24,8 @@ interface GameInterface
 
     public function getCreatedAt(): DateTimeImmutable;
 
-    /** @return PlayerInterface[] */
-    public function getPlayers(): array;
+    /** @return UserInterface[] */
+    public function getUsers(): array;
 
     public function buildTelegramMessage(): TelegramMessage;
 

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Warnings;
 
-use BeachVolleybot\Game\Models\PlayerInterface;
+use BeachVolleybot\Game\Models\UserInterface;
 
 interface GameWarningInterface
 {
     /**
-     * @param PlayerInterface[] $players
+     * @param UserInterface[] $users
      */
-    public function check(array $players): ?string;
+    public function check(array $users): ?string;
 }

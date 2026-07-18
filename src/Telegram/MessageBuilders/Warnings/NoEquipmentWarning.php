@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Warnings;
 
-use BeachVolleybot\Game\Models\PlayerInterface;
+use BeachVolleybot\Game\Models\UserInterface;
 
 final class NoEquipmentWarning implements GameWarningInterface
 {
     /**
-     * @param PlayerInterface[] $players
+     * @param UserInterface[] $users
      */
-    public function check(array $players): ?string
+    public function check(array $users): ?string
     {
-        $hasNet = array_any($players, static fn(PlayerInterface $player) => 0 < $player->getNet());
-        $hasVolleyball = array_any($players, static fn(PlayerInterface $player) => 0 < $player->getVolleyball());
+        $hasNet = array_any($users, static fn(UserInterface $user) => 0 < $user->getNet());
+        $hasVolleyball = array_any($users, static fn(UserInterface $user) => 0 < $user->getVolleyball());
 
         if ($hasNet && $hasVolleyball) {
             return null;

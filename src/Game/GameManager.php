@@ -7,10 +7,10 @@ namespace BeachVolleybot\Game;
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameInlineMessageRepository;
-use BeachVolleybot\Database\GamePlayerRepository;
+use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\PlayerRepository;
+use BeachVolleybot\Database\UserRepository;
 use DateTimeImmutable;
 
 readonly class GameManager
@@ -19,25 +19,25 @@ readonly class GameManager
 
     protected GameInlineMessageRepository $gameInlineMessageRepository;
 
-    protected GamePlayerRepository $gamePlayerRepository;
+    protected GameUserRepository $gameUserRepository;
 
     protected GameSlotRepository $gameSlotRepository;
 
-    protected PlayerRepository $playerRepository;
+    protected UserRepository $userRepository;
 
     public function __construct()
     {
         $db = Connection::get();
         $this->gameRepository = new GameRepository($db);
         $this->gameInlineMessageRepository = new GameInlineMessageRepository($db);
-        $this->gamePlayerRepository = new GamePlayerRepository($db);
+        $this->gameUserRepository = new GameUserRepository($db);
         $this->gameSlotRepository = new GameSlotRepository($db);
-        $this->playerRepository = new PlayerRepository($db);
+        $this->userRepository = new UserRepository($db);
     }
 
     public function createGame(NewGameData $data, string $inlineMessageId): int
     {
-        $this->playerRepository->upsert(
+        $this->userRepository->upsert(
             $data->telegramUserId,
             $data->firstName,
             $data->lastName,
@@ -52,7 +52,7 @@ readonly class GameManager
 
         $this->addInlineMessage($gameId, $inlineMessageId);
 
-        $this->gamePlayerRepository->create(
+        $this->gameUserRepository->create(
             $gameId,
             $data->telegramUserId,
             TimeExtractor::extract($data->title),
@@ -72,14 +72,14 @@ readonly class GameManager
         ?string $lastName,
         ?string $username,
     ): void {
-        $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
-        $this->ensureGamePlayer($gameId, $telegramUserId);
+        $this->userRepository->upsert($telegramUserId, $firstName, $lastName, $username);
+        $this->ensureGameUser($gameId, $telegramUserId);
         $this->addSlot($gameId, $telegramUserId);
     }
 
     public function leaveGame(int $gameId, int $telegramUserId): LeaveResult
     {
-        $positions = $this->gameSlotRepository->findPositionsByPlayer($gameId, $telegramUserId);
+        $positions = $this->gameSlotRepository->findPositionsByUser($gameId, $telegramUserId);
 
         if (empty($positions)) {
             return LeaveResult::NotJoined;
@@ -88,7 +88,7 @@ readonly class GameManager
         $this->gameSlotRepository->delete($gameId, max($positions));
 
         if (1 === count($positions)) {
-            $this->gamePlayerRepository->delete($gameId, $telegramUserId);
+            $this->gameUserRepository->delete($gameId, $telegramUserId);
         }
 
         return LeaveResult::Left;
@@ -101,14 +101,14 @@ readonly class GameManager
         ?string $lastName,
         ?string $username,
     ): EquipmentResult {
-        $this->ensurePlayerInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
+        $this->ensureUserInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
 
         return $this->incrementNet($gameId, $telegramUserId);
     }
 
     public function removeNet(int $gameId, int $telegramUserId): EquipmentResult
     {
-        $netCount = $this->gamePlayerRepository->findNetCount($gameId, $telegramUserId);
+        $netCount = $this->gameUserRepository->findNetCount($gameId, $telegramUserId);
 
         if (null === $netCount) {
             return EquipmentResult::NotJoined;
@@ -118,7 +118,7 @@ readonly class GameManager
             return EquipmentResult::NoneLeft;
         }
 
-        if (!$this->gamePlayerRepository->decrementNet($gameId, $telegramUserId)) {
+        if (!$this->gameUserRepository->decrementNet($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
 
@@ -134,14 +134,14 @@ readonly class GameManager
         ?string $lastName,
         ?string $username,
     ): EquipmentResult {
-        $this->ensurePlayerInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
+        $this->ensureUserInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
 
         return $this->incrementVolleyball($gameId, $telegramUserId);
     }
 
     public function removeVolleyball(int $gameId, int $telegramUserId): EquipmentResult
     {
-        $volleyballCount = $this->gamePlayerRepository->findVolleyballCount($gameId, $telegramUserId);
+        $volleyballCount = $this->gameUserRepository->findVolleyballCount($gameId, $telegramUserId);
 
         if (null === $volleyballCount) {
             return EquipmentResult::NotJoined;
@@ -151,7 +151,7 @@ readonly class GameManager
             return EquipmentResult::NoneLeft;
         }
 
-        if (!$this->gamePlayerRepository->decrementVolleyball($gameId, $telegramUserId)) {
+        if (!$this->gameUserRepository->decrementVolleyball($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
 
@@ -171,7 +171,7 @@ readonly class GameManager
         $this->gameRepository->updateLocation($gameId, null);
     }
 
-    public function setPlayerTime(
+    public function setUserTime(
         int $gameId,
         int $telegramUserId,
         string $firstName,
@@ -179,9 +179,9 @@ readonly class GameManager
         ?string $username,
         string $time,
     ): void {
-        $this->ensurePlayerInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
+        $this->ensureUserInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
 
-        $this->gamePlayerRepository->updateTime($gameId, $telegramUserId, $time);
+        $this->gameUserRepository->updateTime($gameId, $telegramUserId, $time);
 
         $this->recalculateGameTime($gameId);
     }
@@ -201,12 +201,12 @@ readonly class GameManager
         }
 
         $this->gameRepository->updateTitle($gameId, $normalizedTitle);
-        $this->setPlayerTime($gameId, $telegramUserId, $firstName, $lastName, $username, $proposedTime);
+        $this->setUserTime($gameId, $telegramUserId, $firstName, $lastName, $username, $proposedTime);
     }
 
-    public function isPlayerInGame(int $gameId, int $telegramUserId): bool
+    public function isUserInGame(int $gameId, int $telegramUserId): bool
     {
-        return $this->gamePlayerRepository->exists($gameId, $telegramUserId);
+        return $this->gameUserRepository->exists($gameId, $telegramUserId);
     }
 
     public function addInlineMessage(int $gameId, string $inlineMessageId): void
@@ -251,7 +251,7 @@ readonly class GameManager
 
     protected function incrementNet(int $gameId, int $telegramUserId): EquipmentResult
     {
-        if (!$this->gamePlayerRepository->incrementNet($gameId, $telegramUserId)) {
+        if (!$this->gameUserRepository->incrementNet($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
 
@@ -262,37 +262,37 @@ readonly class GameManager
 
     protected function incrementVolleyball(int $gameId, int $telegramUserId): EquipmentResult
     {
-        if (!$this->gamePlayerRepository->incrementVolleyball($gameId, $telegramUserId)) {
+        if (!$this->gameUserRepository->incrementVolleyball($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
 
         return EquipmentResult::Added;
     }
 
-    private function ensureGamePlayer(int $gameId, int $telegramUserId): void
+    private function ensureGameUser(int $gameId, int $telegramUserId): void
     {
-        if (null === $this->gamePlayerRepository->findByGamePlayer($gameId, $telegramUserId)) {
-            $this->gamePlayerRepository->create($gameId, $telegramUserId, $this->resolveGameTime($gameId));
+        if (null === $this->gameUserRepository->findByGameUser($gameId, $telegramUserId)) {
+            $this->gameUserRepository->create($gameId, $telegramUserId, $this->resolveGameTime($gameId));
         }
     }
 
-    private function ensureGamePlayerSlot(int $gameId, int $telegramUserId): void
+    private function ensureGameUserSlot(int $gameId, int $telegramUserId): void
     {
-        if (empty($this->gameSlotRepository->findPositionsByPlayer($gameId, $telegramUserId))) {
+        if (empty($this->gameSlotRepository->findPositionsByUser($gameId, $telegramUserId))) {
             $this->addSlot($gameId, $telegramUserId);
         }
     }
 
-    private function ensurePlayerInGame(
+    private function ensureUserInGame(
         int $gameId,
         int $telegramUserId,
         string $firstName,
         ?string $lastName,
         ?string $username,
     ): void {
-        $this->playerRepository->upsert($telegramUserId, $firstName, $lastName, $username);
-        $this->ensureGamePlayer($gameId, $telegramUserId);
-        $this->ensureGamePlayerSlot($gameId, $telegramUserId);
+        $this->userRepository->upsert($telegramUserId, $firstName, $lastName, $username);
+        $this->ensureGameUser($gameId, $telegramUserId);
+        $this->ensureGameUserSlot($gameId, $telegramUserId);
     }
 
     private function addSlot(int $gameId, int $telegramUserId): void
@@ -317,8 +317,8 @@ readonly class GameManager
 
     private function recalculateGameTime(int $gameId): void
     {
-        $earliestTime = $this->gamePlayerRepository->findEarliestTimeWithNet($gameId)
-            ?? $this->gamePlayerRepository->findEarliestTime($gameId);
+        $earliestTime = $this->gameUserRepository->findEarliestTimeWithNet($gameId)
+            ?? $this->gameUserRepository->findEarliestTime($gameId);
 
         if (null === $earliestTime) {
             return;

@@ -16,7 +16,7 @@ final class GameSlotRepositoryTest extends DatabaseTestCase
         parent::setUp();
         $this->repository = new GameSlotRepository($this->db);
         $this->gameId = $this->createGame();
-        $this->createGamePlayer($this->gameId, 200);
+        $this->createGameUser($this->gameId, 200);
     }
 
     public function testCreateAndFindByGameId(): void
@@ -32,7 +32,7 @@ final class GameSlotRepositoryTest extends DatabaseTestCase
 
     public function testFindByGameIdReturnsOrderedByPosition(): void
     {
-        $this->createGamePlayer($this->gameId, 201);
+        $this->createGameUser($this->gameId, 201);
         $this->repository->create($this->gameId, 200, 3);
         $this->repository->create($this->gameId, 201, 1);
 
@@ -48,12 +48,12 @@ final class GameSlotRepositoryTest extends DatabaseTestCase
         $this->assertSame([], $this->repository->findByGameId($this->gameId));
     }
 
-    public function testFindByPlayer(): void
+    public function testFindByUser(): void
     {
         $this->repository->create($this->gameId, 200, 1);
         $this->repository->create($this->gameId, 200, 2);
 
-        $slots = $this->repository->findByPlayer($this->gameId, 200);
+        $slots = $this->repository->findByUser($this->gameId, 200);
 
         $this->assertCount(2, $slots);
     }
@@ -68,7 +68,7 @@ final class GameSlotRepositoryTest extends DatabaseTestCase
 
     public function testDeleteReordersPositionsAboveDeleted(): void
     {
-        $this->createGamePlayer($this->gameId, 201);
+        $this->createGameUser($this->gameId, 201);
         $this->repository->create($this->gameId, 200, 1);
         $this->repository->create($this->gameId, 201, 2);
 
@@ -82,8 +82,8 @@ final class GameSlotRepositoryTest extends DatabaseTestCase
 
     public function testDeleteReordersMultiplePositionsAboveDeleted(): void
     {
-        $this->createGamePlayer($this->gameId, 201);
-        $this->createGamePlayer($this->gameId, 202);
+        $this->createGameUser($this->gameId, 201);
+        $this->createGameUser($this->gameId, 202);
         $this->repository->create($this->gameId, 200, 1);
         $this->repository->create($this->gameId, 201, 2);
         $this->repository->create($this->gameId, 202, 3);
@@ -98,7 +98,7 @@ final class GameSlotRepositoryTest extends DatabaseTestCase
 
     public function testDeleteLastPositionDoesNotAffectOthers(): void
     {
-        $this->createGamePlayer($this->gameId, 201);
+        $this->createGameUser($this->gameId, 201);
         $this->repository->create($this->gameId, 200, 1);
         $this->repository->create($this->gameId, 201, 2);
 
@@ -114,20 +114,20 @@ final class GameSlotRepositoryTest extends DatabaseTestCase
         $this->assertFalse($this->repository->delete($this->gameId, 999));
     }
 
-    public function testDeleteByPlayerRemovesAllSlots(): void
+    public function testDeleteByUserRemovesAllSlots(): void
     {
         $this->repository->create($this->gameId, 200, 1);
         $this->repository->create($this->gameId, 200, 2);
 
-        $deleted = $this->repository->deleteByPlayer($this->gameId, 200);
+        $deleted = $this->repository->deleteByUser($this->gameId, 200);
 
         $this->assertSame(2, $deleted);
-        $this->assertSame([], $this->repository->findByPlayer($this->gameId, 200));
+        $this->assertSame([], $this->repository->findByUser($this->gameId, 200));
     }
 
-    public function testDeleteByPlayerReturnsZeroWhenNone(): void
+    public function testDeleteByUserReturnsZeroWhenNone(): void
     {
-        $this->assertSame(0, $this->repository->deleteByPlayer($this->gameId, 200));
+        $this->assertSame(0, $this->repository->deleteByUser($this->gameId, 200));
     }
 
     public function testGetNextPositionReturnsOneForEmptyGame(): void
@@ -142,12 +142,12 @@ final class GameSlotRepositoryTest extends DatabaseTestCase
         $this->assertSame(4, $this->repository->getNextPosition($this->gameId));
     }
 
-    public function testCascadeDeleteOnGamePlayerRemoval(): void
+    public function testCascadeDeleteOnGameUserRemoval(): void
     {
         $this->repository->create($this->gameId, 200, 1);
         $this->repository->create($this->gameId, 200, 2);
 
-        $this->db->delete('game_players', [
+        $this->db->delete('game_users', [
             'game_id' => $this->gameId,
             'telegram_user_id' => 200,
         ]);

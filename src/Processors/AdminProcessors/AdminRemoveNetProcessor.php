@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\AdminProcessors;
 
 use BeachVolleybot\Game\AdminGameManager;
-use BeachVolleybot\Telegram\MessageBuilders\Factories\PlayerSettingsMessageFactory;
+use BeachVolleybot\Telegram\MessageBuilders\Factories\UserSettingsMessageFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class AdminRemoveNetProcessor extends AbstractAdminGameMutationProcessor
@@ -19,7 +19,7 @@ class AdminRemoveNetProcessor extends AbstractAdminGameMutationProcessor
         $this->logAdminAction($update->callbackQuery->from, 'admin_remove_net', "gameId=$gameId;userId=$telegramUserId");
 
         $this->refreshGameInlineMessages($gameId);
-        $this->editSettingsMessage($update->callbackQuery, PlayerSettingsMessageFactory::build($gameId, $telegramUserId));
+        $this->editSettingsMessage($update->callbackQuery, UserSettingsMessageFactory::build($gameId, $telegramUserId));
         $this->answerCallbackQuery($update->callbackQuery, $result->name);
     }
 }

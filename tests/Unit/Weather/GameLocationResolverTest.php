@@ -74,7 +74,7 @@ final class GameLocationResolverTest extends TestCase
             inlineQueryId: 'iq',
             inlineMessageIds: ['im'],
             title: $title,
-            players: [],
+            users: [],
             createdAt: new DateTimeImmutable(),
             location: $location,
         );

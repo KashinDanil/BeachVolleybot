@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\AdminProcessors;
 
-use BeachVolleybot\Database\GamePlayerRepository;
+use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Processors\AdminProcessors\AdminAddNetProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminAddVolleyballProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\AdminGameDetailCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminGamesListCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminPlayerSettingsProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminPlayersListCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\AdminUserSettingsProcessor;
+use BeachVolleybot\Processors\AdminProcessors\AdminUsersListCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveLocationCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveNetProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveSlotProcessor;
@@ -55,7 +55,7 @@ final class GameProcessorsTest extends ProcessorTestCase
 
     public function testGameDetailEditsMessage(): void
     {
-        $gameId = $this->seedGameWithPlayer();
+        $gameId = $this->seedGameWithUser();
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::GameDetail)->withGameId($gameId);
         $update = TelegramUpdate::fromArray(
@@ -79,34 +79,34 @@ final class GameProcessorsTest extends ProcessorTestCase
         $this->assertMessageEdited();
     }
 
-    // --- PlayersListProcessor ---
+    // --- UsersListProcessor ---
 
-    public function testPlayersListEditsMessage(): void
+    public function testUsersListEditsMessage(): void
     {
-        $gameId = $this->seedGameWithPlayer();
+        $gameId = $this->seedGameWithUser();
 
-        $callbackData = AdminCallbackData::create(AdminCallbackAction::GamePlayers)->withGameId($gameId)->withPage(1);
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::GameUsers)->withGameId($gameId)->withPage(1);
         $update = TelegramUpdate::fromArray(
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminPlayersListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminUsersListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertMessageEdited();
     }
 
-    // --- PlayerSettingsProcessor ---
+    // --- UserSettingsProcessor ---
 
-    public function testPlayerSettingsEditsMessage(): void
+    public function testUserSettingsEditsMessage(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200);
 
-        $callbackData = AdminCallbackData::create(AdminCallbackAction::PlayerSettings)->withGameId($gameId)->withUserId(200);
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::UserSettings)->withGameId($gameId)->withUserId(200);
         $update = TelegramUpdate::fromArray(
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminPlayerSettingsProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminUserSettingsProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -115,7 +115,7 @@ final class GameProcessorsTest extends ProcessorTestCase
 
     public function testRemoveSlotRemovesHighestPosition(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, position: 1);
         $this->createSlot($gameId, 200, 2);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::RemoveSlot)->withGameId($gameId)->withUserId(200);
@@ -130,9 +130,9 @@ final class GameProcessorsTest extends ProcessorTestCase
         $this->assertSame(1, (int)$slots[0]['position']);
     }
 
-    public function testRemoveSlotDeletesGamePlayerWhenLastSlot(): void
+    public function testRemoveSlotDeletesGameUserWhenLastSlot(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, position: 1);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::RemoveSlot)->withGameId($gameId)->withUserId(200);
         $update = TelegramUpdate::fromArray(
@@ -141,12 +141,12 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveSlotProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $this->assertNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
+        $this->assertNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
     }
 
     public function testRemoveSlotRefreshesInlineMessage(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, position: 1);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, position: 1);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::RemoveSlot)->withGameId($gameId)->withUserId(200);
         $update = TelegramUpdate::fromArray(
@@ -181,7 +181,7 @@ final class GameProcessorsTest extends ProcessorTestCase
 
     public function testAddNetIncrementsNetCount(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 0);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, net: 0);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::AddNet)->withGameId($gameId)->withUserId(200);
         $update = TelegramUpdate::fromArray(
@@ -190,15 +190,15 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminAddNetProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame(1, (int)$gamePlayer['net']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame(1, (int)$gameUser['net']);
     }
 
     // --- GameRemoveNetProcessor ---
 
     public function testRemoveNetDecrementsNetCount(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 2);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, net: 2);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::RemoveNet)->withGameId($gameId)->withUserId(200);
         $update = TelegramUpdate::fromArray(
@@ -207,15 +207,15 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveNetProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame(1, (int)$gamePlayer['net']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame(1, (int)$gameUser['net']);
     }
 
     // --- GameAddVolleyballProcessor ---
 
     public function testAddVolleyballIncrementsCount(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, volleyball: 0);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, volleyball: 0);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::AddVolleyball)->withGameId($gameId)->withUserId(200);
         $update = TelegramUpdate::fromArray(
@@ -224,15 +224,15 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminAddVolleyballProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame(1, (int)$gamePlayer['volleyball']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame(1, (int)$gameUser['volleyball']);
     }
 
     // --- GameRemoveVolleyballProcessor ---
 
     public function testRemoveVolleyballDecrementsCount(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, volleyball: 3);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, volleyball: 3);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::RemoveVolleyball)->withGameId($gameId)->withUserId(200);
         $update = TelegramUpdate::fromArray(
@@ -241,13 +241,13 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveVolleyballProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame(2, (int)$gamePlayer['volleyball']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame(2, (int)$gameUser['volleyball']);
     }
 
-    // --- RemoveSlot edge case: player not joined ---
+    // --- RemoveSlot edge case: user not joined ---
 
-    public function testRemoveSlotAnswersNotJoinedWhenPlayerHasNoSlots(): void
+    public function testRemoveSlotAnswersNotJoinedWhenUserHasNoSlots(): void
     {
         $gameId = $this->seedFullGame();
 
@@ -261,18 +261,18 @@ final class GameProcessorsTest extends ProcessorTestCase
         $this->assertAnsweredWith('No slots to remove');
     }
 
-    // --- PlayerSettings edge case: player not found ---
+    // --- UserSettings edge case: user not found ---
 
-    public function testPlayerSettingsShowsPlayerNotFound(): void
+    public function testUserSettingsShowsUserNotFound(): void
     {
         $gameId = $this->seedFullGame();
 
-        $callbackData = AdminCallbackData::create(AdminCallbackAction::PlayerSettings)->withGameId($gameId)->withUserId(999);
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::UserSettings)->withGameId($gameId)->withUserId(999);
         $update = TelegramUpdate::fromArray(
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminPlayerSettingsProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminUserSettingsProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -281,7 +281,7 @@ final class GameProcessorsTest extends ProcessorTestCase
 
     public function testGameDetailShowsRemoveLocationWhenLocationExists(): void
     {
-        $gameId = $this->seedGameWithPlayer();
+        $gameId = $this->seedGameWithUser();
         $this->db->update('games', ['location' => '55.7,37.6'], ['game_id' => $gameId]);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::GameDetail)->withGameId($gameId);
@@ -312,11 +312,11 @@ final class GameProcessorsTest extends ProcessorTestCase
         $this->assertMessageEdited();
     }
 
-    // --- RemoveNet edge case: player has zero nets ---
+    // --- RemoveNet edge case: user has zero nets ---
 
     public function testRemoveNetWithZeroNetsDoesNotDecrementBelowZero(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 0);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, net: 0);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::RemoveNet)->withGameId($gameId)->withUserId(200);
         $update = TelegramUpdate::fromArray(
@@ -325,15 +325,15 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveNetProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame(0, (int)$gamePlayer['net']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame(0, (int)$gameUser['net']);
     }
 
-    // --- RemoveVolleyball edge case: player has zero volleyballs ---
+    // --- RemoveVolleyball edge case: user has zero volleyballs ---
 
     public function testRemoveVolleyballWithZeroDoesNotDecrementBelowZero(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, volleyball: 0);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, volleyball: 0);
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::RemoveVolleyball)->withGameId($gameId)->withUserId(200);
         $update = TelegramUpdate::fromArray(
@@ -342,20 +342,20 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveVolleyballProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame(0, (int)$gamePlayer['volleyball']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame(0, (int)$gameUser['volleyball']);
     }
 
-    // --- PlayersListProcessor: handles nonexistent game ---
+    // --- UsersListProcessor: handles nonexistent game ---
 
-    public function testPlayersListHandlesNonexistentGame(): void
+    public function testUsersListHandlesNonexistentGame(): void
     {
-        $callbackData = AdminCallbackData::create(AdminCallbackAction::GamePlayers)->withGameId(99999)->withPage(1);
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::GameUsers)->withGameId(99999)->withPage(1);
         $update = TelegramUpdate::fromArray(
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminPlayersListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminUsersListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertMessageEdited();
     }

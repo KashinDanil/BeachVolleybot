@@ -133,7 +133,7 @@ final class GameWeatherLookupTest extends DatabaseTestCase
             inlineQueryId: 'iq',
             inlineMessageIds: ['im'],
             title: $title,
-            players: [],
+            users: [],
             createdAt: new DateTimeImmutable(),
             location: $location,
         );

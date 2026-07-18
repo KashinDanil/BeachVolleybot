@@ -8,7 +8,7 @@ use BadMethodCallException;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\CallbackData\PageableCallbackDataInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
-use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyleEnum;
+use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use Closure;
@@ -16,8 +16,8 @@ use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use TelegramBot\Api\Types\Inline\InputMessageContent\Text;
 
 /**
- * @method array   buildActionButton(string $text, CallbackDataInterface $callbackData, ?InlineButtonStyleEnum $style = null)
- * @method array   buildButton(string $text, string $callbackData, ?InlineButtonStyleEnum $style = null)
+ * @method array   buildActionButton(string $text, CallbackDataInterface $callbackData, ?InlineButtonStyle $style = null)
+ * @method array   buildButton(string $text, string $callbackData, ?InlineButtonStyle $style = null)
  * @method array   buildSwitchInlineQueryButton(string $text, string $query)
  */
 abstract class AbstractMessageBuilder
@@ -91,12 +91,12 @@ abstract class AbstractMessageBuilder
         );
     }
 
-    protected function defaultBuildActionButton(string $text, CallbackDataInterface $callbackData, ?InlineButtonStyleEnum $style = null): array
+    protected function defaultBuildActionButton(string $text, CallbackDataInterface $callbackData, ?InlineButtonStyle $style = null): array
     {
         return $this->buildButton($text, $callbackData->toJson(), $style);
     }
 
-    protected function defaultBuildButton(string $text, string $callbackData, ?InlineButtonStyleEnum $style = null): array
+    protected function defaultBuildButton(string $text, string $callbackData, ?InlineButtonStyle $style = null): array
     {
         $button = ['text' => $text, 'callback_data' => $callbackData];
         if (null !== $style) {

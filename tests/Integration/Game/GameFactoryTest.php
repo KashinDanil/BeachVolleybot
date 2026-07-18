@@ -52,49 +52,49 @@ final class GameFactoryTest extends DatabaseTestCase
         GameFactory::fromGameId(999);
     }
 
-    // --- Players ---
+    // --- Users ---
 
-    public function testGameWithNoPlayersHasEmptyArray(): void
+    public function testGameWithNoUsersHasEmptyArray(): void
     {
         $gameId = $this->createGame();
 
         $game = GameFactory::fromGameId($gameId);
 
-        $this->assertSame([], $game->getPlayers());
+        $this->assertSame([], $game->getUsers());
     }
 
-    public function testPlayerFieldsMappedCorrectly(): void
+    public function testUserFieldsMappedCorrectly(): void
     {
         $gameId = $this->createGame();
-        $this->createPlayer(telegramUserId: 200, firstName: 'Alice', lastName: 'Smith', username: 'alice');
-        $this->createGamePlayer($gameId, telegramUserId: 200, time: '19:30');
+        $this->createUser(telegramUserId: 200, firstName: 'Alice', lastName: 'Smith', username: 'alice');
+        $this->createGameUser($gameId, telegramUserId: 200, time: '19:30');
         $this->createSlot($gameId, telegramUserId: 200, position: 1);
 
-        $player = GameFactory::fromGameId($gameId)->getPlayers()[0];
+        $user = GameFactory::fromGameId($gameId)->getUsers()[0];
 
-        $this->assertSame('1', $player->getNumber());
-        $this->assertSame('Alice Smith', $player->getName());
-        $this->assertSame('https://t.me/alice', $player->getLink());
-        $this->assertSame('19:30', $player->getTime());
-        $this->assertSame(0, $player->getVolleyball());
-        $this->assertSame(0, $player->getNet());
+        $this->assertSame('1', $user->getNumber());
+        $this->assertSame('Alice Smith', $user->getName());
+        $this->assertSame('https://t.me/alice', $user->getLink());
+        $this->assertSame('19:30', $user->getTime());
+        $this->assertSame(0, $user->getVolleyball());
+        $this->assertSame(0, $user->getNet());
     }
 
-    public function testMultiplePlayersOrderedByPosition(): void
+    public function testMultipleUsersOrderedByPosition(): void
     {
         $gameId = $this->createGame();
-        $this->createPlayer(telegramUserId: 200, firstName: 'Alice');
-        $this->createPlayer(telegramUserId: 201, firstName: 'Bob');
-        $this->createGamePlayer($gameId, telegramUserId: 200);
-        $this->createGamePlayer($gameId, telegramUserId: 201);
+        $this->createUser(telegramUserId: 200, firstName: 'Alice');
+        $this->createUser(telegramUserId: 201, firstName: 'Bob');
+        $this->createGameUser($gameId, telegramUserId: 200);
+        $this->createGameUser($gameId, telegramUserId: 201);
         $this->createSlot($gameId, telegramUserId: 201, position: 1);
         $this->createSlot($gameId, telegramUserId: 200, position: 2);
 
-        $players = GameFactory::fromGameId($gameId)->getPlayers();
+        $users = GameFactory::fromGameId($gameId)->getUsers();
 
-        $this->assertCount(2, $players);
-        $this->assertSame('Bob', $players[0]->getName());
-        $this->assertSame('Alice', $players[1]->getName());
+        $this->assertCount(2, $users);
+        $this->assertSame('Bob', $users[0]->getName());
+        $this->assertSame('Alice', $users[1]->getName());
     }
 
     // --- Helpers ---

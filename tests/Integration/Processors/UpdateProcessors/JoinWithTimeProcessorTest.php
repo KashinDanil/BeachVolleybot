@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GamePlayerRepository;
+use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -12,19 +12,19 @@ use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 
 final class JoinWithTimeProcessorTest extends ProcessorTestCase
 {
-    public function testNewPlayerJoinsWithTime(): void
+    public function testNewUserJoinsWithTime(): void
     {
         $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate('15:30', 'query_1');
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertNotNull($gamePlayer);
-        $this->assertSame('15:30', $gamePlayer['time']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertNotNull($gameUser);
+        $this->assertSame('15:30', $gameUser['time']);
     }
 
-    public function testNewPlayerGetsSlot(): void
+    public function testNewUserGetsSlot(): void
     {
         $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate('15:30', 'query_1');
@@ -36,20 +36,20 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
     }
 
-    public function testExistingPlayerUpdatesTime(): void
+    public function testExistingUserUpdatesTime(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200);
         $update = $this->buildUpdate('16:00', 'query_1');
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame('16:00', $gamePlayer['time']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame('16:00', $gameUser['time']);
     }
 
-    public function testExistingPlayerDoesNotGetExtraSlot(): void
+    public function testExistingUserDoesNotGetExtraSlot(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200);
         $update = $this->buildUpdate('16:00', 'query_1');
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
@@ -71,7 +71,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
     public function testRefreshesInlineMessage(): void
     {
-        $this->seedGameWithPlayer(telegramUserId: 200);
+        $this->seedGameWithUser(telegramUserId: 200);
         $update = $this->buildUpdate('16:00', 'query_1');
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);

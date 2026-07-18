@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Game\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\PlayerInterface;
+use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -22,17 +22,17 @@ final class GameMessageBuilderTest extends TestCase
 
     // --- Text: structure ---
 
-    public function testHeaderOnlyWhenNoPlayersAndNoFooter(): void
+    public function testHeaderOnlyWhenNoUsersAndNoFooter(): void
     {
         $game = $this->game('Beach Game 18:00', []);
 
         $this->assertSame('Beach Game 18:00', $this->builder->build($game)->getText()->getMessageText());
     }
 
-    public function testHeaderAndPlayersSeparatedByNewline(): void
+    public function testHeaderAndUsersSeparatedByNewline(): void
     {
         $game = $this->game('Beach Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 1, net: 1),
+            $this->user('1', 'Alice', volleyball: 1, net: 1),
         ]);
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -45,7 +45,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testLocationAppearsAfterTitle(): void
     {
         $game = $this->game('Beach Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 1, net: 1),
+            $this->user('1', 'Alice', volleyball: 1, net: 1),
         ], location: '41.399747,2.20778');
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -56,7 +56,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testLocationOmittedWhenNull(): void
     {
         $game = $this->game('Beach Game 18:00', [
-            $this->player('1', 'Alice'),
+            $this->user('1', 'Alice'),
         ]);
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -64,32 +64,32 @@ final class GameMessageBuilderTest extends TestCase
         $this->assertStringNotContainsString('41.399747', $text);
     }
 
-    // --- Text: player name and link ---
+    // --- Text: user name and link ---
 
-    public function testPlayerNameWithoutLink(): void
+    public function testUserNameWithoutLink(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice'),
+            $this->user('1', 'Alice'),
         ]);
 
         $this->assertStringContainsString('1\. Alice', $this->builder->build($game)->getText()->getMessageText());
     }
 
-    public function testPlayerNameWithLinkRendersMarkdown(): void
+    public function testUserNameWithLinkRendersMarkdown(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', link: 'https://t.me/alice'),
+            $this->user('1', 'Alice', link: 'https://t.me/alice'),
         ]);
 
         $this->assertStringContainsString('1\. [Alice](https://t.me/alice)', $this->builder->build($game)->getText()->getMessageText());
     }
 
-    // --- Text: +N for repeated players ---
+    // --- Text: +N for repeated users ---
 
     public function testFirstAppearanceShowsPlainName(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice'),
+            $this->user('1', 'Alice'),
         ]);
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -101,8 +101,8 @@ final class GameMessageBuilderTest extends TestCase
     public function testSecondAppearanceShowsPlusOne(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice'),
-            $this->player('2', 'Alice'),
+            $this->user('1', 'Alice'),
+            $this->user('2', 'Alice'),
         ]);
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -114,9 +114,9 @@ final class GameMessageBuilderTest extends TestCase
     public function testThirdAppearanceShowsPlusTwo(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice'),
-            $this->player('2', 'Alice'),
-            $this->player('3', 'Alice'),
+            $this->user('1', 'Alice'),
+            $this->user('2', 'Alice'),
+            $this->user('3', 'Alice'),
         ]);
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -127,8 +127,8 @@ final class GameMessageBuilderTest extends TestCase
     public function testPlusNWithLinkedName(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', link: 'https://t.me/alice'),
-            $this->player('2', 'Alice', link: 'https://t.me/alice'),
+            $this->user('1', 'Alice', link: 'https://t.me/alice'),
+            $this->user('2', 'Alice', link: 'https://t.me/alice'),
         ]);
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -136,11 +136,11 @@ final class GameMessageBuilderTest extends TestCase
         $this->assertStringContainsString("\\+1 \\([Alice](https://t.me/alice)\\)", $text);
     }
 
-    public function testSameNameDifferentLinkTreatedAsDifferentPlayers(): void
+    public function testSameNameDifferentLinkTreatedAsDifferentUsers(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', link: 'https://t.me/alice1'),
-            $this->player('2', 'Alice', link: 'https://t.me/alice2'),
+            $this->user('1', 'Alice', link: 'https://t.me/alice1'),
+            $this->user('2', 'Alice', link: 'https://t.me/alice2'),
         ]);
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -151,8 +151,8 @@ final class GameMessageBuilderTest extends TestCase
     public function testEquipmentShownOnlyOnFirstSlot(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 2, net: 1),
-            $this->player('2', 'Alice', volleyball: 2, net: 1),
+            $this->user('1', 'Alice', volleyball: 2, net: 1),
+            $this->user('2', 'Alice', volleyball: 2, net: 1),
         ]);
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -169,7 +169,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testZeroVolleyballsShowsNoEmoji(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 0),
+            $this->user('1', 'Alice', volleyball: 0),
         ]);
 
         $this->assertStringNotContainsString('🏐', $this->builder->build($game)->getText()->getMessageText());
@@ -178,7 +178,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testOneVolleyballShowsSingleEmoji(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 1),
+            $this->user('1', 'Alice', volleyball: 1),
         ]);
 
         $this->assertStringContainsString('1\. Alice 🏐', $this->builder->build($game)->getText()->getMessageText());
@@ -187,7 +187,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testTwoVolleyballsShowsTwoEmojis(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 2),
+            $this->user('1', 'Alice', volleyball: 2),
         ]);
 
         $this->assertStringContainsString('🏐🏐', $this->builder->build($game)->getText()->getMessageText());
@@ -196,7 +196,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testThreeVolleyballsShowsCompactFormat(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 3),
+            $this->user('1', 'Alice', volleyball: 3),
         ]);
 
         $this->assertStringContainsString('🏐×3', $this->builder->build($game)->getText()->getMessageText());
@@ -205,7 +205,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testFiveVolleyballsShowsCompactFormat(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 5),
+            $this->user('1', 'Alice', volleyball: 5),
         ]);
 
         $this->assertStringContainsString('🏐×5', $this->builder->build($game)->getText()->getMessageText());
@@ -216,7 +216,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testZeroNetsShowsNoEmoji(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', net: 0),
+            $this->user('1', 'Alice', net: 0),
         ]);
 
         $this->assertStringNotContainsString('🕸️', $this->builder->build($game)->getText()->getMessageText());
@@ -225,7 +225,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testOneNetShowsSingleEmoji(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', net: 1),
+            $this->user('1', 'Alice', net: 1),
         ]);
 
         $this->assertStringContainsString('🕸️', $this->builder->build($game)->getText()->getMessageText());
@@ -234,7 +234,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testTwoNetsShowsTwoEmojis(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', net: 2),
+            $this->user('1', 'Alice', net: 2),
         ]);
 
         $this->assertStringContainsString('🕸️🕸️', $this->builder->build($game)->getText()->getMessageText());
@@ -243,7 +243,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testThreeNetsShowsCompactFormat(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', net: 3),
+            $this->user('1', 'Alice', net: 3),
         ]);
 
         $this->assertStringContainsString('🕸️×3', $this->builder->build($game)->getText()->getMessageText());
@@ -251,10 +251,10 @@ final class GameMessageBuilderTest extends TestCase
 
     // --- Text: time ---
 
-    public function testPlayerTimeShownWhenMatchesGameTime(): void
+    public function testUserTimeShownWhenMatchesGameTime(): void
     {
         $game = $this->game('Game', [
-            $this->player('1', 'Alice', volleyball: 1, net: 1, time: '18:00'),
+            $this->user('1', 'Alice', volleyball: 1, net: 1, time: '18:00'),
         ], gameTime: '18:00');
 
         $text = $this->builder->build($game)->getText()->getMessageText();
@@ -262,21 +262,21 @@ final class GameMessageBuilderTest extends TestCase
         $this->assertSame('Game' . self::SEPARATOR . '1\. Alice 🏐 🕸️ 18:00', $text);
     }
 
-    public function testPlayerTimeShownWhenDifferentFromGameTime(): void
+    public function testUserTimeShownWhenDifferentFromGameTime(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', time: '19:30'),
+            $this->user('1', 'Alice', time: '19:30'),
         ]);
 
         $this->assertStringContainsString('19:30', $this->builder->build($game)->getText()->getMessageText());
     }
 
-    // --- Text: combined player line ---
+    // --- Text: combined user line ---
 
-    public function testFullPlayerLineWithAllAttributes(): void
+    public function testFullUserLineWithAllAttributes(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', link: 'https://t.me/alice', volleyball: 1, net: 2, time: '19:00'),
+            $this->user('1', 'Alice', link: 'https://t.me/alice', volleyball: 1, net: 2, time: '19:00'),
         ]);
 
         $this->assertStringContainsString(
@@ -288,7 +288,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testRangeNumberFormat(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('4-7', 'Alice'),
+            $this->user('4-7', 'Alice'),
         ]);
 
         $this->assertStringContainsString('4\-7\. Alice', $this->builder->build($game)->getText()->getMessageText());
@@ -296,17 +296,17 @@ final class GameMessageBuilderTest extends TestCase
 
     // --- Text: warnings ---
 
-    public function testNoWarningWhenNoPlayers(): void
+    public function testNoWarningWhenNoUsers(): void
     {
         $game = $this->game('Game 18:00', []);
 
         $this->assertStringNotContainsString('⚠️', $this->builder->build($game)->getText()->getMessageText());
     }
 
-    public function testNoWarningWhenPlayersHaveEquipment(): void
+    public function testNoWarningWhenUsersHaveEquipment(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 1, net: 1),
+            $this->user('1', 'Alice', volleyball: 1, net: 1),
         ]);
 
         $this->assertStringNotContainsString('⚠️', $this->builder->build($game)->getText()->getMessageText());
@@ -315,7 +315,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testWarningWhenNoNets(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 1, net: 0),
+            $this->user('1', 'Alice', volleyball: 1, net: 0),
         ]);
 
         $this->assertStringContainsString('>⚠️ Someone needs to bring a net', $this->builder->build($game)->getText()->getMessageText());
@@ -324,7 +324,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testWarningWhenNoVolleyballs(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 0, net: 1),
+            $this->user('1', 'Alice', volleyball: 0, net: 1),
         ]);
 
         $this->assertStringContainsString('>⚠️ Someone needs to bring a volleyball', $this->builder->build($game)->getText()->getMessageText());
@@ -333,7 +333,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testCombinedWarningWhenNoEquipment(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 0, net: 0),
+            $this->user('1', 'Alice', volleyball: 0, net: 0),
         ]);
         $text = $this->builder->build($game)->getText()->getMessageText();
 
@@ -343,7 +343,7 @@ final class GameMessageBuilderTest extends TestCase
     public function testWarningAppearsBeforeTitle(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->player('1', 'Alice', volleyball: 0, net: 0),
+            $this->user('1', 'Alice', volleyball: 0, net: 0),
         ]);
         $sections = explode(self::SEPARATOR, $this->builder->build($game)->getText()->getMessageText());
 
@@ -439,28 +439,28 @@ final class GameMessageBuilderTest extends TestCase
 
     // --- Helpers ---
 
-    private function player(
+    private function user(
         string $number = '1',
-        string $name = 'Player',
+        string $name = 'User',
         ?string $link = null,
         int $volleyball = 0,
         int $net = 0,
         string $time = '18:00',
-    ): PlayerInterface {
-        $player = $this->createStub(PlayerInterface::class);
-        $player->method('getNumber')->willReturn($number);
-        $player->method('getName')->willReturn($name);
-        $player->method('getLink')->willReturn($link);
-        $player->method('getVolleyball')->willReturn($volleyball);
-        $player->method('getNet')->willReturn($net);
-        $player->method('getTime')->willReturn($time);
+    ): UserInterface {
+        $user = $this->createStub(UserInterface::class);
+        $user->method('getNumber')->willReturn($number);
+        $user->method('getName')->willReturn($name);
+        $user->method('getLink')->willReturn($link);
+        $user->method('getVolleyball')->willReturn($volleyball);
+        $user->method('getNet')->willReturn($net);
+        $user->method('getTime')->willReturn($time);
 
-        return $player;
+        return $user;
     }
 
     private function game(
         string $header,
-        array $players,
+        array $users,
         ?string $location = null,
         string $gameTime = '18:00',
         int $gameId = 1,
@@ -471,7 +471,7 @@ final class GameMessageBuilderTest extends TestCase
         $game->method('getInlineQueryId')->willReturn($inlineQueryId);
         $game->method('getTitle')->willReturn($header);
         $game->method('getLocation')->willReturn($location);
-        $game->method('getPlayers')->willReturn($players);
+        $game->method('getUsers')->willReturn($users);
         $game->method('getTime')->willReturn($gameTime);
 
         return $game;

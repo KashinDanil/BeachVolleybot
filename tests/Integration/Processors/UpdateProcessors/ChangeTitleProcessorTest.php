@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GamePlayerRepository;
+use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -26,15 +26,15 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         $this->assertSame('Picnic Sunday 20:00', $title);
     }
 
-    public function testCreatorPlayerTimeIsUpdated(): void
+    public function testCreatorUserTimeIsUpdated(): void
     {
         $gameId = $this->seedGameOwnedByCreator();
 
         new ChangeTitleProcessor($this->telegramSender)
             ->process($this->buildUpdate('Picnic Sunday 20:00', self::CREATOR_ID));
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, self::CREATOR_ID);
-        $this->assertSame('20:00', $gamePlayer['time']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, self::CREATOR_ID);
+        $this->assertSame('20:00', $gameUser['time']);
     }
 
     public function testRefreshesInlineMessageOnSuccess(): void
@@ -157,8 +157,8 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
             inlineMessageId: 'msg_1',
             inlineQueryId: 'query_1',
         );
-        $this->createPlayer(self::CREATOR_ID);
-        $this->db->insert('game_players', [
+        $this->createUser(self::CREATOR_ID);
+        $this->db->insert('game_users', [
             'game_id' => $gameId,
             'telegram_user_id' => self::CREATOR_ID,
             'time' => '18:00',

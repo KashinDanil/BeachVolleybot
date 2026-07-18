@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Database;
 
-readonly class PlayerRepository extends AbstractRepository
+readonly class UserRepository extends AbstractRepository
 {
     protected function table(): string
     {
-        return 'players';
+        return 'users';
     }
 
     protected function primaryKeyColumn(): string
@@ -23,7 +23,7 @@ readonly class PlayerRepository extends AbstractRepository
         ?string $username = null,
     ): void {
         $this->db->pdo->prepare(
-            'INSERT INTO players (telegram_user_id, first_name, last_name, username)
+            'INSERT INTO users (telegram_user_id, first_name, last_name, username)
              VALUES (:telegram_user_id, :first_name, :last_name, :username)
              ON CONFLICT (telegram_user_id) DO UPDATE SET
                 first_name = excluded.first_name,
