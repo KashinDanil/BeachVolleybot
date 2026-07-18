@@ -7,6 +7,7 @@ namespace BeachVolleybot\Processors\Handlers\PrivateHandlers;
 use BeachVolleybot\Processors\Handlers\Traits\CallbackProcessorResolverTrait;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\User\CurrentUser;
 
 final readonly class AdminCallbackQueryHandler extends AbstractDmQueueHandler
 {
@@ -16,8 +17,8 @@ final readonly class AdminCallbackQueryHandler extends AbstractDmQueueHandler
     {
         return $update->hasCallbackQuery()
             && !$update->callbackQuery->isInline()
-            && $update->callbackQuery->from->isAdmin()
-            && null !== AdminCallbackData::fromJson($update->callbackQuery->data);
+            && null !== AdminCallbackData::fromJson($update->callbackQuery->data)
+            && CurrentUser::fromTelegramId($update->callbackQuery->from->id)->isAdmin();
     }
 
     protected function getCallbackDataClass(): string

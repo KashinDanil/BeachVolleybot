@@ -14,6 +14,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\ErrorArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\ForwardGameArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
 use BeachVolleybot\Telegram\Messages\Outgoing\NewGameArticleBuilder;
+use BeachVolleybot\User\CurrentUser;
 use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
 use BeachVolleybot\Validator\Rules\GameCreatorOrAdminRule;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
@@ -57,12 +58,13 @@ class InlineQueryProcessor extends AbstractActionProcessor
             return new ErrorArticleBuilder(InlineQueryError::gameNotFound(), $translator);
         }
 
+        $currentUser = CurrentUser::fromTelegramId($inlineQuery->from->id);
         $validationState = new Validator(
             [
                 new GameCreatorOrAdminRule(
                     $inlineQuery->from->id,
                     $gameRecord->createdBy,
-                    $inlineQuery->from->isAdmin(),
+                    $currentUser->isAdmin(),
                 ),
                 new KickoffDayInTheFutureRule($gameRecord->title, $gameRecord->createdAt),
             ]

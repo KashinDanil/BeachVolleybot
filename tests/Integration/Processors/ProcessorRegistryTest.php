@@ -43,6 +43,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testResolvesAdminCallbackQueryToDmQueueAndSettingsMenuCallbackProcessor(): void
     {
+        $this->seedAdmin();
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload('{"aa":"st"}'));
 
         $this->assertSame('dm_12345678', $this->registry->resolveQueueName($update));
@@ -163,7 +164,8 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testResolvesAdminSettingsCommandToDmQueueAndSettingsMenuCommandProcessor(): void
     {
-        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings', fromId: 12345678));
+        $this->seedAdmin();
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings', fromId: self::ADMIN_TELEGRAM_USER_ID));
 
         $this->assertSame('dm_12345678', $this->registry->resolveQueueName($update));
         $this->assertInstanceOf(

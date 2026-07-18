@@ -8,10 +8,17 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
+use BeachVolleybot\User\Role;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
 abstract class ProcessorTestCase extends DatabaseTestCase
 {
+    // The canonical admin user for processor tests. Admin access is now stored
+    // as a DB role (formerly the ADMINS_TELEGRAM_USER_IDS config constant); the
+    // admin-behavior payload builders default their sender to this id. Tests
+    // that exercise admin behavior call seedAdmin() to give it the admin role.
+    protected const int ADMIN_TELEGRAM_USER_ID = 12345678;
+
     protected BotApiStub $bot;
     protected TelegramMessageSender $telegramSender;
 
@@ -35,6 +42,11 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     protected function tearDown(): void
     {
         Connection::close();
+    }
+
+    protected function seedAdmin(): void
+    {
+        $this->createUser(self::ADMIN_TELEGRAM_USER_ID, role: Role::Admin->value);
     }
 
     protected function seedFullGame(
@@ -292,7 +304,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
 
     protected function privateMessagePayload(
         string $text,
-        int $fromId = 12345678,
+        int $fromId = self::ADMIN_TELEGRAM_USER_ID,
         string $firstName = 'Danil',
     ): array {
         return [
@@ -403,9 +415,9 @@ abstract class ProcessorTestCase extends DatabaseTestCase
 
     protected function adminCallbackQueryPayload(
         string $data,
-        int $fromId = 12345678,
+        int $fromId = self::ADMIN_TELEGRAM_USER_ID,
         string $firstName = 'Danil',
-        int $chatId = 12345678,
+        int $chatId = self::ADMIN_TELEGRAM_USER_ID,
         int $messageId = 109,
     ): array {
         return [

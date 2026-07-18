@@ -8,6 +8,7 @@ use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\CurrentUser;
 
 final readonly class SettingsMenuCommandHandler extends AbstractDmQueueHandler
 {
@@ -17,8 +18,8 @@ final readonly class SettingsMenuCommandHandler extends AbstractDmQueueHandler
     {
         return $update->hasMessage()
             && $update->message->chat->isPrivate()
-            && $update->message->from->isAdmin()
-            && self::COMMAND === $update->message->text;
+            && self::COMMAND === $update->message->text
+            && CurrentUser::fromTelegramId($update->message->from->id)->isAdmin();
     }
 
     public function createProcessor(

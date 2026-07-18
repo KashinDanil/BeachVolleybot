@@ -9,6 +9,7 @@ use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
+use BeachVolleybot\User\Role;
 use Medoo\Medoo;
 use PDO;
 use PHPUnit\Framework\TestCase;
@@ -127,7 +128,18 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
         ]);
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/001_create_games_and_participants.sql'));
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/004_split_game_inline_messages.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/005_require_game_player_time.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/006_rename_players_to_users.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/007_add_role_to_users.sql'));
         Connection::set($this->db);
+
+        // Admin routing reads the role from the DB; seed the admin sender used
+        // by the admin fixtures below.
+        $this->db->insert('users', [
+            'telegram_user_id' => 12345678,
+            'first_name' => 'Admin',
+            'role' => Role::Admin->value,
+        ]);
 
         SpyQueue::reset();
         $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR, ProcessorRegistryFactory::create());

@@ -25,8 +25,14 @@ use ReflectionClass;
 // exclusivity is enforced over these fixtures, not by static analysis.
 final class HandlerExclusivityTest extends ProcessorTestCase
 {
+    private const int NON_ADMIN_ID = 999;
+
     public function testNoUpdateMatchesMoreThanOneHandler(): void
     {
+        // Admin-gated handlers read the role from the DB, so the admin fixtures
+        // only match once the canonical admin actually has the admin role.
+        $this->seedAdmin();
+
         $handlers = $this->allHandlers();
         $conflicts = [];
 
@@ -71,8 +77,8 @@ final class HandlerExclusivityTest extends ProcessorTestCase
      */
     private function fixtures(): array
     {
-        $adminId = ADMINS_TELEGRAM_USER_IDS[0] ?? 12345678;
-        $nonAdminId = 999;
+        $adminId = self::ADMIN_TELEGRAM_USER_ID;
+        $nonAdminId = self::NON_ADMIN_ID;
 
         return [
             'inline callback (join)' => TelegramUpdate::fromArray(

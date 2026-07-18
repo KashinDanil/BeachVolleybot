@@ -113,8 +113,6 @@ Both the queue router (request path) and the worker dispatch (queue-drain path) 
 
 - #### `VERBOSE_LOGGING` — enable/disable verbose logging (`true`/`false`).
 
-- #### `ADMINS_TELEGRAM_USER_IDS` — an array of Telegram user IDs that should have admin access to the bot. Can be left empty (`[]`).
-
 - #### `BOT_USERNAME` — the username of your Telegram bot (without the `@` prefix), as set in **BotFather**.
 
 - #### `TG_BOT_ACCESS_TOKEN` — the HTTP API token provided by **Telegram BotFather** after creating your bot.
@@ -156,6 +154,16 @@ This checks prerequisites, installs dependencies, creates runtime directories, a
 #### 3. Set up the webhook
 
 Point Telegram to `public/tg-bot.php` on your server. The endpoint must be accessible over HTTPS.
+
+#### 4. Grant admin access
+
+Admin access is stored per user in the `role` column of the `users` table. Each user has one role: `0` = root, `1` = player (default), `2` = admin. Admin actions require the **admin** or **root** role; root-only actions require **root**.
+
+A user row is created the first time someone interacts with the bot. Once it exists, promote them with:
+
+```bash
+sqlite3 <db> "UPDATE users SET role = 2 WHERE telegram_user_id = <telegram_user_id>;"
+```
 
 ## Workers
 

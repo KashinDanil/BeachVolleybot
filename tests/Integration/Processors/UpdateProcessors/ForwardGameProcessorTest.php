@@ -45,8 +45,9 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
     public function testAttachesNewInlineMessageIdWhenCallerIsAdminButNotCreator(): void
     {
+        $this->seedAdmin();
         $gameId = $this->createGame(title: 'Saturday 18:00', createdBy: 100, inlineMessageId: 'msg_original');
-        $update = $this->buildUpdate(inlineMessageId: 'msg_forwarded', query: "Forward game $gameId", fromId: 12345678);
+        $update = $this->buildUpdate(inlineMessageId: 'msg_forwarded', query: "Forward game $gameId", fromId: self::ADMIN_TELEGRAM_USER_ID);
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 

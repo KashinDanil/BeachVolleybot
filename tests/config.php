@@ -14,7 +14,6 @@ foreach ([$logDirectory, $queueDirectory, $weatherQueueDirectory, $databaseDirec
     }
 }
 
-define('ADMINS_TELEGRAM_USER_IDS', [12345678]);
 define('BOT_USERNAME', 'test_bot');
 define('TG_BOT_ACCESS_TOKEN', 'test_token');
 define('APP_TOKEN_HASH', 'test_hash');

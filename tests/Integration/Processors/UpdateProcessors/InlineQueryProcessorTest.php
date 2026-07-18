@@ -69,9 +69,10 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
 
     public function testForwardQueryByAdminAnswersWithForwardArticleEvenWhenNotCreator(): void
     {
+        $this->seedAdmin();
         $gameId = $this->createGame(title: 'Saturday 18:00', createdBy: 100);
         $update = TelegramUpdate::fromArray(
-            $this->inlineQueryPayload('query_admin', "Forward game $gameId", fromId: 12345678),
+            $this->inlineQueryPayload('query_admin', "Forward game $gameId", fromId: self::ADMIN_TELEGRAM_USER_ID),
         );
 
         new InlineQueryProcessor($this->telegramSender)->process($update);

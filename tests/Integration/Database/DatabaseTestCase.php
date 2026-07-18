@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Database;
 
+use BeachVolleybot\User\Role;
 use Medoo\Medoo;
 use PDO;
 use PHPUnit\Framework\TestCase;
@@ -27,6 +28,7 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('004_split_game_inline_messages.sql');
         $this->applyMigration('005_require_game_player_time.sql');
         $this->applyMigration('006_rename_players_to_users.sql');
+        $this->applyMigration('007_add_role_to_users.sql');
     }
 
     protected function createGame(
@@ -60,16 +62,18 @@ abstract class DatabaseTestCase extends TestCase
         string $firstName = 'Danil',
         ?string $lastName = null,
         ?string $username = null,
+        int $role = Role::Player->value,
     ): void {
         $this->db->pdo->prepare(
-            'INSERT INTO users (telegram_user_id, first_name, last_name, username)
-             VALUES (:telegram_user_id, :first_name, :last_name, :username)
+            'INSERT INTO users (telegram_user_id, first_name, last_name, username, role)
+             VALUES (:telegram_user_id, :first_name, :last_name, :username, :role)
              ON CONFLICT (telegram_user_id) DO NOTHING'
         )->execute([
             ':telegram_user_id' => $telegramUserId,
             ':first_name' => $firstName,
             ':last_name' => $lastName,
             ':username' => $username,
+            ':role' => $role,
         ]);
     }
 

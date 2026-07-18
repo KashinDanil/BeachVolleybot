@@ -38,6 +38,13 @@ readonly class UserRepository extends AbstractRepository
         ]);
     }
 
+    public function findRoleById(int $telegramUserId): ?int
+    {
+        $role = $this->db->get($this->table(), 'role', [$this->primaryKeyColumn() => $telegramUserId]);
+
+        return null === $role ? null : (int)$role;
+    }
+
     public function findAll(): array
     {
         return $this->db->select($this->table(), '*');

@@ -73,9 +73,10 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
     public function testAdminCanRenameGameOwnedByAnotherUserInPrivateChat(): void
     {
         $gameId = $this->seedGameOwnedByCreator();
+        $this->seedAdmin();
 
         new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildPrivateChatUpdate('Picnic Sunday 18:00', ADMINS_TELEGRAM_USER_IDS[0]));
+            ->process($this->buildPrivateChatUpdate('Picnic Sunday 18:00', self::ADMIN_TELEGRAM_USER_ID));
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Picnic Sunday 18:00', $title);
@@ -84,9 +85,10 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
     public function testAdminCannotRenameGameOwnedByAnotherUserInGroupChat(): void
     {
         $gameId = $this->seedGameOwnedByCreator();
+        $this->seedAdmin();
 
         new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('Picnic Sunday 20:00', ADMINS_TELEGRAM_USER_IDS[0]));
+            ->process($this->buildUpdate('Picnic Sunday 20:00', self::ADMIN_TELEGRAM_USER_ID));
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Friday Game 18:00', $title);

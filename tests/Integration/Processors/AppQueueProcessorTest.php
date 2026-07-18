@@ -101,7 +101,9 @@ final class AppQueueProcessorTest extends ProcessorTestCase
 
     public function testRoutesAdminPrivateSettingsCommandToSettingsMenuProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/settings', fromId: 12345678)));
+        $this->seedAdmin();
+
+        $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/settings', fromId: self::ADMIN_TELEGRAM_USER_ID)));
 
         $this->assertSame([SettingsMenuCommandProcessor::class], $this->recorder->selections);
     }
@@ -157,6 +159,8 @@ final class AppQueueProcessorTest extends ProcessorTestCase
 
     public function testRoutesAdminCallbackQueryViaAdminCallbackData(): void
     {
+        $this->seedAdmin();
+
         $this->processor->process(new QueueMessage($this->adminCallbackQueryPayload(data: '{"aa":"st"}')));
 
         $this->assertSame([SettingsMenuCallbackProcessor::class], $this->recorder->selections);

@@ -7,6 +7,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 use BeachVolleybot\Common\Extractors\ForwardGameQueryExtractor;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\User\CurrentUser;
 use BeachVolleybot\Validator\Rules\GameCreatorOrAdminRule;
 use BeachVolleybot\Validator\Validator;
 
@@ -28,12 +29,13 @@ class ForwardGameProcessor extends AbstractActionProcessor
             return;
         }
 
+        $currentUser = CurrentUser::fromTelegramId($result->from->id);
         $validationState = new Validator(
             [
                 new GameCreatorOrAdminRule(
                     $result->from->id,
                     $gameRecord->createdBy,
-                    $result->from->isAdmin(),
+                    $currentUser->isAdmin(),
                 ),
             ]
         )->validate();
