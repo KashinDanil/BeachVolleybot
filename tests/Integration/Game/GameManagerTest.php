@@ -6,10 +6,10 @@ namespace BeachVolleybot\Tests\Integration\Game;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameInlineMessageRepository;
-use BeachVolleybot\Database\GamePlayerRepository;
+use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\PlayerRepository;
+use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\LeaveResult;
@@ -53,25 +53,25 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame(['msg_1'], $ids);
     }
 
-    public function testCreateGameUpsertsPlayer(): void
+    public function testCreateGameUpsertsUser(): void
     {
         $this->gameManager->createGame($this->newGameData(), 'msg_1');
 
-        $players = new PlayerRepository($this->db)->findAll();
-        $this->assertCount(1, $players);
-        $this->assertSame(200, $players[0]['telegram_user_id']);
-        $this->assertSame('Danil', $players[0]['first_name']);
+        $users = new UserRepository($this->db)->findAll();
+        $this->assertCount(1, $users);
+        $this->assertSame(200, $users[0]['telegram_user_id']);
+        $this->assertSame('Danil', $users[0]['first_name']);
     }
 
-    public function testCreateGamePersistsGamePlayerWithInitialEquipmentAndTime(): void
+    public function testCreateGamePersistsGameUserWithInitialEquipmentAndTime(): void
     {
         $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertNotNull($gamePlayer);
-        $this->assertSame(NewGameData::INITIAL_VOLLEYBALL, $gamePlayer['volleyball']);
-        $this->assertSame(NewGameData::INITIAL_NET, $gamePlayer['net']);
-        $this->assertSame('18:00', $gamePlayer['time']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertNotNull($gameUser);
+        $this->assertSame(NewGameData::INITIAL_VOLLEYBALL, $gameUser['volleyball']);
+        $this->assertSame(NewGameData::INITIAL_NET, $gameUser['net']);
+        $this->assertSame('18:00', $gameUser['time']);
     }
 
     public function testCreateGameNormalizesShortTimeFormatInTitle(): void
@@ -88,8 +88,8 @@ final class GameManagerTest extends DatabaseTestCase
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertSame('Beach 08:00', $game['title']);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame('08:00', $gamePlayer['time']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame('08:00', $gameUser['time']);
     }
 
     public function testCreateGamePersistsSlotAtPositionOne(): void
@@ -103,41 +103,41 @@ final class GameManagerTest extends DatabaseTestCase
 
     // --- joinGame ---
 
-    public function testJoinGameCreatesGamePlayerAndSlot(): void
+    public function testJoinGameCreatesGameUserAndSlot(): void
     {
         $gameId = $this->createGame();
 
         $this->gameManager->joinGame($gameId, 200, 'Danil', null, null);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertNotNull($gamePlayer);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertNotNull($gameUser);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
         $this->assertSame(1, (int)$slots[0]['position']);
     }
 
-    public function testJoinGameUpsertsPlayer(): void
+    public function testJoinGameUpsertsUser(): void
     {
         $gameId = $this->createGame();
 
         $this->gameManager->joinGame($gameId, 200, 'Danil', 'Kashin', 'danil');
 
-        $players = new PlayerRepository($this->db)->findAll();
-        $this->assertCount(1, $players);
-        $this->assertSame('Danil', $players[0]['first_name']);
-        $this->assertSame('Kashin', $players[0]['last_name']);
+        $users = new UserRepository($this->db)->findAll();
+        $this->assertCount(1, $users);
+        $this->assertSame('Danil', $users[0]['first_name']);
+        $this->assertSame('Kashin', $users[0]['last_name']);
     }
 
-    public function testSecondJoinAddsExtraSlotWithoutDuplicatingGamePlayer(): void
+    public function testSecondJoinAddsExtraSlotWithoutDuplicatingGameUser(): void
     {
         $gameId = $this->createGame();
 
         $this->gameManager->joinGame($gameId, 200, 'Danil', null, null);
         $this->gameManager->joinGame($gameId, 200, 'Danil', null, null);
 
-        $gamePlayers = new GamePlayerRepository($this->db)->findByGameId($gameId);
-        $this->assertCount(1, $gamePlayers);
+        $gameUsers = new GameUserRepository($this->db)->findByGameId($gameId);
+        $this->assertCount(1, $gameUsers);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(2, $slots);
@@ -149,7 +149,7 @@ final class GameManagerTest extends DatabaseTestCase
     public function testLeaveGameRemovesHighestSlot(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1);
+        $this->seedUser($gameId, 200, position: 1);
         $this->createSlot($gameId, 200, 2);
 
         $result = $this->gameManager->leaveGame($gameId, 200);
@@ -161,17 +161,17 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame(1, (int)$slots[0]['position']);
     }
 
-    public function testLeaveGameDeletesGamePlayerWhenLastSlot(): void
+    public function testLeaveGameDeletesGameUserWhenLastSlot(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1);
+        $this->seedUser($gameId, 200, position: 1);
 
         $result = $this->gameManager->leaveGame($gameId, 200);
 
         $this->assertSame(LeaveResult::Left, $result);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertNull($gamePlayer);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertNull($gameUser);
     }
 
     public function testLeaveGameReturnsNotJoinedWhenNotInGame(): void
@@ -188,33 +188,33 @@ final class GameManagerTest extends DatabaseTestCase
     public function testAddNetIncrementsCount(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1);
+        $this->seedUser($gameId, 200, position: 1);
 
         $result = $this->gameManager->addNet($gameId, 200, 'Danil', null, null);
 
         $this->assertSame(EquipmentResult::Added, $result);
-        $this->assertSame(1, new GamePlayerRepository($this->db)->findNetCount($gameId, 200));
+        $this->assertSame(1, new GameUserRepository($this->db)->findNetCount($gameId, 200));
     }
 
-    public function testAddNetAutoJoinsPlayerWhenNotInGame(): void
+    public function testAddNetAutoJoinsUserWhenNotInGame(): void
     {
         $gameId = $this->createGame();
 
         $result = $this->gameManager->addNet($gameId, 200, 'Danil', null, null);
 
         $this->assertSame(EquipmentResult::Added, $result);
-        $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
-        $this->assertSame(1, new GamePlayerRepository($this->db)->findNetCount($gameId, 200));
+        $this->assertNotNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
+        $this->assertSame(1, new GameUserRepository($this->db)->findNetCount($gameId, 200));
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
         $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
     }
 
-    public function testAddNetDoesNotDuplicateSlotForExistingPlayer(): void
+    public function testAddNetDoesNotDuplicateSlotForExistingUser(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1);
+        $this->seedUser($gameId, 200, position: 1);
 
         $this->gameManager->addNet($gameId, 200, 'Danil', null, null);
 
@@ -227,18 +227,18 @@ final class GameManagerTest extends DatabaseTestCase
     public function testRemoveNetDecrementsCount(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1, net: 2);
+        $this->seedUser($gameId, 200, position: 1, net: 2);
 
         $result = $this->gameManager->removeNet($gameId, 200);
 
         $this->assertSame(EquipmentResult::Removed, $result);
-        $this->assertSame(1, new GamePlayerRepository($this->db)->findNetCount($gameId, 200));
+        $this->assertSame(1, new GameUserRepository($this->db)->findNetCount($gameId, 200));
     }
 
     public function testRemoveNetReturnsNoneLeftWhenZero(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1, net: 0);
+        $this->seedUser($gameId, 200, position: 1, net: 0);
 
         $result = $this->gameManager->removeNet($gameId, 200);
 
@@ -259,33 +259,33 @@ final class GameManagerTest extends DatabaseTestCase
     public function testAddVolleyballIncrementsCount(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1);
+        $this->seedUser($gameId, 200, position: 1);
 
         $result = $this->gameManager->addVolleyball($gameId, 200, 'Danil', null, null);
 
         $this->assertSame(EquipmentResult::Added, $result);
-        $this->assertSame(1, new GamePlayerRepository($this->db)->findVolleyballCount($gameId, 200));
+        $this->assertSame(1, new GameUserRepository($this->db)->findVolleyballCount($gameId, 200));
     }
 
-    public function testAddVolleyballAutoJoinsPlayerWhenNotInGame(): void
+    public function testAddVolleyballAutoJoinsUserWhenNotInGame(): void
     {
         $gameId = $this->createGame();
 
         $result = $this->gameManager->addVolleyball($gameId, 200, 'Danil', null, null);
 
         $this->assertSame(EquipmentResult::Added, $result);
-        $this->assertNotNull(new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200));
-        $this->assertSame(1, new GamePlayerRepository($this->db)->findVolleyballCount($gameId, 200));
+        $this->assertNotNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
+        $this->assertSame(1, new GameUserRepository($this->db)->findVolleyballCount($gameId, 200));
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
         $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
     }
 
-    public function testAddVolleyballDoesNotDuplicateSlotForExistingPlayer(): void
+    public function testAddVolleyballDoesNotDuplicateSlotForExistingUser(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1);
+        $this->seedUser($gameId, 200, position: 1);
 
         $this->gameManager->addVolleyball($gameId, 200, 'Danil', null, null);
 
@@ -298,18 +298,18 @@ final class GameManagerTest extends DatabaseTestCase
     public function testRemoveVolleyballDecrementsCount(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1, volleyball: 2);
+        $this->seedUser($gameId, 200, position: 1, volleyball: 2);
 
         $result = $this->gameManager->removeVolleyball($gameId, 200);
 
         $this->assertSame(EquipmentResult::Removed, $result);
-        $this->assertSame(1, new GamePlayerRepository($this->db)->findVolleyballCount($gameId, 200));
+        $this->assertSame(1, new GameUserRepository($this->db)->findVolleyballCount($gameId, 200));
     }
 
     public function testRemoveVolleyballReturnsNoneLeftWhenZero(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1, volleyball: 0);
+        $this->seedUser($gameId, 200, position: 1, volleyball: 0);
 
         $result = $this->gameManager->removeVolleyball($gameId, 200);
 
@@ -339,29 +339,29 @@ final class GameManagerTest extends DatabaseTestCase
 
     // --- joinWithTime ---
 
-    public function testJoinWithTimeCreatesNewPlayerWithTime(): void
+    public function testJoinWithTimeCreatesNewUserWithTime(): void
     {
         $gameId = $this->createGame();
 
-        $this->gameManager->setPlayerTime($gameId, 200, 'Danil', null, null, '19:30');
+        $this->gameManager->setUserTime($gameId, 200, 'Danil', null, null, '19:30');
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertNotNull($gamePlayer);
-        $this->assertSame('19:30', $gamePlayer['time']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertNotNull($gameUser);
+        $this->assertSame('19:30', $gameUser['time']);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
     }
 
-    public function testSetPlayerTimeDoesNotDuplicateSlotForExistingPlayer(): void
+    public function testSetUserTimeDoesNotDuplicateSlotForExistingUser(): void
     {
         $gameId = $this->createGame();
-        $this->seedPlayer($gameId, 200, position: 1);
+        $this->seedUser($gameId, 200, position: 1);
 
-        $this->gameManager->setPlayerTime($gameId, 200, 'Danil', null, null, '20:00');
+        $this->gameManager->setUserTime($gameId, 200, 'Danil', null, null, '20:00');
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame('20:00', $gamePlayer['time']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame('20:00', $gameUser['time']);
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
@@ -386,8 +386,8 @@ final class GameManagerTest extends DatabaseTestCase
     public function testAddNetRecalculatesGameTimeToEarliestNetHolder(): void
     {
         $gameId = $this->createGame(title: 'Beach 18:00');
-        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
-        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, net: 0, time: '16:00');
 
         $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
 
@@ -398,8 +398,8 @@ final class GameManagerTest extends DatabaseTestCase
     public function testRemoveNetRecalculatesGameTimeToNextNetHolder(): void
     {
         $gameId = $this->createGame(title: 'Beach 16:00');
-        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
-        $this->seedPlayer($gameId, 201, position: 2, net: 1, time: '16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
 
         $this->gameManager->removeNet($gameId, 201);
 
@@ -407,22 +407,22 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Beach 18:00', $title);
     }
 
-    public function testSetPlayerTimeRecalculatesGameTime(): void
+    public function testSetUserTimeRecalculatesGameTime(): void
     {
         $gameId = $this->createGame(title: 'Beach 18:00');
-        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
 
-        $this->gameManager->setPlayerTime($gameId, 200, 'Danil', null, null, '15:30');
+        $this->gameManager->setUserTime($gameId, 200, 'Danil', null, null, '15:30');
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 15:30', $title);
     }
 
-    public function testRecalculateGameTimeIgnoresPlayersWithoutNets(): void
+    public function testRecalculateGameTimeIgnoresUsersWithoutNets(): void
     {
         $gameId = $this->createGame(title: 'Beach 18:00');
-        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
-        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '15:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, net: 0, time: '15:00');
 
         $this->gameManager->addVolleyball($gameId, 201, 'Alice', null, null);
 
@@ -433,8 +433,8 @@ final class GameManagerTest extends DatabaseTestCase
     public function testRecalculateGameTimeReplacesShortTimeFormatInTitle(): void
     {
         $gameId = $this->createGame(title: 'Beach 8:00');
-        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '08:00');
-        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '07:30');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '08:00');
+        $this->seedUser($gameId, 201, position: 2, net: 0, time: '07:30');
 
         $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
 
@@ -442,11 +442,11 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Beach 07:30', $title);
     }
 
-    public function testRemoveLastNetFallsBackToEarliestTimeAmongAllPlayers(): void
+    public function testRemoveLastNetFallsBackToEarliestTimeAmongAllUsers(): void
     {
         $gameId = $this->createGame(title: 'Beach 18:00');
-        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
-        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, net: 0, time: '16:00');
 
         $this->gameManager->removeNet($gameId, 200);
 
@@ -457,8 +457,8 @@ final class GameManagerTest extends DatabaseTestCase
     public function testRecalculateGameTimeKeepsTitleWhenNoChange(): void
     {
         $gameId = $this->createGame(title: 'Beach 18:00');
-        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00');
-        $this->seedPlayer($gameId, 201, position: 2, net: 0, time: '18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, net: 0, time: '18:00');
 
         $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
 
@@ -468,7 +468,7 @@ final class GameManagerTest extends DatabaseTestCase
 
     // --- changeTitle ---
 
-    public function testChangeTitleWhenCreatorIsOnlyPlayerUsesProposedTime(): void
+    public function testChangeTitleWhenCreatorIsOnlyUserUsesProposedTime(): void
     {
         $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
 
@@ -478,21 +478,21 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Beach Saturday 20:00', $title);
     }
 
-    public function testChangeTitleUpdatesCreatorPlayerTime(): void
+    public function testChangeTitleUpdatesCreatorUserTime(): void
     {
         $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
 
         $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Beach Saturday 20:00');
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame('20:00', $gamePlayer['time']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame('20:00', $gameUser['time']);
     }
 
-    public function testChangeTitlePreservesEarlierPlayerTimeInTitle(): void
+    public function testChangeTitlePreservesEarlierUserTimeInTitle(): void
     {
         $gameId = $this->createGame(title: 'Beach 18:00');
-        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
-        $this->seedPlayer($gameId, 201, position: 2, net: 1, time: '16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
 
         $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Picnic Sunday 20:00');
 
@@ -500,16 +500,16 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Picnic Sunday 16:00', $title);
     }
 
-    public function testChangeTitleLeavesOtherPlayersTimesUnchanged(): void
+    public function testChangeTitleLeavesOtherUsersTimesUnchanged(): void
     {
         $gameId = $this->createGame(title: 'Beach 18:00');
-        $this->seedPlayer($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
-        $this->seedPlayer($gameId, 201, position: 2, net: 1, time: '16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
 
         $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Picnic Sunday 20:00');
 
-        $creatorTime = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $otherTime = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 201);
+        $creatorTime = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $otherTime = new GameUserRepository($this->db)->findByGameUser($gameId, 201);
         $this->assertSame('20:00', $creatorTime['time']);
         $this->assertSame('16:00', $otherTime['time']);
     }
@@ -545,7 +545,7 @@ final class GameManagerTest extends DatabaseTestCase
         );
     }
 
-    private function seedPlayer(
+    private function seedUser(
         int $gameId,
         int $telegramUserId,
         int $position,
@@ -553,8 +553,8 @@ final class GameManagerTest extends DatabaseTestCase
         int $net = 0,
         string $time = '18:00',
     ): void {
-        $this->createPlayer($telegramUserId);
-        $this->db->insert('game_players', [
+        $this->createUser($telegramUserId);
+        $this->db->insert('game_users', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
             'volleyball' => $volleyball,

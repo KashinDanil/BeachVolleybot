@@ -20,8 +20,8 @@ enum AdminCallbackAction: string implements CallbackActionInterface
     case LogClear = 'lc';
     case GamesList = 'gl';
     case GameDetail = 'gd';
-    case GamePlayers = 'gp';
-    case PlayerSettings = 'ps';
+    case GameUsers = 'gp';
+    case UserSettings = 'ps';
     case RemoveSlot = 'rs';
     case RemoveLocation = 'rl';
     case AddNet = 'an';
@@ -48,8 +48,8 @@ enum AdminCallbackAction: string implements CallbackActionInterface
             self::LogClear => new LogClearCallbackProcessor($telegramSender, $callbackData),
             self::GamesList => new AdminGamesListCallbackProcessor($telegramSender, $callbackData),
             self::GameDetail => new AdminGameDetailCallbackProcessor($telegramSender, $callbackData),
-            self::GamePlayers => new AdminPlayersListCallbackProcessor($telegramSender, $callbackData),
-            self::PlayerSettings => new AdminPlayerSettingsProcessor($telegramSender, $callbackData),
+            self::GameUsers => new AdminUsersListCallbackProcessor($telegramSender, $callbackData),
+            self::UserSettings => new AdminUserSettingsProcessor($telegramSender, $callbackData),
             self::RemoveSlot => new AdminRemoveSlotProcessor($telegramSender, $callbackData),
             self::RemoveLocation => new AdminRemoveLocationCallbackProcessor($telegramSender, $callbackData),
             self::AddNet => new AdminAddNetProcessor($telegramSender, $callbackData),

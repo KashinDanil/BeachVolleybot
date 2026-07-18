@@ -51,7 +51,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         return $gameId;
     }
 
-    protected function seedGameWithPlayer(
+    protected function seedGameWithUser(
         int $telegramUserId = 200,
         string $firstName = 'Danil',
         int $volleyball = 0,
@@ -61,8 +61,8 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         string $time = '18:00',
     ): int {
         $gameId = $this->seedFullGame(inlineMessageId: $inlineMessageId);
-        $this->createPlayer($telegramUserId, $firstName);
-        $this->db->insert('game_players', [
+        $this->createUser($telegramUserId, $firstName);
+        $this->db->insert('game_users', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
             'time' => $time,

@@ -6,7 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Game\AddOns;
 
 use BeachVolleybot\Game\AddOns\MergeConsecutiveSlotsAddOn;
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Game\Models\Player;
+use BeachVolleybot\Game\Models\User;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -21,39 +21,39 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
 
     // --- No merging ---
 
-    public function testEmptyPlayers(): void
+    public function testEmptyUsers(): void
     {
         $game = $this->game([]);
 
         $this->transform($game);
 
-        $this->assertSame([], $game->players);
+        $this->assertSame([], $game->users);
     }
 
-    public function testSinglePlayerSingleSlot(): void
+    public function testSingleUserSingleSlot(): void
     {
         $game = $this->game([
-            $this->player(telegramUserId: 1, number: '1'),
+            $this->user(telegramUserId: 1, number: '1'),
         ]);
 
         $this->transform($game);
 
-        $this->assertCount(1, $game->players);
-        $this->assertSame('1', $game->players[0]->getNumber());
+        $this->assertCount(1, $game->users);
+        $this->assertSame('1', $game->users[0]->getNumber());
     }
 
-    public function testTwoDifferentPlayers(): void
+    public function testTwoDifferentUsers(): void
     {
         $game = $this->game([
-            $this->player(telegramUserId: 1, number: '1', name: 'Alice'),
-            $this->player(telegramUserId: 2, number: '2', name: 'Bob'),
+            $this->user(telegramUserId: 1, number: '1', name: 'Alice'),
+            $this->user(telegramUserId: 2, number: '2', name: 'Bob'),
         ]);
 
         $this->transform($game);
 
-        $this->assertCount(2, $game->players);
-        $this->assertSame('1', $game->players[0]->getNumber());
-        $this->assertSame('2', $game->players[1]->getNumber());
+        $this->assertCount(2, $game->users);
+        $this->assertSame('1', $game->users[0]->getNumber());
+        $this->assertSame('2', $game->users[1]->getNumber());
     }
 
     // --- Merging consecutive slots ---
@@ -61,65 +61,65 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
     public function testTwoConsecutiveSlotsMerged(): void
     {
         $game = $this->game([
-            $this->player(telegramUserId: 1, number: '1'),
-            $this->player(telegramUserId: 1, number: '2'),
+            $this->user(telegramUserId: 1, number: '1'),
+            $this->user(telegramUserId: 1, number: '2'),
         ]);
 
         $this->transform($game);
 
-        $this->assertCount(1, $game->players);
-        $this->assertSame('1-2', $game->players[0]->getNumber());
+        $this->assertCount(1, $game->users);
+        $this->assertSame('1-2', $game->users[0]->getNumber());
     }
 
     public function testThreeConsecutiveSlotsMerged(): void
     {
         $game = $this->game([
-            $this->player(telegramUserId: 1, number: '1'),
-            $this->player(telegramUserId: 1, number: '2'),
-            $this->player(telegramUserId: 1, number: '3'),
+            $this->user(telegramUserId: 1, number: '1'),
+            $this->user(telegramUserId: 1, number: '2'),
+            $this->user(telegramUserId: 1, number: '3'),
         ]);
 
         $this->transform($game);
 
-        $this->assertCount(1, $game->players);
-        $this->assertSame('1-3', $game->players[0]->getNumber());
+        $this->assertCount(1, $game->users);
+        $this->assertSame('1-3', $game->users[0]->getNumber());
     }
 
-    public function testMergedPlayerPreservesAttributes(): void
+    public function testMergedUserPreservesAttributes(): void
     {
         $game = $this->game([
-            $this->player(telegramUserId: 1, number: '1', name: 'Alice', link: 'https://t.me/alice', volleyball: 3, net: 2, time: '19:00'),
-            $this->player(telegramUserId: 1, number: '2', name: 'Alice', link: 'https://t.me/alice', volleyball: 3, net: 2, time: '19:00'),
+            $this->user(telegramUserId: 1, number: '1', name: 'Alice', link: 'https://t.me/alice', volleyball: 3, net: 2, time: '19:00'),
+            $this->user(telegramUserId: 1, number: '2', name: 'Alice', link: 'https://t.me/alice', volleyball: 3, net: 2, time: '19:00'),
         ]);
 
         $this->transform($game);
 
-        $player = $game->players[0];
+        $user = $game->users[0];
 
-        $this->assertSame(1, $player->getTelegramUserId());
-        $this->assertSame('Alice', $player->getName());
-        $this->assertSame('https://t.me/alice', $player->getLink());
-        $this->assertSame(3, $player->getVolleyball());
-        $this->assertSame(2, $player->getNet());
-        $this->assertSame('19:00', $player->getTime());
+        $this->assertSame(1, $user->getTelegramUserId());
+        $this->assertSame('Alice', $user->getName());
+        $this->assertSame('https://t.me/alice', $user->getLink());
+        $this->assertSame(3, $user->getVolleyball());
+        $this->assertSame(2, $user->getNet());
+        $this->assertSame('19:00', $user->getTime());
     }
 
-    // --- Non-consecutive same player ---
+    // --- Non-consecutive same user ---
 
-    public function testSamePlayerNonConsecutiveNotMerged(): void
+    public function testSameUserNonConsecutiveNotMerged(): void
     {
         $game = $this->game([
-            $this->player(telegramUserId: 1, number: '1', name: 'Alice'),
-            $this->player(telegramUserId: 2, number: '2', name: 'Bob'),
-            $this->player(telegramUserId: 1, number: '3', name: 'Alice'),
+            $this->user(telegramUserId: 1, number: '1', name: 'Alice'),
+            $this->user(telegramUserId: 2, number: '2', name: 'Bob'),
+            $this->user(telegramUserId: 1, number: '3', name: 'Alice'),
         ]);
 
         $this->transform($game);
 
-        $this->assertCount(3, $game->players);
-        $this->assertSame('1', $game->players[0]->getNumber());
-        $this->assertSame('2', $game->players[1]->getNumber());
-        $this->assertSame('3', $game->players[2]->getNumber());
+        $this->assertCount(3, $game->users);
+        $this->assertSame('1', $game->users[0]->getNumber());
+        $this->assertSame('2', $game->users[1]->getNumber());
+        $this->assertSame('3', $game->users[2]->getNumber());
     }
 
     // --- Mixed scenario ---
@@ -127,19 +127,19 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
     public function testConsecutiveThenGapThenConsecutive(): void
     {
         $game = $this->game([
-            $this->player(telegramUserId: 1, number: '1', name: 'Alice'),
-            $this->player(telegramUserId: 1, number: '2', name: 'Alice'),
-            $this->player(telegramUserId: 2, number: '3', name: 'Bob'),
-            $this->player(telegramUserId: 1, number: '4', name: 'Alice'),
-            $this->player(telegramUserId: 1, number: '5', name: 'Alice'),
+            $this->user(telegramUserId: 1, number: '1', name: 'Alice'),
+            $this->user(telegramUserId: 1, number: '2', name: 'Alice'),
+            $this->user(telegramUserId: 2, number: '3', name: 'Bob'),
+            $this->user(telegramUserId: 1, number: '4', name: 'Alice'),
+            $this->user(telegramUserId: 1, number: '5', name: 'Alice'),
         ]);
 
         $this->transform($game);
 
-        $this->assertCount(3, $game->players);
-        $this->assertSame('1-2', $game->players[0]->getNumber());
-        $this->assertSame('3', $game->players[1]->getNumber());
-        $this->assertSame('4-5', $game->players[2]->getNumber());
+        $this->assertCount(3, $game->users);
+        $this->assertSame('1-2', $game->users[0]->getNumber());
+        $this->assertSame('3', $game->users[1]->getNumber());
+        $this->assertSame('4-5', $game->users[2]->getNumber());
     }
 
     // --- Game properties preserved ---
@@ -162,7 +162,7 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
     }
 
     private function game(
-        array $players,
+        array $users,
         int $gameId = 1,
         string $title = 'Beach Game 18:00',
     ): Game {
@@ -171,12 +171,12 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
             inlineQueryId: 'query_1',
             inlineMessageIds: ['msg_1'],
             title: $title,
-            players: $players,
+            users: $users,
             createdAt: new DateTimeImmutable(),
         );
     }
 
-    private function player(
+    private function user(
         int $telegramUserId = 1,
         string $number = '1',
         string $name = 'Alice',
@@ -184,8 +184,8 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
         int $volleyball = 0,
         int $net = 0,
         string $time = '18:00',
-    ): Player {
-        return new Player(
+    ): User {
+        return new User(
             telegramUserId: $telegramUserId,
             number: $number,
             name: $name,

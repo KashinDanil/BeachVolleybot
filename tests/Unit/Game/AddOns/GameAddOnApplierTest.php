@@ -48,7 +48,7 @@ final class GameAddOnApplierTest extends TestCase
             inlineQueryId: 'query_1',
             inlineMessageIds: ['msg_1'],
             title: 'Beach Game 18:00',
-            players: [],
+            users: [],
             createdAt: new DateTimeImmutable(),
         );
     }

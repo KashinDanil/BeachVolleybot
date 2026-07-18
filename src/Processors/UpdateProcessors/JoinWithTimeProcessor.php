@@ -22,7 +22,7 @@ class JoinWithTimeProcessor extends AbstractGameReplyProcessor
             return;
         }
 
-        new GameManager()->setPlayerTime(
+        new GameManager()->setUserTime(
             $gameRecord->gameId,
             $from->id,
             $from->firstName,

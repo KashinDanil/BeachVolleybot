@@ -153,7 +153,7 @@ final class WeatherWindowResolverTest extends TestCase
             inlineQueryId: 'iq',
             inlineMessageIds: ['im'],
             title: $title,
-            players: [],
+            users: [],
             createdAt: $createdAt,
         );
         $game->init();

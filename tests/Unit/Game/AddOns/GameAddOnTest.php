@@ -31,14 +31,14 @@ final class GameAddOnTest extends TestCase
         $this->assertSame(42, $game->getGameId());
     }
 
-    public function testAddOnPreservesPlayers(): void
+    public function testAddOnPreservesUsers(): void
     {
         $game = $this->game();
-        $playersBefore = $game->players;
+        $usersBefore = $game->users;
 
         (new TitlePrefixAddOn())->applyTo($game);
 
-        $this->assertSame($playersBefore, $game->players);
+        $this->assertSame($usersBefore, $game->users);
     }
 
     // --- Custom constructor parameter ---
@@ -81,7 +81,7 @@ final class GameAddOnTest extends TestCase
             inlineQueryId: 'query_1',
             inlineMessageIds: ['msg_1'],
             title: $title,
-            players: [],
+            users: [],
             createdAt: new DateTimeImmutable(),
         );
     }

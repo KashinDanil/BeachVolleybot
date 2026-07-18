@@ -4,37 +4,37 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Database;
 
-use BeachVolleybot\Database\PlayerRepository;
+use BeachVolleybot\Database\UserRepository;
 
-final class PlayerRepositoryTest extends DatabaseTestCase
+final class UserRepositoryTest extends DatabaseTestCase
 {
-    private PlayerRepository $repository;
+    private UserRepository $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new PlayerRepository($this->db);
+        $this->repository = new UserRepository($this->db);
     }
 
-    public function testUpsertInsertsNewPlayer(): void
+    public function testUpsertInsertsNewUser(): void
     {
         $this->repository->upsert(200, 'Danil', 'Kashin', 'danil_kashin');
 
-        $player = $this->repository->findById(200);
+        $user = $this->repository->findById(200);
 
-        $this->assertSame('Danil', $player['first_name']);
-        $this->assertSame('Kashin', $player['last_name']);
-        $this->assertSame('danil_kashin', $player['username']);
+        $this->assertSame('Danil', $user['first_name']);
+        $this->assertSame('Kashin', $user['last_name']);
+        $this->assertSame('danil_kashin', $user['username']);
     }
 
-    public function testUpsertUpdatesExistingPlayer(): void
+    public function testUpsertUpdatesExistingUser(): void
     {
         $this->repository->upsert(200, 'Danil', 'Kashin', 'old_username');
         $this->repository->upsert(200, 'Danil', 'Kashin', 'new_username');
 
-        $player = $this->repository->findById(200);
+        $user = $this->repository->findById(200);
 
-        $this->assertSame('new_username', $player['username']);
+        $this->assertSame('new_username', $user['username']);
     }
 
     public function testUpsertDoesNotCreateDuplicate(): void
@@ -50,7 +50,7 @@ final class PlayerRepositoryTest extends DatabaseTestCase
         $this->assertNull($this->repository->findById(999));
     }
 
-    public function testDeleteRemovesPlayer(): void
+    public function testDeleteRemovesUser(): void
     {
         $this->repository->upsert(200, 'Danil');
 

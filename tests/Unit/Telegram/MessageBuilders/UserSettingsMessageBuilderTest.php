@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
-use BeachVolleybot\Telegram\MessageBuilders\PlayerSettingsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\UserSettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use PHPUnit\Framework\TestCase;
 
-final class PlayerSettingsMessageBuilderTest extends TestCase
+final class UserSettingsMessageBuilderTest extends TestCase
 {
-    private PlayerSettingsMessageBuilder $builder;
+    private UserSettingsMessageBuilder $builder;
 
     public function testShowsGameIdInHeader(): void
     {
@@ -19,32 +19,32 @@ final class PlayerSettingsMessageBuilderTest extends TestCase
         $this->assertStringContainsString('#42', $message->getText()->getMessageText());
     }
 
-    // --- buildPlayerSettings ---
+    // --- buildUserSettings ---
 
-    public function testShowsPlayerName(): void
+    public function testShowsUserName(): void
     {
-        $message = $this->build(playerName: 'Alice');
+        $message = $this->build(userName: 'Alice');
 
         $this->assertStringContainsString('Alice', $message->getText()->getMessageText());
     }
 
-    public function testShowsPlayerLinkWhenProvided(): void
+    public function testShowsUserLinkWhenProvided(): void
     {
-        $message = $this->build(playerName: 'Alice', playerLink: 'https://t.me/alice');
+        $message = $this->build(userName: 'Alice', userLink: 'https://t.me/alice');
 
         $text = $message->getText()->getMessageText();
         $this->assertStringContainsString('Alice', $text);
         $this->assertStringContainsString('https://t.me/alice', $text);
     }
 
-    public function testOmitsPlayerLinkWhenNotProvided(): void
+    public function testOmitsUserLinkWhenNotProvided(): void
     {
-        $message = $this->build(playerName: 'Alice', playerLink: null);
+        $message = $this->build(userName: 'Alice', userLink: null);
 
         $this->assertStringNotContainsString('https://t.me/', $message->getText()->getMessageText());
     }
 
-    public function testShowsPlayerId(): void
+    public function testShowsUserId(): void
     {
         $message = $this->build(telegramUserId: 12345678);
 
@@ -127,7 +127,7 @@ final class PlayerSettingsMessageBuilderTest extends TestCase
         $this->assertContains("+\u{1F578}\u{FE0F}", $allButtonTexts);
     }
 
-    // --- buildPlayerNotFound ---
+    // --- buildUserNotFound ---
 
     public function testHasBackButton(): void
     {
@@ -138,25 +138,25 @@ final class PlayerSettingsMessageBuilderTest extends TestCase
         $this->assertSame("\u{21A9} Back", $lastRow[0]['text']);
     }
 
-    public function testPlayerNotFoundShowsMessage(): void
+    public function testUserNotFoundShowsMessage(): void
     {
-        $message = $this->builder->buildPlayerNotFound(42);
+        $message = $this->builder->buildUserNotFound(42);
 
-        $this->assertStringContainsString('Player not found', $message->getText()->getMessageText());
+        $this->assertStringContainsString('User not found', $message->getText()->getMessageText());
     }
 
-    public function testPlayerNotFoundShowsGameId(): void
+    public function testUserNotFoundShowsGameId(): void
     {
-        $message = $this->builder->buildPlayerNotFound(42);
+        $message = $this->builder->buildUserNotFound(42);
 
         $this->assertStringContainsString('#42', $message->getText()->getMessageText());
     }
 
     // --- helpers ---
 
-    public function testPlayerNotFoundHasBackButton(): void
+    public function testUserNotFoundHasBackButton(): void
     {
-        $message = $this->builder->buildPlayerNotFound(42);
+        $message = $this->builder->buildUserNotFound(42);
         $keyboard = $this->extractKeyboard($message);
 
         $lastRow = end($keyboard);
@@ -166,17 +166,17 @@ final class PlayerSettingsMessageBuilderTest extends TestCase
     private function build(
         int $gameId = 1,
         int $telegramUserId = 100,
-        string $playerName = 'Alice',
-        ?string $playerLink = null,
+        string $userName = 'Alice',
+        ?string $userLink = null,
         int $slotCount = 1,
         int $volleyball = 0,
         int $net = 0,
     ): TelegramMessage {
-        return $this->builder->buildPlayerSettings(
+        return $this->builder->buildUserSettings(
             $gameId,
             $telegramUserId,
-            $playerName,
-            $playerLink,
+            $userName,
+            $userLink,
             $slotCount,
             $volleyball,
             $net,
@@ -185,6 +185,6 @@ final class PlayerSettingsMessageBuilderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->builder = new PlayerSettingsMessageBuilder();
+        $this->builder = new UserSettingsMessageBuilder();
     }
 }

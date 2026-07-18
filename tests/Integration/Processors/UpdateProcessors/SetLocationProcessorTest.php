@@ -13,7 +13,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 {
     public function testUpdatesGameLocation(): void
     {
-        $gameId = $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $gameId = $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
         new SetLocationProcessor($this->telegramSender)->process($update);
@@ -24,7 +24,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
     public function testReactsWithCheckmark(): void
     {
-        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
         new SetLocationProcessor($this->telegramSender)->process($update);
@@ -34,7 +34,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
     public function testDoesNotDeleteMessage(): void
     {
-        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
         new SetLocationProcessor($this->telegramSender)->process($update);
@@ -45,7 +45,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
     public function testRefreshesInlineMessage(): void
     {
-        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
         new SetLocationProcessor($this->telegramSender)->process($update);
@@ -53,7 +53,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
         $this->assertMessageEdited();
     }
 
-    public function testReactsConfusedWhenPlayerNotInGame(): void
+    public function testReactsConfusedWhenUserNotInGame(): void
     {
         $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
@@ -63,7 +63,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
-    public function testDoesNotUpdateLocationWhenPlayerNotInGame(): void
+    public function testDoesNotUpdateLocationWhenUserNotInGame(): void
     {
         $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
@@ -85,7 +85,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
     public function testIgnoresMessageWithoutReplyMarkup(): void
     {
-        $this->seedGameWithPlayer(inlineMessageId: 'msg_1');
+        $this->seedGameWithUser(inlineMessageId: 'msg_1');
         $payload = [
             'update_id' => 1,
             'message' => [

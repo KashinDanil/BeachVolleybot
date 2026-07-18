@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\PlayerInterface;
+use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
@@ -20,14 +20,14 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
  * @method string  buildText(GameInterface $game)
  * @method list<?string> getSections(GameInterface $game)
  * @method string  buildTitle(GameInterface $game)
- * @method string  buildPlayerList(GameInterface $game)
- * @method string  buildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime)
- * @method string  displayName(PlayerInterface $player, int $appearance)
- * @method int     plusCount(PlayerInterface $player, int $appearance)
- * @method string  displayTime(string $playerTime, string $gameTime)
+ * @method string  buildUserList(GameInterface $game)
+ * @method string  buildUserLine(UserInterface $user, int $appearance, string $gameTime)
+ * @method string  displayName(UserInterface $user, int $appearance)
+ * @method int     plusCount(UserInterface $user, int $appearance)
+ * @method string  displayTime(string $userTime, string $gameTime)
  * @method string|null buildLocationLink(?string $location)
- * @method string|null buildWarning(array $players)
- * @method string  playerKey(PlayerInterface $player)
+ * @method string|null buildWarning(array $users)
+ * @method string  userKey(UserInterface $user)
  * @method string  formatEmoji(int $count, string $emoji)
  * @method array   buildKeyboard(GameInterface $game)
  */
@@ -65,21 +65,21 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     protected function defaultGetSections(GameInterface $game): array
     {
         return [
-            $this->buildWarning($game->getPlayers()),
+            $this->buildWarning($game->getUsers()),
             $this->buildTitle($game),
-            $this->buildPlayerList($game),
+            $this->buildUserList($game),
             $this->buildLocationLink($game->getLocation()),
         ];
     }
 
-    /** @param PlayerInterface[] $players */
-    protected function defaultBuildWarning(array $players): ?string
+    /** @param UserInterface[] $users */
+    protected function defaultBuildWarning(array $users): ?string
     {
-        if (empty($players)) {
+        if (empty($users)) {
             return null;
         }
 
-        $messages = $this->warningCollector->collect($players);
+        $messages = $this->warningCollector->collect($users);
 
         if (empty($messages)) {
             return null;
@@ -95,50 +95,50 @@ final class GameMessageBuilder extends AbstractMessageBuilder
         return $this->formatter->escape($game->getTitle());
     }
 
-    protected function defaultBuildPlayerList(GameInterface $game): string
+    protected function defaultBuildUserList(GameInterface $game): string
     {
         $lines = [];
         $appearances = [];
 
         $gameTime = $game->getTime();
-        foreach ($game->getPlayers() as $player) {
-            $key = $this->playerKey($player);
+        foreach ($game->getUsers() as $user) {
+            $key = $this->userKey($user);
             $appearances[$key] = ($appearances[$key] ?? 0) + 1;
 
-            $lines[] = $this->buildPlayerLine($player, $appearances[$key], $gameTime);
+            $lines[] = $this->buildUserLine($user, $appearances[$key], $gameTime);
         }
 
         return implode($this->formatter->newLine(), $lines);
     }
 
-    protected function defaultBuildPlayerLine(PlayerInterface $player, int $appearance, string $gameTime): string
+    protected function defaultBuildUserLine(UserInterface $user, int $appearance, string $gameTime): string
     {
         $parts = [
-            $this->formatter->escape($player->getNumber() . '.'),
-            $this->displayName($player, $appearance),
+            $this->formatter->escape($user->getNumber() . '.'),
+            $this->displayName($user, $appearance),
         ];
 
         if (1 === $appearance) {
-            $parts[] = $this->formatEmoji($player->getVolleyball(), self::VOLLEYBALL_EMOJI);
-            $parts[] = $this->formatEmoji($player->getNet(), self::NET_EMOJI);
+            $parts[] = $this->formatEmoji($user->getVolleyball(), self::VOLLEYBALL_EMOJI);
+            $parts[] = $this->formatEmoji($user->getNet(), self::NET_EMOJI);
         }
 
-        $parts[] = $this->displayTime($player->getTime(), $gameTime);
+        $parts[] = $this->displayTime($user->getTime(), $gameTime);
 
         return implode(' ', array_filter($parts));
     }
 
-    protected function defaultDisplayName(PlayerInterface $player, int $appearance): string
+    protected function defaultDisplayName(UserInterface $user, int $appearance): string
     {
-        $name = $player->getName();
-        $link = $player->getLink();
+        $name = $user->getName();
+        $link = $user->getLink();
 
         $formatted = null !== $link
             ? $this->formatter->link($name, $link)
             : $this->formatter->escape($name);
 
         if (1 < $appearance) {
-            $plusCount = $this->plusCount($player, $appearance);
+            $plusCount = $this->plusCount($user, $appearance);
 
             return $this->formatter->escape('+' . $plusCount . ' (') . $formatted . $this->formatter->escape(')');
         }
@@ -146,14 +146,14 @@ final class GameMessageBuilder extends AbstractMessageBuilder
         return $formatted;
     }
 
-    protected function defaultPlusCount(PlayerInterface $player, int $appearance): int
+    protected function defaultPlusCount(UserInterface $user, int $appearance): int
     {
         return $appearance - 1;
     }
 
-    protected function defaultDisplayTime(string $playerTime, string $gameTime): string
+    protected function defaultDisplayTime(string $userTime, string $gameTime): string
     {
-        return $this->formatter->escape($playerTime);
+        return $this->formatter->escape($userTime);
     }
 
     protected function defaultBuildLocationLink(?string $location): ?string
@@ -165,9 +165,9 @@ final class GameMessageBuilder extends AbstractMessageBuilder
         return $this->formatter->link('📍 Location', 'https://maps.google.com/?q=' . $location);
     }
 
-    protected function defaultPlayerKey(PlayerInterface $player): string
+    protected function defaultUserKey(UserInterface $user): string
     {
-        return $player->getName() . "\0" . ($player->getLink() ?? '');
+        return $user->getName() . "\0" . ($user->getLink() ?? '');
     }
 
     protected function defaultFormatEmoji(int $count, string $emoji): string

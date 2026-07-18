@@ -15,7 +15,7 @@ final class Game implements GameInterface
     private ?string $time = null;
 
     /**
-     * @param PlayerInterface[] $players
+     * @param UserInterface[] $users
      * @param list<string> $inlineMessageIds
      */
     public function __construct(
@@ -23,7 +23,7 @@ final class Game implements GameInterface
         private readonly string $inlineQueryId,
         private readonly array $inlineMessageIds,
         public string $title,
-        public array $players,
+        public array $users,
         private readonly DateTimeImmutable $createdAt,
         public ?string $location = null,
         public GameMessageBuilder $telegramMessageBuilder = new GameMessageBuilder(),
@@ -75,10 +75,10 @@ final class Game implements GameInterface
         return $this->time;
     }
 
-    /** @return PlayerInterface[] */
-    public function getPlayers(): array
+    /** @return UserInterface[] */
+    public function getUsers(): array
     {
-        return $this->players;
+        return $this->users;
     }
 
     public function buildTelegramMessage(): TelegramMessage

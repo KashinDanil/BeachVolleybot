@@ -26,6 +26,7 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('001_create_games_and_participants.sql');
         $this->applyMigration('004_split_game_inline_messages.sql');
         $this->applyMigration('005_require_game_player_time.sql');
+        $this->applyMigration('006_rename_players_to_users.sql');
     }
 
     protected function createGame(
@@ -54,14 +55,14 @@ abstract class DatabaseTestCase extends TestCase
         ]);
     }
 
-    protected function createPlayer(
+    protected function createUser(
         int $telegramUserId = 200,
         string $firstName = 'Danil',
         ?string $lastName = null,
         ?string $username = null,
     ): void {
         $this->db->pdo->prepare(
-            'INSERT INTO players (telegram_user_id, first_name, last_name, username)
+            'INSERT INTO users (telegram_user_id, first_name, last_name, username)
              VALUES (:telegram_user_id, :first_name, :last_name, :username)
              ON CONFLICT (telegram_user_id) DO NOTHING'
         )->execute([
@@ -72,13 +73,13 @@ abstract class DatabaseTestCase extends TestCase
         ]);
     }
 
-    protected function createGamePlayer(
+    protected function createGameUser(
         int $gameId,
         int $telegramUserId = 200,
         string $time = '18:00',
     ): void {
-        $this->createPlayer($telegramUserId);
-        $this->db->insert('game_players', [
+        $this->createUser($telegramUserId);
+        $this->db->insert('game_users', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
             'time' => $time,

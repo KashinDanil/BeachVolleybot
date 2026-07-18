@@ -12,7 +12,7 @@ This project was created to address a common frustration: _manually copying part
 
 - **Game creation** via Telegram inline queries
 - **Join / Leave** with a single button click
-- **Equipment tracking** — volleyballs and nets per player
+- **Equipment tracking** — volleyballs and nets per user
 - **Time extraction** from game titles (e.g. "Beach Volleyball 18:00"); plain time replies (e.g. `19:30`) join the game at that slot
 - **Location setting** with Google Maps link, including live-location updates
 - **Game sharing** — one game can be reposted into multiple chats. Creating a game in a private DM yields a `Share` button to forward it to a chat; the same game keeps its participant list synchronized across every chat it appears in
@@ -26,7 +26,7 @@ This project was created to address a common frustration: _manually copying part
 - **Rate limiting** — respects Telegram API rate limits via `RateLimitedBotApi`
 - **Message pinning** — game messages are automatically pinned if the bot has permissions; past-date games are auto-unpinned when the next game is pinned, and the bot's own pin service notifications are cleaned up automatically
 - **Past-game safeguards** — once a game's kickoff has passed, weather refresh is disabled, sharing is blocked, and inline keyboards are stripped on interaction so old messages don't accept further actions
-- **Admin panel** — manage games, players, equipment, and view logs via Telegram callback interface
+- **Admin panel** — manage games, users, equipment, and view logs via Telegram callback interface
 - **Game add-ons** — pipeline of post-processing add-ons (merge consecutive slots, stylize title, weather)
 
 ## Architecture
@@ -77,7 +77,7 @@ Both the queue router (request path) and the worker dispatch (queue-drain path) 
 │   ├── Localization/    # Translator
 │   ├── Log/             # Log file management
 │   ├── Processors/
-│   │   ├── AdminProcessors/    # Admin panel callbacks (game / player / equipment / logs / settings)
+│   │   ├── AdminProcessors/    # Admin panel callbacks (game / user / equipment / logs / settings)
 │   │   ├── UserProcessors/     # /start, /games command and pagination/detail callbacks
 │   │   ├── UpdateProcessors/   # Game lifecycle: create, forward, join-with-time, change-title, set-location, pin-message…
 │   │   │   └── CallbackQuery/  # Per-game callbacks (join, leave, add/remove volleyball/net, refresh weather)

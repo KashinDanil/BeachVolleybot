@@ -30,7 +30,7 @@ readonly class GameSlotRepository
         ]);
     }
 
-    public function findByPlayer(int $gameId, int $telegramUserId): array
+    public function findByUser(int $gameId, int $telegramUserId): array
     {
         return $this->db->select('game_slots', '*', [
             'game_id' => $gameId,
@@ -54,7 +54,7 @@ readonly class GameSlotRepository
         return false;
     }
 
-    public function findPositionsByPlayer(int $gameId, int $telegramUserId): array
+    public function findPositionsByUser(int $gameId, int $telegramUserId): array
     {
         return array_map('intval', $this->db->select('game_slots', 'position', [
             'game_id' => $gameId,
@@ -62,7 +62,7 @@ readonly class GameSlotRepository
         ]));
     }
 
-    public function deleteByPlayer(int $gameId, int $telegramUserId): int
+    public function deleteByUser(int $gameId, int $telegramUserId): int
     {
         return $this->db->delete('game_slots', [
             'game_id' => $gameId,

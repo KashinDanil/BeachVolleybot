@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Models;
 
-interface PlayerInterface
+interface UserInterface
 {
     public function getTelegramUserId(): int;
 

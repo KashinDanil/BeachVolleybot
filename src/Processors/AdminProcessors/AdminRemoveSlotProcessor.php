@@ -7,8 +7,8 @@ namespace BeachVolleybot\Processors\AdminProcessors;
 use BeachVolleybot\Game\AdminGameManager;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Telegram\MessageBuilders\Factories\GameDetailMessageFactory;
-use BeachVolleybot\Telegram\MessageBuilders\Factories\PlayerSettingsMessageFactory;
-use BeachVolleybot\Telegram\MessageBuilders\Factories\PlayersListMessageFactory;
+use BeachVolleybot\Telegram\MessageBuilders\Factories\UserSettingsMessageFactory;
+use BeachVolleybot\Telegram\MessageBuilders\Factories\UsersListMessageFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class AdminRemoveSlotProcessor extends AbstractAdminGameMutationProcessor
@@ -31,10 +31,10 @@ class AdminRemoveSlotProcessor extends AbstractAdminGameMutationProcessor
 
         $this->refreshGameInlineMessages($gameId);
 
-        if ($gameManager->isPlayerInGame($gameId, $telegramUserId)) {
-            $this->editSettingsMessage($update->callbackQuery, PlayerSettingsMessageFactory::build($gameId, $telegramUserId));
+        if ($gameManager->isUserInGame($gameId, $telegramUserId)) {
+            $this->editSettingsMessage($update->callbackQuery, UserSettingsMessageFactory::build($gameId, $telegramUserId));
         } else {
-            $this->editSettingsMessage($update->callbackQuery, PlayersListMessageFactory::build($gameId, 1));
+            $this->editSettingsMessage($update->callbackQuery, UsersListMessageFactory::build($gameId, 1));
         }
 
         $this->answerCallbackQuery($update->callbackQuery, 'Slot removed');

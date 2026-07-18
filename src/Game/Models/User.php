@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Models;
 
-readonly class Player implements PlayerInterface
+readonly class User implements UserInterface
 {
     private const string PROFILE_URL_PREFIX = 'https://t.me/';
 

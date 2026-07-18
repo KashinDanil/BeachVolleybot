@@ -32,7 +32,7 @@ final class AdminCallbackDataTest extends TestCase
 
     public function testCreateWithMultipleParams(): void
     {
-        $json = AdminCallbackData::create(AdminCallbackAction::PlayerSettings)
+        $json = AdminCallbackData::create(AdminCallbackAction::UserSettings)
             ->withGameId(42)
             ->withUserId(12345678)
             ->toJson();
@@ -137,11 +137,11 @@ final class AdminCallbackDataTest extends TestCase
 
     public function testWithPagePreservesOtherParams(): void
     {
-        $original = AdminCallbackData::create(AdminCallbackAction::GamePlayers)->withGameId(42);
+        $original = AdminCallbackData::create(AdminCallbackAction::GameUsers)->withGameId(42);
         $withPage = $original->withPage(2);
 
         $this->assertSame(42, $withPage->getGameId());
-        $this->assertSame(AdminCallbackAction::GamePlayers, $withPage->getAction());
+        $this->assertSame(AdminCallbackAction::GameUsers, $withPage->getAction());
         $this->assertSame(2, $withPage->getPage());
     }
 
@@ -149,14 +149,14 @@ final class AdminCallbackDataTest extends TestCase
 
     public function testCreateAndParseRoundtrip(): void
     {
-        $json = AdminCallbackData::create(AdminCallbackAction::PlayerSettings)
+        $json = AdminCallbackData::create(AdminCallbackAction::UserSettings)
             ->withGameId(42)
             ->withUserId(100)
             ->toJson();
 
         $parsed = AdminCallbackData::fromJson($json);
 
-        $this->assertSame(AdminCallbackAction::PlayerSettings, $parsed->getAction());
+        $this->assertSame(AdminCallbackAction::UserSettings, $parsed->getAction());
         $this->assertSame(42, $parsed->getGameId());
         $this->assertSame(100, $parsed->getUserId());
     }
@@ -191,7 +191,7 @@ final class AdminCallbackDataTest extends TestCase
             AdminCallbackData::create(AdminCallbackAction::LogFile)->withFilename('user_actions.log')->toJson(),
             AdminCallbackData::create(AdminCallbackAction::GamesList)->withPage(999)->toJson(),
             AdminCallbackData::create(AdminCallbackAction::GameDetail)->withGameId(99999)->toJson(),
-            AdminCallbackData::create(AdminCallbackAction::PlayerSettings)->withGameId(99999)->withUserId(12345678)->toJson(),
+            AdminCallbackData::create(AdminCallbackAction::UserSettings)->withGameId(99999)->withUserId(12345678)->toJson(),
             AdminCallbackData::create(AdminCallbackAction::RemoveSlot)->withGameId(99999)->withUserId(12345678)->toJson(),
             AdminCallbackData::create(AdminCallbackAction::AddVolleyball)->withGameId(99999)->withUserId(12345678)->toJson(),
         ];

@@ -6,10 +6,10 @@ namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 
 use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Telegram\MessageBuilders\GameDetailMessageBuilder;
-use BeachVolleybot\Telegram\MessageBuilders\PlayersListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\UsersListMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
-final class PlayersListMessageFactory
+final class UsersListMessageFactory
 {
     public static function build(int $gameId, int $page): TelegramMessage
     {
@@ -19,6 +19,6 @@ final class PlayersListMessageFactory
             return new GameDetailMessageBuilder()->buildGameNotFound();
         }
 
-        return new PlayersListMessageBuilder()->build($game, $page);
+        return new UsersListMessageBuilder()->build($game, $page);
     }
 }

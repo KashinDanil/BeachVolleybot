@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\Player;
+use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
@@ -54,13 +54,13 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
             $lines[] = $this->formatter->escape("Location: {$game->getLocation()}");
         }
 
-        $players = $game->getPlayers();
-        $playerCount = array_map(static fn($player) => $player->getTelegramUserId(), $players)
+        $users = $game->getUsers();
+        $userCount = array_map(static fn($user) => $user->getTelegramUserId(), $users)
                 |> array_unique(...)
                 |> count(...);
 
-        $lines[] = $this->formatter->escape("Players: $playerCount");
-        $lines[] = $this->formatter->escape("Slots: " . count($players));
+        $lines[] = $this->formatter->escape("Users: $userCount");
+        $lines[] = $this->formatter->escape("Slots: " . count($users));
 
         return implode($this->formatter->newLine(), $lines);
     }
@@ -71,8 +71,8 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
             return null;
         }
 
-        $name = Player::buildName($creatorRow['first_name'], $creatorRow['last_name'] ?? null);
-        $link = Player::buildLink($creatorRow['username'] ?? null);
+        $name = User::buildName($creatorRow['first_name'], $creatorRow['last_name'] ?? null);
+        $link = User::buildLink($creatorRow['username'] ?? null);
 
         $namePart = null !== $link
             ? $this->formatter->link($name, $link)
@@ -98,8 +98,8 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
 
         $keyboard[] = [
             $this->buildActionButton(
-                'Players',
-                AdminCallbackData::create(AdminCallbackAction::GamePlayers)
+                'Users',
+                AdminCallbackData::create(AdminCallbackAction::GameUsers)
                     ->withGameId($gameId)
                     ->withPage(1),
             ),

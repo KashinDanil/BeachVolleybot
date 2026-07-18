@@ -44,26 +44,26 @@ final class NewGameDataTest extends TestCase
 
         $this->assertSame('Friday Game 18:00', $game->getTitle());
         $this->assertSame('query_1', $game->getInlineQueryId());
-        $this->assertCount(1, $game->getPlayers());
+        $this->assertCount(1, $game->getUsers());
     }
 
     public function testBuildFromNewGameDataSetsCreatorTimeFromTitle(): void
     {
         $data = NewGameData::fromUser($this->creator, 'Friday Game 18:00', 'query_1');
 
-        $player = NewGameFactory::create($data)->getPlayers()[0];
+        $user = NewGameFactory::create($data)->getUsers()[0];
 
-        $this->assertSame('18:00', $player->getTime());
+        $this->assertSame('18:00', $user->getTime());
     }
 
     public function testBuildFromNewGameDataSetsInitialEquipment(): void
     {
         $data = NewGameData::fromUser($this->creator, 'Game 18:00', 'query_1');
 
-        $player = NewGameFactory::create($data)->getPlayers()[0];
+        $user = NewGameFactory::create($data)->getUsers()[0];
 
-        $this->assertSame('Alice Smith', $player->getName());
-        $this->assertSame(NewGameData::INITIAL_VOLLEYBALL, $player->getVolleyball());
-        $this->assertSame(NewGameData::INITIAL_NET, $player->getNet());
+        $this->assertSame('Alice Smith', $user->getName());
+        $this->assertSame(NewGameData::INITIAL_VOLLEYBALL, $user->getVolleyball());
+        $this->assertSame(NewGameData::INITIAL_NET, $user->getNet());
     }
 }

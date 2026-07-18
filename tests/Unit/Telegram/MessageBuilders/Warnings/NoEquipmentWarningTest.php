@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders\Warnings;
 
-use BeachVolleybot\Game\Models\PlayerInterface;
+use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoEquipmentWarning;
 use PHPUnit\Framework\TestCase;
 
@@ -19,48 +19,48 @@ final class NoEquipmentWarningTest extends TestCase
 
     public function testReturnsNullWhenBothPresent(): void
     {
-        $players = [$this->player(volleyball: 1, net: 1)];
+        $users = [$this->user(volleyball: 1, net: 1)];
 
-        $this->assertNull($this->warning->check($players));
+        $this->assertNull($this->warning->check($users));
     }
 
     public function testReturnsNetWarningWhenOnlyNetMissing(): void
     {
-        $players = [$this->player(volleyball: 1, net: 0)];
+        $users = [$this->user(volleyball: 1, net: 0)];
 
-        $this->assertSame('Someone needs to bring a net', $this->warning->check($players));
+        $this->assertSame('Someone needs to bring a net', $this->warning->check($users));
     }
 
     public function testReturnsVolleyballWarningWhenOnlyVolleyballMissing(): void
     {
-        $players = [$this->player(volleyball: 0, net: 1)];
+        $users = [$this->user(volleyball: 0, net: 1)];
 
-        $this->assertSame('Someone needs to bring a volleyball', $this->warning->check($players));
+        $this->assertSame('Someone needs to bring a volleyball', $this->warning->check($users));
     }
 
     public function testReturnsCombinedWarningWhenBothMissing(): void
     {
-        $players = [$this->player(volleyball: 0, net: 0)];
+        $users = [$this->user(volleyball: 0, net: 0)];
 
-        $this->assertSame('Someone needs to bring a net and a volleyball', $this->warning->check($players));
+        $this->assertSame('Someone needs to bring a net and a volleyball', $this->warning->check($users));
     }
 
-    public function testChecksAcrossMultiplePlayers(): void
+    public function testChecksAcrossMultipleUsers(): void
     {
-        $players = [
-            $this->player(volleyball: 0, net: 1),
-            $this->player(volleyball: 1, net: 0),
+        $users = [
+            $this->user(volleyball: 0, net: 1),
+            $this->user(volleyball: 1, net: 0),
         ];
 
-        $this->assertNull($this->warning->check($players));
+        $this->assertNull($this->warning->check($users));
     }
 
-    private function player(int $volleyball, int $net): PlayerInterface
+    private function user(int $volleyball, int $net): UserInterface
     {
-        $player = $this->createStub(PlayerInterface::class);
-        $player->method('getVolleyball')->willReturn($volleyball);
-        $player->method('getNet')->willReturn($net);
+        $user = $this->createStub(UserInterface::class);
+        $user->method('getVolleyball')->willReturn($volleyball);
+        $user->method('getNet')->willReturn($net);
 
-        return $player;
+        return $user;
     }
 }

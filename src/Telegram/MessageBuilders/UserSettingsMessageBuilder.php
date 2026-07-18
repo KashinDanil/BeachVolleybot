@@ -8,7 +8,7 @@ use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
-final class PlayerSettingsMessageBuilder extends AbstractAdminMessageBuilder
+final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
 {
     private const string REMOVE_SLOT       = 'Remove Slot';
     private const string REMOVE_VOLLEYBALL = '-🏐';
@@ -16,36 +16,36 @@ final class PlayerSettingsMessageBuilder extends AbstractAdminMessageBuilder
     private const string REMOVE_NET        = '-🕸️';
     private const string ADD_NET           = '+🕸️';
 
-    public function buildPlayerSettings(
+    public function buildUserSettings(
         int $gameId,
         int $telegramUserId,
-        string $playerName,
-        ?string $playerLink,
+        string $userName,
+        ?string $userLink,
         int $slotCount,
         int $volleyball,
         int $net,
     ): TelegramMessage {
         return $this->buildMessage(
-            $this->buildPlayerSettingsText($gameId, $telegramUserId, $playerName, $playerLink, $slotCount, $volleyball, $net),
-            $this->buildPlayerSettingsKeyboard($gameId, $telegramUserId, $slotCount),
+            $this->buildUserSettingsText($gameId, $telegramUserId, $userName, $userLink, $slotCount, $volleyball, $net),
+            $this->buildUserSettingsKeyboard($gameId, $telegramUserId, $slotCount),
         );
     }
 
-    private function buildPlayerSettingsText(
+    private function buildUserSettingsText(
         int $gameId,
         int $telegramUserId,
-        string $playerName,
-        ?string $playerLink,
+        string $userName,
+        ?string $userLink,
         int $slotCount,
         int $volleyball,
         int $net,
     ): string {
-        $namePart = null !== $playerLink
-            ? $this->formatter->link($playerName, $playerLink)
-            : $this->formatter->escape($playerName);
+        $namePart = null !== $userLink
+            ? $this->formatter->link($userName, $userLink)
+            : $this->formatter->escape($userName);
 
         return implode($this->formatter->newLine(), [
-            $this->formatHeader("Player Settings #$gameId"),
+            $this->formatHeader("User Settings #$gameId"),
             $namePart,
             $this->formatter->escape("Telegram ID: $telegramUserId"),
             $this->formatter->escape("Slots: $slotCount"),
@@ -54,7 +54,7 @@ final class PlayerSettingsMessageBuilder extends AbstractAdminMessageBuilder
         ]);
     }
 
-    private function buildPlayerSettingsKeyboard(int $gameId, int $telegramUserId, int $slotCount): array
+    private function buildUserSettingsKeyboard(int $gameId, int $telegramUserId, int $slotCount): array
     {
         $keyboard = [];
 
@@ -64,7 +64,7 @@ final class PlayerSettingsMessageBuilder extends AbstractAdminMessageBuilder
 
         $keyboard[] = $this->buildVolleyballRow($gameId, $telegramUserId);
         $keyboard[] = $this->buildNetRow($gameId, $telegramUserId);
-        $keyboard[] = $this->playersListBackRow($gameId);
+        $keyboard[] = $this->usersListBackRow($gameId);
 
         return $keyboard;
     }
@@ -121,20 +121,20 @@ final class PlayerSettingsMessageBuilder extends AbstractAdminMessageBuilder
     }
 
     /** @return list<array{text: string, callback_data: string}> */
-    private function playersListBackRow(int $gameId): array
+    private function usersListBackRow(int $gameId): array
     {
         return $this->backButtonRow(
-            AdminCallbackData::create(AdminCallbackAction::GamePlayers)
+            AdminCallbackData::create(AdminCallbackAction::GameUsers)
                 ->withGameId($gameId)
                 ->withPage(1)
         );
     }
 
-    public function buildPlayerNotFound(int $gameId): TelegramMessage
+    public function buildUserNotFound(int $gameId): TelegramMessage
     {
-        $text = $this->formatHeader("Player Settings #$gameId")
-            . $this->formatter->newLine() . $this->formatter->escape('Player not found in this game');
+        $text = $this->formatHeader("User Settings #$gameId")
+            . $this->formatter->newLine() . $this->formatter->escape('User not found in this game');
 
-        return $this->buildMessage($text, [$this->playersListBackRow($gameId)]);
+        return $this->buildMessage($text, [$this->usersListBackRow($gameId)]);
     }
 }

@@ -9,8 +9,8 @@ use BeachVolleybot\Processors\AdminProcessors\AdminAddVolleyballProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\AdminGameDetailCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminGamesListCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminPlayerSettingsProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminPlayersListCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\AdminUserSettingsProcessor;
+use BeachVolleybot\Processors\AdminProcessors\AdminUsersListCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveLocationCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveNetProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveSlotProcessor;
@@ -40,8 +40,8 @@ final class AdminCallbackActionTest extends TestCase
             [AdminCallbackAction::LogClear, LogClearCallbackProcessor::class],
             [AdminCallbackAction::GamesList, AdminGamesListCallbackProcessor::class],
             [AdminCallbackAction::GameDetail, AdminGameDetailCallbackProcessor::class],
-            [AdminCallbackAction::GamePlayers, AdminPlayersListCallbackProcessor::class],
-            [AdminCallbackAction::PlayerSettings, AdminPlayerSettingsProcessor::class],
+            [AdminCallbackAction::GameUsers, AdminUsersListCallbackProcessor::class],
+            [AdminCallbackAction::UserSettings, AdminUserSettingsProcessor::class],
             [AdminCallbackAction::RemoveSlot, AdminRemoveSlotProcessor::class],
             [AdminCallbackAction::RemoveLocation, AdminRemoveLocationCallbackProcessor::class],
             [AdminCallbackAction::AddNet, AdminAddNetProcessor::class],

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\GamePlayerRepository;
+use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveNetProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -14,18 +14,18 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
 {
     public function testDecrementsNet(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 2);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, net: 2);
         $update = $this->buildUpdate('msg_1');
 
         new RemoveNetProcessor($this->telegramSender)->process($update);
 
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame(1, $gamePlayer['net']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame(1, $gameUser['net']);
     }
 
     public function testAnswersNetRemoved(): void
     {
-        $this->seedGameWithPlayer(telegramUserId: 200, net: 1);
+        $this->seedGameWithUser(telegramUserId: 200, net: 1);
         $update = $this->buildUpdate('msg_1');
 
         new RemoveNetProcessor($this->telegramSender)->process($update);
@@ -35,7 +35,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
 
     public function testRefreshesInlineMessage(): void
     {
-        $this->seedGameWithPlayer(telegramUserId: 200, net: 1);
+        $this->seedGameWithUser(telegramUserId: 200, net: 1);
         $update = $this->buildUpdate('msg_1');
 
         new RemoveNetProcessor($this->telegramSender)->process($update);
@@ -45,7 +45,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
 
     public function testAnswersNoNetsWhenCountIsZero(): void
     {
-        $this->seedGameWithPlayer(telegramUserId: 200, net: 0);
+        $this->seedGameWithUser(telegramUserId: 200, net: 0);
         $update = $this->buildUpdate('msg_1');
 
         new RemoveNetProcessor($this->telegramSender)->process($update);
@@ -54,7 +54,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
-    public function testAnswersJoinFirstWhenPlayerNotInGame(): void
+    public function testAnswersJoinFirstWhenUserNotInGame(): void
     {
         $this->seedFullGame();
         $update = $this->buildUpdate('msg_1');
@@ -78,7 +78,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
 
     public function testPastDayRemovesKeyboardAndAnswersGameFinishedAndDoesNotRemove(): void
     {
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 2);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, net: 2);
         $this->db->update('games', ['title' => 'Bogatell 10.04.2020 18:00'], ['game_id' => $gameId]);
         $update = $this->buildUpdate('msg_1');
 
@@ -87,22 +87,22 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
         $this->assertMessageNotEdited();
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame(2, $gamePlayer['net']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame(2, $gameUser['net']);
     }
 
     public function testTodayPastHourStillRemovesBecauseDayHasNotEnded(): void
     {
         $today = new \DateTimeImmutable()->format('d.m.Y');
-        $gameId = $this->seedGameWithPlayer(telegramUserId: 200, net: 2);
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, net: 2);
         $this->db->update('games', ['title' => "Bogatell {$today} 00:01"], ['game_id' => $gameId]);
         $update = $this->buildUpdate('msg_1');
 
         new RemoveNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::NET_REMOVED);
-        $gamePlayer = new GamePlayerRepository($this->db)->findByGamePlayer($gameId, 200);
-        $this->assertSame(1, $gamePlayer['net']);
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame(1, $gameUser['net']);
     }
 
     private function buildUpdate(string $inlineMessageId, string $inlineQueryId = 'query_1'): TelegramUpdate
