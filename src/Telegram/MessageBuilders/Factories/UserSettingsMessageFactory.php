@@ -23,13 +23,13 @@ final class UserSettingsMessageFactory
         }
 
         $userRow = new UserRepository($db)->findById($telegramUserId);
-        $slotCount = count(new GameSlotRepository($db)->findPositionsByUser($gameId, $telegramUserId));
+        $slotPositions = new GameSlotRepository($db)->findPositionsByUser($gameId, $telegramUserId);
 
         return new UserSettingsMessageBuilder()->buildUserSettings(
             $gameId,
             $telegramUserId,
             $userRow,
-            $slotCount,
+            $slotPositions,
             (int)($gameUserRow['volleyball'] ?? 0),
             (int)($gameUserRow['net'] ?? 0),
         );

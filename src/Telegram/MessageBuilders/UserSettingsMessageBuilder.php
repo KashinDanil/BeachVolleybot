@@ -19,25 +19,27 @@ final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
     private const string REMOVE_NET        = '-🕸️';
     private const string ADD_NET           = '+🕸️';
 
+    /** @param list<int> $slotPositions */
     public function buildUserSettings(
         int $gameId,
         int $telegramUserId,
         ?array $userRow,
-        int $slotCount,
+        array $slotPositions,
         int $volleyball,
         int $net,
     ): TelegramMessage {
         return $this->buildMessage(
-            $this->buildUserSettingsText($gameId, $telegramUserId, $userRow, $slotCount, $volleyball, $net),
+            $this->buildUserSettingsText($gameId, $telegramUserId, $userRow, $slotPositions, $volleyball, $net),
             $this->buildUserSettingsKeyboard($gameId, $telegramUserId),
         );
     }
 
+    /** @param list<int> $slotPositions */
     private function buildUserSettingsText(
         int $gameId,
         int $telegramUserId,
         ?array $userRow,
-        int $slotCount,
+        array $slotPositions,
         int $volleyball,
         int $net,
     ): string {
@@ -45,10 +47,24 @@ final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
             $this->formatHeader("User Settings #$gameId"),
             $this->buildNamePart($telegramUserId, $userRow),
             $this->formatter->escape("Telegram ID: $telegramUserId"),
-            $this->formatter->escape("Slots: $slotCount"),
+            $this->buildSlotsLine($slotPositions),
             $this->formatter->escape("Volleyball: $volleyball"),
             $this->formatter->escape("Net: $net"),
         ]);
+    }
+
+    /** @param list<int> $slotPositions */
+    private function buildSlotsLine(array $slotPositions): string
+    {
+        $count = count($slotPositions);
+
+        if (0 === $count) {
+            return $this->formatter->escape('Slots: 0');
+        }
+
+        sort($slotPositions);
+
+        return $this->formatter->escape("Slots: $count (" . implode(', ', $slotPositions) . ')');
     }
 
     private function buildNamePart(int $telegramUserId, ?array $userRow): string

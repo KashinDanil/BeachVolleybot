@@ -14,7 +14,7 @@ final class UserSettingsMessageBuilderTest extends TestCase
 
     public function testShowsGameIdInHeader(): void
     {
-        $message = $this->build(gameId: 42, slotCount: 2, volleyball: 1, net: 1);
+        $message = $this->build(gameId: 42, slotPositions: [1, 2], volleyball: 1, net: 1);
 
         $this->assertStringContainsString('#42', $message->getText()->getMessageText());
     }
@@ -46,7 +46,7 @@ final class UserSettingsMessageBuilderTest extends TestCase
 
     public function testShowsFallbackNameWhenUserRowMissing(): void
     {
-        $message = $this->builder->buildUserSettings(1, 777, null, 1, 0, 0);
+        $message = $this->builder->buildUserSettings(1, 777, null, [1], 0, 0);
 
         $this->assertStringContainsString('User 777', $message->getText()->getMessageText());
     }
@@ -58,11 +58,20 @@ final class UserSettingsMessageBuilderTest extends TestCase
         $this->assertStringContainsString('Telegram ID: 12345678', $message->getText()->getMessageText());
     }
 
-    public function testShowsSlotCount(): void
+    public function testShowsSlotCountAndPositions(): void
     {
-        $message = $this->build(slotCount: 3);
+        $message = $this->build(slotPositions: [7, 2, 5]);
+        $text = $message->getText()->getMessageText();
 
-        $this->assertStringContainsString('Slots: 3', $message->getText()->getMessageText());
+        $this->assertStringContainsString('Slots: 3', $text);
+        $this->assertStringContainsString('2, 5, 7', $text);
+    }
+
+    public function testShowsZeroSlots(): void
+    {
+        $message = $this->build(slotPositions: []);
+
+        $this->assertStringContainsString('Slots: 0', $message->getText()->getMessageText());
     }
 
     public function testShowsVolleyballCount(): void
@@ -81,7 +90,7 @@ final class UserSettingsMessageBuilderTest extends TestCase
 
     public function testHasSlotButtons(): void
     {
-        $message = $this->build(slotCount: 2);
+        $message = $this->build(slotPositions: [1, 2]);
         $keyboard = $this->extractKeyboard($message);
 
         $allButtonTexts = $this->flattenButtonTexts($keyboard);
@@ -91,7 +100,7 @@ final class UserSettingsMessageBuilderTest extends TestCase
 
     public function testShowsSlotButtonsWhenNoSlots(): void
     {
-        $message = $this->build(slotCount: 0);
+        $message = $this->build(slotPositions: []);
         $keyboard = $this->extractKeyboard($message);
 
         $allButtonTexts = $this->flattenButtonTexts($keyboard);
@@ -101,7 +110,7 @@ final class UserSettingsMessageBuilderTest extends TestCase
 
     public function testSlotButtonsHaveStyles(): void
     {
-        $message = $this->build(slotCount: 2);
+        $message = $this->build(slotPositions: [1, 2]);
         $keyboard = $this->extractKeyboard($message);
 
         $this->assertSame('danger', $this->findButton($keyboard, '-slot')['style']);
@@ -195,12 +204,13 @@ final class UserSettingsMessageBuilderTest extends TestCase
         $this->assertSame("\u{21A9} Back", $lastRow[0]['text']);
     }
 
+    /** @param list<int> $slotPositions */
     private function build(
         int $gameId = 1,
         int $telegramUserId = 100,
         string $firstName = 'Alice',
         ?string $username = null,
-        int $slotCount = 1,
+        array $slotPositions = [1],
         int $volleyball = 0,
         int $net = 0,
     ): TelegramMessage {
@@ -208,7 +218,7 @@ final class UserSettingsMessageBuilderTest extends TestCase
             $gameId,
             $telegramUserId,
             $this->userRow($telegramUserId, $firstName, $username),
-            $slotCount,
+            $slotPositions,
             $volleyball,
             $net,
         );
