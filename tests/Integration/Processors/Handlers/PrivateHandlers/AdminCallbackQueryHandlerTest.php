@@ -6,7 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Processors\Handlers\PrivateHandlers;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\AdminGamesListCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\LogsListCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootLogsListCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\RestrictedActionCallbackProcessor;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\AdminCallbackQueryHandler;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
@@ -42,7 +42,7 @@ final class AdminCallbackQueryHandlerTest extends ProcessorTestCase
 
         $processor = $this->handler->createProcessor($this->telegramSender, $update);
 
-        $this->assertInstanceOf(LogsListCallbackProcessor::class, $processor);
+        $this->assertInstanceOf(RootLogsListCallbackProcessor::class, $processor);
     }
 
     public function testAdminGetsRealProcessorForGamesCallback(): void

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\AdminProcessors;
 
 use BeachVolleybot\Log\LogFileRepository;
-use BeachVolleybot\Telegram\MessageBuilders\Factories\LogTailMessageFactory;
+use BeachVolleybot\Telegram\MessageBuilders\Factories\LogFileActionsMessageFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class LogTailCallbackProcessor extends AbstractAdminCallbackProcessor
+class RootLogFileActionsCallbackProcessor extends AbstractAdminMutationProcessor
 {
     public function process(TelegramUpdate $update): void
     {
@@ -20,7 +20,7 @@ class LogTailCallbackProcessor extends AbstractAdminCallbackProcessor
             return;
         }
 
-        $this->editSettingsMessage($update->callbackQuery, LogTailMessageFactory::build($filename));
+        $this->editSettingsMessage($update->callbackQuery, LogFileActionsMessageFactory::build($filename));
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

@@ -6,10 +6,10 @@ namespace BeachVolleybot\Tests\Integration\Processors\AdminProcessors;
 
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
-use BeachVolleybot\Processors\AdminProcessors\AdminDemoteUserProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminPromoteUserProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminUserRoleDetailProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminUserRoleListProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootDemoteUserProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootPromoteUserProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootUserRoleDetailProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootUserRoleListProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -27,7 +27,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
         $callbackData = AdminCallbackData::create(AdminCallbackAction::UsersList)->withPage(1);
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
 
-        new AdminUserRoleListProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootUserRoleListProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -41,7 +41,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
         $callbackData = AdminCallbackData::create(AdminCallbackAction::UserDetail)->withUserId(300);
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
 
-        new AdminUserRoleDetailProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootUserRoleDetailProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -51,7 +51,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
         $callbackData = AdminCallbackData::create(AdminCallbackAction::UserDetail)->withUserId(99999);
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
 
-        new AdminUserRoleDetailProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootUserRoleDetailProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertMessageEdited();
     }
@@ -65,7 +65,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
         $callbackData = AdminCallbackData::create(AdminCallbackAction::PromoteUser)->withUserId(300);
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
 
-        new AdminPromoteUserProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootPromoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertSame(Role::Admin->value, new UserRepository($this->db)->findRoleById(300));
         $this->assertMessageEdited();
@@ -79,7 +79,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
         $callbackData = AdminCallbackData::create(AdminCallbackAction::PromoteUser)->withUserId(300);
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
 
-        new AdminPromoteUserProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootPromoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertSame(Role::Root->value, new UserRepository($this->db)->findRoleById(300));
         $this->assertAnsweredWith('Cannot change Root');
@@ -90,7 +90,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
         $callbackData = AdminCallbackData::create(AdminCallbackAction::PromoteUser)->withUserId(99999);
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
 
-        new AdminPromoteUserProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootPromoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertNull(new UserRepository($this->db)->findRoleById(99999));
         $this->assertAnsweredWith('User not found');
@@ -105,7 +105,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
         $callbackData = AdminCallbackData::create(AdminCallbackAction::DemoteUser)->withUserId(300);
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
 
-        new AdminDemoteUserProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootDemoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertSame(Role::Player->value, new UserRepository($this->db)->findRoleById(300));
         $this->assertMessageEdited();
@@ -119,7 +119,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
         $callbackData = AdminCallbackData::create(AdminCallbackAction::DemoteUser)->withUserId(300);
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
 
-        new AdminDemoteUserProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootDemoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
         $this->assertSame(Role::Root->value, new UserRepository($this->db)->findRoleById(300));
         $this->assertAnsweredWith('Cannot change Root');

@@ -7,7 +7,7 @@ namespace BeachVolleybot\Processors\AdminProcessors;
 use BeachVolleybot\Telegram\MessageBuilders\Factories\UserRoleDetailMessageFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class AdminUserRoleDetailProcessor extends AbstractAdminCallbackProcessor
+class RootUserRoleDetailProcessor extends AbstractAdminCallbackProcessor
 {
     public function process(TelegramUpdate $update): void
     {

@@ -8,7 +8,7 @@ use BeachVolleybot\Game\AdminGameManager;
 use BeachVolleybot\Telegram\MessageBuilders\Factories\UserSettingsMessageFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class AdminAddVolleyballProcessor extends AbstractAdminGameMutationProcessor
+class AdminAddVolleyballProcessor extends AbstractAdminMutationProcessor
 {
     public function process(TelegramUpdate $update): void
     {

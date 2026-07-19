@@ -10,7 +10,7 @@ use BeachVolleybot\Telegram\MessageBuilders\Factories\UserRoleDetailMessageFacto
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\User\Role;
 
-abstract class AbstractAdminUserRoleMutationProcessor extends AbstractAdminGameMutationProcessor
+abstract class AbstractRootUserRoleMutationProcessor extends AbstractAdminMutationProcessor
 {
     abstract protected function sourceRole(): Role;
 

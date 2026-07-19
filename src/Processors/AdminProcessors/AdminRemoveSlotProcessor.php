@@ -11,7 +11,7 @@ use BeachVolleybot\Telegram\MessageBuilders\Factories\UserSettingsMessageFactory
 use BeachVolleybot\Telegram\MessageBuilders\Factories\UsersListMessageFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class AdminRemoveSlotProcessor extends AbstractAdminGameMutationProcessor
+class AdminRemoveSlotProcessor extends AbstractAdminMutationProcessor
 {
     public function process(TelegramUpdate $update): void
     {

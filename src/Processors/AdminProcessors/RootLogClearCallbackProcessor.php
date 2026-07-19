@@ -8,7 +8,7 @@ use BeachVolleybot\Log\LogFileRepository;
 use BeachVolleybot\Telegram\MessageBuilders\Factories\LogFileActionsMessageFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class LogClearCallbackProcessor extends AbstractAdminCallbackProcessor
+class RootLogClearCallbackProcessor extends AbstractAdminMutationProcessor
 {
     public function process(TelegramUpdate $update): void
     {
@@ -22,6 +22,7 @@ class LogClearCallbackProcessor extends AbstractAdminCallbackProcessor
 
         new LogFileRepository()->clear($filename);
 
+        $this->logAdminAction($update->callbackQuery->from, 'root_clear_log', "file=$filename");
         $this->editSettingsMessage($update->callbackQuery, LogFileActionsMessageFactory::build($filename));
         $this->answerCallbackQuery($update->callbackQuery, 'Cleared');
     }

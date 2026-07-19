@@ -7,7 +7,7 @@ namespace BeachVolleybot\Processors\AdminProcessors;
 use BeachVolleybot\Log\LogFileRepository;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-class LogGetCallbackProcessor extends AbstractAdminCallbackProcessor
+class RootLogGetCallbackProcessor extends AbstractAdminMutationProcessor
 {
     public function process(TelegramUpdate $update): void
     {
@@ -27,6 +27,7 @@ class LogGetCallbackProcessor extends AbstractAdminCallbackProcessor
             return;
         }
 
+        $this->logAdminAction($update->callbackQuery->from, 'root_download_log', "file=$filename");
         $this->telegramSender->sendDocument($update->callbackQuery->message->chat->id, $logFileRepository->path($filename));
         $this->answerCallbackQuery($update->callbackQuery, 'Sending...');
     }

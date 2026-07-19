@@ -6,25 +6,25 @@ namespace BeachVolleybot\Processors\AdminProcessors;
 
 use BeachVolleybot\User\Role;
 
-class AdminPromoteUserProcessor extends AbstractAdminUserRoleMutationProcessor
+class RootDemoteUserProcessor extends AbstractRootUserRoleMutationProcessor
 {
     protected function sourceRole(): Role
-    {
-        return Role::Player;
-    }
-
-    protected function targetRole(): Role
     {
         return Role::Admin;
     }
 
+    protected function targetRole(): Role
+    {
+        return Role::Player;
+    }
+
     protected function logAction(): string
     {
-        return 'admin_promote_user';
+        return 'root_demote_user';
     }
 
     protected function successToast(): string
     {
-        return 'Promoted to Admin';
+        return 'Demoted to Player';
     }
 }

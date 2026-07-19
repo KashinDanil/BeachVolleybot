@@ -7,23 +7,23 @@ namespace BeachVolleybot\Tests\Unit\Processors\AdminProcessors;
 use BeachVolleybot\Processors\AdminProcessors\AdminAddNetProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminAddVolleyballProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
-use BeachVolleybot\Processors\AdminProcessors\AdminDemoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminGameDetailCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminGamesListCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminPromoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveLocationCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveNetProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveSlotProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminRemoveVolleyballProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminUserRoleDetailProcessor;
-use BeachVolleybot\Processors\AdminProcessors\AdminUserRoleListProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminUserSettingsProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminUsersListCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\LogClearCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\LogFileActionsCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\LogGetCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\LogsListCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\LogTailCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootDemoteUserProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootLogClearCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootLogFileActionsCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootLogGetCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootLogsListCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootLogTailCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootPromoteUserProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootUserRoleDetailProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RootUserRoleListProcessor;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\TelegramMessageSender;
@@ -38,19 +38,19 @@ final class AdminCallbackActionTest extends TestCase
     {
         $mapping = [
             [AdminCallbackAction::Settings, SettingsMenuCallbackProcessor::class],
-            [AdminCallbackAction::Logs, LogsListCallbackProcessor::class],
-            [AdminCallbackAction::LogFile, LogFileActionsCallbackProcessor::class],
-            [AdminCallbackAction::LogGet, LogGetCallbackProcessor::class],
-            [AdminCallbackAction::LogTail, LogTailCallbackProcessor::class],
-            [AdminCallbackAction::LogClear, LogClearCallbackProcessor::class],
+            [AdminCallbackAction::Logs, RootLogsListCallbackProcessor::class],
+            [AdminCallbackAction::LogFile, RootLogFileActionsCallbackProcessor::class],
+            [AdminCallbackAction::LogGet, RootLogGetCallbackProcessor::class],
+            [AdminCallbackAction::LogTail, RootLogTailCallbackProcessor::class],
+            [AdminCallbackAction::LogClear, RootLogClearCallbackProcessor::class],
             [AdminCallbackAction::GamesList, AdminGamesListCallbackProcessor::class],
             [AdminCallbackAction::GameDetail, AdminGameDetailCallbackProcessor::class],
             [AdminCallbackAction::GameUsers, AdminUsersListCallbackProcessor::class],
             [AdminCallbackAction::UserSettings, AdminUserSettingsProcessor::class],
-            [AdminCallbackAction::UsersList, AdminUserRoleListProcessor::class],
-            [AdminCallbackAction::UserDetail, AdminUserRoleDetailProcessor::class],
-            [AdminCallbackAction::PromoteUser, AdminPromoteUserProcessor::class],
-            [AdminCallbackAction::DemoteUser, AdminDemoteUserProcessor::class],
+            [AdminCallbackAction::UsersList, RootUserRoleListProcessor::class],
+            [AdminCallbackAction::UserDetail, RootUserRoleDetailProcessor::class],
+            [AdminCallbackAction::PromoteUser, RootPromoteUserProcessor::class],
+            [AdminCallbackAction::DemoteUser, RootDemoteUserProcessor::class],
             [AdminCallbackAction::RemoveSlot, AdminRemoveSlotProcessor::class],
             [AdminCallbackAction::RemoveLocation, AdminRemoveLocationCallbackProcessor::class],
             [AdminCallbackAction::AddNet, AdminAddNetProcessor::class],
