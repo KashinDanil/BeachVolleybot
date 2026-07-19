@@ -23,14 +23,14 @@ final class UserSettingsMessageBuilderTest extends TestCase
 
     public function testShowsUserName(): void
     {
-        $message = $this->build(userName: 'Alice');
+        $message = $this->build(firstName: 'Alice');
 
         $this->assertStringContainsString('Alice', $message->getText()->getMessageText());
     }
 
     public function testShowsUserLinkWhenProvided(): void
     {
-        $message = $this->build(userName: 'Alice', userLink: 'https://t.me/alice');
+        $message = $this->build(firstName: 'Alice', username: 'alice');
 
         $text = $message->getText()->getMessageText();
         $this->assertStringContainsString('Alice', $text);
@@ -39,9 +39,16 @@ final class UserSettingsMessageBuilderTest extends TestCase
 
     public function testOmitsUserLinkWhenNotProvided(): void
     {
-        $message = $this->build(userName: 'Alice', userLink: null);
+        $message = $this->build(firstName: 'Alice', username: null);
 
         $this->assertStringNotContainsString('https://t.me/', $message->getText()->getMessageText());
+    }
+
+    public function testShowsFallbackNameWhenUserRowMissing(): void
+    {
+        $message = $this->builder->buildUserSettings(1, 777, null, 1, 0, 0);
+
+        $this->assertStringContainsString('User 777', $message->getText()->getMessageText());
     }
 
     public function testShowsUserId(): void
@@ -166,8 +173,8 @@ final class UserSettingsMessageBuilderTest extends TestCase
     private function build(
         int $gameId = 1,
         int $telegramUserId = 100,
-        string $userName = 'Alice',
-        ?string $userLink = null,
+        string $firstName = 'Alice',
+        ?string $username = null,
         int $slotCount = 1,
         int $volleyball = 0,
         int $net = 0,
@@ -175,12 +182,22 @@ final class UserSettingsMessageBuilderTest extends TestCase
         return $this->builder->buildUserSettings(
             $gameId,
             $telegramUserId,
-            $userName,
-            $userLink,
+            $this->userRow($telegramUserId, $firstName, $username),
             $slotCount,
             $volleyball,
             $net,
         );
+    }
+
+    /** @return array<string, mixed> */
+    private function userRow(int $telegramUserId, string $firstName, ?string $username): array
+    {
+        return [
+            'telegram_user_id' => $telegramUserId,
+            'first_name' => $firstName,
+            'last_name' => null,
+            'username' => $username,
+        ];
     }
 
     protected function setUp(): void

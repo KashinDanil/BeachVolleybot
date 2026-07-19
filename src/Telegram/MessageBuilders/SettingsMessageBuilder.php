@@ -27,6 +27,16 @@ final class SettingsMessageBuilder extends AbstractAdminMessageBuilder
             ];
         }
 
+        $usersAction = AdminCallbackAction::UsersList;
+        if ($role->isAtLeast($usersAction->requiredRole())) {
+            $keyboard[] = [
+                $this->buildActionButton(
+                    UserRoleListMessageBuilder::HEADER_MESSAGE,
+                    AdminCallbackData::create($usersAction)->withPage(1),
+                ),
+            ];
+        }
+
         $keyboard[] = [
             $this->buildActionButton(
                 GamesListMessageBuilder::HEADER_MESSAGE,

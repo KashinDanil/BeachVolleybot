@@ -23,6 +23,10 @@ enum AdminCallbackAction: string implements CallbackActionInterface
     case GameDetail = 'gd';
     case GameUsers = 'gp';
     case UserSettings = 'ps';
+    case UsersList = 'ul';
+    case UserDetail = 'uv';
+    case PromoteUser = 'pu';
+    case DemoteUser = 'du';
     case RemoveSlot = 'rs';
     case RemoveLocation = 'rl';
     case AddNet = 'an';
@@ -51,6 +55,10 @@ enum AdminCallbackAction: string implements CallbackActionInterface
             self::GameDetail => new AdminGameDetailCallbackProcessor($telegramSender, $callbackData),
             self::GameUsers => new AdminUsersListCallbackProcessor($telegramSender, $callbackData),
             self::UserSettings => new AdminUserSettingsProcessor($telegramSender, $callbackData),
+            self::UsersList => new AdminUserRoleListProcessor($telegramSender, $callbackData),
+            self::UserDetail => new AdminUserRoleDetailProcessor($telegramSender, $callbackData),
+            self::PromoteUser => new AdminPromoteUserProcessor($telegramSender, $callbackData),
+            self::DemoteUser => new AdminDemoteUserProcessor($telegramSender, $callbackData),
             self::RemoveSlot => new AdminRemoveSlotProcessor($telegramSender, $callbackData),
             self::RemoveLocation => new AdminRemoveLocationCallbackProcessor($telegramSender, $callbackData),
             self::AddNet => new AdminAddNetProcessor($telegramSender, $callbackData),
@@ -67,7 +75,11 @@ enum AdminCallbackAction: string implements CallbackActionInterface
             self::LogFile,
             self::LogGet,
             self::LogTail,
-            self::LogClear => Role::Root,
+            self::LogClear,
+            self::UsersList,
+            self::UserDetail,
+            self::PromoteUser,
+            self::DemoteUser => Role::Root,
             default => Role::Admin,
         };
     }

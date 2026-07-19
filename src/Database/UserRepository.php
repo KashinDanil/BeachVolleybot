@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Database;
 
+use BeachVolleybot\User\Role;
+
 readonly class UserRepository extends AbstractRepository
 {
     protected function table(): string
@@ -48,5 +50,24 @@ readonly class UserRepository extends AbstractRepository
     public function findAll(): array
     {
         return $this->db->select($this->table(), '*');
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function findAllPaginated(int $limit, int $offset): array
+    {
+        return $this->db->select($this->table(), '*', [
+            'ORDER' => ['role' => 'DESC', 'first_name' => 'ASC'],
+            'LIMIT' => [$offset, $limit],
+        ]);
+    }
+
+    public function countAll(): int
+    {
+        return $this->db->count($this->table());
+    }
+
+    public function updateRole(int $telegramUserId, Role $role): void
+    {
+        $this->db->update($this->table(), ['role' => $role->value], [$this->primaryKeyColumn() => $telegramUserId]);
     }
 }

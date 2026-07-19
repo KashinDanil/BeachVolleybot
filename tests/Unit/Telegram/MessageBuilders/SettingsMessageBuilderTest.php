@@ -27,20 +27,28 @@ final class SettingsMessageBuilderTest extends TestCase
         $this->assertSame('Logs', $keyboard[0][0]['text']);
     }
 
+    public function testRootSeesUsersButton(): void
+    {
+        $message = $this->builder->buildMainMenu(Role::Root);
+        $keyboard = $this->extractKeyboard($message);
+
+        $this->assertSame('Users', $keyboard[1][0]['text']);
+    }
+
     public function testRootSeesGamesButton(): void
     {
         $message = $this->builder->buildMainMenu(Role::Root);
         $keyboard = $this->extractKeyboard($message);
 
-        $this->assertSame('Games', $keyboard[1][0]['text']);
+        $this->assertSame('Games', $keyboard[2][0]['text']);
     }
 
-    public function testRootSeesTwoButtonRows(): void
+    public function testRootSeesThreeButtonRows(): void
     {
         $message = $this->builder->buildMainMenu(Role::Root);
         $keyboard = $this->extractKeyboard($message);
 
-        $this->assertCount(2, $keyboard);
+        $this->assertCount(3, $keyboard);
     }
 
     public function testAdminSeesOnlyGamesButton(): void
@@ -50,6 +58,13 @@ final class SettingsMessageBuilderTest extends TestCase
 
         $this->assertCount(1, $keyboard);
         $this->assertSame('Games', $keyboard[0][0]['text']);
+    }
+
+    public function testAdminDoesNotSeeUsersButton(): void
+    {
+        $message = $this->builder->buildMainMenu(Role::Admin);
+
+        $this->assertNotContains('Users', $this->keyboardLabels($message));
     }
 
     public function testAdminDoesNotSeeLogsButton(): void

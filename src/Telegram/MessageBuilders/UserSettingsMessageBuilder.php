@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
+use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
@@ -19,14 +20,13 @@ final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
     public function buildUserSettings(
         int $gameId,
         int $telegramUserId,
-        string $userName,
-        ?string $userLink,
+        ?array $userRow,
         int $slotCount,
         int $volleyball,
         int $net,
     ): TelegramMessage {
         return $this->buildMessage(
-            $this->buildUserSettingsText($gameId, $telegramUserId, $userName, $userLink, $slotCount, $volleyball, $net),
+            $this->buildUserSettingsText($gameId, $telegramUserId, $userRow, $slotCount, $volleyball, $net),
             $this->buildUserSettingsKeyboard($gameId, $telegramUserId, $slotCount),
         );
     }
@@ -34,24 +34,35 @@ final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
     private function buildUserSettingsText(
         int $gameId,
         int $telegramUserId,
-        string $userName,
-        ?string $userLink,
+        ?array $userRow,
         int $slotCount,
         int $volleyball,
         int $net,
     ): string {
-        $namePart = null !== $userLink
-            ? $this->formatter->link($userName, $userLink)
-            : $this->formatter->escape($userName);
-
         return implode($this->formatter->newLine(), [
             $this->formatHeader("User Settings #$gameId"),
-            $namePart,
+            $this->buildNamePart($telegramUserId, $userRow),
             $this->formatter->escape("Telegram ID: $telegramUserId"),
             $this->formatter->escape("Slots: $slotCount"),
             $this->formatter->escape("Volleyball: $volleyball"),
             $this->formatter->escape("Net: $net"),
         ]);
+    }
+
+    private function buildNamePart(int $telegramUserId, ?array $userRow): string
+    {
+        if (null === $userRow) {
+            return $this->formatter->escape("User $telegramUserId");
+        }
+
+        $userName = User::buildName($userRow['first_name'], $userRow['last_name'] ?? null);
+
+        $userLink = User::buildLink($userRow['username'] ?? null);
+        if (null !== $userLink) {
+            return $this->formatter->link($userName, $userLink);
+        }
+
+        return $this->formatter->escape($userName);
     }
 
     private function buildUserSettingsKeyboard(int $gameId, int $telegramUserId, int $slotCount): array
