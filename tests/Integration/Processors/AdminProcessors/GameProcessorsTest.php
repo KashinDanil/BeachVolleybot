@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Integration\Processors\AdminProcessors;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Processors\AdminProcessors\AdminAddNetProcessor;
+use BeachVolleybot\Processors\AdminProcessors\AdminAddSlotProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminAddVolleyballProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\AdminGameDetailCallbackProcessor;
@@ -157,6 +158,23 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         $editCalls = array_filter($this->bot->calls, fn($c) => 'editMessageText' === $c['method']);
         $this->assertGreaterThanOrEqual(1, count($editCalls));
+    }
+
+    // --- GameAddSlotProcessor ---
+
+    public function testAddSlotAddsSlot(): void
+    {
+        $gameId = $this->seedGameWithUser(telegramUserId: 200, position: 1);
+
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::AddSlot)->withGameId($gameId)->withUserId(200);
+        $update = TelegramUpdate::fromArray(
+            $this->adminCallbackQueryPayload($callbackData->toJson()),
+        );
+
+        new AdminAddSlotProcessor($this->telegramSender, $callbackData)->process($update);
+
+        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $this->assertCount(2, $slots);
     }
 
     // --- GameRemoveLocationProcessor ---

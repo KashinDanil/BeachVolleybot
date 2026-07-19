@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Processors\AdminProcessors;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminAddNetProcessor;
+use BeachVolleybot\Processors\AdminProcessors\AdminAddSlotProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminAddVolleyballProcessor;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\AdminGameDetailCallbackProcessor;
@@ -52,6 +53,7 @@ final class AdminCallbackActionTest extends TestCase
             [AdminCallbackAction::PromoteUser, RootPromoteUserProcessor::class],
             [AdminCallbackAction::DemoteUser, RootDemoteUserProcessor::class],
             [AdminCallbackAction::RemoveSlot, AdminRemoveSlotProcessor::class],
+            [AdminCallbackAction::AddSlot, AdminAddSlotProcessor::class],
             [AdminCallbackAction::RemoveLocation, AdminRemoveLocationCallbackProcessor::class],
             [AdminCallbackAction::AddNet, AdminAddNetProcessor::class],
             [AdminCallbackAction::RemoveNet, AdminRemoveNetProcessor::class],
@@ -103,6 +105,7 @@ final class AdminCallbackActionTest extends TestCase
             AdminCallbackAction::GameUsers,
             AdminCallbackAction::UserSettings,
             AdminCallbackAction::RemoveSlot,
+            AdminCallbackAction::AddSlot,
             AdminCallbackAction::RemoveLocation,
             AdminCallbackAction::AddNet,
             AdminCallbackAction::RemoveNet,

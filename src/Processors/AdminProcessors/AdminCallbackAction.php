@@ -28,6 +28,7 @@ enum AdminCallbackAction: string implements CallbackActionInterface
     case PromoteUser = 'pu';
     case DemoteUser = 'du';
     case RemoveSlot = 'rs';
+    case AddSlot = 'as';
     case RemoveLocation = 'rl';
     case AddNet = 'an';
     case RemoveNet = 'rn';
@@ -60,6 +61,7 @@ enum AdminCallbackAction: string implements CallbackActionInterface
             self::PromoteUser => new RootPromoteUserProcessor($telegramSender, $callbackData),
             self::DemoteUser => new RootDemoteUserProcessor($telegramSender, $callbackData),
             self::RemoveSlot => new AdminRemoveSlotProcessor($telegramSender, $callbackData),
+            self::AddSlot => new AdminAddSlotProcessor($telegramSender, $callbackData),
             self::RemoveLocation => new AdminRemoveLocationCallbackProcessor($telegramSender, $callbackData),
             self::AddNet => new AdminAddNetProcessor($telegramSender, $callbackData),
             self::RemoveNet => new AdminRemoveNetProcessor($telegramSender, $callbackData),

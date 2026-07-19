@@ -79,13 +79,33 @@ final class UserSettingsMessageBuilderTest extends TestCase
         $this->assertStringContainsString('Net: 3', $message->getText()->getMessageText());
     }
 
-    public function testHasRemoveSlotButtonWhenSlotsExist(): void
+    public function testHasSlotButtons(): void
     {
         $message = $this->build(slotCount: 2);
         $keyboard = $this->extractKeyboard($message);
 
         $allButtonTexts = $this->flattenButtonTexts($keyboard);
-        $this->assertContains('Remove Slot', $allButtonTexts);
+        $this->assertContains('-slot', $allButtonTexts);
+        $this->assertContains('+slot', $allButtonTexts);
+    }
+
+    public function testShowsSlotButtonsWhenNoSlots(): void
+    {
+        $message = $this->build(slotCount: 0);
+        $keyboard = $this->extractKeyboard($message);
+
+        $allButtonTexts = $this->flattenButtonTexts($keyboard);
+        $this->assertContains('-slot', $allButtonTexts);
+        $this->assertContains('+slot', $allButtonTexts);
+    }
+
+    public function testSlotButtonsHaveStyles(): void
+    {
+        $message = $this->build(slotCount: 2);
+        $keyboard = $this->extractKeyboard($message);
+
+        $this->assertSame('danger', $this->findButton($keyboard, '-slot')['style']);
+        $this->assertSame('success', $this->findButton($keyboard, '+slot')['style']);
     }
 
     private function extractKeyboard($message): array
@@ -105,13 +125,18 @@ final class UserSettingsMessageBuilderTest extends TestCase
         return $texts;
     }
 
-    public function testHidesRemoveSlotButtonWhenNoSlots(): void
+    /** @return array<string, mixed> */
+    private function findButton(array $keyboard, string $text): array
     {
-        $message = $this->build(slotCount: 0);
-        $keyboard = $this->extractKeyboard($message);
+        foreach ($keyboard as $row) {
+            foreach ($row as $button) {
+                if ($text === $button['text']) {
+                    return $button;
+                }
+            }
+        }
 
-        $allButtonTexts = $this->flattenButtonTexts($keyboard);
-        $this->assertNotContains('Remove Slot', $allButtonTexts);
+        $this->fail("Button '$text' not found");
     }
 
     public function testHasVolleyballButtons(): void

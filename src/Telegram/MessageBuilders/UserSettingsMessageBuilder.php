@@ -7,11 +7,13 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
+use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
 {
-    private const string REMOVE_SLOT       = 'Remove Slot';
+    private const string REMOVE_SLOT       = '-slot';
+    private const string ADD_SLOT          = '+slot';
     private const string REMOVE_VOLLEYBALL = '-🏐';
     private const string ADD_VOLLEYBALL    = '+🏐';
     private const string REMOVE_NET        = '-🕸️';
@@ -27,7 +29,7 @@ final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
     ): TelegramMessage {
         return $this->buildMessage(
             $this->buildUserSettingsText($gameId, $telegramUserId, $userRow, $slotCount, $volleyball, $net),
-            $this->buildUserSettingsKeyboard($gameId, $telegramUserId, $slotCount),
+            $this->buildUserSettingsKeyboard($gameId, $telegramUserId),
         );
     }
 
@@ -65,23 +67,18 @@ final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
         return $this->formatter->escape($userName);
     }
 
-    private function buildUserSettingsKeyboard(int $gameId, int $telegramUserId, int $slotCount): array
+    private function buildUserSettingsKeyboard(int $gameId, int $telegramUserId): array
     {
-        $keyboard = [];
-
-        if (0 < $slotCount) {
-            $keyboard[] = $this->buildRemoveSlotRow($gameId, $telegramUserId);
-        }
-
-        $keyboard[] = $this->buildVolleyballRow($gameId, $telegramUserId);
-        $keyboard[] = $this->buildNetRow($gameId, $telegramUserId);
-        $keyboard[] = $this->usersListBackRow($gameId);
-
-        return $keyboard;
+        return [
+            $this->buildSlotRow($gameId, $telegramUserId),
+            $this->buildVolleyballRow($gameId, $telegramUserId),
+            $this->buildNetRow($gameId, $telegramUserId),
+            $this->usersListBackRow($gameId),
+        ];
     }
 
     /** @return list<array{text: string, callback_data: string}> */
-    private function buildRemoveSlotRow(int $gameId, int $telegramUserId): array
+    private function buildSlotRow(int $gameId, int $telegramUserId): array
     {
         return [
             $this->buildActionButton(
@@ -89,6 +86,14 @@ final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
                 AdminCallbackData::create(AdminCallbackAction::RemoveSlot)
                     ->withGameId($gameId)
                     ->withUserId($telegramUserId),
+                InlineButtonStyle::DANGER,
+            ),
+            $this->buildActionButton(
+                self::ADD_SLOT,
+                AdminCallbackData::create(AdminCallbackAction::AddSlot)
+                    ->withGameId($gameId)
+                    ->withUserId($telegramUserId),
+                InlineButtonStyle::SUCCESS,
             ),
         ];
     }
