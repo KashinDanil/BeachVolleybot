@@ -27,7 +27,7 @@ final class UserHelpCommandProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('@' . BOT_USERNAME, $text);
         $this->assertStringContainsString('*To join at another time*', $text);
         $this->assertStringContainsString('like *17:30*', $text);
-        $this->assertStringContainsString('use the /games command here', $text);
+        $this->assertStringContainsString('use the /games command in my DM', $text);
 
         $this->assertSame('MarkdownV2', $args[2]);
     }

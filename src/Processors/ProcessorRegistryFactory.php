@@ -9,6 +9,7 @@ use BeachVolleybot\Processors\Handlers\GameHandlers\ChangeTitleHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\JoinWithTimeHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\SetLiveLocationHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\SetLocationHandler;
+use BeachVolleybot\Processors\Handlers\GroupHandlers\GroupHelpCommandHandler;
 use BeachVolleybot\Processors\Handlers\InlineHandlers\CreateGameHandler;
 use BeachVolleybot\Processors\Handlers\InlineHandlers\ForwardGameHandler;
 use BeachVolleybot\Processors\Handlers\InlineHandlers\InlineQueryHandler;
@@ -52,6 +53,7 @@ final readonly class ProcessorRegistryFactory
             new InlineQueryHandler(),
             new ForwardGameHandler(),
             new CreateGameHandler(),
+            new GroupHelpCommandHandler(),
         ];
     }
 

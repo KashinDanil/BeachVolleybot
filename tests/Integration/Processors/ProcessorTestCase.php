@@ -307,6 +307,83 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    /**
+     * Shaped after a real update: message_id is 0 and receiver_user is the bot.
+     *
+     * In a forum the command carries no message_thread_id of its own — only the
+     * topic-creation message under reply_to_message has one. Pass messageThreadId: null
+     * for a plain group, or ephemeralMessageId: null for the visible command an old
+     * client sends.
+     */
+    protected function ephemeralGroupMessagePayload(
+        ?string $text = null,
+        int $fromId = 311830743,
+        string $firstName = 'Danil',
+        int $chatId = -1003759398496,
+        ?int $ephemeralMessageId = 251718676,
+        ?string $languageCode = null,
+        ?int $messageThreadId = 328,
+    ): array {
+        $text ??= '/help@' . BOT_USERNAME;
+        $sender = ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false];
+
+        if (null !== $languageCode) {
+            $sender['language_code'] = $languageCode;
+        }
+
+        $isForum = null !== $messageThreadId;
+        $chat = ['id' => $chatId, 'title' => 'Dev Beach volleyball group', 'is_forum' => $isForum, 'type' => 'supergroup'];
+
+        $message = [
+            'message_id' => 0,
+            'from' => $sender,
+            'chat' => $chat,
+            'date' => 1700000000,
+            'receiver_user' => ['id' => 999, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+            'text' => $text,
+            'entities' => [['offset' => 0, 'length' => mb_strlen($text), 'type' => 'bot_command']],
+        ];
+
+        if ($isForum) {
+            $message['reply_to_message'] = [
+                'message_id' => $messageThreadId,
+                'from' => $sender,
+                'chat' => $chat,
+                'date' => 1699999000,
+                'message_thread_id' => $messageThreadId,
+                'forum_topic_created' => ['name' => 'New topic here', 'icon_color' => 13338331],
+                'is_topic_message' => true,
+            ];
+        }
+
+        if (null !== $ephemeralMessageId) {
+            $message['ephemeral_message_id'] = $ephemeralMessageId;
+        }
+
+        return ['update_id' => 1, 'message' => $message];
+    }
+
+    /**
+     * Ephemeral sends go through call(), so they are not sendMessage entries.
+     *
+     * @return ?array<string, mixed>
+     */
+    protected function lastEphemeralSendParams(): ?array
+    {
+        $calls = array_filter(
+            $this->bot->calls,
+            static fn(array $call): bool => 'call' === $call['method']
+                && 'sendMessage' === ($call['args'][0] ?? null)
+                && isset($call['args'][1]['receiver_user_id']),
+        );
+
+        if (empty($calls)) {
+            return null;
+        }
+
+        return end($calls)['args'][1];
+    }
+
     protected function privateMessagePayload(
         string $text,
         int $fromId = self::ADMIN_TELEGRAM_USER_ID,

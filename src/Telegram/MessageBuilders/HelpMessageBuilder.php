@@ -9,7 +9,7 @@ use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
-final class UserHelpMessageBuilder extends AbstractMessageBuilder
+final class HelpMessageBuilder extends AbstractMessageBuilder
 {
     public const string CREATE_PARAGRAPH      = '**To create a game**, add **@%s** to the start of the message. The text can be anything — just include a **date and time** 📆🕙';
     public const string EXAMPLE_LABEL         = 'Example:';
@@ -19,7 +19,7 @@ final class UserHelpMessageBuilder extends AbstractMessageBuilder
     public const string LATE_PARAGRAPH        = '**To join at another time**, reply to the game message with just the time, like **17:30**.';
     public const string LOCATION_PARAGRAPH    = '**To add a location** 📍, reply to the game message with a geo point.';
     public const string GEAR_PARAGRAPH        = '**Volleyballs and nets** can also be marked with the buttons under the game: +🏐 / −🏐 and +🕸 / −🕸. If something is missing, the bot will show it.';
-    public const string GAMES_LIST_PARAGRAPH  = '**To share a game across multiple chats**, use the /games command here — the game stays in sync everywhere.';
+    public const string GAMES_LIST_PARAGRAPH  = '**To share a game across multiple chats**, use the /games command in my DM — the game stays in sync everywhere.';
 
     public function __construct(
         private readonly Translator $translator,

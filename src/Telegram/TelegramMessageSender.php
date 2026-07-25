@@ -114,6 +114,37 @@ readonly class TelegramMessageSender
         }
     }
 
+    public function sendEphemeralMessage(
+        int $chatId,
+        int $receiverUserId,
+        int $replyToEphemeralMessageId,
+        TelegramMessage $message,
+        ?int $messageThreadId = null,
+    ): bool {
+        $data = [
+            'chat_id' => $chatId,
+            'text' => $message->getText()->getMessageText(),
+            'parse_mode' => $message->getText()->getParseMode(),
+            'disable_web_page_preview' => $message->getText()->isDisableWebPagePreview(),
+            'receiver_user_id' => $receiverUserId,
+            'reply_parameters' => json_encode(['ephemeral_message_id' => $replyToEphemeralMessageId]),
+            'reply_markup' => $message->getKeyboard()?->toJson(),
+        ];
+        if (null !== $messageThreadId) {
+            $data['message_thread_id'] = $messageThreadId;
+        }
+
+        try {
+            $this->bot->call('sendMessage', $data);
+
+            return true;
+        } catch (HttpException $exception) {
+            Logger::logApp('sendEphemeralMessage failed: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+
     public function editMessage(int $chatId, int $messageId, TelegramMessage $message): void
     {
         try {

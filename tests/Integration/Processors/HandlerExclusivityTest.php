@@ -116,6 +116,14 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             'private /start (help alias)' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/start', fromId: $nonAdminId),
             ),
+            'group ephemeral /help' => TelegramUpdate::fromArray(
+                $this->ephemeralGroupMessagePayload(fromId: $nonAdminId),
+            ),
+            // A forum-topic command carries a reply_to_message, so this fixture also pins
+            // down that the reply-based game handlers stay out of the way.
+            'group plain /help' => TelegramUpdate::fromArray(
+                $this->ephemeralGroupMessagePayload(fromId: $nonAdminId, ephemeralMessageId: null),
+            ),
             'private /settings by admin' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/settings', fromId: $adminId),
             ),

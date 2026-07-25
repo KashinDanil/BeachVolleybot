@@ -44,7 +44,7 @@
     "**To join at another time**, reply to the game message with just the time, like **17:30**.": "**Чтобы присоединиться в другое время**, ответьте на сообщение с игрой, указав только время, например **17:30**.",
     "**To add a location** 📍, reply to the game message with a geo point.": "**Чтобы добавить локацию** 📍, ответьте на сообщение с игрой геопозицией.",
     "**Volleyballs and nets** can also be marked with the buttons under the game: +🏐 / −🏐 and +🕸 / −🕸. If something is missing, the bot will show it.": "**Мячи и сетку** тоже можно отмечать кнопками под игрой: +🏐 / −🏐 и +🕸 / −🕸. Если чего-то не хватает, бот это покажет.",
-    "**To share a game across multiple chats**, use the /games command here — the game stays in sync everywhere.": "**Чтобы поделиться игрой в нескольких чатах**, используйте команду /games здесь — игра синхронизируется везде.",
+    "**To share a game across multiple chats**, use the /games command in my DM — the game stays in sync everywhere.": "**Чтобы поделиться игрой в нескольких чатах**, используйте команду /games в личных сообщениях со мной — игра синхронизируется везде.",
 
     "Your games": "Ваши игры",
     "You haven't created any games yet": "Вы ещё не создали ни одной игры",

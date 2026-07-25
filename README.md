@@ -19,6 +19,7 @@ This project was created to address a common frustration: _manually copying part
 - **Title editing** — the game creator can rename a game by replying to its message; in the bot's DM, admins can rename any game the same way (kickoff day must remain in the future)
 - **My games** — the `/games` command in DM lists the games a user has created, with pagination and a per-game detail view from which the game can be shared again
 - **Welcome flow** — the `/start` command (also triggered by `/help`) shows a welcome message
+- **Group help** — `/help` in a group sends the same help text as an ephemeral message, visible only to the person who asked; answered inside the webhook request, since Telegram expires an ephemeral reply 15 seconds after the command
 - **Weather forecasts** — hourly forecast for the game window, attached to the message and refreshable on demand; powered by Open-Meteo, resolved per known venue, cached in SQLite, and computed off the request path by a dedicated worker
 - **Multi-language support** — English (default), Russian, Spanish
 - **Concurrency handling** via file-based locking
@@ -39,10 +40,11 @@ The architecture is designed with **future scalability in mind**. While the curr
 Telegram Webhook
   → public/tg-bot.php (validation, authentication)
     → IncomingMessageRouter
-        ├→ inline queries / chosen inline results          (handled inline)
-        │     ├→ InlineQueryProcessor
-        │     ├→ CreateGameProcessor
-        │     └→ ForwardGameProcessor
+        ├→ immediate registry → ProcessorRegistry.resolveProcessor(update)
+        │     ├→ InlineQueryProcessor          (inline query)
+        │     ├→ CreateGameProcessor           (chosen inline result)
+        │     ├→ ForwardGameProcessor          (chosen inline result)
+        │     └→ GroupHelpCommandProcessor     (ephemeral /help in a group)
         └→ IncomingMessageQueueRouter → ProcessorRegistry.resolveQueueName(update)
               ├→ game_<id>  queue   (per-game serialization)
               ├→ dm_<user>  queue   (per-user DM serialization)
@@ -59,7 +61,7 @@ Telegram Webhook
                                      → InlineMessageRefresher (re-render every inline message of the game)
 ```
 
-Both the queue router (request path) and the worker dispatch (queue-drain path) consult a single `ProcessorRegistry`: a list of handlers, each declaring `matches(update)`, `routeToQueue(update)`, and `createProcessor(sender, update)`. The registry returns the first handler whose `matches()` is true; mutual exclusivity is enforced by `HandlerExclusivityTest`.
+Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `createProcessor(sender, update)`, returning the first handler that matches. `ProcessorRegistryFactory` owns two lists: the **immediate** one runs inside the webhook request and is consulted first (inline queries, and the ephemeral group `/help`, whose reply Telegram rejects after 15 seconds); the **queued** one adds `routeToQueue(update)` via `AbstractQueuedProcessorHandler` and is consulted again at worker dispatch, which is why `matches()` must stay pure. Match patterns must be mutually exclusive across both lists, enforced by `HandlerExclusivityTest`.
 
 ### Project Structure
 
@@ -79,10 +81,12 @@ Both the queue router (request path) and the worker dispatch (queue-drain path) 
 │   ├── Processors/
 │   │   ├── AdminProcessors/    # Admin panel callbacks (game / user / equipment / logs / settings)
 │   │   ├── UserProcessors/     # /help (also /start), /games command and pagination/detail callbacks
-│   │   ├── UpdateProcessors/   # Game lifecycle: create, forward, join-with-time, change-title, set-location, pin-message…
+│   │   ├── UpdateProcessors/   # Game lifecycle: create, forward, join-with-time, change-title, set-location, pin-message, group help…
 │   │   │   └── CallbackQuery/  # Per-game callbacks (join, leave, add/remove volleyball/net, refresh weather)
-│   │   ├── Handlers/           # Per-update handlers (matches / routeToQueue / createProcessor)
+│   │   ├── Handlers/           # Per-update handlers (matches / createProcessor [/ routeToQueue])
 │   │   │   ├── GameHandlers/      # Routed onto game_<id> queue
+│   │   │   ├── GroupHandlers/     # Answered on the request — ephemeral group /help
+│   │   │   ├── InlineHandlers/    # Answered on the request — inline queries, chosen results
 │   │   │   ├── PinHandlers/       # Routed onto pin_<chat> queue
 │   │   │   ├── PrivateHandlers/   # Routed onto dm_<user> queue
 │   │   │   └── Traits/            # CallbackProcessorResolverTrait — shared callback dispatch
@@ -94,7 +98,7 @@ Both the queue router (request path) and the worker dispatch (queue-drain path) 
 │   ├── Routing/         # IncomingMessageRouter + IncomingMessageQueueRouter (delegate to ProcessorRegistry)
 │   ├── Telegram/        # Sender, MarkdownV2, rate-limited API, inline refresher
 │   │   ├── CallbackData/       # CallbackData / AdminCallbackData / UserCallbackData (+ pageable interface)
-│   │   ├── MessageBuilders/    # Game / list / detail / settings / share / welcome / log builders + factories, keyboards, warnings
+│   │   ├── MessageBuilders/    # Game / list / detail / settings / share / help / log builders + factories, keyboards, warnings
 │   │   └── Messages/           # Incoming and Outgoing Telegram message types
 │   ├── Validator/       # Validator + rules (auth, date/time-in-title, kickoff-in-future, post request, secret token, …)
 │   ├── Weather/         # Open-Meteo client, forecast cache, known venues, weather queue payloads
@@ -155,7 +159,11 @@ This checks prerequisites, installs dependencies, creates runtime directories, a
 
 Point Telegram to `public/tg-bot.php` on your server. The endpoint must be accessible over HTTPS.
 
-#### 4. Grant admin access
+#### 4. Register the bot commands
+
+Register `/help` through BotFather or `setMyCommands` with **`is_ephemeral: true`** for the group scope. Without it, clients send `/help` as an ordinary visible message in groups, which the bot deliberately ignores — so group help silently never appears.
+
+#### 5. Grant admin access
 
 Admin access is stored per user in the `role` column of the `users` table, ordered ascending by privilege: `0` = player (default), `1` = admin, `2` = root. Admin actions require the **admin** or **root** role; root-only actions (e.g. logs) require **root**.
 

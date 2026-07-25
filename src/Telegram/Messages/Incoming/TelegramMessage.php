@@ -20,6 +20,9 @@ readonly class TelegramMessage implements JsonSerializable
         public ?self $replyToMessage = null,
         public ?TelegramUser $viaBot = null,
         public ?self $pinnedMessage = null,
+        public ?int $ephemeralMessageId = null,
+        public ?TelegramUser $receiverUser = null,
+        public ?int $messageThreadId = null,
         private array $rawPayload = [],
     ) {
     }
@@ -54,6 +57,23 @@ readonly class TelegramMessage implements JsonSerializable
         return null !== $this->pinnedMessage;
     }
 
+    // Visible only to the sender and the bot. Carries message_id 0, so
+    // ephemeral_message_id is the only handle on it.
+    public function isEphemeral(): bool
+    {
+        return null !== $this->ephemeralMessageId;
+    }
+
+    /**
+     * An ephemeral command in a forum topic carries no message_thread_id of its own —
+     * only the topic-creation message it is shown as replying to has one. A reply sent
+     * without it lands outside the topic, where nobody can see it.
+     */
+    public function resolveMessageThreadId(): ?int
+    {
+        return $this->messageThreadId ?? $this->replyToMessage?->messageThreadId;
+    }
+
     public function jsonSerialize(): array
     {
         return $this->rawPayload;
@@ -78,6 +98,9 @@ readonly class TelegramMessage implements JsonSerializable
             replyToMessage: isset($data['reply_to_message']) ? self::fromArray($data['reply_to_message']) : null,
             viaBot: isset($data['via_bot']) ? TelegramUser::fromArray($data['via_bot']) : null,
             pinnedMessage: isset($data['pinned_message']) ? self::fromArray($data['pinned_message']) : null,
+            ephemeralMessageId: $data['ephemeral_message_id'] ?? null,
+            receiverUser: isset($data['receiver_user']) ? TelegramUser::fromArray($data['receiver_user']) : null,
+            messageThreadId: $data['message_thread_id'] ?? null,
             rawPayload: $data,
         );
     }

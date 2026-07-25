@@ -14,6 +14,7 @@ use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ForwardGameProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GroupHelpCommandProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\InlineQueryProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
@@ -290,6 +291,32 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $update = TelegramUpdate::fromArray($this->inlineQueryPayload(inlineQueryId: 'iq_x', query: 'anything'));
 
         $this->assertNull($this->immediateRegistry->resolveQueueName($update));
+    }
+
+    public function testResolvesGroupEphemeralHelpCommandToGroupHelpProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->ephemeralGroupMessagePayload());
+
+        $this->assertInstanceOf(
+            GroupHelpCommandProcessor::class,
+            $this->immediateRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testQueuedRegistryIgnoresGroupEphemeralHelpCommand(): void
+    {
+        $update = TelegramUpdate::fromArray($this->ephemeralGroupMessagePayload());
+
+        $this->assertNull($this->queuedRegistry->resolveQueueName($update));
+        $this->assertNull($this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
+    }
+
+    public function testNeitherRegistryAnswersAPlainVisibleGroupHelpCommand(): void
+    {
+        $update = TelegramUpdate::fromArray($this->ephemeralGroupMessagePayload(ephemeralMessageId: null));
+
+        $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
+        $this->assertNull($this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
     public function testImmediateRegistryIgnoresQueuedUpdates(): void
