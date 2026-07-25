@@ -80,6 +80,10 @@ final class KnownVenues
             new Venue(new LocationCoordinates(41.441, 2.244), ['Pont del Petroli', 'Badalona', 'Бадалона']),
             new Venue(new LocationCoordinates(41.480, 2.315), ['El Masnou', 'Masnou', 'Маснoу']),
             new Venue(new LocationCoordinates(41.232, 1.810), ['Platja de la Ribera', 'Sitges', 'Ситжес']),
+            new Venue(new LocationCoordinates(41.415, 2.205), ['Platja del Fòrum', 'Forum', 'Форум']),
+            new Venue(new LocationCoordinates(41.422, 2.232), ['Platja de Sant Adrià de Besòs', 'Sant Andria', 'Besos', 'Бесос']),
+            new Venue(new LocationCoordinates(41.432, 2.238), ['Platja de la Mora', 'Mora']),
+            new Venue(new LocationCoordinates(41.439, 2.246), ['Platja del Coco', 'Coco']),
         ];
     }
 }
