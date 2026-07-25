@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors;
 
+use BeachVolleybot\Common\Extractors\ForwardGameQueryExtractor;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
 use BeachVolleybot\Processors\ProcessorRegistry;
 use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\ForwardGameProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\InlineQueryProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
@@ -23,13 +27,15 @@ use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 final class ProcessorRegistryTest extends ProcessorTestCase
 {
-    private ProcessorRegistry $registry;
+    private ProcessorRegistry $queuedRegistry;
+    private ProcessorRegistry $immediateRegistry;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->registry = ProcessorRegistryFactory::create();
+        $this->queuedRegistry = ProcessorRegistryFactory::createQueued();
+        $this->immediateRegistry = ProcessorRegistryFactory::createImmediate();
     }
 
     public function testResolvesInlineCallbackQueryToGameQueueAndJoinProcessor(): void
@@ -37,8 +43,8 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $gameId = $this->seedFullGame(inlineMessageId: 'msg_inline', inlineQueryId: 'iq_inline');
         $update = TelegramUpdate::fromArray($this->callbackQueryPayload('msg_inline', '{"a":"j"}'));
 
-        $this->assertSame('game_' . $gameId, $this->registry->resolveQueueName($update));
-        $this->assertInstanceOf(JoinProcessor::class, $this->registry->resolveProcessor($update, $this->telegramSender));
+        $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(JoinProcessor::class, $this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
     public function testResolvesAdminCallbackQueryToDmQueueAndSettingsMenuCallbackProcessor(): void
@@ -46,10 +52,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $this->seedAdmin();
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload('{"aa":"st"}'));
 
-        $this->assertSame('dm_12345678', $this->registry->resolveQueueName($update));
+        $this->assertSame('dm_12345678', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             SettingsMenuCallbackProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -57,10 +63,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
     {
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload('{"ua":"ugl"}', fromId: 555, chatId: 555));
 
-        $this->assertSame('dm_555', $this->registry->resolveQueueName($update));
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             UserGamesListCallbackProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -71,10 +77,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
             $this->editedLocationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'iq_edit'),
         );
 
-        $this->assertSame('game_' . $gameId, $this->registry->resolveQueueName($update));
+        $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             SetLiveLocationProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -85,10 +91,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
             $this->locationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'iq_loc'),
         );
 
-        $this->assertSame('game_' . $gameId, $this->registry->resolveQueueName($update));
+        $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             SetLocationProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -97,10 +103,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $gameId = $this->seedFullGame(inlineMessageId: 'msg_time', inlineQueryId: 'iq_time');
         $update = TelegramUpdate::fromArray($this->replyMessagePayload('18:00', 'iq_time'));
 
-        $this->assertSame('game_' . $gameId, $this->registry->resolveQueueName($update));
+        $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             JoinWithTimeProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -109,10 +115,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $gameId = $this->seedFullGame(inlineMessageId: 'msg_title', inlineQueryId: 'iq_title');
         $update = TelegramUpdate::fromArray($this->replyMessagePayload('New title', 'iq_title'));
 
-        $this->assertSame('game_' . $gameId, $this->registry->resolveQueueName($update));
+        $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             ChangeTitleProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -122,10 +128,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
             $this->pinNotificationPayload(chatId: -100, messageId: 11, pinnedMessageId: 10),
         );
 
-        $this->assertSame('pin_-100', $this->registry->resolveQueueName($update));
+        $this->assertSame('pin_-100', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             DeletePinNotificationProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -133,10 +139,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
     {
         $update = TelegramUpdate::fromArray($this->viaBotKeyboardMessagePayload(chatId: -200));
 
-        $this->assertSame('pin_-200', $this->registry->resolveQueueName($update));
+        $this->assertSame('pin_-200', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             PinMessageProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -144,10 +150,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/games', fromId: 555));
 
-        $this->assertSame('dm_555', $this->registry->resolveQueueName($update));
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             UserGamesListCommandProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -155,10 +161,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/help', fromId: 555));
 
-        $this->assertSame('dm_555', $this->registry->resolveQueueName($update));
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             UserHelpCommandProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -166,10 +172,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/start', fromId: 555));
 
-        $this->assertSame('dm_555', $this->registry->resolveQueueName($update));
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             UserHelpCommandProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -178,10 +184,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $this->seedAdmin();
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings', fromId: self::ADMIN_TELEGRAM_USER_ID));
 
-        $this->assertSame('dm_12345678', $this->registry->resolveQueueName($update));
+        $this->assertSame('dm_12345678', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             SettingsMenuCommandProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -189,10 +195,10 @@ final class ProcessorRegistryTest extends ProcessorTestCase
     {
         $update = TelegramUpdate::fromArray($this->privateViaBotGameMessagePayload('iq_share', fromId: 555));
 
-        $this->assertSame('dm_555', $this->registry->resolveQueueName($update));
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             SendShareButtonProcessor::class,
-            $this->registry->resolveProcessor($update, $this->telegramSender),
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
@@ -200,30 +206,96 @@ final class ProcessorRegistryTest extends ProcessorTestCase
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings', fromId: 999));
 
-        $this->assertNull($this->registry->resolveQueueName($update));
-        $this->assertNull($this->registry->resolveProcessor($update, $this->telegramSender));
+        $this->assertNull($this->queuedRegistry->resolveQueueName($update));
+        $this->assertNull($this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
     public function testReturnsNullForArbitraryPrivateText(): void
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('hello there', fromId: 555));
 
-        $this->assertNull($this->registry->resolveQueueName($update));
-        $this->assertNull($this->registry->resolveProcessor($update, $this->telegramSender));
+        $this->assertNull($this->queuedRegistry->resolveQueueName($update));
+        $this->assertNull($this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
     public function testReturnsNullForInlineQuery(): void
     {
         $update = TelegramUpdate::fromArray($this->inlineQueryPayload(inlineQueryId: 'iq_x', query: 'anything'));
 
-        $this->assertNull($this->registry->resolveQueueName($update));
-        $this->assertNull($this->registry->resolveProcessor($update, $this->telegramSender));
+        $this->assertNull($this->queuedRegistry->resolveQueueName($update));
+        $this->assertNull($this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
     public function testReturnsNullQueueWhenGameLookupFailsButHandlerMatches(): void
     {
         $update = TelegramUpdate::fromArray($this->replyMessagePayload('18:00', 'iq_missing'));
 
-        $this->assertNull($this->registry->resolveQueueName($update));
+        $this->assertNull($this->queuedRegistry->resolveQueueName($update));
+    }
+
+    public function testImmediateRegistryResolvesInlineQueryToInlineQueryProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->inlineQueryPayload(inlineQueryId: 'iq_x', query: 'anything'));
+
+        $this->assertInstanceOf(
+            InlineQueryProcessor::class,
+            $this->immediateRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testImmediateRegistryResolvesChosenInlineResultToCreateGameProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->chosenInlineResultPayload(
+            inlineMessageId: 'imi_new',
+            resultId: 'r1',
+            query: 'Beach Volleyball 31.12.2099 18:00',
+        ));
+
+        $this->assertInstanceOf(
+            CreateGameProcessor::class,
+            $this->immediateRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testImmediateRegistryResolvesForwardQueryToForwardGameProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->chosenInlineResultPayload(
+            inlineMessageId: 'imi_fwd',
+            resultId: 'r1',
+            query: ForwardGameQueryExtractor::PREFIX . ' 42',
+        ));
+
+        $this->assertInstanceOf(
+            ForwardGameProcessor::class,
+            $this->immediateRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testImmediateRegistryIgnoresChosenInlineResultWithoutInlineMessageId(): void
+    {
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 1,
+            'chosen_inline_result' => [
+                'result_id' => 'r1',
+                'from' => ['id' => 200, 'first_name' => 'Danil', 'is_bot' => false],
+                'query' => 'Beach Volleyball 31.12.2099 18:00',
+            ],
+        ]);
+
+        $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
+    }
+
+    public function testImmediateRegistryNeverResolvesAQueueName(): void
+    {
+        $update = TelegramUpdate::fromArray($this->inlineQueryPayload(inlineQueryId: 'iq_x', query: 'anything'));
+
+        $this->assertNull($this->immediateRegistry->resolveQueueName($update));
+    }
+
+    public function testImmediateRegistryIgnoresQueuedUpdates(): void
+    {
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/help', fromId: 555));
+
+        $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
     }
 }

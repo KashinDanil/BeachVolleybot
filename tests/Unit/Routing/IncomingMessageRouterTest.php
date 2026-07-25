@@ -24,8 +24,12 @@ final class IncomingMessageRouterTest extends TestCase
         SpyQueue::reset();
 
         $this->bot = new BotApiStub();
-        $queueRouter = new IncomingMessageQueueRouter(SpyQueue::class, '/tmp/test_queues', ProcessorRegistryFactory::create());
-        $this->router = new IncomingMessageRouter(new TelegramMessageSender($this->bot), $queueRouter);
+        $queueRouter = new IncomingMessageQueueRouter(SpyQueue::class, '/tmp/test_queues', ProcessorRegistryFactory::createQueued());
+        $this->router = new IncomingMessageRouter(
+            new TelegramMessageSender($this->bot),
+            ProcessorRegistryFactory::createImmediate(),
+            $queueRouter,
+        );
     }
 
     public function testChosenInlineResultWithoutInlineMessageIdIsDropped(): void

@@ -22,7 +22,7 @@ readonly class AppQueueProcessor implements QueueProcessorInterface
         ?ProcessorRegistry $registry = null,
         ?RecentUpdateIdTracker $updateIdTracker = null,
     ) {
-        $this->registry = $registry ?? ProcessorRegistryFactory::create();
+        $this->registry = $registry ?? ProcessorRegistryFactory::createQueued();
         $this->updateIdTracker = $updateIdTracker ?? new RecentUpdateIdTracker();
     }
 

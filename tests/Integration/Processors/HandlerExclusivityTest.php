@@ -4,25 +4,15 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors;
 
+use BeachVolleybot\Common\Extractors\ForwardGameQueryExtractor;
 use BeachVolleybot\Processors\AbstractProcessorHandler;
-use BeachVolleybot\Processors\Handlers\GameHandlers\GameCallbackQueryHandler;
-use BeachVolleybot\Processors\Handlers\GameHandlers\ChangeTitleHandler;
-use BeachVolleybot\Processors\Handlers\GameHandlers\JoinWithTimeHandler;
-use BeachVolleybot\Processors\Handlers\GameHandlers\SetLiveLocationHandler;
-use BeachVolleybot\Processors\Handlers\GameHandlers\SetLocationHandler;
-use BeachVolleybot\Processors\Handlers\PinHandlers\DeletePinNotificationHandler;
-use BeachVolleybot\Processors\Handlers\PinHandlers\PinMessageHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\AdminCallbackQueryHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\SendShareButtonHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\SettingsMenuCommandHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserCallbackQueryHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserGamesListCommandHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserHelpCommandHandler;
+use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use ReflectionClass;
 
-// When adding a new handler, also add a representative update fixture in fixtures():
-// exclusivity is enforced over these fixtures, not by static analysis.
+// Handlers come straight from the routing table, so a new handler is picked up here for free.
+// What is NOT free: add a representative update fixture in fixtures() for it, because
+// exclusivity is enforced over those fixtures, not by static analysis.
 final class HandlerExclusivityTest extends ProcessorTestCase
 {
     private const int NON_ADMIN_ID = 999;
@@ -55,21 +45,10 @@ final class HandlerExclusivityTest extends ProcessorTestCase
      */
     private function allHandlers(): array
     {
-        return [
-            new GameCallbackQueryHandler(),
-            new SetLiveLocationHandler(),
-            new SetLocationHandler(),
-            new JoinWithTimeHandler(),
-            new ChangeTitleHandler(),
-            new DeletePinNotificationHandler(),
-            new PinMessageHandler(),
-            new AdminCallbackQueryHandler(),
-            new UserCallbackQueryHandler(),
-            new SendShareButtonHandler(),
-            new SettingsMenuCommandHandler(),
-            new UserGamesListCommandHandler(),
-            new UserHelpCommandHandler(),
-        ];
+        return array_merge(
+            ProcessorRegistryFactory::immediateHandlers(),
+            ProcessorRegistryFactory::queuedHandlers(),
+        );
     }
 
     /**
@@ -81,6 +60,23 @@ final class HandlerExclusivityTest extends ProcessorTestCase
         $nonAdminId = self::NON_ADMIN_ID;
 
         return [
+            'inline query' => TelegramUpdate::fromArray(
+                $this->inlineQueryPayload(inlineQueryId: 'iq1', query: 'Beach Volleyball 31.12.2099 18:00'),
+            ),
+            'chosen inline result (create game)' => TelegramUpdate::fromArray(
+                $this->chosenInlineResultPayload(
+                    inlineMessageId: 'imi1',
+                    resultId: 'r1',
+                    query: 'Beach Volleyball 31.12.2099 18:00',
+                ),
+            ),
+            'chosen inline result (forward game)' => TelegramUpdate::fromArray(
+                $this->chosenInlineResultPayload(
+                    inlineMessageId: 'imi2',
+                    resultId: 'r2',
+                    query: ForwardGameQueryExtractor::PREFIX . ' 42',
+                ),
+            ),
             'inline callback (join)' => TelegramUpdate::fromArray(
                 $this->callbackQueryPayload('iqi1', json_encode(['a' => 'j', 'q' => 'iq1'])),
             ),

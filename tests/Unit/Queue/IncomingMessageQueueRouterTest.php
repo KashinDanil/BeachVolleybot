@@ -35,7 +35,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
         Connection::set($this->db);
 
         SpyQueue::reset();
-        $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR, ProcessorRegistryFactory::create());
+        $this->router = new IncomingMessageQueueRouter(SpyQueue::class, self::BASE_DIR, ProcessorRegistryFactory::createQueued());
     }
 
     protected function tearDown(): void

@@ -39,6 +39,6 @@ $payload = json_decode($inputStrategy->getPayload(), true);
 $update = TelegramUpdate::fromArray($payload);
 
 $telegramSender = new TelegramMessageSender(new RateLimitedBotApi(TG_BOT_ACCESS_TOKEN, TG_MAX_REQUESTS_PER_SECOND));
-$queueRouter = new IncomingMessageQueueRouter(QUEUE_CLASS, BASE_QUEUE_DIR, ProcessorRegistryFactory::create());
-$router = new IncomingMessageRouter($telegramSender, $queueRouter);
+$queueRouter = new IncomingMessageQueueRouter(QUEUE_CLASS, BASE_QUEUE_DIR, ProcessorRegistryFactory::createQueued());
+$router = new IncomingMessageRouter($telegramSender, ProcessorRegistryFactory::createImmediate(), $queueRouter);
 $router->route($update);

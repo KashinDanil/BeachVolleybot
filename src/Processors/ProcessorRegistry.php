@@ -19,25 +19,24 @@ readonly class ProcessorRegistry
 
     public function resolveQueueName(TelegramUpdate $update): ?string
     {
-        foreach ($this->handlers as $handler) {
-            if ($handler->matches($update)) {
-                return $handler->routeToQueue($update);
-            }
+        $handler = $this->findHandler($update);
+
+        if (!$handler instanceof AbstractQueuedProcessorHandler) {
+            return null;
         }
 
-        return null;
+        return $handler->routeToQueue($update);
     }
 
     public function resolveProcessor(
         TelegramUpdate $update,
         TelegramMessageSender $telegramSender,
     ): ?AbstractActionProcessor {
-        foreach ($this->handlers as $handler) {
-            if ($handler->matches($update)) {
-                return $handler->createProcessor($telegramSender, $update);
-            }
-        }
+        return $this->findHandler($update)?->createProcessor($telegramSender, $update);
+    }
 
-        return null;
+    private function findHandler(TelegramUpdate $update): ?AbstractProcessorHandler
+    {
+        return array_find($this->handlers, static fn($handler) => $handler->matches($update));
     }
 }
