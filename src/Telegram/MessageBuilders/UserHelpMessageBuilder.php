@@ -9,7 +9,7 @@ use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
-final class WelcomeMessageBuilder extends AbstractMessageBuilder
+final class UserHelpMessageBuilder extends AbstractMessageBuilder
 {
     public const string CREATE_PARAGRAPH      = '**To create a game**, add **@%s** to the start of the message. The text can be anything — just include a **date and time** 📆🕙';
     public const string EXAMPLE_LABEL         = 'Example:';

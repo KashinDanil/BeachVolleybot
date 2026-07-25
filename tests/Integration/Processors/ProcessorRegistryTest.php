@@ -18,7 +18,7 @@ use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
-use BeachVolleybot\Processors\UserProcessors\UserStartCommandProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserHelpCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 final class ProcessorRegistryTest extends ProcessorTestCase
@@ -151,13 +151,24 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         );
     }
 
-    public function testResolvesPrivateStartCommandToDmQueueAndUserStartCommandProcessor(): void
+    public function testResolvesPrivateHelpCommandToDmQueueAndUserHelpCommandProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/help', fromId: 555));
+
+        $this->assertSame('dm_555', $this->registry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            UserHelpCommandProcessor::class,
+            $this->registry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testResolvesPrivateStartCommandToDmQueueAndUserHelpCommandProcessor(): void
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/start', fromId: 555));
 
         $this->assertSame('dm_555', $this->registry->resolveQueueName($update));
         $this->assertInstanceOf(
-            UserStartCommandProcessor::class,
+            UserHelpCommandProcessor::class,
             $this->registry->resolveProcessor($update, $this->telegramSender),
         );
     }

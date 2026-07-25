@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UserProcessors;
 
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserStartCommandHandler;
-use BeachVolleybot\Processors\UserProcessors\UserStartCommandProcessor;
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserHelpCommandHandler;
+use BeachVolleybot\Processors\UserProcessors\UserHelpCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 
-final class UserStartCommandProcessorTest extends ProcessorTestCase
+final class UserHelpCommandProcessorTest extends ProcessorTestCase
 {
     private const int SENDER_ID = 555;
 
@@ -32,7 +32,7 @@ final class UserStartCommandProcessorTest extends ProcessorTestCase
         $this->assertSame('MarkdownV2', $args[2]);
     }
 
-    public function testDeletesTheStartCommandMessage(): void
+    public function testDeletesTheHelpCommandMessage(): void
     {
         $this->processCommand();
 
@@ -47,9 +47,9 @@ final class UserStartCommandProcessorTest extends ProcessorTestCase
     private function processCommand(): void
     {
         $update = TelegramUpdate::fromArray(
-            $this->privateMessagePayload(UserStartCommandHandler::COMMAND, fromId: self::SENDER_ID),
+            $this->privateMessagePayload(UserHelpCommandHandler::COMMAND, fromId: self::SENDER_ID),
         );
 
-        new UserStartCommandProcessor($this->telegramSender)->process($update);
+        new UserHelpCommandProcessor($this->telegramSender)->process($update);
     }
 }

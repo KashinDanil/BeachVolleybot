@@ -18,7 +18,7 @@ This project was created to address a common frustration: _manually copying part
 - **Game sharing** — one game can be reposted into multiple chats. Creating a game in a private DM yields a `Share` button to forward it to a chat; the same game keeps its participant list synchronized across every chat it appears in
 - **Title editing** — the game creator can rename a game by replying to its message; in the bot's DM, admins can rename any game the same way (kickoff day must remain in the future)
 - **My games** — the `/games` command in DM lists the games a user has created, with pagination and a per-game detail view from which the game can be shared again
-- **Welcome flow** — the `/start` command shows a welcome message
+- **Welcome flow** — the `/start` command (also triggered by `/help`) shows a welcome message
 - **Weather forecasts** — hourly forecast for the game window, attached to the message and refreshable on demand; powered by Open-Meteo, resolved per known venue, cached in SQLite, and computed off the request path by a dedicated worker
 - **Multi-language support** — English (default), Russian, Spanish
 - **Concurrency handling** via file-based locking
@@ -78,7 +78,7 @@ Both the queue router (request path) and the worker dispatch (queue-drain path) 
 │   ├── Log/             # Log file management
 │   ├── Processors/
 │   │   ├── AdminProcessors/    # Admin panel callbacks (game / user / equipment / logs / settings)
-│   │   ├── UserProcessors/     # /start, /games command and pagination/detail callbacks
+│   │   ├── UserProcessors/     # /help (also /start), /games command and pagination/detail callbacks
 │   │   ├── UpdateProcessors/   # Game lifecycle: create, forward, join-with-time, change-title, set-location, pin-message…
 │   │   │   └── CallbackQuery/  # Per-game callbacks (join, leave, add/remove volleyball/net, refresh weather)
 │   │   ├── Handlers/           # Per-update handlers (matches / routeToQueue / createProcessor)

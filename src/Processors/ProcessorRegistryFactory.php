@@ -16,7 +16,7 @@ use BeachVolleybot\Processors\Handlers\PrivateHandlers\SendShareButtonHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\SettingsMenuCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserGamesListCommandHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserStartCommandHandler;
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserHelpCommandHandler;
 
 final readonly class ProcessorRegistryFactory
 {
@@ -35,7 +35,7 @@ final readonly class ProcessorRegistryFactory
             new SendShareButtonHandler(),
             new SettingsMenuCommandHandler(),
             new UserGamesListCommandHandler(),
-            new UserStartCommandHandler(),
+            new UserHelpCommandHandler(),
         ]);
     }
 }

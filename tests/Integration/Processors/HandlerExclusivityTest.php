@@ -17,7 +17,7 @@ use BeachVolleybot\Processors\Handlers\PrivateHandlers\SendShareButtonHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\SettingsMenuCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserGamesListCommandHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserStartCommandHandler;
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserHelpCommandHandler;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use ReflectionClass;
 
@@ -68,7 +68,7 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             new SendShareButtonHandler(),
             new SettingsMenuCommandHandler(),
             new UserGamesListCommandHandler(),
-            new UserStartCommandHandler(),
+            new UserHelpCommandHandler(),
         ];
     }
 
@@ -114,7 +114,10 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             'private /games' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/games', fromId: $nonAdminId),
             ),
-            'private /start' => TelegramUpdate::fromArray(
+            'private /help' => TelegramUpdate::fromArray(
+                $this->privateMessagePayload('/help', fromId: $nonAdminId),
+            ),
+            'private /start (help alias)' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/start', fromId: $nonAdminId),
             ),
             'private /settings by admin' => TelegramUpdate::fromArray(
