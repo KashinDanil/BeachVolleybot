@@ -13,7 +13,7 @@ final readonly class GameLocationResolver
     public function resolve(GameInterface $game): LocationCoordinates
     {
         return LocationCoordinates::tryParse($game->getLocation())
-            ?? KnownVenues::findInTitle($game->getTitle())
+            ?? KnownVenues::findInTitle($game->getTitle())?->coordinates
             ?? new DefaultLocationCoordinates();
     }
 }

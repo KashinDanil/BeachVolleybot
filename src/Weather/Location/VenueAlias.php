@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Weather\Location;
 
-use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
-
+/**
+ * One normalized spelling a venue can be recognised by. Index entry of VenueDirectory.
+ */
 final readonly class VenueAlias
 {
     public function __construct(
         public string $alias,
-        public LocationCoordinates $coordinates,
+        public Venue $venue,
     ) {
     }
 }

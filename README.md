@@ -99,7 +99,7 @@ Both the queue router (request path) and the worker dispatch (queue-drain path) 
 │   ├── Validator/       # Validator + rules (auth, date/time-in-title, kickoff-in-future, post request, secret token, …)
 │   ├── Weather/         # Open-Meteo client, forecast cache, known venues, weather queue payloads
 │   │   ├── Forecast/           # Cache, Client, GameWeatherLookup, Models, Formatter, WindowResolver
-│   │   ├── Location/           # GameLocationResolver, KnownVenues, Venue / VenueAlias
+│   │   ├── Location/           # GameLocationResolver, KnownVenues catalog, VenueDirectory, Venue / VenueAlias
 │   │   └── Queue/              # WeatherEnqueuer, WeatherQueuePayload
 │   └── Workers/         # AppQueueWorker, WeatherQueueWorker
 └── tests/               # PHPUnit tests (Unit + Integration)
