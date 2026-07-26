@@ -120,6 +120,30 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
         $this->assertFalse($this->pinnedMessage(200, self::SENT_MESSAGE_ID));
     }
 
+    public function testFollowsTheGameWithAShareReplyInDirectMessages(): void
+    {
+        $update = $this->privateMentionUpdate("@test_bot\n📅 31.12.2099\n🏖️ Bogatell\n🕙 10:00", chatId: 200);
+
+        new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
+
+        $gameId = new GameManager()->resolveGameIdByChatMessage(200, self::SENT_MESSAGE_ID);
+        $shareReply = $this->shareReplyTo(200, self::SENT_MESSAGE_ID);
+        $this->assertNotNull($shareReply, 'Expected a share reply to follow the posted game in a DM');
+
+        $keyboard = json_decode($shareReply['args'][5]->toJson(), true)['inline_keyboard'];
+        $this->assertSame("Forward game $gameId", $keyboard[0][0]['switch_inline_query']);
+        $this->assertSame('Share', $keyboard[0][0]['text']);
+    }
+
+    public function testDoesNotSendAShareReplyInGroups(): void
+    {
+        $update = $this->groupMentionUpdate("@test_bot\n📅 31.12.2099\n🏖️ Bogatell\n🕙 10:00");
+
+        new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
+
+        $this->assertNull($this->shareReplyTo(self::CHAT_ID, self::SENT_MESSAGE_ID));
+    }
+
     private function privateMentionUpdate(string $text, int $chatId): TelegramUpdate
     {
         return TelegramUpdate::fromArray([
@@ -186,6 +210,27 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
         foreach ($this->bot->calls as $call) {
             if ('deleteMessage' === $call['method']) {
                 return [$call['args'][0], $call['args'][1]];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The share reply is a sendMessage that replies to the posted game message.
+     * A reply carries a non-null reply_to_message_id (arg 4), which the game
+     * message send never does.
+     *
+     * @return array{method: string, args: list<mixed>}|null
+     */
+    private function shareReplyTo(int $chatId, int $gameMessageId): ?array
+    {
+        foreach ($this->bot->calls as $call) {
+            if ('sendMessage' === $call['method']
+                && $chatId === $call['args'][0]
+                && $gameMessageId === ($call['args'][4] ?? null)
+            ) {
+                return $call;
             }
         }
 

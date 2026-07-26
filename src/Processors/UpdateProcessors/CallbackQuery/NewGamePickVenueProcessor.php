@@ -10,6 +10,7 @@ use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameMessagePinner;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Game\NewGameFactory;
+use BeachVolleybot\Game\ShareGameReplySender;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameCreatedMessageBuilder;
@@ -79,6 +80,9 @@ class NewGamePickVenueProcessor extends AbstractNewGameStepProcessor
         $this->answerCallbackQuery($callbackQuery, '');
 
         $this->pinInGroups($wizardMessage, $chatId, $sentMessageId, $newGameData->title);
+
+        new ShareGameReplySender($this->telegramSender)->sendInDm($wizardMessage->chat, $sentMessageId, $gameId, $callbackQuery->from);
+
         new WeatherEnqueuer()->enqueue($gameId);
         $this->logUserAction($callbackQuery->from, 'create_game_from_new_game_wizard', "gameId=$gameId");
     }

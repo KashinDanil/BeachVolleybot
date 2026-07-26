@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Localization\Translator;
+use BeachVolleybot\Game\ShareGameReplySender;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
-use BeachVolleybot\Telegram\MessageBuilders\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class SendShareButtonProcessor extends AbstractActionProcessor
@@ -27,8 +26,7 @@ class SendShareButtonProcessor extends AbstractActionProcessor
             return;
         }
 
-        $shareMessage = new ShareGameMessageBuilder(Translator::fromUser($message->from))->build($gameId);
-        $this->telegramSender->sendReply($message->chat->id, $message->messageId, $shareMessage);
+        new ShareGameReplySender($this->telegramSender)->sendInDm($message->chat, $message->messageId, $gameId, $message->from);
         $this->logUserAction($message->from, 'share_button_sent', "gameId=$gameId");
     }
 }

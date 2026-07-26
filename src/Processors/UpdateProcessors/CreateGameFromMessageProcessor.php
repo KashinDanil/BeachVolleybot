@@ -11,6 +11,7 @@ use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameMessagePinner;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Game\NewGameFactory;
+use BeachVolleybot\Game\ShareGameReplySender;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Validator;
@@ -60,6 +61,8 @@ class CreateGameFromMessageProcessor extends AbstractActionProcessor
         if ($message->chat->isGroupChat()) {
             new GameMessagePinner($this->telegramSender)->pinGameMessage($chatId, $sentMessageId, $title, $message->date);
         }
+
+        new ShareGameReplySender($this->telegramSender)->sendInDm($message->chat, $sentMessageId, $gameId, $message->from);
 
         new WeatherEnqueuer()->enqueue($gameId);
         $this->logUserAction($message->from, 'create_game_from_message', "gameId=$gameId");

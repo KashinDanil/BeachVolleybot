@@ -87,7 +87,8 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->runProcessor($update); // the second final tap finds the existing game and bails
 
         $this->assertSame(1, new GameRepository($this->db)->countAll());
-        $this->assertSame(1, $this->sendMessageCount());
+        // First run posts the game and its DM share reply (2 sends); the second run bails before posting.
+        $this->assertSame(2, $this->sendMessageCount());
     }
 
     public function testGroupCreatesGamePinsTheMessageAndEnqueuesWeather(): void
@@ -97,6 +98,26 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->assertNotNull(new GameManager()->resolveGameIdByChatMessage(self::GROUP_CHAT_ID, self::SENT_MESSAGE_ID));
         $this->assertTrue($this->calledApi('pinChatMessage'), 'Expected the posted message to be pinned in a group');
         $this->assertTrue($this->editedEphemeralMessage(), 'Expected the ephemeral wizard message to be edited to the success view');
+    }
+
+    public function testFollowsTheGameWithAShareReplyInDirectMessages(): void
+    {
+        $this->runProcessor($this->dmPickVenueUpdate('Bogatell'));
+
+        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $shareReply = $this->shareReplyTo(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $this->assertNotNull($shareReply, 'Expected a share reply to follow the posted game in a DM');
+
+        $keyboard = json_decode($shareReply['args'][5]->toJson(), true)['inline_keyboard'];
+        $this->assertSame("Forward game $gameId", $keyboard[0][0]['switch_inline_query']);
+        $this->assertSame('Share', $keyboard[0][0]['text']);
+    }
+
+    public function testDoesNotSendAShareReplyInGroups(): void
+    {
+        $this->runProcessor($this->groupEphemeralPickVenueUpdate('Bogatell'));
+
+        $this->assertNull($this->shareReplyTo(self::GROUP_CHAT_ID, self::SENT_MESSAGE_ID));
     }
 
     private function runProcessor(TelegramUpdate $update): void
@@ -166,6 +187,27 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
     private function sendMessageCount(): int
     {
         return count(array_filter($this->bot->calls, static fn(array $call): bool => 'sendMessage' === $call['method']));
+    }
+
+    /**
+     * The share reply is a sendMessage that replies to the posted game message.
+     * A reply carries a non-null reply_to_message_id (arg 4), which the game
+     * message send never does.
+     *
+     * @return array{method: string, args: list<mixed>}|null
+     */
+    private function shareReplyTo(int $chatId, int $gameMessageId): ?array
+    {
+        foreach ($this->bot->calls as $call) {
+            if ('sendMessage' === $call['method']
+                && $chatId === $call['args'][0]
+                && $gameMessageId === ($call['args'][4] ?? null)
+            ) {
+                return $call;
+            }
+        }
+
+        return null;
     }
 
     private function editedEphemeralMessage(): bool
