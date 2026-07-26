@@ -18,7 +18,7 @@ final class LogsListMessageFactory
         $logFileRepository = new LogFileRepository();
         $totalLogs = $logFileRepository->countAll();
         $pagination = new KeyboardPagination($totalLogs, self::LOGS_PER_PAGE, $page);
-        $logEntries = $logFileRepository->findPaginated(self::LOGS_PER_PAGE, $pagination->offset);
+        $logEntries = $logFileRepository->findPaginated(self::LOGS_PER_PAGE, $pagination->getOffset());
 
         return new LogsListMessageBuilder()->buildLogsList($logEntries, $pagination);
     }

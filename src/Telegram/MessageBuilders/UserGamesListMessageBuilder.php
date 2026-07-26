@@ -47,8 +47,8 @@ final class UserGamesListMessageBuilder extends AbstractMessageBuilder
 
         $pageIndicator = sprintf(
             $this->translator->translate(self::PAGE_INDICATOR),
-            $pagination->page,
-            $pagination->totalPages,
+            $pagination->getPage(),
+            $pagination->getTotalPages(),
         );
 
         return $header
@@ -62,7 +62,7 @@ final class UserGamesListMessageBuilder extends AbstractMessageBuilder
         $keyboard = [];
 
         foreach ($games as $game) {
-            $keyboard[] = [$this->buildGameButton((int)$game['game_id'], (string)$game['title'], $pagination->page)];
+            $keyboard[] = [$this->buildGameButton((int)$game['game_id'], (string)$game['title'], $pagination->getPage())];
         }
 
         $paginationRow = $this->paginationRow(

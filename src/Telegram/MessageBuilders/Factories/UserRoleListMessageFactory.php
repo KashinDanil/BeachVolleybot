@@ -18,7 +18,7 @@ final class UserRoleListMessageFactory
     {
         $userRepository = new UserRepository(Connection::get());
         $pagination = new KeyboardPagination($userRepository->countAll(), self::USERS_PER_PAGE, $page);
-        $userRows = $userRepository->findAllPaginated(self::USERS_PER_PAGE, $pagination->offset);
+        $userRows = $userRepository->findAllPaginated(self::USERS_PER_PAGE, $pagination->getOffset());
 
         return new UserRoleListMessageBuilder()->build($userRows, $pagination);
     }

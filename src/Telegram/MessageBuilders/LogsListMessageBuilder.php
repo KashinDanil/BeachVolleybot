@@ -23,11 +23,11 @@ final class LogsListMessageBuilder extends AbstractLogMessageBuilder
     private function buildLogsListText(KeyboardPagination $pagination): string
     {
         $header = $this->formatHeader();
-        if (1 === $pagination->totalPages) {
+        if (1 === $pagination->getTotalPages()) {
             return $header;
         }
 
-        return $header . $this->formatter->newLine() . $this->formatter->escape("Page $pagination->page of $pagination->totalPages");
+        return $header . $this->formatter->newLine() . $this->formatter->escape("Page {$pagination->getPage()} of {$pagination->getTotalPages()}");
     }
 
     private function buildLogsListKeyboard(array $logEntries, KeyboardPagination $pagination): array

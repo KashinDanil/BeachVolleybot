@@ -45,7 +45,7 @@ final class NewGameTimePickerMessageBuilder extends AbstractMessageBuilder
         $keyboard = [];
 
         for ($row = 0; $row < self::HOURS_PER_PAGE; $row++) {
-            $keyboard[] = $this->buildHourRow($pagination->offset + $row);
+            $keyboard[] = $this->buildHourRow($pagination->getOffset() + $row);
         }
 
         $paginationRow = $this->paginationRow(

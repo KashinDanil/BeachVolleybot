@@ -20,7 +20,7 @@ final class UsersListMessageBuilder extends AbstractAdminMessageBuilder
         [$uniqueUsers, $slotCounts] = $this->aggregateUserSlots($game->getUsers());
 
         $pagination = new KeyboardPagination(count($uniqueUsers), self::USERS_PER_PAGE, $page);
-        $pageUsers = array_slice($uniqueUsers, $pagination->offset, self::USERS_PER_PAGE);
+        $pageUsers = array_slice($uniqueUsers, $pagination->getOffset(), self::USERS_PER_PAGE);
 
         return $this->buildMessage(
             $this->buildUsersListText($gameId, $game->getTitle(), $pagination),
@@ -56,7 +56,7 @@ final class UsersListMessageBuilder extends AbstractAdminMessageBuilder
     {
         return $this->formatHeader("Users #$gameId")
             . $this->formatter->newLine() . $this->formatter->blockquote($this->formatter->escape($gameTitle))
-            . $this->formatter->newLine() . $this->formatter->escape("Page $pagination->page of $pagination->totalPages");
+            . $this->formatter->newLine() . $this->formatter->escape("Page {$pagination->getPage()} of {$pagination->getTotalPages()}");
     }
 
     /**

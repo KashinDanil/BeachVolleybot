@@ -38,7 +38,7 @@ final class UserRoleListMessageBuilder extends AbstractAdminMessageBuilder
             return $header . $this->formatter->newLine() . $this->formatter->escape(self::NO_USERS_FOUND);
         }
 
-        return $header . $this->formatter->newLine() . $this->formatter->escape("Page $pagination->page of $pagination->totalPages");
+        return $header . $this->formatter->newLine() . $this->formatter->escape("Page {$pagination->getPage()} of {$pagination->getTotalPages()}");
     }
 
     /**

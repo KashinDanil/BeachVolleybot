@@ -47,7 +47,7 @@ final class NewGameDatePickerMessageBuilder extends AbstractMessageBuilder
         $keyboard = [];
 
         for ($index = 0; $index < self::DAYS_PER_PAGE; $index++) {
-            $date = $this->today->modify(sprintf('+%d days', $pagination->offset + $index));
+            $date = $this->today->modify(sprintf('+%d days', $pagination->getOffset() + $index));
             $keyboard[] = [$this->buildDateButton($date)];
         }
 

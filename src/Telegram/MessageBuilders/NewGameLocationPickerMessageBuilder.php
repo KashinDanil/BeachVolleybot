@@ -47,7 +47,7 @@ final class NewGameLocationPickerMessageBuilder extends AbstractMessageBuilder
     {
         $keyboard = [];
 
-        $pageVenues = array_slice($venues, $pagination->offset, self::VENUES_PER_PAGE);
+        $pageVenues = array_slice($venues, $pagination->getOffset(), self::VENUES_PER_PAGE);
         foreach ($pageVenues as $venue) {
             $keyboard[] = [$this->buildVenueButton($venue)];
         }

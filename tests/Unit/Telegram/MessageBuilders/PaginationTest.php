@@ -15,23 +15,23 @@ final class PaginationTest extends TestCase
     {
         $pagination = new KeyboardPagination(totalItems: 11, perPage: 5, page: 1);
 
-        $this->assertSame(3, $pagination->totalPages);
+        $this->assertSame(3, $pagination->getTotalPages());
     }
 
     public function testSinglePageWhenItemsEqualPerPage(): void
     {
         $pagination = new KeyboardPagination(totalItems: 5, perPage: 5, page: 1);
 
-        $this->assertSame(1, $pagination->totalPages);
+        $this->assertSame(1, $pagination->getTotalPages());
     }
 
     public function testZeroItemsYieldsOnePage(): void
     {
         $pagination = new KeyboardPagination(totalItems: 0, perPage: 5, page: 1);
 
-        $this->assertSame(1, $pagination->totalPages);
-        $this->assertSame(1, $pagination->page);
-        $this->assertSame(0, $pagination->offset);
+        $this->assertSame(1, $pagination->getTotalPages());
+        $this->assertSame(1, $pagination->getPage());
+        $this->assertSame(0, $pagination->getOffset());
     }
 
     // --- constructor: page clamping ---
@@ -40,21 +40,21 @@ final class PaginationTest extends TestCase
     {
         $pagination = new KeyboardPagination(totalItems: 10, perPage: 5, page: 0);
 
-        $this->assertSame(1, $pagination->page);
+        $this->assertSame(1, $pagination->getPage());
     }
 
     public function testNegativePageClampedToOne(): void
     {
         $pagination = new KeyboardPagination(totalItems: 10, perPage: 5, page: -3);
 
-        $this->assertSame(1, $pagination->page);
+        $this->assertSame(1, $pagination->getPage());
     }
 
     public function testPageClampedToMaximumTotalPages(): void
     {
         $pagination = new KeyboardPagination(totalItems: 10, perPage: 5, page: 99);
 
-        $this->assertSame(2, $pagination->page);
+        $this->assertSame(2, $pagination->getPage());
     }
 
     // --- constructor: offset ---
@@ -63,14 +63,14 @@ final class PaginationTest extends TestCase
     {
         $pagination = new KeyboardPagination(totalItems: 20, perPage: 5, page: 3);
 
-        $this->assertSame(10, $pagination->offset);
+        $this->assertSame(10, $pagination->getOffset());
     }
 
     public function testFirstPageOffsetIsZero(): void
     {
         $pagination = new KeyboardPagination(totalItems: 20, perPage: 5, page: 1);
 
-        $this->assertSame(0, $pagination->offset);
+        $this->assertSame(0, $pagination->getOffset());
     }
 
     // --- getPreviousPage / getNextPage ---

@@ -19,7 +19,7 @@ final class GamesListMessageFactory
         $gameRepository = new GameRepository(Connection::get());
         $totalGames = $gameRepository->countAll();
         $pagination = new KeyboardPagination($totalGames, self::GAMES_PER_PAGE, $page);
-        $games = $gameRepository->findAllDescending(self::GAMES_PER_PAGE, $pagination->offset);
+        $games = $gameRepository->findAllDescending(self::GAMES_PER_PAGE, $pagination->getOffset());
 
         return new GamesListMessageBuilder()->buildGamesList($games, $pagination);
     }

@@ -20,7 +20,7 @@ final class UserGamesListMessageFactory
         $repository = new GameRepository(Connection::get());
         $totalGames = $repository->countByCreator($createdBy);
         $pagination = new KeyboardPagination($totalGames, self::GAMES_PER_PAGE, $page);
-        $games = $repository->findByCreator($createdBy, self::GAMES_PER_PAGE, $pagination->offset);
+        $games = $repository->findByCreator($createdBy, self::GAMES_PER_PAGE, $pagination->getOffset());
 
         return new UserGamesListMessageBuilder($translator)->buildGamesList($games, $pagination);
     }

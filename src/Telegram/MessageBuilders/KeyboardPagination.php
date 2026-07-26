@@ -6,17 +6,32 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 
 final readonly class KeyboardPagination
 {
-    public int $page;
+    private int $page;
 
-    public int $totalPages;
+    private int $totalPages;
 
-    public int $offset;
+    private int $offset;
 
     public function __construct(int $totalItems, int $perPage, int $page)
     {
         $this->totalPages = max(1, (int)ceil($totalItems / $perPage));
         $this->page = max(1, min($page, $this->totalPages));
         $this->offset = ($this->page - 1) * $perPage;
+    }
+
+    public function getPage(): int
+    {
+        return $this->page;
+    }
+
+    public function getTotalPages(): int
+    {
+        return $this->totalPages;
+    }
+
+    public function getOffset(): int
+    {
+        return $this->offset;
     }
 
     public function getPreviousPage(): ?int

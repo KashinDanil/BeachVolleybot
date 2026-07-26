@@ -30,7 +30,7 @@ final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
             return $header . $this->formatter->newLine() . $this->formatter->escape(self::NO_GAMES_FOUND);
         }
 
-        return $header . $this->formatter->newLine() . $this->formatter->escape("Page {$pagination->page} of {$pagination->totalPages}");
+        return $header . $this->formatter->newLine() . $this->formatter->escape("Page {$pagination->getPage()} of {$pagination->getTotalPages()}");
     }
 
     private function buildGamesListKeyboard(array $games, KeyboardPagination $pagination): array
