@@ -79,6 +79,21 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->assertSame(0, new GameRepository($this->db)->countAll());
     }
 
+    public function testRejectsAKickoffWhoseDayHasAlreadyPassed(): void
+    {
+        // The wizard can sit on the location step for days; by the time the location is
+        // picked the chosen date may be in the past, so no game must be created.
+        $update = $this->dmCallbackUpdate(
+            NewGameCallbackData::create(NewGameCallbackAction::PickVenue)->withVenueName('Bogatell')->toJson(),
+            $this->staleWizardText(),
+        );
+
+        $this->runProcessor($update);
+
+        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertSame(0, $this->sendMessageCount());
+    }
+
     public function testReprocessingIsANoOp(): void
     {
         $update = $this->dmPickVenueUpdate('Bogatell');
@@ -133,7 +148,7 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         );
     }
 
-    private function dmCallbackUpdate(string $data): TelegramUpdate
+    private function dmCallbackUpdate(string $data, ?string $text = null): TelegramUpdate
     {
         return TelegramUpdate::fromArray([
             'update_id' => 1,
@@ -146,7 +161,7 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
                     'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
                     'chat' => ['id' => self::DM_CHAT_ID, 'type' => 'private'],
                     'date' => 1700000000,
-                    'text' => $this->wizardText(),
+                    'text' => $text ?? $this->wizardText(),
                 ],
                 'data' => $data,
             ],
@@ -182,6 +197,13 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
             ->build(new DateTimeImmutable(self::PICKED_DATE), self::PICKED_TIME);
 
         return str_replace('\\', '', $message->getText()->getMessageText());
+    }
+
+    // A location-step text whose kickoff day is unambiguously in the past (absolute date,
+    // per the fixture-date rule), as if the wizard had been left open past the picked day.
+    private function staleWizardText(): string
+    {
+        return "🏐 New game — Step 3 of 3\n\n📅 01.01.2020\n🕒 " . self::PICKED_TIME . "\n📍 pick a location below 👇";
     }
 
     private function sendMessageCount(): int

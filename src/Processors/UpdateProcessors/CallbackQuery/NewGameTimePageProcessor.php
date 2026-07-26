@@ -7,6 +7,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameTimePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Validator\Rules\DateInTheFutureRule;
 use BeachVolleybot\Validator\Rules\ResolvableDateRule;
 use DateTimeImmutable;
 
@@ -17,7 +18,13 @@ class NewGameTimePageProcessor extends AbstractNewGameStepProcessor
         $callbackQuery = $update->callbackQuery;
         $text = $callbackQuery->message->text;
 
-        if (!$this->passesValidation($callbackQuery, new ResolvableDateRule($text, new DateTimeImmutable()))) {
+        $isValid = $this->passesValidation(
+            $callbackQuery,
+            new ResolvableDateRule($text, new DateTimeImmutable()),
+            new DateInTheFutureRule($this->parseDate($text), new DateTimeImmutable()),
+        );
+
+        if (!$isValid) {
             return;
         }
 

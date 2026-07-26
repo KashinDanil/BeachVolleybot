@@ -7,6 +7,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameTimePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Validator\Rules\DateInTheFutureRule;
 use BeachVolleybot\Validator\Rules\SelectedDateRule;
 use DateTimeImmutable;
 
@@ -21,8 +22,13 @@ class NewGamePickDateProcessor extends AbstractNewGameStepProcessor
             return;
         }
 
+        $date = new DateTimeImmutable($rawDate);
+        if (!$this->passesValidation($callbackQuery, new DateInTheFutureRule($date, new DateTimeImmutable()))) {
+            return;
+        }
+
         $picker = new NewGameTimePickerMessageBuilder(Translator::fromUser($callbackQuery->from))
-            ->build(new DateTimeImmutable($rawDate), NewGameTimePickerMessageBuilder::START_PAGE);
+            ->build($date, NewGameTimePickerMessageBuilder::START_PAGE);
 
         $this->editWizard($callbackQuery, $picker);
         $this->answerCallbackQuery($callbackQuery, '');

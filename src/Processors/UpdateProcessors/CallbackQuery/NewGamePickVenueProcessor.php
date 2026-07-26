@@ -18,6 +18,7 @@ use BeachVolleybot\Telegram\MessageBuilders\NewGameFormText;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\PlainText;
+use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Rules\KnownVenueRule;
 use BeachVolleybot\Validator\Rules\ResolvableDateRule;
 use BeachVolleybot\Validator\Rules\ResolvableTimeRule;
@@ -111,6 +112,7 @@ class NewGamePickVenueProcessor extends AbstractNewGameStepProcessor
         $rules = [
             new ResolvableDateRule($text, new DateTimeImmutable()),
             new ResolvableTimeRule($text),
+            new KickoffDayInTheFutureRule($text, new DateTimeImmutable()),
         ];
 
         if (!$this->isSkip()) {
