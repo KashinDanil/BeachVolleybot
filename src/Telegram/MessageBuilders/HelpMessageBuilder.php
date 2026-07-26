@@ -11,15 +11,17 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class HelpMessageBuilder extends AbstractMessageBuilder
 {
-    public const string CREATE_PARAGRAPH      = '**To create a game**, add **@%s** to the start of the message. The text can be anything — just include a **date and time** 📆🕙';
-    public const string EXAMPLE_LABEL         = 'Example:';
-    public const string EXAMPLE_TEMPLATE      = "@%s \n📅 Saturday\n🏖️ Bogatell\n🕙 10:00";
-    public const string AFTER_EXAMPLE         = "Then just tap the bot's hint to send the message.";
-    public const string JOIN_LEAVE_PARAGRAPH  = '**To join a game or leave it**, use the buttons under the message.';
-    public const string LATE_PARAGRAPH        = '**To join at another time**, reply to the game message with just the time, like **17:30**.';
-    public const string LOCATION_PARAGRAPH    = '**To add a location** 📍, reply to the game message with a geo point.';
-    public const string GEAR_PARAGRAPH        = '**Volleyballs and nets** can also be marked with the buttons under the game: +🏐 / −🏐 and +🕸 / −🕸. If something is missing, the bot will show it.';
-    public const string GAMES_LIST_PARAGRAPH  = '**To share a game across multiple chats**, use the /games command in my DM — the game stays in sync everywhere.';
+    public const string CREATE_PARAGRAPH       = '**To create a game**, add **@%s** to the start of the message. The text can be anything — just include a **date and time** 📆🕙';
+    public const string EXAMPLE_LABEL          = 'Example:';
+    public const string EXAMPLE_TEMPLATE       = "@%s \n📅 Saturday\n🏖️ Bogatell\n🕙 10:00";
+    public const string AFTER_EXAMPLE          = "Then just tap the bot's hint to send the message.";
+    public const string WIZARD_PARAGRAPH       = "**Or use the /new_game command** and I'll help you create a game.";
+    public const string JOIN_LEAVE_PARAGRAPH   = '**To join a game or leave it**, use the buttons under the message.';
+    public const string LATE_PARAGRAPH         = '**To join at another time**, reply to the game message with just the time, like **17:30**.';
+    public const string LOCATION_PARAGRAPH     = '**To add a location** 📍, reply to the game message with a geo point.';
+    public const string CHANGE_TITLE_PARAGRAPH = '**To change the game**, reply to the game message with the new text — just keep a date and time in it. Only the person who created the game can do this.';
+    public const string GEAR_PARAGRAPH         = '**Volleyballs and nets** can also be marked with the buttons under the game: +🏐 / −🏐 and +🕸 / −🕸. If something is missing, the bot will show it.';
+    public const string GAMES_LIST_PARAGRAPH   = '**To share a game across multiple chats**, use the /games command in my DM — the game stays in sync everywhere.';
 
     public function __construct(
         private readonly Translator $translator,
@@ -46,11 +48,15 @@ final class HelpMessageBuilder extends AbstractMessageBuilder
             . $newLine
             . $this->formatter->escape($this->translator->translate(self::AFTER_EXAMPLE))
             . $blank
+            . $this->renderParagraph($this->translator->translate(self::WIZARD_PARAGRAPH))
+            . $blank
             . $this->renderParagraph($this->translator->translate(self::JOIN_LEAVE_PARAGRAPH))
             . $blank
             . $this->renderParagraph($this->translator->translate(self::LATE_PARAGRAPH))
             . $blank
             . $this->renderParagraph($this->translator->translate(self::LOCATION_PARAGRAPH))
+            . $blank
+            . $this->renderParagraph($this->translator->translate(self::CHANGE_TITLE_PARAGRAPH))
             . $blank
             . $this->renderParagraph($this->translator->translate(self::GEAR_PARAGRAPH))
             . $blank

@@ -162,7 +162,10 @@ Point Telegram to `public/tg-bot.php` on your server. The endpoint must be acces
 
 #### 4. Register the bot commands
 
-Register `/help` through BotFather or `setMyCommands` with **`is_ephemeral: true`** for the group scope. Without it, clients send `/help` as an ordinary visible message in groups, which the bot deliberately ignores — so group help silently never appears.
+Register the commands through BotFather or `setMyCommands`:
+
+- `/help` and `/new_game` — for the **DM scope**, and for the **group scope with `is_ephemeral: true`**. Without the flag, clients send them as ordinary visible messages in groups, which the bot deliberately ignores — so group help and the group wizard silently never appear.
+- `/games` — for the **DM scope only**. It has no group handler, so registering it for groups only advertises a command that does nothing there.
 
 #### 5. Grant admin access
 

@@ -61,6 +61,31 @@ final class GroupHelpCommandProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('stays in sync everywhere', $text);
     }
 
+    public function testMentionsTheNewGameWizardAsAnAlternativeToMentioningTheBot(): void
+    {
+        $this->processCommand();
+
+        $text = $this->lastEphemeralSendParams()['text'];
+
+        // The underscore has to survive MarkdownV2 escaping, otherwise the command
+        // renders as italics and stops being tappable.
+        $this->assertStringContainsString('/new\_game', $text);
+        $this->assertStringContainsString('help you create a game', $text);
+    }
+
+    public function testExplainsThatOnlyTheCreatorCanChangeAGameByReplyingToIt(): void
+    {
+        $this->processCommand();
+
+        $text = $this->lastEphemeralSendParams()['text'];
+
+        $this->assertStringContainsString('*To change the game*', $text);
+        // The reply is dropped silently when the new text loses its date or time,
+        // so the help has to spell that requirement out.
+        $this->assertStringContainsString('keep a date and time in it', $text);
+        $this->assertStringContainsString('created the game can do this', $text);
+    }
+
     public function testRepliesInsideTheForumTopicTheCommandCameFrom(): void
     {
         $this->processCommand();
