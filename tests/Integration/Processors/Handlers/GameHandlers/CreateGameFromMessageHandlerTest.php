@@ -37,6 +37,13 @@ final class CreateGameFromMessageHandlerTest extends TestCase
         $this->assertFalse($this->handler->matches($this->groupMessageReply('@test_bot Bogatell 31.12.2099 10:00')));
     }
 
+    public function testDoesNotMatchInlineMessage(): void
+    {
+        // A shared game card arrives via inline mode (via_bot) with the bot's
+        // @mention and a date/time in its title — it must not spawn a new game.
+        $this->assertFalse($this->handler->matches($this->inlineMessage('@test_bot Bogatell 31.12.2099 10:00')));
+    }
+
     public function testMatchesPrivateMention(): void
     {
         $this->assertTrue($this->handler->matches($this->privateMessage('@test_bot Bogatell 31.12.2099 10:00')));
@@ -91,6 +98,22 @@ final class CreateGameFromMessageHandlerTest extends TestCase
                     'chat' => ['id' => -100, 'type' => 'group'],
                     'date' => 1699999000,
                 ],
+            ],
+        ]);
+    }
+
+    // A game card shared into the chat through the bot's inline mode: carries via_bot.
+    private function inlineMessage(string $text): TelegramUpdate
+    {
+        return TelegramUpdate::fromArray([
+            'update_id' => 1,
+            'message' => [
+                'message_id' => 5,
+                'from' => ['id' => 200, 'first_name' => 'Danil', 'is_bot' => false],
+                'chat' => ['id' => -100, 'type' => 'group'],
+                'date' => 1700000000,
+                'text' => $text,
+                'via_bot' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
             ],
         ]);
     }

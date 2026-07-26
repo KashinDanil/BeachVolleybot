@@ -31,6 +31,7 @@ final readonly class CreateGameFromMessageHandler extends AbstractQueuedProcesso
         $message = $update->message;
 
         return !$message->hasReplyToMessage()
+            && !$message->isViaBot()
             && $message->hasText()
             && BotMention::isPresent($message->text)
             && $this->hasDateAndTime($message->text);
