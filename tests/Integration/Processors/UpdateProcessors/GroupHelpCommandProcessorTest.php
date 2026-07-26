@@ -81,14 +81,17 @@ final class GroupHelpCommandProcessorTest extends ProcessorTestCase
         $this->assertArrayNotHasKey('message_thread_id', $this->lastEphemeralSendParams());
     }
 
-    public function testDoesNotDeleteAnything(): void
+    public function testDeletesTheEphemeralCommandAfterReplying(): void
     {
         $this->processCommand();
 
-        // The command is ephemeral and carries message_id 0 — there is nothing to delete,
-        // so the consume-then-delete convention of the DM commands must not apply.
-        $deleteCalls = array_filter($this->bot->calls, static fn(array $call): bool => 'deleteMessage' === $call['method']);
-        $this->assertEmpty($deleteCalls);
+        // The command carries message_id 0, so the DM's deleteMessage cannot reach it;
+        // it is cleaned up via deleteEphemeralMessage (chat + ephemeral id + receiver).
+        $deleteParams = $this->lastEphemeralDeleteParams();
+        $this->assertNotNull($deleteParams);
+        $this->assertSame(self::CHAT_ID, $deleteParams['chat_id']);
+        $this->assertSame(self::EPHEMERAL_MESSAGE_ID, $deleteParams['ephemeral_message_id']);
+        $this->assertSame(self::SENDER_ID, $deleteParams['receiver_user_id']);
     }
 
     public function testLocalizesTheReplyToTheSenderLanguage(): void

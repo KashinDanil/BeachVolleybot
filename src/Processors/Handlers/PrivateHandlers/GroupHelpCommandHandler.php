@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Processors\Handlers\GroupHandlers;
+namespace BeachVolleybot\Processors\Handlers\PrivateHandlers;
 
 use BeachVolleybot\Processors\AbstractProcessorHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserHelpCommandHandler;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GroupHelpCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;

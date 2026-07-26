@@ -100,7 +100,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
         $this->assertSame(1, $this->sendMessageCount());
     }
 
-    public function testPostsTheCardInTheSameForumTopic(): void
+    public function testPostsTheMessageInTheSameForumTopic(): void
     {
         $update = $this->topicMentionUpdate("@test_bot\n📅 31.12.2099\n🏖️ Bogatell\n🕙 10:00", threadId: 328);
 

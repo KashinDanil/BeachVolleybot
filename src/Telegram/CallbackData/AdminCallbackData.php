@@ -6,7 +6,7 @@ namespace BeachVolleybot\Telegram\CallbackData;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 
-final readonly class AdminCallbackData implements PageableCallbackDataInterface
+final readonly class AdminCallbackData extends AbstractCallbackData implements PageableCallbackDataInterface
 {
     private const string KEY_ACTION   = 'aa';
     private const string KEY_GAME_ID  = 'g';
@@ -28,19 +28,19 @@ final readonly class AdminCallbackData implements PageableCallbackDataInterface
         return new self($action);
     }
 
-    public static function fromJson(?string $json): ?static
+    protected static function actionKey(): string
     {
-        if (null === $json) {
-            return null;
-        }
+        return self::KEY_ACTION;
+    }
 
-        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        $action = AdminCallbackAction::tryFrom($data[self::KEY_ACTION] ?? '');
+    protected static function parseAction(string $rawAction): ?CallbackActionInterface
+    {
+        return AdminCallbackAction::tryFrom($rawAction);
+    }
 
-        if (null === $action) {
-            return null;
-        }
-
+    /** @var AdminCallbackAction $action */
+    protected static function fromData(CallbackActionInterface $action, array $data): static
+    {
         return new self(
             action: $action,
             gameId: $data[self::KEY_GAME_ID] ?? null,
@@ -116,10 +116,5 @@ final readonly class AdminCallbackData implements PageableCallbackDataInterface
         }
 
         return $data;
-    }
-
-    public function toJson(): string
-    {
-        return json_encode($this, JSON_THROW_ON_ERROR);
     }
 }

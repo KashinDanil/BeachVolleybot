@@ -179,6 +179,44 @@ readonly class TelegramMessageSender
         }
     }
 
+    public function editEphemeralMessage(
+        int $chatId,
+        int $ephemeralMessageId,
+        int $receiverUserId,
+        TelegramMessage $message
+    ): bool {
+        try {
+            $this->bot->call('editEphemeralMessageText', [
+                'chat_id' => $chatId,
+                'ephemeral_message_id' => $ephemeralMessageId,
+                'receiver_user_id' => $receiverUserId,
+                'text' => $message->getText()->getMessageText(),
+                'parse_mode' => $message->getText()->getParseMode(),
+                'disable_web_page_preview' => $message->getText()->isDisableWebPagePreview(),
+                'reply_markup' => $message->getKeyboard()?->toJson(),
+            ]);
+
+            return true;
+        } catch (HttpException $exception) {
+            Logger::logApp('editEphemeralMessage failed: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+
+    public function deleteEphemeralMessage(int $chatId, int $ephemeralMessageId, int $receiverUserId): void
+    {
+        try {
+            $this->bot->call('deleteEphemeralMessage', [
+                'chat_id' => $chatId,
+                'ephemeral_message_id' => $ephemeralMessageId,
+                'receiver_user_id' => $receiverUserId,
+            ]);
+        } catch (HttpException $exception) {
+            Logger::logApp('deleteEphemeralMessage failed: ' . $exception->getMessage());
+        }
+    }
+
     public function editMessage(int $chatId, int $messageId, TelegramMessage $message): void
     {
         try {

@@ -29,6 +29,11 @@ final class KnownVenues
         return self::directory()->findInTitle($title);
     }
 
+    public static function findByName(string $name): ?Venue
+    {
+        return self::directory()->findByName($name);
+    }
+
     private static function directory(): VenueDirectory
     {
         return self::$directory ??= new VenueDirectory(self::catalog());

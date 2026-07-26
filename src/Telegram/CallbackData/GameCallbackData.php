@@ -6,9 +6,8 @@ namespace BeachVolleybot\Telegram\CallbackData;
 
 use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
-use JsonException;
 
-final readonly class GameCallbackData implements CallbackDataInterface
+final readonly class GameCallbackData extends AbstractCallbackData
 {
     private const string KEY_ACTION   = 'a';
     private const string KEY_GAME_KEY = 'q';
@@ -24,28 +23,19 @@ final readonly class GameCallbackData implements CallbackDataInterface
         return new self($action);
     }
 
-    public static function fromJson(?string $json): ?static
+    protected static function actionKey(): string
     {
-        if (null === $json) {
-            return null;
-        }
+        return self::KEY_ACTION;
+    }
 
-        try {
-            $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            return null;
-        }
+    protected static function parseAction(string $rawAction): ?CallbackActionInterface
+    {
+        return GameCallbackAction::tryFrom($rawAction);
+    }
 
-        if (!is_array($data)) {
-            return null;
-        }
-
-        $action = GameCallbackAction::tryFrom($data[self::KEY_ACTION] ?? '');
-
-        if (null === $action) {
-            return null;
-        }
-
+    /** @var GameCallbackAction $action */
+    protected static function fromData(CallbackActionInterface $action, array $data): static
+    {
         $gameKey = $data[self::KEY_GAME_KEY] ?? null;
 
         return new self(
@@ -89,10 +79,5 @@ final readonly class GameCallbackData implements CallbackDataInterface
         }
 
         return $data;
-    }
-
-    public function toJson(): string
-    {
-        return json_encode($this, JSON_THROW_ON_ERROR);
     }
 }

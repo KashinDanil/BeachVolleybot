@@ -46,6 +46,15 @@
     "**Volleyballs and nets** can also be marked with the buttons under the game: +🏐 / −🏐 and +🕸 / −🕸. If something is missing, the bot will show it.": "**Balones y red** también se pueden marcar con los botones debajo del partido: +🏐 / −🏐 y +🕸 / −🕸. Si falta algo, el bot lo mostrará.",
     "**To share a game across multiple chats**, use the /games command in my DM — the game stays in sync everywhere.": "**Para compartir un partido en varios chats**, usa el comando /games en el chat privado conmigo — el partido se mantiene sincronizado en todas partes.",
 
+    "New game — Step %d of 3": "Nuevo partido — paso %d de 3",
+    "Game created!": "¡Partido creado!",
+    "pick a date below": "elige una fecha abajo",
+    "pick a time below": "elige una hora abajo",
+    "pick a location below": "elige un lugar abajo",
+    "Skip location": "Omitir lugar",
+    "The game will be posted to the chat once you pick a location.": "El partido se publicará en el chat cuando elijas un lugar.",
+    "The game message has been posted to this chat.": "El mensaje del partido se ha publicado en este chat.",
+
     "Your games": "Tus partidos",
     "You haven't created any games yet": "Aún no has creado ningún partido",
     "Game #%d": "Partido #%d",

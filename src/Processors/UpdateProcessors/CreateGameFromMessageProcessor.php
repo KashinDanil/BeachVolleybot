@@ -58,7 +58,7 @@ class CreateGameFromMessageProcessor extends AbstractActionProcessor
         $this->telegramSender->deleteMessage($chatId, $message->messageId);
 
         if ($message->chat->isGroupChat()) {
-            $this->pinGameMessage($chatId, $sentMessageId, $title, $message->date);
+            new GameMessagePinner($this->telegramSender)->pinGameMessage($chatId, $sentMessageId, $title, $message->date);
         }
 
         new WeatherEnqueuer()->enqueue($gameId);
@@ -72,11 +72,5 @@ class CreateGameFromMessageProcessor extends AbstractActionProcessor
         ])->validate();
 
         return $validationState->isSuccess();
-    }
-
-    private function pinGameMessage(int $chatId, int $sentMessageId, string $title, int $date): void
-    {
-        $pinnedCardJson = json_encode(['message_id' => $sentMessageId, 'chat' => ['id' => $chatId], 'date' => $date, 'text' => $title]);
-        new GameMessagePinner($this->telegramSender)->pin($chatId, $sentMessageId, $pinnedCardJson, $title, $date);
     }
 }

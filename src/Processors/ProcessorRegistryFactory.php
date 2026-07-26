@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors;
 
+use BeachVolleybot\Processors\Handlers\GameHandlers\ChangeTitleHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\CreateGameFromMessageHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\GameCallbackQueryHandler;
-use BeachVolleybot\Processors\Handlers\GameHandlers\ChangeTitleHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\JoinWithTimeHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\SetLiveLocationHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\SetLocationHandler;
-use BeachVolleybot\Processors\Handlers\GroupHandlers\GroupHelpCommandHandler;
 use BeachVolleybot\Processors\Handlers\InlineHandlers\CreateGameHandler;
 use BeachVolleybot\Processors\Handlers\InlineHandlers\ForwardGameHandler;
 use BeachVolleybot\Processors\Handlers\InlineHandlers\InlineQueryHandler;
+use BeachVolleybot\Processors\Handlers\NewGameHandlers\GroupNewGameCommandHandler;
+use BeachVolleybot\Processors\Handlers\NewGameHandlers\NewGameCallbackQueryHandler;
+use BeachVolleybot\Processors\Handlers\NewGameHandlers\UserNewGameCommandHandler;
 use BeachVolleybot\Processors\Handlers\PinHandlers\DeletePinNotificationHandler;
 use BeachVolleybot\Processors\Handlers\PinHandlers\PinMessageHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\AdminCallbackQueryHandler;
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\GroupHelpCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\SendShareButtonHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\SettingsMenuCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserCallbackQueryHandler;
@@ -55,6 +58,7 @@ final readonly class ProcessorRegistryFactory
             new ForwardGameHandler(),
             new CreateGameHandler(),
             new GroupHelpCommandHandler(),
+            new GroupNewGameCommandHandler(),
         ];
     }
 
@@ -69,6 +73,7 @@ final readonly class ProcessorRegistryFactory
             new GameCallbackQueryHandler(),
             new AdminCallbackQueryHandler(),
             new UserCallbackQueryHandler(),
+            new NewGameCallbackQueryHandler(),
             new SetLiveLocationHandler(),
             new SetLocationHandler(),
             new JoinWithTimeHandler(),
@@ -77,6 +82,7 @@ final readonly class ProcessorRegistryFactory
             new SendShareButtonHandler(),
             new SettingsMenuCommandHandler(),
             new UserGamesListCommandHandler(),
+            new UserNewGameCommandHandler(),
             new UserHelpCommandHandler(),
         ];
     }

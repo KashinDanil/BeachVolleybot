@@ -152,7 +152,7 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             ]),
             // A game button on the bot's own chat message (group or DM) — no
             // inline_message_id, resolved from the callback's message instead.
-            'chat game card callback' => TelegramUpdate::fromArray([
+            'chat game message callback' => TelegramUpdate::fromArray([
                 'update_id' => 1,
                 'callback_query' => [
                     'id' => 'cbq_2',
@@ -183,6 +183,47 @@ final class HandlerExclusivityTest extends ProcessorTestCase
                         'chat' => ['id' => $nonAdminId, 'type' => 'private'],
                         'date' => 1699999000,
                     ],
+                ],
+            ]),
+            // /new_game arrives ephemeral in a group (visible only to the sender).
+            'group ephemeral /new_game' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'message' => [
+                    'message_id' => 0,
+                    'ephemeral_message_id' => 500,
+                    'from' => ['id' => $nonAdminId, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat' => ['id' => -100, 'type' => 'group'],
+                    'date' => 1700000000,
+                    'text' => '/new_game@' . BOT_USERNAME,
+                    'receiver_user' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
+                ],
+            ]),
+            'private /new_game' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'message' => [
+                    'message_id' => 74,
+                    'from' => ['id' => $nonAdminId, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat' => ['id' => $nonAdminId, 'type' => 'private'],
+                    'date' => 1700000000,
+                    'text' => '/new_game',
+                ],
+            ]),
+            // A /new_game wizard button press: the ephemeral wizard message carries a
+            // callback with the distinct "na" key that only the wizard handler owns.
+            'new_game wizard callback' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'callback_query' => [
+                    'id' => 'cbq_ng',
+                    'from' => ['id' => $nonAdminId, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat_instance' => '-123',
+                    'message' => [
+                        'message_id' => 0,
+                        'ephemeral_message_id' => 501,
+                        'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
+                        'chat' => ['id' => -100, 'type' => 'group'],
+                        'date' => 1700000000,
+                    ],
+                    'data' => json_encode(['na' => 'd', 'd' => '2099-12-31']),
                 ],
             ]),
         ];

@@ -10,8 +10,11 @@ use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
 use BeachVolleybot\Processors\ProcessorRegistry;
 use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickVenueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GroupNewGameCommandProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ForwardGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GroupHelpCommandProcessor;
@@ -24,6 +27,8 @@ use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserHelpCommandProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserNewGameCommandProcessor;
+use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 final class ProcessorRegistryTest extends ProcessorTestCase
@@ -323,6 +328,61 @@ final class ProcessorRegistryTest extends ProcessorTestCase
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/help', fromId: 555));
 
+        $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
+    }
+
+    public function testImmediateRegistryResolvesGroupEphemeralNewGameCommandToGroupNewGameCommandProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->ephemeralGroupMessagePayload(text: '/new_game@' . BOT_USERNAME));
+
+        $this->assertInstanceOf(
+            GroupNewGameCommandProcessor::class,
+            $this->immediateRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testResolvesPrivateNewGameCommandToDmQueueAndUserNewGameCommandProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/new_game', fromId: 555));
+
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            UserNewGameCommandProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testImmediateRegistryIgnoresPrivateNewGameCommand(): void
+    {
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/new_game', fromId: 555));
+
+        $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
+    }
+
+    public function testResolvesNewGameWizardCallbackToDmQueueAndPickVenueProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 1,
+            'callback_query' => [
+                'id' => 'cbq_ng',
+                'from' => ['id' => 555, 'first_name' => 'Danil', 'is_bot' => false],
+                'chat_instance' => '-123',
+                'message' => [
+                    'message_id' => 900,
+                    'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
+                    'chat' => ['id' => 555, 'type' => 'private'],
+                    'date' => 1700000000,
+                    'text' => 'New game — Step 3 of 3',
+                ],
+                'data' => NewGameCallbackData::create(NewGameCallbackAction::PickVenue)->withVenueName('Bogatell')->toJson(),
+            ],
+        ]);
+
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            NewGamePickVenueProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
         $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
     }
 }

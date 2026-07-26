@@ -30,6 +30,17 @@ final readonly class GameMessagePinner
         $this->unpinExpired($chatId, keepPinnedMessageId: $messageId);
     }
 
+    /**
+     * Pins a game message the bot itself posted, where we hold only the message id (not a full
+     * Message): builds the synthetic pinned-message payload MessagePinManager stores. Shared by
+     * the create-from-message and /new_game flows so the payload shape lives in one place.
+     */
+    public function pinGameMessage(int $chatId, int $messageId, string $title, int $messageDate): void
+    {
+        $messageJson = json_encode(['message_id' => $messageId, 'chat' => ['id' => $chatId], 'date' => $messageDate, 'text' => $title]);
+        $this->pin($chatId, $messageId, $messageJson, $title, $messageDate);
+    }
+
     private function unpinExpired(int $chatId, int $keepPinnedMessageId): void
     {
         $expiredMessageIds = $this->manager->findMessageIdsToUnpin($chatId, $keepPinnedMessageId);

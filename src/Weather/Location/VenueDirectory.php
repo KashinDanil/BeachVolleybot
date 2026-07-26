@@ -45,6 +45,13 @@ final readonly class VenueDirectory
         return null;
     }
 
+    public function findByName(string $name): ?Venue
+    {
+        $normalizedName = self::normalize($name);
+
+        return array_find($this->venues, static fn($venue) => self::normalize($venue->name) === $normalizedName);
+    }
+
     /**
      * Every name a venue answers to — its own name included — normalized and paired with the
      * venue, longest first so "Nova Mar Bella" wins over "Mar Bella" when both could match.

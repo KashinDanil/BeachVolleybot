@@ -5,22 +5,23 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\HelpMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NewGameDatePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use DateTimeImmutable;
 
-class GroupHelpCommandProcessor extends AbstractActionProcessor
+class GroupNewGameCommandProcessor extends AbstractActionProcessor
 {
     public function process(TelegramUpdate $update): void
     {
         $message = $update->message;
 
-        $helpMessage = new HelpMessageBuilder(Translator::fromUser($message->from))->build(BOT_USERNAME);
+        $picker = new NewGameDatePickerMessageBuilder(Translator::fromUser($message->from), new DateTimeImmutable())->build();
 
         $sent = $this->telegramSender->sendEphemeralMessage(
             $message->chat->id,
             $message->from->id,
             $message->ephemeralMessageId,
-            $helpMessage,
+            $picker,
             $message->resolveMessageThreadId(),
         );
 
@@ -32,6 +33,6 @@ class GroupHelpCommandProcessor extends AbstractActionProcessor
             );
         }
 
-        $this->logUserAction($message->from, 'help_command', 'chat=group');
+        $this->logUserAction($message->from, 'new_game_start');
     }
 }

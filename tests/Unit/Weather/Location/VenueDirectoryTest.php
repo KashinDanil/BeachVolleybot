@@ -65,6 +65,27 @@ final class VenueDirectoryTest extends TestCase
         $this->assertNull($this->directory->findInTitle(''));
     }
 
+    public function testFindByNameReturnsTheExactVenue(): void
+    {
+        $this->assertSame($this->longName, $this->directory->findByName('Nova Mar Bella'));
+    }
+
+    public function testFindByNameIgnoresCase(): void
+    {
+        $this->assertSame($this->shortName, $this->directory->findByName('mar bella'));
+    }
+
+    public function testFindByNameDoesNotMatchOnSubstring(): void
+    {
+        // Unlike findInTitle, findByName is an exact-name lookup: a partial name resolves nothing.
+        $this->assertNull($this->directory->findByName('Mar'));
+    }
+
+    public function testFindByNameReturnsNullForUnknownVenue(): void
+    {
+        $this->assertNull($this->directory->findByName('Atlantis'));
+    }
+
     public function testAllReturnsTheVenuesItWasBuiltFrom(): void
     {
         $this->assertSame([$this->shortName, $this->longName], $this->directory->all());

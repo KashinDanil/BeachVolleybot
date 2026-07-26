@@ -10,21 +10,21 @@ use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Reply-based edits key off the game card's meta-button, so they fire on a game
+ * Reply-based edits key off the game message's meta-button, so they fire on a game
  * posted as a normal bot message (no via_bot) just like an inline one — and,
  * crucially, they stay away from replies to other bot messages (help, settings,
  * the games list), which carry no game key and must reach their own handlers.
  */
 final class GameReplyToBotSentMessageTest extends TestCase
 {
-    public function testChangeTitleHandlerMatchesReplyToGameCard(): void
+    public function testChangeTitleHandlerMatchesReplyToGameMessage(): void
     {
-        $this->assertTrue(new ChangeTitleHandler()->matches($this->replyToGameCard('New title 31.12.2099 18:00')));
+        $this->assertTrue(new ChangeTitleHandler()->matches($this->replyToGameMessage('New title 31.12.2099 18:00')));
     }
 
-    public function testJoinWithTimeHandlerMatchesReplyToGameCard(): void
+    public function testJoinWithTimeHandlerMatchesReplyToGameMessage(): void
     {
-        $this->assertTrue(new JoinWithTimeHandler()->matches($this->replyToGameCard('19:30')));
+        $this->assertTrue(new JoinWithTimeHandler()->matches($this->replyToGameMessage('19:30')));
     }
 
     public function testReplyToNonGameBotMessageIsIgnored(): void
@@ -32,7 +32,7 @@ final class GameReplyToBotSentMessageTest extends TestCase
         $this->assertFalse(new ChangeTitleHandler()->matches($this->replyToPlainBotMessage('/games')));
     }
 
-    private function replyToGameCard(string $text): TelegramUpdate
+    private function replyToGameMessage(string $text): TelegramUpdate
     {
         return TelegramUpdate::fromArray([
             'update_id' => 1,

@@ -46,6 +46,15 @@
     "**Volleyballs and nets** can also be marked with the buttons under the game: +🏐 / −🏐 and +🕸 / −🕸. If something is missing, the bot will show it.": "**Мячи и сетку** тоже можно отмечать кнопками под игрой: +🏐 / −🏐 и +🕸 / −🕸. Если чего-то не хватает, бот это покажет.",
     "**To share a game across multiple chats**, use the /games command in my DM — the game stays in sync everywhere.": "**Чтобы поделиться игрой в нескольких чатах**, используйте команду /games в личных сообщениях со мной — игра синхронизируется везде.",
 
+    "New game — Step %d of 3": "Новая игра — шаг %d из 3",
+    "Game created!": "Игра создана!",
+    "pick a date below": "выберите дату ниже",
+    "pick a time below": "выберите время ниже",
+    "pick a location below": "выберите место ниже",
+    "Skip location": "Пропустить место",
+    "The game will be posted to the chat once you pick a location.": "Игра будет опубликована в чате после выбора места.",
+    "The game message has been posted to this chat.": "Сообщение с игрой отправлено в этот чат.",
+
     "Your games": "Ваши игры",
     "You haven't created any games yet": "Вы ещё не создали ни одной игры",
     "Game #%d": "Игра #%d",
