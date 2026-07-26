@@ -16,13 +16,13 @@ readonly class GameRepository extends AbstractRepository
         return 'game_id';
     }
 
-    public function create(string $title, int $createdBy, string $inlineQueryId, ?string $location = null): int
+    public function create(string $title, int $createdBy, string $gameKey, ?string $location = null): int
     {
         $this->db->insert($this->table(), [
             'title' => $title,
             'location' => $location,
             'created_by' => $createdBy,
-            'inline_query_id' => $inlineQueryId,
+            'game_key' => $gameKey,
         ]);
 
         return (int) $this->db->id();
@@ -43,14 +43,14 @@ readonly class GameRepository extends AbstractRepository
         return $this->db->get($this->table(), 'title', ['game_id' => $gameId]) ?: null;
     }
 
-    public function findByInlineQueryId(string $inlineQueryId): ?array
+    public function findByGameKey(string $gameKey): ?array
     {
-        return $this->db->get($this->table(), '*', ['inline_query_id' => $inlineQueryId]) ?: null;
+        return $this->db->get($this->table(), '*', ['game_key' => $gameKey]) ?: null;
     }
 
-    public function findGameIdByInlineQueryId(string $inlineQueryId): ?int
+    public function findGameIdByGameKey(string $gameKey): ?int
     {
-        $gameId = $this->db->get($this->table(), 'game_id', ['inline_query_id' => $inlineQueryId]);
+        $gameId = $this->db->get($this->table(), 'game_id', ['game_key' => $gameKey]);
 
         return $gameId ? (int)$gameId : null;
     }

@@ -9,13 +9,14 @@ use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 use DateTimeImmutable;
 
 readonly class GameBuilder
 {
     /**
      * @param array<string, mixed> $gameRow
-     * @param list<string> $inlineMessageIds
+     * @param list<GameMessageTarget> $messageTargets
      * @param list<array<string, mixed>> $slotRows
      * @param list<array<string, mixed>> $gameUserRows
      * @param list<array<string, mixed>> $userRows
@@ -23,7 +24,7 @@ readonly class GameBuilder
      */
     public function __construct(
         private array $gameRow,
-        private array $inlineMessageIds,
+        private array $messageTargets,
         private array $slotRows,
         private array $gameUserRows,
         private array $userRows,
@@ -37,8 +38,8 @@ readonly class GameBuilder
 
         $game = new Game(
             gameId: (int)$this->gameRow['game_id'],
-            inlineQueryId: (string)$this->gameRow['inline_query_id'],
-            inlineMessageIds: $this->inlineMessageIds,
+            gameKey: (string)$this->gameRow['game_key'],
+            messageTargets: $this->messageTargets,
             title: $title,
             users: $this->buildUsersFromRows(),
             createdAt: new DateTimeImmutable((string)$this->gameRow['created_at']),

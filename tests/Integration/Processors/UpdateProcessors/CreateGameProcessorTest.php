@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameInlineMessageRepository;
+use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 use DanilKashin\FileQueue\Queue\FileQueue;
@@ -23,7 +24,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $game = new GameRepository($this->db)->findByInlineQueryId('query_1');
+        $game = new GameRepository($this->db)->findByGameKey('query_1');
         $this->assertNotNull($game);
         $this->assertSame('Friday Game 18:00', $game['title']);
     }
@@ -34,9 +35,9 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByInlineQueryId('query_1');
-        $ids = new GameInlineMessageRepository($this->db)->findInlineMessageIdsByGameId($gameId);
-        $this->assertSame(['msg_1'], $ids);
+        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
+        $targets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
+        $this->assertEquals([new InlineGameMessageTarget('msg_1')], $targets);
     }
 
     public function testUpsertsUser(): void
@@ -57,7 +58,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByInlineQueryId('query_1');
+        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
         $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
 
         $this->assertNotNull($gameUser);
@@ -71,7 +72,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByInlineQueryId('query_1');
+        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
 
         $this->assertCount(1, $slots);
@@ -85,7 +86,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByInlineQueryId('query_1');
+        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
         $this->assertNull(new FileQueue('weather_' . $gameId, WeatherEnqueuer::QUEUE_DIR)->dequeue());
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors;
 
+use BeachVolleybot\Processors\Handlers\GameHandlers\CreateGameFromMessageHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\GameCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\ChangeTitleHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\JoinWithTimeHandler;
@@ -72,6 +73,7 @@ final readonly class ProcessorRegistryFactory
             new SetLocationHandler(),
             new JoinWithTimeHandler(),
             new ChangeTitleHandler(),
+            new CreateGameFromMessageHandler(),
             new SendShareButtonHandler(),
             new SettingsMenuCommandHandler(),
             new UserGamesListCommandHandler(),

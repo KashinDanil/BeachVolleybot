@@ -232,6 +232,56 @@ final class MigratorTest extends TestCase
         $this->assertFalse($this->db->has('game_users', ['telegram_user_id' => 200]));
     }
 
+    public function testRenameKeyAndAddChatMessagesMigrationsPreserveInlineDataAndAddChatTable(): void
+    {
+        $this->db->pdo->exec('PRAGMA foreign_keys = ON');
+
+        $this->copyRealMigration('001_create_games_and_participants.sql');
+        $this->copyRealMigration('004_split_game_inline_messages.sql');
+
+        $migrator = new Migrator($this->migrationsDir, $this->db);
+        $migrator->run();
+
+        // Seed pre-migration data: a game keyed by inline_query_id plus an inline row.
+        $this->db->insert('games', [
+            'game_id' => 1,
+            'inline_query_id' => 'query_1',
+            'title' => 'Friday Game 18:00',
+            'created_by' => 200,
+        ]);
+        $this->db->insert('game_inline_messages', ['game_id' => 1, 'inline_message_id' => 'msg_1']);
+
+        $this->copyRealMigration('008_rename_inline_query_id_to_game_key.sql');
+        $this->copyRealMigration('009_add_game_chat_messages.sql');
+        $this->assertSame(2, $migrator->run());
+
+        // 008: column renamed, value preserved.
+        $game = (array) $this->db->get('games', '*', ['game_id' => 1]);
+        $this->assertArrayHasKey('game_key', $game);
+        $this->assertSame('query_1', $game['game_key']);
+        $this->assertArrayNotHasKey('inline_query_id', $game);
+
+        // 009: the inline table is left untouched; a separate chat table is added.
+        $tables = $this->db->pdo->query("SELECT name FROM sqlite_master WHERE type = 'table'")->fetchAll(PDO::FETCH_COLUMN);
+        $this->assertContains('game_inline_messages', $tables);
+        $this->assertContains('game_chat_messages', $tables);
+
+        // The existing inline row survives verbatim.
+        $this->assertSame('msg_1', $this->db->get('game_inline_messages', 'inline_message_id', ['game_id' => 1]));
+
+        // The new chat table accepts chat messages.
+        $this->db->insert('game_chat_messages', ['game_id' => 1, 'chat_id' => -100, 'message_id' => 55]);
+        $this->assertSame(1, (int)$this->db->count('game_chat_messages', ['game_id' => 1]));
+
+        // Foreign keys are intact and cascade deletes reach both tables.
+        $violations = $this->db->pdo->query('PRAGMA foreign_key_check')->fetchAll(PDO::FETCH_ASSOC);
+        $this->assertSame([], $violations);
+
+        $this->db->delete('games', ['game_id' => 1]);
+        $this->assertSame(0, (int)$this->db->count('game_inline_messages'));
+        $this->assertSame(0, (int)$this->db->count('game_chat_messages'));
+    }
+
     private function copyRealMigration(string $filename): void
     {
         copy(self::REAL_MIGRATIONS_DIR . '/' . $filename, $this->migrationsDir . '/' . $filename);

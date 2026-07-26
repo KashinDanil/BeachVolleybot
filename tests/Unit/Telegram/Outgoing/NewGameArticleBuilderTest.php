@@ -17,7 +17,7 @@ final class NewGameArticleBuilderTest extends TestCase
 
     public function testArticleId(): void
     {
-        $article = $this->buildArticle(inlineQueryId: 'query_42');
+        $article = $this->buildArticle(gameKey: 'query_42');
 
         $this->assertSame('query_42', $article->getId());
     }
@@ -97,14 +97,14 @@ final class NewGameArticleBuilderTest extends TestCase
     // --- Helpers ---
 
     private function buildArticle(
-        string $inlineQueryId = 'query_1',
+        string $gameKey = 'query_1',
         string $query = 'Beach Game 18:00',
         string $firstName = 'Alice',
         ?string $lastName = null,
         ?string $username = null,
     ): Article {
         $inlineQuery = new TelegramInlineQuery(
-            id: $inlineQueryId,
+            id: $gameKey,
             from: new TelegramUser(
                 id: 100,
                 firstName: $firstName,

@@ -29,8 +29,8 @@ final class NewGameFactory
 
         $game = new Game(
             gameId: self::UNPERSISTED_GAME_ID,
-            inlineQueryId: $data->inlineQueryId,
-            inlineMessageIds: [],
+            gameKey: $data->gameKey,
+            messageTargets: [],
             title: $data->title,
             users: [$user],
             createdAt: new DateTimeImmutable(),

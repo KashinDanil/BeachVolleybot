@@ -29,7 +29,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
         $game = $this->repository->findById($id);
 
-        $this->assertSame('query_1', $game['inline_query_id']);
+        $this->assertSame('query_1', $game['game_key']);
         $this->assertSame('Friday Game', $game['title']);
         $this->assertSame(100, $game['created_by']);
     }
@@ -43,26 +43,26 @@ final class GameRepositoryTest extends DatabaseTestCase
     {
         $this->repository->create('Saturday Game', 100, 'query_42');
 
-        $game = $this->repository->findByInlineQueryId('query_42');
+        $game = $this->repository->findByGameKey('query_42');
 
         $this->assertSame('Saturday Game', $game['title']);
     }
 
     public function testFindByInlineQueryIdReturnsNullWhenNotFound(): void
     {
-        $this->assertNull($this->repository->findByInlineQueryId('nonexistent'));
+        $this->assertNull($this->repository->findByGameKey('nonexistent'));
     }
 
     public function testFindGameIdByInlineQueryIdReturnsId(): void
     {
         $id = $this->repository->create('Friday Game', 100, 'query_77');
 
-        $this->assertSame($id, $this->repository->findGameIdByInlineQueryId('query_77'));
+        $this->assertSame($id, $this->repository->findGameIdByGameKey('query_77'));
     }
 
     public function testFindGameIdByInlineQueryIdReturnsNullWhenNotFound(): void
     {
-        $this->assertNull($this->repository->findGameIdByInlineQueryId('nonexistent'));
+        $this->assertNull($this->repository->findGameIdByGameKey('nonexistent'));
     }
 
     public function testDeleteRemovesGame(): void

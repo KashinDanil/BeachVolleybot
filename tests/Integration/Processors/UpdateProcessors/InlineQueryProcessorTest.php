@@ -106,10 +106,10 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertSame(InlineQueryError::GAME_NOT_FOUND_TITLE, $article->getTitle());
     }
 
-    private function buildUpdate(string $inlineQueryId, string $query): TelegramUpdate
+    private function buildUpdate(string $gameKey, string $query): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->inlineQueryPayload($inlineQueryId, $query),
+            $this->inlineQueryPayload($gameKey, $query),
         );
     }
 

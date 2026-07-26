@@ -7,25 +7,33 @@ namespace BeachVolleybot\Processors\Handlers\GameHandlers;
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 abstract readonly class AbstractGameReplyQueueHandler extends AbstractGameQueueHandler
 {
+    protected function repliesToGameMessage(?TelegramMessage $message): bool
+    {
+        return null !== $message
+            && $message->hasReplyToMessage()
+            && null !== GameCallbackData::extractGameKey($message->replyToMessage);
+    }
+
     protected function resolveGameId(TelegramUpdate $update): ?int
     {
         $message = $update->message ?? $update->editedMessage;
-        $inlineQueryId = GameCallbackData::extractInlineQueryId($message->replyToMessage);
+        $gameKey = GameCallbackData::extractGameKey($message->replyToMessage);
 
-        if (null === $inlineQueryId) {
-            Logger::logVerbose('Meta-button missing inline_query_id' . PHP_EOL);
+        if (null === $gameKey) {
+            Logger::logVerbose('Meta-button missing game key' . PHP_EOL);
 
             return null;
         }
 
-        $gameId = new GameManager()->resolveGameIdByInlineQueryId($inlineQueryId);
+        $gameId = new GameManager()->resolveGameIdByGameKey($gameKey);
 
         if (null === $gameId) {
-            Logger::logVerbose('Game not found by inline_query_id: ' . $inlineQueryId . PHP_EOL);
+            Logger::logVerbose('Game not found by game key: ' . $gameKey . PHP_EOL);
 
             return null;
         }

@@ -390,7 +390,7 @@ final class GameMessageBuilderTest extends TestCase
 
     public function testMetaButtonContainsInlineQueryId(): void
     {
-        $game = $this->game('Game 18:00', [], inlineQueryId: 'q_42');
+        $game = $this->game('Game 18:00', [], gameKey: 'q_42');
         $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         $data = json_decode($keyboard[0][0]['callback_data'], true, flags: JSON_THROW_ON_ERROR);
@@ -400,7 +400,7 @@ final class GameMessageBuilderTest extends TestCase
 
     public function testNonMetaButtonsDoNotContainInlineQueryId(): void
     {
-        $game = $this->game('Game 18:00', [], inlineQueryId: 'q_42');
+        $game = $this->game('Game 18:00', [], gameKey: 'q_42');
         $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
         $nonMetaButtons = [
@@ -464,11 +464,11 @@ final class GameMessageBuilderTest extends TestCase
         ?string $location = null,
         string $gameTime = '18:00',
         int $gameId = 1,
-        string $inlineQueryId = 'query_1',
+        string $gameKey = 'query_1',
     ): GameInterface {
         $game = $this->createStub(GameInterface::class);
         $game->method('getGameId')->willReturn($gameId);
-        $game->method('getInlineQueryId')->willReturn($inlineQueryId);
+        $game->method('getGameKey')->willReturn($gameKey);
         $game->method('getTitle')->willReturn($header);
         $game->method('getLocation')->willReturn($location);
         $game->method('getUsers')->willReturn($users);

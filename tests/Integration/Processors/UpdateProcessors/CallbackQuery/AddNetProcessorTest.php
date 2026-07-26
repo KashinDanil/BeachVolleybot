@@ -65,7 +65,7 @@ final class AddNetProcessorTest extends ProcessorTestCase
 
     public function testAnswersGameNotFoundWhenGameMissing(): void
     {
-        $update = $this->buildUpdate('nonexistent_msg', inlineQueryId: 'nonexistent_query');
+        $update = $this->buildUpdate('nonexistent_msg', gameKey: 'nonexistent_query');
 
         new AddNetProcessor($this->telegramSender)->process($update);
 
@@ -103,10 +103,10 @@ final class AddNetProcessorTest extends ProcessorTestCase
         $this->assertSame(2, $gameUser['net']);
     }
 
-    private function buildUpdate(string $inlineMessageId, string $inlineQueryId = 'query_1'): TelegramUpdate
+    private function buildUpdate(string $inlineMessageId, string $gameKey = 'query_1'): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'an', 'q' => $inlineQueryId])),
+            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'an', 'q' => $gameKey])),
         );
     }
 }

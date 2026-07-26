@@ -85,7 +85,7 @@ final class RefreshWeatherProcessorTest extends ProcessorTestCase
 
     public function testGameNotFoundAnswersGameNotFoundAndRemovesKeyboard(): void
     {
-        $this->process('nonexistent_msg', inlineQueryId: 'nonexistent_query');
+        $this->process('nonexistent_msg', gameKey: 'nonexistent_query');
 
         $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_NOT_FOUND);
@@ -139,10 +139,10 @@ final class RefreshWeatherProcessorTest extends ProcessorTestCase
         $this->assertNull($this->dequeueForGame($gameId));
     }
 
-    private function process(string $inlineMessageId, string $inlineQueryId = 'query_1'): void
+    private function process(string $inlineMessageId, string $gameKey = 'query_1'): void
     {
         $update = TelegramUpdate::fromArray(
-            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'rw', 'q' => $inlineQueryId])),
+            $this->callbackQueryPayload($inlineMessageId, json_encode(['a' => 'rw', 'q' => $gameKey])),
         );
 
         new RefreshWeatherProcessor(

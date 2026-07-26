@@ -6,7 +6,7 @@ namespace BeachVolleybot\Processors;
 
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Game\GameFactory;
-use BeachVolleybot\Telegram\InlineMessageRefresher;
+use BeachVolleybot\Telegram\GameMessageRefresher;
 use BeachVolleybot\Telegram\RateLimitedBotApi;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
@@ -21,7 +21,7 @@ final readonly class WeatherQueueProcessor implements QueueProcessorInterface
         private GameLocationResolver $locationResolver = new GameLocationResolver(),
         private WeatherCacheUpdater $weatherCacheUpdater = new WeatherCacheUpdater(),
         private WeatherWindowResolver $windowResolver = new WeatherWindowResolver(),
-        private InlineMessageRefresher $inlineMessageRefresher = new InlineMessageRefresher(
+        private GameMessageRefresher $gameMessageRefresher = new GameMessageRefresher(
             new TelegramMessageSender(new RateLimitedBotApi(TG_BOT_ACCESS_TOKEN, TG_MAX_REQUESTS_PER_SECOND)),
         ),
     ) {
@@ -48,7 +48,7 @@ final readonly class WeatherQueueProcessor implements QueueProcessorInterface
         $updated = $this->weatherCacheUpdater->update($coordinates, $window);
 
         if ($updated) {
-            $this->inlineMessageRefresher->refresh($game->getGameId());
+            $this->gameMessageRefresher->refresh($game->getGameId());
         }
 
         return true;

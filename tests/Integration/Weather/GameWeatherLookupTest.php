@@ -130,8 +130,8 @@ final class GameWeatherLookupTest extends DatabaseTestCase
     {
         $game = new Game(
             gameId: 1,
-            inlineQueryId: 'iq',
-            inlineMessageIds: ['im'],
+            gameKey: 'iq',
+            messageTargets: [],
             title: $title,
             users: [],
             createdAt: new DateTimeImmutable(),

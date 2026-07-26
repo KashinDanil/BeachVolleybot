@@ -10,7 +10,7 @@ readonly class GameRecord
 {
     public function __construct(
         public int $gameId,
-        public string $inlineQueryId,
+        public string $gameKey,
         public int $createdBy,
         public string $title,
         public DateTimeImmutable $createdAt,

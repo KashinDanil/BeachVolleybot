@@ -16,7 +16,7 @@ final class UserGamesListCallbackProcessorTest extends ProcessorTestCase
 
     public function testEditsMessageOnPageChange(): void
     {
-        $this->createGame(title: 'Game 1 18:00', createdBy: self::SENDER_ID, inlineQueryId: 'q1');
+        $this->createGame(title: 'Game 1 18:00', createdBy: self::SENDER_ID, gameKey: 'q1');
 
         $this->processCallback(page: 1);
 
@@ -25,8 +25,8 @@ final class UserGamesListCallbackProcessorTest extends ProcessorTestCase
 
     public function testListsOnlyGamesCreatedByTheSender(): void
     {
-        $myGameId = $this->createGame(title: 'Mine 18:00', createdBy: self::SENDER_ID, inlineQueryId: 'q_mine', inlineMessageId: 'msg_mine');
-        $this->createGame(title: 'Other 18:00', createdBy: 999, inlineQueryId: 'q_other', inlineMessageId: 'msg_other');
+        $myGameId = $this->createGame(title: 'Mine 18:00', createdBy: self::SENDER_ID, gameKey: 'q_mine', inlineMessageId: 'msg_mine');
+        $this->createGame(title: 'Other 18:00', createdBy: 999, gameKey: 'q_other', inlineMessageId: 'msg_other');
 
         $this->processCallback(page: 1);
 
@@ -45,7 +45,7 @@ final class UserGamesListCallbackProcessorTest extends ProcessorTestCase
             $gameIds[] = $this->createGame(
                 title: "Game $index 18:00",
                 createdBy: self::SENDER_ID,
-                inlineQueryId: "q_$index",
+                gameKey: "q_$index",
                 inlineMessageId: "msg_$index",
             );
         }

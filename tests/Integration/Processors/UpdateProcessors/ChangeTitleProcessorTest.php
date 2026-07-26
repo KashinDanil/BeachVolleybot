@@ -113,7 +113,7 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
             title: 'Old Game 01.01.20 18:00',
             createdBy: self::CREATOR_ID,
             inlineMessageId: 'msg_1',
-            inlineQueryId: 'query_1',
+            gameKey: 'query_1',
         );
 
         new ChangeTitleProcessor($this->telegramSender)
@@ -157,7 +157,7 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
             title: 'Friday Game 18:00',
             createdBy: self::CREATOR_ID,
             inlineMessageId: 'msg_1',
-            inlineQueryId: 'query_1',
+            gameKey: 'query_1',
         );
         $this->createUser(self::CREATOR_ID);
         $this->db->insert('game_users', [

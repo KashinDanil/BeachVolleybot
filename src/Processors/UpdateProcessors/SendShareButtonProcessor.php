@@ -15,13 +15,13 @@ class SendShareButtonProcessor extends AbstractActionProcessor
     public function process(TelegramUpdate $update): void
     {
         $message = $update->message;
-        $inlineQueryId = GameCallbackData::extractInlineQueryId($message);
+        $gameKey = GameCallbackData::extractGameKey($message);
 
-        if (null === $inlineQueryId) {
+        if (null === $gameKey) {
             return;
         }
 
-        $gameId = new GameManager()->resolveGameIdByInlineQueryId($inlineQueryId);
+        $gameId = new GameManager()->resolveGameIdByGameKey($gameKey);
 
         if (null === $gameId) {
             return;

@@ -85,7 +85,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
 
     public function testPrivateReplyToViaBotGameMessageRoutesToGameQueueByGameId(): void
     {
-        $this->db->insert('games', ['title' => 'Test', 'created_by' => 1, 'inline_query_id' => 'query_dm']);
+        $this->db->insert('games', ['title' => 'Test', 'created_by' => 1, 'game_key' => 'query_dm']);
         $gameId = (int) $this->db->id();
         $this->db->insert('game_inline_messages', ['game_id' => $gameId, 'inline_message_id' => 'msg_dm']);
 
@@ -122,7 +122,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
 
     public function testCallbackQueryWithInlineMessageIdGoesToGameQueueByGameId(): void
     {
-        $this->db->insert('games', ['title' => 'Test', 'created_by' => 1, 'inline_query_id' => 'q1']);
+        $this->db->insert('games', ['title' => 'Test', 'created_by' => 1, 'game_key' => 'q1']);
         $gameId = (int) $this->db->id();
         $this->db->insert('game_inline_messages', ['game_id' => $gameId, 'inline_message_id' => 'inline_msg_abc']);
 
@@ -155,6 +155,8 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/005_require_game_player_time.sql'));
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/006_rename_players_to_users.sql'));
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/007_add_role_to_users.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/008_rename_inline_query_id_to_game_key.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/009_add_game_chat_messages.sql'));
         Connection::set($this->db);
 
         // Admin routing reads the role from the DB; seed the admin sender used

@@ -22,10 +22,10 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
         $this->assertSame('41.413023,2.194859', $game['location']);
     }
 
-    private function buildUpdate(float $latitude, float $longitude, string $inlineQueryId): TelegramUpdate
+    private function buildUpdate(float $latitude, float $longitude, string $gameKey): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->editedLocationMessagePayload($latitude, $longitude, $inlineQueryId),
+            $this->editedLocationMessagePayload($latitude, $longitude, $gameKey),
         );
     }
 
@@ -66,7 +66,7 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
 
     public function testIgnoresWhenUserNotInGame(): void
     {
-        $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
+        $gameId = $this->seedFullGame(gameKey: 'query_1');
         $update = $this->buildUpdate(41.413023, 2.194859, 'query_1');
 
         new SetLiveLocationProcessor($this->telegramSender)->process($update);

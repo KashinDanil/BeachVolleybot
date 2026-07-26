@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Processors\WeatherQueueProcessor;
-use BeachVolleybot\Telegram\InlineMessageRefresher;
+use BeachVolleybot\Telegram\GameMessageRefresher;
 use BeachVolleybot\Tests\Integration\Processors\Stub\FakeWeatherApiClient;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
@@ -37,7 +37,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $this->processor = new WeatherQueueProcessor(
             locationResolver: new GameLocationResolver(),
             weatherCacheUpdater: new WeatherCacheUpdater($this->weatherClient, $this->weatherCache),
-            inlineMessageRefresher: new InlineMessageRefresher($this->telegramSender),
+            gameMessageRefresher: new GameMessageRefresher($this->telegramSender),
         );
     }
 
@@ -191,7 +191,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             title: "Bogatell $kickoffDay 18:00",
             location: '41.397,2.211',
             inlineMessageId: 'inline_b',
-            inlineQueryId: 'query_b',
+            gameKey: 'query_b',
         );
 
         $this->processor->process($this->messageFor($gameAId));
@@ -273,7 +273,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         string $title,
         ?string $location = null,
         ?string $inlineMessageId = null,
-        ?string $inlineQueryId = null,
+        ?string $gameKey = null,
     ): int {
         static $sequence = 0;
         $sequence++;
@@ -282,7 +282,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             'title' => $title,
             'location' => $location,
             'created_by' => 100,
-            'inline_query_id' => $inlineQueryId ?? 'query_' . $sequence,
+            'game_key' => $gameKey ?? 'query_' . $sequence,
         ]);
 
         $gameId = (int) $this->db->id();

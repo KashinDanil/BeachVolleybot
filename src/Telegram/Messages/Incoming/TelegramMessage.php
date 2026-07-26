@@ -23,6 +23,7 @@ readonly class TelegramMessage implements JsonSerializable
         public ?int $ephemeralMessageId = null,
         public ?TelegramUser $receiverUser = null,
         public ?int $messageThreadId = null,
+        public ?array $forumTopicCreated = null,
         private array $rawPayload = [],
     ) {
     }
@@ -49,7 +50,15 @@ readonly class TelegramMessage implements JsonSerializable
 
     public function hasReplyToMessage(): bool
     {
-        return null !== $this->replyToMessage;
+        // A message merely sent inside a forum topic auto-carries a reply_to_message
+        // pointing at the topic-creation service message — that is not a real reply.
+        return null !== $this->replyToMessage
+            && !$this->replyToMessage->isForumTopicCreation();
+    }
+
+    public function isForumTopicCreation(): bool
+    {
+        return null !== $this->forumTopicCreated;
     }
 
     public function isPinMessage(): bool
@@ -101,6 +110,7 @@ readonly class TelegramMessage implements JsonSerializable
             ephemeralMessageId: $data['ephemeral_message_id'] ?? null,
             receiverUser: isset($data['receiver_user']) ? TelegramUser::fromArray($data['receiver_user']) : null,
             messageThreadId: $data['message_thread_id'] ?? null,
+            forumTopicCreated: $data['forum_topic_created'] ?? null,
             rawPayload: $data,
         );
     }

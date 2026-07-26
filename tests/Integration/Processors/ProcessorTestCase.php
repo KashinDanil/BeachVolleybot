@@ -56,13 +56,13 @@ abstract class ProcessorTestCase extends DatabaseTestCase
 
     protected function seedFullGame(
         string $inlineMessageId = 'msg_1',
-        string $inlineQueryId = 'query_1',
+        string $gameKey = 'query_1',
         string $title = 'Friday Game 18:00',
     ): int {
         $gameId = $this->createGame(
             title: $title,
             inlineMessageId: $inlineMessageId,
-            inlineQueryId: $inlineQueryId,
+            gameKey: $gameKey,
         );
 
         return $gameId;
@@ -137,7 +137,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     }
 
     protected function inlineQueryPayload(
-        string $inlineQueryId,
+        string $gameKey,
         string $query,
         int $fromId = 200,
         string $firstName = 'Danil',
@@ -145,7 +145,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         return [
             'update_id' => 1,
             'inline_query' => [
-                'id' => $inlineQueryId,
+                'id' => $gameKey,
                 'from' => ['id' => $fromId, 'first_name' => $firstName, 'is_bot' => false],
                 'query' => $query,
                 'offset' => '',
@@ -156,7 +156,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     protected function locationMessagePayload(
         float $latitude,
         float $longitude,
-        string $inlineQueryId,
+        string $gameKey,
         int $fromId = 200,
         string $firstName = 'Danil',
         int $chatId = -5127803306,
@@ -178,7 +178,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
                                 ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
@@ -190,7 +190,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
 
     protected function replyMessagePayload(
         string $text,
-        string $inlineQueryId,
+        string $gameKey,
         int $fromId = 200,
         string $firstName = 'Danil',
         int $chatId = -5127803306,
@@ -212,7 +212,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
                                 ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
@@ -247,7 +247,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     protected function editedLocationMessagePayload(
         float $latitude,
         float $longitude,
-        string $inlineQueryId,
+        string $gameKey,
         int $fromId = 200,
         string $firstName = 'Danil',
         int $chatId = -5127803306,
@@ -268,7 +268,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
                                 ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
@@ -402,7 +402,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     }
 
     protected function privateViaBotGameMessagePayload(
-        string $inlineQueryId,
+        string $gameKey,
         int $fromId = 200,
         string $firstName = 'Danil',
         int $messageId = 139,
@@ -419,7 +419,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                 'reply_markup' => [
                     'inline_keyboard' => [
                         [
-                            ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                            ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
                             ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
                         ],
                     ],
@@ -431,7 +431,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     protected function privateLocationMessagePayload(
         float $latitude,
         float $longitude,
-        string $inlineQueryId,
+        string $gameKey,
         int $fromId = 200,
         string $firstName = 'Danil',
     ): array {
@@ -452,7 +452,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
                                 ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
@@ -464,7 +464,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
 
     protected function privateReplyMessagePayload(
         string $text,
-        string $inlineQueryId,
+        string $gameKey,
         int $fromId = 200,
         string $firstName = 'Danil',
     ): array {
@@ -485,7 +485,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $inlineQueryId])],
+                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
                                 ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],

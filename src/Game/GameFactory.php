@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game;
 
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameInlineMessageRepository;
+use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
@@ -36,11 +36,11 @@ final class GameFactory
         $db = Connection::get();
         $gameId = (int)$gameRow['game_id'];
 
-        $inlineMessageIds = new GameInlineMessageRepository($db)->findInlineMessageIdsByGameId($gameId);
+        $messageTargets = new GameMessageRepository($db)->findTargetsByGameId($gameId);
         $slotRows = new GameSlotRepository($db)->findByGameId($gameId);
         $gameUserRows = new GameUserRepository($db)->findByGameId($gameId);
         $userRows = new UserRepository($db)->findByIds(array_column($gameUserRows, 'telegram_user_id'));
 
-        return new GameBuilder($gameRow, $inlineMessageIds, $slotRows, $gameUserRows, $userRows, $addOns)->build();
+        return new GameBuilder($gameRow, $messageTargets, $slotRows, $gameUserRows, $userRows, $addOns)->build();
     }
 }

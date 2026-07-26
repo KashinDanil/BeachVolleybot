@@ -61,7 +61,7 @@ final class HandlerExclusivityTest extends ProcessorTestCase
 
         return [
             'inline query' => TelegramUpdate::fromArray(
-                $this->inlineQueryPayload(inlineQueryId: 'iq1', query: 'Beach Volleyball 31.12.2099 18:00'),
+                $this->inlineQueryPayload(gameKey: 'iq1', query: 'Beach Volleyball 31.12.2099 18:00'),
             ),
             'chosen inline result (create game)' => TelegramUpdate::fromArray(
                 $this->chosenInlineResultPayload(
@@ -90,10 +90,10 @@ final class HandlerExclusivityTest extends ProcessorTestCase
                 $this->adminCallbackQueryPayload(json_encode(['ua' => 'ugl']), fromId: $nonAdminId),
             ),
             'edited reply with location' => TelegramUpdate::fromArray(
-                $this->editedLocationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'iq1'),
+                $this->editedLocationMessagePayload(latitude: 41.4, longitude: 2.2, gameKey: 'iq1'),
             ),
             'reply with location (game queue)' => TelegramUpdate::fromArray(
-                $this->locationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'iq1'),
+                $this->locationMessagePayload(latitude: 41.4, longitude: 2.2, gameKey: 'iq1'),
             ),
             'reply with time-only text' => TelegramUpdate::fromArray(
                 $this->replyMessagePayload('18:00', 'iq1'),
@@ -130,6 +130,61 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             'private via-bot game share' => TelegramUpdate::fromArray(
                 $this->privateViaBotGameMessagePayload('iq1'),
             ),
+            'group @mention new game' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'message' => [
+                    'message_id' => 70,
+                    'from' => ['id' => $nonAdminId, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat' => ['id' => -100, 'type' => 'group'],
+                    'date' => 1700000000,
+                    'text' => '@' . BOT_USERNAME . ' Bogatell 31.12.2099 18:00',
+                ],
+            ]),
+            'private @mention new game' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'message' => [
+                    'message_id' => 71,
+                    'from' => ['id' => $nonAdminId, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat' => ['id' => $nonAdminId, 'type' => 'private'],
+                    'date' => 1700000000,
+                    'text' => '@' . BOT_USERNAME . ' Bogatell 31.12.2099 18:00',
+                ],
+            ]),
+            // A game button on the bot's own chat message (group or DM) — no
+            // inline_message_id, resolved from the callback's message instead.
+            'chat game card callback' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'callback_query' => [
+                    'id' => 'cbq_2',
+                    'from' => ['id' => $nonAdminId, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat_instance' => '-123',
+                    'message' => [
+                        'message_id' => 88,
+                        'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
+                        'chat' => ['id' => -100, 'type' => 'group'],
+                        'date' => 1700000000,
+                    ],
+                    'data' => json_encode(['a' => 'j']),
+                ],
+            ]),
+            // A command sent as a reply to a non-game bot message (e.g. the games
+            // list) must reach the command handler, not a reply-based game handler.
+            'dm command as reply to non-game bot message' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'message' => [
+                    'message_id' => 73,
+                    'from' => ['id' => $nonAdminId, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat' => ['id' => $nonAdminId, 'type' => 'private'],
+                    'date' => 1700000000,
+                    'text' => '/games',
+                    'reply_to_message' => [
+                        'message_id' => 72,
+                        'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
+                        'chat' => ['id' => $nonAdminId, 'type' => 'private'],
+                        'date' => 1699999000,
+                    ],
+                ],
+            ]),
         ];
     }
 

@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Unit\Game;
 use BeachVolleybot\Game\GameBuilder;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use PHPUnit\Framework\TestCase;
 
 final class GameBuilderTest extends TestCase
@@ -20,11 +21,13 @@ final class GameBuilderTest extends TestCase
         $this->assertSame(42, $game->getGameId());
     }
 
-    public function testInlineMessageIds(): void
+    public function testMessageTargets(): void
     {
-        $game = $this->buildGame(inlineMessageIds: ['msg_abc', 'msg_xyz']);
+        $targets = [new InlineGameMessageTarget('msg_abc'), new InlineGameMessageTarget('msg_xyz')];
 
-        $this->assertSame(['msg_abc', 'msg_xyz'], $game->getInlineMessageIds());
+        $game = $this->buildGame(messageTargets: $targets);
+
+        $this->assertEquals($targets, $game->getMessageTargets());
     }
 
     public function testTitle(): void
@@ -209,13 +212,13 @@ final class GameBuilderTest extends TestCase
 
     private function gameRow(
         int $gameId = 1,
-        string $inlineQueryId = 'query_1',
+        string $gameKey = 'query_1',
         string $title = 'Beach Game 18:00',
         string $createdAt = '2026-01-01 12:00:00',
     ): array {
         return [
             'game_id' => $gameId,
-            'inline_query_id' => $inlineQueryId,
+            'game_key' => $gameKey,
             'title' => $title,
             'created_at' => $createdAt,
         ];
@@ -261,14 +264,14 @@ final class GameBuilderTest extends TestCase
 
     private function buildGame(
         ?array $gameRow = null,
-        array $inlineMessageIds = ['msg_1'],
+        array $messageTargets = [new InlineGameMessageTarget('msg_1')],
         array $slotRows = [],
         array $gameUserRows = [],
         array $userRows = [],
     ): GameInterface {
         return new GameBuilder(
             gameRow: $gameRow ?? $this->gameRow(),
-            inlineMessageIds: $inlineMessageIds,
+            messageTargets: $messageTargets,
             slotRows: $slotRows,
             gameUserRows: $gameUserRows,
             userRows: $userRows,

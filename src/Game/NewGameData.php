@@ -19,14 +19,14 @@ readonly class NewGameData
         public ?string $lastName,
         public ?string $username,
         public string $title,
-        public string $inlineQueryId,
+        public string $gameKey,
     ) {
     }
 
     public static function fromUser(
         TelegramUser $creator,
         string $title,
-        string $inlineQueryId,
+        string $gameKey,
     ): self {
         return new self(
             telegramUserId: $creator->id,
@@ -34,7 +34,7 @@ readonly class NewGameData
             lastName: $creator->lastName,
             username: $creator->username,
             title: TimeExtractor::normalize($title),
-            inlineQueryId: $inlineQueryId,
+            gameKey: $gameKey,
         );
     }
 }

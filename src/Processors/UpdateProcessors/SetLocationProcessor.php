@@ -24,6 +24,6 @@ class SetLocationProcessor extends AbstractGameReplyProcessor
         $this->logUserAction($message->from, 'set_location', "gameId=$gameRecord->gameId;location=$location");
 
         $this->reactWithCheckmark($message);
-        $this->refreshGameInlineMessages($gameRecord->gameId);
+        $this->refreshGameMessages($gameRecord->gameId);
     }
 }

@@ -21,13 +21,13 @@ abstract class AbstractGameReplyProcessor extends AbstractActionReplyProcessor
             return;
         }
 
-        $inlineQueryId = GameCallbackData::extractInlineQueryId($message->replyToMessage);
+        $gameKey = GameCallbackData::extractGameKey($message->replyToMessage);
 
-        if (null === $inlineQueryId) {
+        if (null === $gameKey) {
             return;
         }
 
-        $gameRecord = new GameManager()->findGameRecordByInlineQueryId($inlineQueryId);
+        $gameRecord = new GameManager()->findGameRecordByGameKey($gameKey);
 
         if (null === $gameRecord) {
             return;

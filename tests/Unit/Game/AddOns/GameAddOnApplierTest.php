@@ -45,8 +45,8 @@ final class GameAddOnApplierTest extends TestCase
     {
         return new Game(
             gameId: 1,
-            inlineQueryId: 'query_1',
-            inlineMessageIds: ['msg_1'],
+            gameKey: 'query_1',
+            messageTargets: [],
             title: 'Beach Game 18:00',
             users: [],
             createdAt: new DateTimeImmutable(),

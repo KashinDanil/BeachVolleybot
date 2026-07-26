@@ -12,6 +12,10 @@ class BotApiStub extends BotApi
     /** @var list<array{method: string, args: list<mixed>}> */
     public array $calls = [];
 
+    // When true, sendMessage reports a failed post (message id 0), mirroring how
+    // TelegramMessageSender::sendMessage returns 0 after catching an HttpException.
+    public bool $failSend = false;
+
     /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct()
     {
@@ -51,7 +55,7 @@ class BotApiStub extends BotApi
         $this->calls[] = ['method' => 'sendMessage', 'args' => func_get_args()];
 
         $message = new Message();
-        $message->setMessageId(42);
+        $message->setMessageId($this->failSend ? 0 : 42);
 
         return $message;
     }

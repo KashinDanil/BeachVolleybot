@@ -15,8 +15,7 @@ final readonly class ChangeTitleHandler extends AbstractGameReplyQueueHandler
     public function matches(TelegramUpdate $update): bool
     {
         return $update->hasMessage()
-            && $update->message->hasReplyToMessage()
-            && $update->message->replyToMessage->isViaThisBot()
+            && $this->repliesToGameMessage($update->message)
             && $update->message->hasText()
             && !TimeExtractor::isTimeOnly($update->message->text);
     }

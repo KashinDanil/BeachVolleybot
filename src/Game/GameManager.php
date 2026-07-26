@@ -6,18 +6,21 @@ namespace BeachVolleybot\Game;
 
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameInlineMessageRepository;
+use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\UserRepository;
+use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
+use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use DateTimeImmutable;
 
 readonly class GameManager
 {
     protected GameRepository $gameRepository;
 
-    protected GameInlineMessageRepository $gameInlineMessageRepository;
+    protected GameMessageRepository $gameMessageRepository;
 
     protected GameUserRepository $gameUserRepository;
 
@@ -29,13 +32,13 @@ readonly class GameManager
     {
         $db = Connection::get();
         $this->gameRepository = new GameRepository($db);
-        $this->gameInlineMessageRepository = new GameInlineMessageRepository($db);
+        $this->gameMessageRepository = new GameMessageRepository($db);
         $this->gameUserRepository = new GameUserRepository($db);
         $this->gameSlotRepository = new GameSlotRepository($db);
         $this->userRepository = new UserRepository($db);
     }
 
-    public function createGame(NewGameData $data, string $inlineMessageId): int
+    public function createGame(NewGameData $data): int
     {
         $this->userRepository->upsert(
             $data->telegramUserId,
@@ -47,10 +50,8 @@ readonly class GameManager
         $gameId = $this->gameRepository->create(
             $data->title,
             $data->telegramUserId,
-            $data->inlineQueryId,
+            $data->gameKey,
         );
-
-        $this->addInlineMessage($gameId, $inlineMessageId);
 
         $this->gameUserRepository->create(
             $gameId,
@@ -211,22 +212,40 @@ readonly class GameManager
 
     public function addInlineMessage(int $gameId, string $inlineMessageId): void
     {
-        $this->gameInlineMessageRepository->create($gameId, $inlineMessageId);
+        $this->gameMessageRepository->addInlineMessage($gameId, $inlineMessageId);
     }
 
-    public function resolveGameIdByInlineQueryId(string $inlineQueryId): ?int
+    public function addChatMessage(int $gameId, int $chatId, int $messageId): void
     {
-        return $this->gameRepository->findGameIdByInlineQueryId($inlineQueryId);
+        $this->gameMessageRepository->addChatMessage($gameId, $chatId, $messageId);
+    }
+
+    public function resolveGameIdByGameKey(string $gameKey): ?int
+    {
+        return $this->gameRepository->findGameIdByGameKey($gameKey);
     }
 
     public function resolveGameIdByInlineMessageId(string $inlineMessageId): ?int
     {
-        return $this->gameInlineMessageRepository->findGameIdByInlineMessageId($inlineMessageId);
+        return $this->gameMessageRepository->findGameIdByInlineMessageId($inlineMessageId);
     }
 
-    public function findGameRecordByInlineQueryId(string $inlineQueryId): ?GameRecord
+    public function resolveGameIdByChatMessage(int $chatId, int $messageId): ?int
     {
-        return $this->buildGameRecord($this->gameRepository->findByInlineQueryId($inlineQueryId));
+        return $this->gameMessageRepository->findGameIdByChatMessage($chatId, $messageId);
+    }
+
+    public function resolveGameIdByTarget(GameMessageTarget $target): ?int
+    {
+        return match (true) {
+            $target instanceof InlineGameMessageTarget => $this->resolveGameIdByInlineMessageId($target->inlineMessageId),
+            $target instanceof ChatGameMessageTarget => $this->resolveGameIdByChatMessage($target->chatId, $target->messageId),
+        };
+    }
+
+    public function findGameRecordByGameKey(string $gameKey): ?GameRecord
+    {
+        return $this->buildGameRecord($this->gameRepository->findByGameKey($gameKey));
     }
 
     public function findGameRecordById(int $gameId): ?GameRecord
@@ -242,7 +261,7 @@ readonly class GameManager
 
         return new GameRecord(
             (int)$row['game_id'],
-            (string)$row['inline_query_id'],
+            (string)$row['game_key'],
             (int)$row['created_by'],
             (string)$row['title'],
             new DateTimeImmutable((string)$row['created_at']),

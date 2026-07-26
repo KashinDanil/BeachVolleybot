@@ -17,7 +17,7 @@ final class UserGameDetailCallbackProcessorTest extends ProcessorTestCase
 
     public function testEditsMessageWhenSenderIsCreator(): void
     {
-        $gameId = $this->createGame(title: 'Mine 18:00', createdBy: self::SENDER_ID, inlineQueryId: 'q_mine');
+        $gameId = $this->createGame(title: 'Mine 18:00', createdBy: self::SENDER_ID, gameKey: 'q_mine');
 
         $this->processCallback(gameId: $gameId, listPage: 1);
 
@@ -26,7 +26,7 @@ final class UserGameDetailCallbackProcessorTest extends ProcessorTestCase
 
     public function testDoesNotEditWhenSenderIsNotCreator(): void
     {
-        $gameId = $this->createGame(title: 'Other 18:00', createdBy: self::OTHER_USER_ID, inlineQueryId: 'q_other');
+        $gameId = $this->createGame(title: 'Other 18:00', createdBy: self::OTHER_USER_ID, gameKey: 'q_other');
 
         $this->processCallback(gameId: $gameId, listPage: 1);
 
@@ -69,7 +69,7 @@ final class UserGameDetailCallbackProcessorTest extends ProcessorTestCase
         // Anchored to an explicit far-future date so the rendered keyboard always has the
         // future-game shape (Share + Back). A title like 'Mine 18:00' would resolve to today
         // at 18:00 and flip from future to past as the day progresses.
-        $gameId = $this->createGame(title: 'Mine 31.12.2099 18:00', createdBy: self::SENDER_ID, inlineQueryId: 'q_mine');
+        $gameId = $this->createGame(title: 'Mine 31.12.2099 18:00', createdBy: self::SENDER_ID, gameKey: 'q_mine');
 
         $this->processCallback(gameId: $gameId, listPage: 4);
 

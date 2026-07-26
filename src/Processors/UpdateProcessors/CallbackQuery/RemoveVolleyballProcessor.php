@@ -27,7 +27,7 @@ class RemoveVolleyballProcessor extends AbstractGameCallbackProcessor
         };
 
         if (EquipmentResult::Removed === $result) {
-            $this->refreshGameInlineMessages($gameId);
+            $this->refreshGameMessages($gameId);
         }
 
         $this->answerCallbackQuery($callbackQuery, $callbackAnswer);

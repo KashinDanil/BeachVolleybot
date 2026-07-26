@@ -182,8 +182,8 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     protected function defaultBuildKeyboard(GameInterface $game): array
     {
         return [
-            [ // The first button is the meta-button — it carries the inline query ID
-                $this->buildActionButton('Leave', GameCallbackData::create(GameCallbackAction::Leave)->withInlineQueryId($game->getInlineQueryId()), InlineButtonStyle::DANGER),
+            [ // The first button is the meta-button — it carries the game key
+                $this->buildActionButton('Leave', GameCallbackData::create(GameCallbackAction::Leave)->withGameKey($game->getGameKey()), InlineButtonStyle::DANGER),
                 $this->buildActionButton('Join', GameCallbackData::create(GameCallbackAction::Join), InlineButtonStyle::SUCCESS),
             ],
             [

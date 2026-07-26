@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Unit\Game\AddOns;
 use BeachVolleybot\Game\AddOns\StylizeTitleAddOn;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -179,8 +180,8 @@ final class StylizeTitleAddOnTest extends TestCase
         $this->transform($game);
 
         $this->assertSame(42, $game->getGameId());
-        $this->assertSame('query_1', $game->getInlineQueryId());
-        $this->assertSame(['msg_1'], $game->getInlineMessageIds());
+        $this->assertSame('query_1', $game->getGameKey());
+        $this->assertEquals([new InlineGameMessageTarget('msg_1')], $game->getMessageTargets());
     }
 
     // --- Helpers ---
@@ -203,8 +204,8 @@ final class StylizeTitleAddOnTest extends TestCase
     ): Game {
         return new Game(
             gameId: $gameId,
-            inlineQueryId: 'query_1',
-            inlineMessageIds: ['msg_1'],
+            gameKey: 'query_1',
+            messageTargets: [new InlineGameMessageTarget('msg_1')],
             title: $title,
             users: $users,
             createdAt: new DateTimeImmutable(),

@@ -77,8 +77,8 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     public function testGamesListOrdersDescendingById(): void
     {
-        $this->createGame(title: 'First 10:00', inlineMessageId: 'msg_1', inlineQueryId: 'q_1');
-        $this->createGame(title: 'Second 14:00', inlineMessageId: 'msg_2', inlineQueryId: 'q_2');
+        $this->createGame(title: 'First 10:00', inlineMessageId: 'msg_1', gameKey: 'q_1');
+        $this->createGame(title: 'Second 14:00', inlineMessageId: 'msg_2', gameKey: 'q_2');
 
         $message = $this->buildGamesList();
         $keyboard = $this->extractKeyboard($message);

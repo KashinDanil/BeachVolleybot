@@ -26,7 +26,7 @@ final class CallbackDataTest extends TestCase
 
     public function testToJsonWithInlineQueryId(): void
     {
-        $json = GameCallbackData::create(GameCallbackAction::Leave)->withInlineQueryId('q_42')->toJson();
+        $json = GameCallbackData::create(GameCallbackAction::Leave)->withGameKey('q_42')->toJson();
 
         $this->assertSame('{"a":"l","q":"q_42"}', $json);
     }
@@ -57,11 +57,22 @@ final class CallbackDataTest extends TestCase
         $this->assertNull(GameCallbackData::fromJson('{"a":"unknown"}'));
     }
 
+    public function testFromJsonReturnsNullForMalformedJson(): void
+    {
+        // A foreign bot's plain-string callback_data must yield null, not throw.
+        $this->assertNull(GameCallbackData::fromJson('vote_yes'));
+    }
+
+    public function testFromJsonReturnsNullForNonArrayJson(): void
+    {
+        $this->assertNull(GameCallbackData::fromJson('42'));
+    }
+
     public function testFromJsonRestoresInlineQueryId(): void
     {
-        $json = GameCallbackData::create(GameCallbackAction::Leave)->withInlineQueryId('q_99')->toJson();
+        $json = GameCallbackData::create(GameCallbackAction::Leave)->withGameKey('q_99')->toJson();
 
-        $this->assertSame('q_99', GameCallbackData::fromJson($json)?->getInlineQueryId());
+        $this->assertSame('q_99', GameCallbackData::fromJson($json)?->getGameKey());
     }
 
     // --- roundtrip ---
@@ -75,15 +86,15 @@ final class CallbackDataTest extends TestCase
         }
     }
 
-    // --- extractInlineQueryId ---
+    // --- extractGameKey ---
 
     public function testExtractInlineQueryIdFromMetaButton(): void
     {
         $message = $this->messageWithMetaButton(
-            GameCallbackData::create(GameCallbackAction::Leave)->withInlineQueryId('q_123')->toJson(),
+            GameCallbackData::create(GameCallbackAction::Leave)->withGameKey('q_123')->toJson(),
         );
 
-        $this->assertSame('q_123', GameCallbackData::extractInlineQueryId($message));
+        $this->assertSame('q_123', GameCallbackData::extractGameKey($message));
     }
 
     private function messageWithMetaButton(?string $callbackData): TelegramMessage
@@ -105,7 +116,7 @@ final class CallbackDataTest extends TestCase
     {
         $message = $this->messageWithoutMarkup();
 
-        $this->assertNull(GameCallbackData::extractInlineQueryId($message));
+        $this->assertNull(GameCallbackData::extractGameKey($message));
     }
 
     private function messageWithoutMarkup(): TelegramMessage
@@ -122,13 +133,21 @@ final class CallbackDataTest extends TestCase
     {
         $message = $this->messageWithMetaButton(null);
 
-        $this->assertNull(GameCallbackData::extractInlineQueryId($message));
+        $this->assertNull(GameCallbackData::extractGameKey($message));
     }
 
     public function testExtractInlineQueryIdReturnsNullWhenKeyMissing(): void
     {
         $message = $this->messageWithMetaButton('{"a":"j"}');
 
-        $this->assertNull(GameCallbackData::extractInlineQueryId($message));
+        $this->assertNull(GameCallbackData::extractGameKey($message));
+    }
+
+    public function testExtractGameKeyReturnsNullForForeignPlainStringCallbackData(): void
+    {
+        // Replying to another bot's keyboard (plain-string callback_data) must not throw.
+        $message = $this->messageWithMetaButton('vote_yes');
+
+        $this->assertNull(GameCallbackData::extractGameKey($message));
     }
 }

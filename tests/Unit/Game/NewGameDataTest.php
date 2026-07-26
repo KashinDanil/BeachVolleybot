@@ -33,7 +33,7 @@ final class NewGameDataTest extends TestCase
         $data = NewGameData::fromUser($this->creator, 'Friday Game 18:00', 'query_1');
 
         $this->assertSame('Friday Game 18:00', $data->title);
-        $this->assertSame('query_1', $data->inlineQueryId);
+        $this->assertSame('query_1', $data->gameKey);
     }
 
     public function testBuildFromNewGameDataProducesValidGame(): void
@@ -43,7 +43,7 @@ final class NewGameDataTest extends TestCase
         $game = NewGameFactory::create($data);
 
         $this->assertSame('Friday Game 18:00', $game->getTitle());
-        $this->assertSame('query_1', $game->getInlineQueryId());
+        $this->assertSame('query_1', $game->getGameKey());
         $this->assertCount(1, $game->getUsers());
     }
 

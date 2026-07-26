@@ -30,7 +30,7 @@ final class ForwardGameArticleBuilderTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: 'Saturday 18:00');
 
-        $article = $this->buildArticle($gameId, 'Saturday 18:00', inlineQueryId: 'query_42');
+        $article = $this->buildArticle($gameId, 'Saturday 18:00', gameKey: 'query_42');
 
         $this->assertSame('query_42', $article->getId());
     }
@@ -83,11 +83,11 @@ final class ForwardGameArticleBuilderTest extends DatabaseTestCase
     private function buildArticle(
         int $gameId,
         string $gameTitle,
-        string $inlineQueryId = 'query_1',
+        string $gameKey = 'query_1',
         string $language = Language::EN,
     ): Article {
         $inlineQuery = new TelegramInlineQuery(
-            id: $inlineQueryId,
+            id: $gameKey,
             from: new TelegramUser(id: 100, firstName: 'Alice'),
             query: "Forward game $gameId",
             offset: '',

@@ -66,28 +66,28 @@ final class AppQueueProcessorTest extends ProcessorTestCase
 
     public function testRoutesEditedMessageToSetLiveLocationProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->editedLocationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'q1')));
+        $this->processor->process(new QueueMessage($this->editedLocationMessagePayload(latitude: 41.4, longitude: 2.2, gameKey: 'q1')));
 
         $this->assertSame([SetLiveLocationProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesGroupLocationMessageToSetLocationProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->locationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'q1')));
+        $this->processor->process(new QueueMessage($this->locationMessagePayload(latitude: 41.4, longitude: 2.2, gameKey: 'q1')));
 
         $this->assertSame([SetLocationProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesTimeOnlyReplyToJoinWithTimeProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->replyMessagePayload(text: '18:00', inlineQueryId: 'q1')));
+        $this->processor->process(new QueueMessage($this->replyMessagePayload(text: '18:00', gameKey: 'q1')));
 
         $this->assertSame([JoinWithTimeProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesNonTimeReplyToChangeTitleProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->replyMessagePayload(text: 'New title', inlineQueryId: 'q1')));
+        $this->processor->process(new QueueMessage($this->replyMessagePayload(text: 'New title', gameKey: 'q1')));
 
         $this->assertSame([ChangeTitleProcessor::class], $this->recorder->selections);
     }
@@ -117,28 +117,28 @@ final class AppQueueProcessorTest extends ProcessorTestCase
 
     public function testRoutesPrivateViaBotGameMessageToSendShareButtonProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->privateViaBotGameMessagePayload(inlineQueryId: 'query_42')));
+        $this->processor->process(new QueueMessage($this->privateViaBotGameMessagePayload(gameKey: 'query_42')));
 
         $this->assertSame([SendShareButtonProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesPrivateLocationReplyToSetLocationProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->privateLocationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'q1')));
+        $this->processor->process(new QueueMessage($this->privateLocationMessagePayload(latitude: 41.4, longitude: 2.2, gameKey: 'q1')));
 
         $this->assertSame([SetLocationProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesPrivateTimeOnlyReplyToJoinWithTimeProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->privateReplyMessagePayload(text: '18:00', inlineQueryId: 'q1')));
+        $this->processor->process(new QueueMessage($this->privateReplyMessagePayload(text: '18:00', gameKey: 'q1')));
 
         $this->assertSame([JoinWithTimeProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesPrivateNonTimeReplyToChangeTitleProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->privateReplyMessagePayload(text: 'New title', inlineQueryId: 'q1')));
+        $this->processor->process(new QueueMessage($this->privateReplyMessagePayload(text: 'New title', gameKey: 'q1')));
 
         $this->assertSame([ChangeTitleProcessor::class], $this->recorder->selections);
     }
@@ -182,7 +182,7 @@ final class AppQueueProcessorTest extends ProcessorTestCase
 
     public function testReturnsNullForInlineQuery(): void
     {
-        $this->processor->process(new QueueMessage($this->inlineQueryPayload(inlineQueryId: 'q1', query: 'whatever')));
+        $this->processor->process(new QueueMessage($this->inlineQueryPayload(gameKey: 'q1', query: 'whatever')));
 
         $this->assertSame([null], $this->recorder->selections);
     }

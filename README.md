@@ -10,7 +10,7 @@ This project was created to address a common frustration: _manually copying part
 
 ## Features
 
-- **Game creation** via Telegram inline queries
+- **Game creation** via Telegram inline queries, or by sending a message (in a group or DM) that @mentions the bot with the game details (the bot creates the game, deletes the original message, and posts the game itself — deletion needs the bot's delete-messages admin right)
 - **Join / Leave** with a single button click
 - **Equipment tracking** — volleyballs and nets per user
 - **Time extraction** from game titles (e.g. "Beach Volleyball 18:00"); plain time replies (e.g. `19:30`) join the game at that slot
@@ -44,11 +44,12 @@ Telegram Webhook
         │     ├→ InlineQueryProcessor          (inline query)
         │     ├→ CreateGameProcessor           (chosen inline result)
         │     ├→ ForwardGameProcessor          (chosen inline result)
-        │     └→ GroupHelpCommandProcessor     (ephemeral /help in a group)
+        │     └→ GroupHelpCommandProcessor     (ephemeral commands in a group)
         └→ IncomingMessageQueueRouter → ProcessorRegistry.resolveQueueName(update)
-              ├→ game_<id>  queue   (per-game serialization)
-              ├→ dm_<user>  queue   (per-user DM serialization)
-              └→ pin_<chat> queue   (per-chat pinning serialization)
+              ├→ game_<id>       queue   (per-game serialization)
+              ├→ game_new_<chat> queue   (create-from-message @mention: per-chat serialization)
+              ├→ dm_<user>       queue   (per-user DM serialization)
+              └→ pin_<chat>      queue   (per-chat pinning serialization)
                   → AppQueueWorker
                     → AppQueueProcessor → ProcessorRegistry.resolveProcessor(update)
                       → UpdateProcessors / UserProcessors / AdminProcessors
@@ -58,7 +59,7 @@ Telegram Webhook
                                → WeatherQueueWorker
                                  → WeatherQueueProcessor
                                    → OpenMeteoWeatherClient (forecast fetch + cache)
-                                     → InlineMessageRefresher (re-render every inline message of the game)
+                                     → GameMessageRefresher (re-render every posted message of the game — inline or chat)
 ```
 
 Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `createProcessor(sender, update)`, returning the first handler that matches. `ProcessorRegistryFactory` owns two lists: the **immediate** one runs inside the webhook request and is consulted first (inline queries, and the ephemeral group `/help`, whose reply Telegram rejects after 15 seconds); the **queued** one adds `routeToQueue(update)` via `AbstractQueuedProcessorHandler` and is consulted again at worker dispatch, which is why `matches()` must stay pure. Match patterns must be mutually exclusive across both lists, enforced by `HandlerExclusivityTest`.
@@ -96,7 +97,7 @@ Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `
 │   │   ├── AppQueueProcessor.php
 │   │   └── WeatherQueueProcessor.php
 │   ├── Routing/         # IncomingMessageRouter + IncomingMessageQueueRouter (delegate to ProcessorRegistry)
-│   ├── Telegram/        # Sender, MarkdownV2, rate-limited API, inline refresher
+│   ├── Telegram/        # Sender, MarkdownV2, rate-limited API, game message refresher
 │   │   ├── CallbackData/       # CallbackData / AdminCallbackData / UserCallbackData (+ pageable interface)
 │   │   ├── MessageBuilders/    # Game / list / detail / settings / share / help / log builders + factories, keyboards, warnings
 │   │   └── Messages/           # Incoming and Outgoing Telegram message types

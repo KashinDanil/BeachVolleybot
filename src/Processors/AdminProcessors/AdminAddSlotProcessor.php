@@ -18,7 +18,7 @@ class AdminAddSlotProcessor extends AbstractAdminMutationProcessor
         new AdminGameManager()->adminAddSlot($gameId, $telegramUserId);
         $this->logAdminAction($update->callbackQuery->from, 'admin_add_slot', "gameId=$gameId;userId=$telegramUserId");
 
-        $this->refreshGameInlineMessages($gameId);
+        $this->refreshGameMessages($gameId);
         $this->editSettingsMessage($update->callbackQuery, UserSettingsMessageFactory::build($gameId, $telegramUserId));
         $this->answerCallbackQuery($update->callbackQuery, 'Slot added');
     }

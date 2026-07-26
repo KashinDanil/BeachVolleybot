@@ -48,8 +48,8 @@ final class UserGamesListCommandProcessorTest extends ProcessorTestCase
 
     public function testListsOnlyGamesCreatedByTheSender(): void
     {
-        $myGameId = $this->createGame(title: 'Mine 18:00',  createdBy: self::SENDER_ID, inlineQueryId: 'q_mine',  inlineMessageId: 'msg_mine');
-        $this->createGame(title: 'Other 18:00', createdBy: 999, inlineQueryId: 'q_other', inlineMessageId: 'msg_other');
+        $myGameId = $this->createGame(title: 'Mine 18:00',  createdBy: self::SENDER_ID, gameKey: 'q_mine',  inlineMessageId: 'msg_mine');
+        $this->createGame(title: 'Other 18:00', createdBy: 999, gameKey: 'q_other', inlineMessageId: 'msg_other');
 
         $this->processCommand();
 
@@ -62,7 +62,7 @@ final class UserGamesListCommandProcessorTest extends ProcessorTestCase
 
     public function testGameButtonCallbackContainsGameIdAndPageOne(): void
     {
-        $gameId = $this->createGame(title: 'Mine 18:00', createdBy: self::SENDER_ID, inlineQueryId: 'q_mine');
+        $gameId = $this->createGame(title: 'Mine 18:00', createdBy: self::SENDER_ID, gameKey: 'q_mine');
 
         $this->processCommand();
 
@@ -81,7 +81,7 @@ final class UserGamesListCommandProcessorTest extends ProcessorTestCase
             $this->createGame(
                 title: "Game $index 18:00",
                 createdBy: self::SENDER_ID,
-                inlineQueryId: "q_$index",
+                gameKey: "q_$index",
                 inlineMessageId: "msg_$index",
             );
         }

@@ -14,7 +14,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 {
     public function testNewUserJoinsWithTime(): void
     {
-        $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
+        $gameId = $this->seedFullGame(gameKey: 'query_1');
         $update = $this->buildUpdate('15:30', 'query_1');
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
@@ -26,7 +26,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
     public function testNewUserGetsSlot(): void
     {
-        $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
+        $gameId = $this->seedFullGame(gameKey: 'query_1');
         $update = $this->buildUpdate('15:30', 'query_1');
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
@@ -60,7 +60,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
     public function testDeletesUserMessage(): void
     {
-        $this->seedFullGame(inlineQueryId: 'query_1');
+        $this->seedFullGame(gameKey: 'query_1');
         $update = $this->buildUpdate('15:30', 'query_1');
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
@@ -81,7 +81,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
     public function testReactsConfusedWhenNoTime(): void
     {
-        $this->seedFullGame(inlineQueryId: 'query_1');
+        $this->seedFullGame(gameKey: 'query_1');
         $update = $this->buildUpdate('no time here', 'query_1');
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
@@ -100,7 +100,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
     public function testReactsConfusedWhenNoReplyMarkup(): void
     {
-        $this->seedFullGame(inlineQueryId: 'query_1');
+        $this->seedFullGame(gameKey: 'query_1');
         $payload = [
             'update_id' => 1,
             'message' => [
@@ -124,10 +124,10 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         $this->assertMessageNotEdited();
     }
 
-    private function buildUpdate(string $text, string $inlineQueryId): TelegramUpdate
+    private function buildUpdate(string $text, string $gameKey): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->replyMessagePayload($text, $inlineQueryId),
+            $this->replyMessagePayload($text, $gameKey),
         );
     }
 }

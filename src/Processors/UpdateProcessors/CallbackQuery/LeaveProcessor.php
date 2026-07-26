@@ -25,7 +25,7 @@ class LeaveProcessor extends AbstractGameCallbackProcessor
         };
 
         if (LeaveResult::Left === $result) {
-            $this->refreshGameInlineMessages($gameId);
+            $this->refreshGameMessages($gameId);
         }
 
         $this->answerCallbackQuery($callbackQuery, $callbackAnswer);

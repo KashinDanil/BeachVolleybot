@@ -6,7 +6,7 @@ namespace BeachVolleybot\Telegram;
 
 use BeachVolleybot\Game\GameFactory;
 
-readonly class InlineMessageRefresher
+readonly class GameMessageRefresher
 {
     public function __construct(
         private TelegramMessageSender $sender,
@@ -18,8 +18,8 @@ readonly class InlineMessageRefresher
         $game = GameFactory::fromGameId($gameId);
         $message = $game->buildTelegramMessage();
 
-        foreach ($game->getInlineMessageIds() as $inlineMessageId) {
-            $this->sender->editInlineMessage($inlineMessageId, $message);
+        foreach ($game->getMessageTargets() as $target) {
+            $this->sender->editGameMessage($target, $message);
         }
     }
 }

@@ -14,8 +14,7 @@ final readonly class SetLiveLocationHandler extends AbstractGameReplyQueueHandle
     public function matches(TelegramUpdate $update): bool
     {
         return $update->hasEditedMessage()
-            && $update->editedMessage->hasReplyToMessage()
-            && $update->editedMessage->replyToMessage->isViaThisBot()
+            && $this->repliesToGameMessage($update->editedMessage)
             && $update->editedMessage->hasLocation();
     }
 

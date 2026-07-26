@@ -12,8 +12,8 @@ final class SendShareButtonProcessorTest extends ProcessorTestCase
 {
     public function testSendsShareReplyWhenGameExistsForInlineQueryId(): void
     {
-        $gameId = $this->createGame(title: 'Saturday 10:00', createdBy: 200, inlineQueryId: 'query_42');
-        $update = $this->buildUpdate(inlineQueryId: 'query_42', fromId: 200, messageId: 139);
+        $gameId = $this->createGame(title: 'Saturday 10:00', createdBy: 200, gameKey: 'query_42');
+        $update = $this->buildUpdate(gameKey: 'query_42', fromId: 200, messageId: 139);
 
         new SendShareButtonProcessor($this->telegramSender)->process($update);
 
@@ -29,7 +29,7 @@ final class SendShareButtonProcessorTest extends ProcessorTestCase
 
     public function testDoesNothingWhenGameNotFoundForInlineQueryId(): void
     {
-        $update = $this->buildUpdate(inlineQueryId: 'unknown_query', fromId: 200);
+        $update = $this->buildUpdate(gameKey: 'unknown_query', fromId: 200);
 
         new SendShareButtonProcessor($this->telegramSender)->process($update);
 
@@ -38,7 +38,7 @@ final class SendShareButtonProcessorTest extends ProcessorTestCase
 
     public function testDoesNothingWhenMetaButtonIsAbsent(): void
     {
-        $payload = $this->privateViaBotGameMessagePayload(inlineQueryId: 'query_42');
+        $payload = $this->privateViaBotGameMessagePayload(gameKey: 'query_42');
         $payload['message']['reply_markup']['inline_keyboard'] = [];
         $update = TelegramUpdate::fromArray($payload);
 
@@ -48,13 +48,13 @@ final class SendShareButtonProcessorTest extends ProcessorTestCase
     }
 
     private function buildUpdate(
-        string $inlineQueryId,
+        string $gameKey,
         int $fromId = 200,
         string $firstName = 'Danil',
         int $messageId = 139,
     ): TelegramUpdate {
         return TelegramUpdate::fromArray(
-            $this->privateViaBotGameMessagePayload($inlineQueryId, $fromId, $firstName, $messageId),
+            $this->privateViaBotGameMessagePayload($gameKey, $fromId, $firstName, $messageId),
         );
     }
 

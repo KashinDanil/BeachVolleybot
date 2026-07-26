@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\Messages\Incoming;
 
+use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
+use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
+
 readonly class TelegramCallbackQuery
 {
     public function __construct(
@@ -19,6 +23,20 @@ readonly class TelegramCallbackQuery
     public function isInline(): bool
     {
         return null !== $this->inlineMessageId;
+    }
+
+    public function hasMessage(): bool
+    {
+        return null !== $this->message;
+    }
+
+    public function toGameMessageTarget(): GameMessageTarget
+    {
+        if (null !== $this->inlineMessageId) {
+            return new InlineGameMessageTarget($this->inlineMessageId);
+        }
+
+        return new ChatGameMessageTarget($this->message->chat->id, $this->message->messageId);
     }
 
     public static function fromArray(array $data): self

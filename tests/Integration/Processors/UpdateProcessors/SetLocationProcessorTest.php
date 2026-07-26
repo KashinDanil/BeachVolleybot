@@ -55,7 +55,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
     public function testReactsConfusedWhenUserNotInGame(): void
     {
-        $this->seedFullGame(inlineQueryId: 'query_1');
+        $this->seedFullGame(gameKey: 'query_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
         new SetLocationProcessor($this->telegramSender)->process($update);
@@ -65,7 +65,7 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
     public function testDoesNotUpdateLocationWhenUserNotInGame(): void
     {
-        $gameId = $this->seedFullGame(inlineQueryId: 'query_1');
+        $gameId = $this->seedFullGame(gameKey: 'query_1');
         $update = $this->buildUpdate(41.399747, 2.207780, 'query_1');
 
         new SetLocationProcessor($this->telegramSender)->process($update);
@@ -109,10 +109,10 @@ final class SetLocationProcessorTest extends ProcessorTestCase
         $this->assertEmpty($this->bot->calls);
     }
 
-    private function buildUpdate(float $latitude, float $longitude, string $inlineQueryId): TelegramUpdate
+    private function buildUpdate(float $latitude, float $longitude, string $gameKey): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->locationMessagePayload($latitude, $longitude, $inlineQueryId),
+            $this->locationMessagePayload($latitude, $longitude, $gameKey),
         );
     }
 }

@@ -29,18 +29,20 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('005_require_game_player_time.sql');
         $this->applyMigration('006_rename_players_to_users.sql');
         $this->applyMigration('007_add_role_to_users.sql');
+        $this->applyMigration('008_rename_inline_query_id_to_game_key.sql');
+        $this->applyMigration('009_add_game_chat_messages.sql');
     }
 
     protected function createGame(
         string $title = 'Friday Game 18:00',
         int $createdBy = 100,
         string $inlineMessageId = 'msg_1',
-        string $inlineQueryId = 'query_1',
+        string $gameKey = 'query_1',
     ): int {
         $this->db->insert('games', [
             'title' => $title,
             'created_by' => $createdBy,
-            'inline_query_id' => $inlineQueryId,
+            'game_key' => $gameKey,
         ]);
         $gameId = (int) $this->db->id();
 

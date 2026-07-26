@@ -16,18 +16,21 @@ final readonly class GameCallbackQueryHandler extends AbstractGameQueueHandler
 
     public function matches(TelegramUpdate $update): bool
     {
-        return $update->hasCallbackQuery()
-            && $update->callbackQuery->isInline()
-            && null !== GameCallbackData::fromJson($update->callbackQuery->data);
+        if (!$update->hasCallbackQuery() || null === GameCallbackData::fromJson($update->callbackQuery->data)) {
+            return false;
+        }
+
+        $callbackQuery = $update->callbackQuery;
+
+        return $callbackQuery->isInline() || $callbackQuery->hasMessage();
     }
 
     protected function resolveGameId(TelegramUpdate $update): ?int
     {
-        $inlineMessageId = $update->callbackQuery->inlineMessageId;
-        $gameId = new GameManager()->resolveGameIdByInlineMessageId($inlineMessageId);
+        $gameId = new GameManager()->resolveGameIdByTarget($update->callbackQuery->toGameMessageTarget());
 
         if (null === $gameId) {
-            Logger::logVerbose('Game not found by inline_message_id: ' . $inlineMessageId . PHP_EOL);
+            Logger::logVerbose('Game not found for callback target' . PHP_EOL);
 
             return null;
         }

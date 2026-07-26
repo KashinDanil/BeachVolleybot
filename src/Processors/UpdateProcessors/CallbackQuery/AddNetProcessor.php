@@ -26,7 +26,7 @@ class AddNetProcessor extends AbstractGameCallbackProcessor
         };
 
         if (EquipmentResult::Added === $result) {
-            $this->refreshGameInlineMessages($gameId);
+            $this->refreshGameMessages($gameId);
         }
 
         $this->answerCallbackQuery($callbackQuery, $callbackAnswer);

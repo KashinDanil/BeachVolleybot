@@ -317,7 +317,7 @@ final class GameProcessorsTest extends ProcessorTestCase
     public function testGamesListPaginationSecondPage(): void
     {
         for ($i = 0; $i < 7; $i++) {
-            $this->createGame(title: "Game $i", inlineMessageId: "msg_$i", inlineQueryId: "q_$i");
+            $this->createGame(title: "Game $i", inlineMessageId: "msg_$i", gameKey: "q_$i");
         }
 
         $callbackData = AdminCallbackData::create(AdminCallbackAction::GamesList)->withPage(2);

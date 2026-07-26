@@ -6,6 +6,9 @@ namespace BeachVolleybot\Telegram;
 
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
+use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use CURLFile;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\HttpException;
@@ -17,9 +20,27 @@ readonly class TelegramMessageSender
     ) {
     }
 
-    public function editInlineMessage(string $inlineMessageId, TelegramMessage $message): void
+    public function editGameMessage(GameMessageTarget $target, TelegramMessage $message): void
+    {
+        match (true) {
+            $target instanceof InlineGameMessageTarget => $this->editInlineMessage($target->inlineMessageId, $message),
+            $target instanceof ChatGameMessageTarget => $this->editMessage($target->chatId, $target->messageId, $message),
+        };
+    }
+
+    public function removeGameMessageKeyboard(GameMessageTarget $target): void
+    {
+        match (true) {
+            $target instanceof InlineGameMessageTarget => $this->removeInlineKeyboard($target->inlineMessageId),
+            $target instanceof ChatGameMessageTarget => $this->removeChatKeyboard($target->chatId, $target->messageId),
+        };
+    }
+
+    private function editInlineMessage(string $inlineMessageId, TelegramMessage $message): void
     {
         try {
+            // Inline message: chat/message id null, identified by inline_message_id
+            /** @noinspection PhpParamsInspection */
             $this->bot->editMessageText(
                 null,
                 null,
@@ -56,10 +77,21 @@ readonly class TelegramMessageSender
         }
     }
 
-    public function removeInlineKeyboard(string $inlineMessageId): void
+    private function removeInlineKeyboard(string $inlineMessageId): void
     {
         try {
+            // Inline message: chat/message id null, identified by inline_message_id
+            /** @noinspection PhpParamsInspection */
             $this->bot->editMessageReplyMarkup(null, null, null, $inlineMessageId);
+        } catch (HttpException) {
+            // Keyboard already removed or message deleted
+        }
+    }
+
+    private function removeChatKeyboard(int $chatId, int $messageId): void
+    {
+        try {
+            $this->bot->editMessageReplyMarkup($chatId, $messageId, null);
         } catch (HttpException) {
             // Keyboard already removed or message deleted
         }
@@ -74,7 +106,7 @@ readonly class TelegramMessageSender
         }
     }
 
-    public function sendMessage(int $chatId, TelegramMessage $message): int
+    public function sendMessage(int $chatId, TelegramMessage $message, ?int $messageThreadId = null): int
     {
         try {
             $result = $this->bot->sendMessage(
@@ -84,6 +116,8 @@ readonly class TelegramMessageSender
                 $message->getText()->isDisableWebPagePreview(),
                 null,
                 $message->getKeyboard(),
+                false,
+                $messageThreadId,
             );
 
             return (int)$result->getMessageId();

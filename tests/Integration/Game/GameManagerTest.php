@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Game;
 
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameInlineMessageRepository;
+use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
@@ -15,6 +15,8 @@ use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
+use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 
 final class GameManagerTest extends DatabaseTestCase
@@ -37,25 +39,35 @@ final class GameManagerTest extends DatabaseTestCase
 
     public function testCreateGamePersistsGameToDatabase(): void
     {
-        $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
+        $gameId = $this->gameManager->createGame($this->newGameData());
 
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertNotNull($game);
-        $this->assertSame('query_1', $game['inline_query_id']);
+        $this->assertSame('query_1', $game['game_key']);
         $this->assertSame('Game 18:00', $game['title']);
     }
 
-    public function testCreateGameAttachesInlineMessageIdToJunctionTable(): void
+    public function testAddInlineMessageAttachesToJunctionTable(): void
     {
-        $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $this->gameManager->addInlineMessage($gameId, 'msg_1');
 
-        $ids = new GameInlineMessageRepository($this->db)->findInlineMessageIdsByGameId($gameId);
-        $this->assertSame(['msg_1'], $ids);
+        $targets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
+        $this->assertEquals([new InlineGameMessageTarget('msg_1')], $targets);
+    }
+
+    public function testAddChatMessageAttachesToJunctionTable(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $this->gameManager->addChatMessage($gameId, -100, 77);
+
+        $targets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
+        $this->assertEquals([new ChatGameMessageTarget(-100, 77)], $targets);
     }
 
     public function testCreateGameUpsertsUser(): void
     {
-        $this->gameManager->createGame($this->newGameData(), 'msg_1');
+        $this->gameManager->createGame($this->newGameData());
 
         $users = new UserRepository($this->db)->findAll();
         $this->assertCount(1, $users);
@@ -65,7 +77,7 @@ final class GameManagerTest extends DatabaseTestCase
 
     public function testCreateGamePersistsGameUserWithInitialEquipmentAndTime(): void
     {
-        $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
+        $gameId = $this->gameManager->createGame($this->newGameData());
 
         $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
         $this->assertNotNull($gameUser);
@@ -82,7 +94,6 @@ final class GameManagerTest extends DatabaseTestCase
                 'Beach 8:00',
                 'query_1',
             ),
-            'msg_1',
         );
 
         $game = new GameRepository($this->db)->findById($gameId);
@@ -94,7 +105,7 @@ final class GameManagerTest extends DatabaseTestCase
 
     public function testCreateGamePersistsSlotAtPositionOne(): void
     {
-        $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
+        $gameId = $this->gameManager->createGame($this->newGameData());
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
@@ -367,18 +378,18 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertCount(1, $slots);
     }
 
-    // --- resolveGameIdByInlineQueryId ---
+    // --- resolveGameIdByGameKey ---
 
     public function testResolveGameIdByInlineQueryIdReturnsId(): void
     {
-        $gameId = $this->createGame(inlineQueryId: 'query_42');
+        $gameId = $this->createGame(gameKey: 'query_42');
 
-        $this->assertSame($gameId, $this->gameManager->resolveGameIdByInlineQueryId('query_42'));
+        $this->assertSame($gameId, $this->gameManager->resolveGameIdByGameKey('query_42'));
     }
 
     public function testResolveGameIdByInlineQueryIdReturnsNullWhenNotFound(): void
     {
-        $this->assertNull($this->gameManager->resolveGameIdByInlineQueryId('nonexistent'));
+        $this->assertNull($this->gameManager->resolveGameIdByGameKey('nonexistent'));
     }
 
     // --- recalculateGameTime ---
@@ -470,7 +481,7 @@ final class GameManagerTest extends DatabaseTestCase
 
     public function testChangeTitleWhenCreatorIsOnlyUserUsesProposedTime(): void
     {
-        $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
+        $gameId = $this->gameManager->createGame($this->newGameData());
 
         $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Beach Saturday 20:00');
 
@@ -480,7 +491,7 @@ final class GameManagerTest extends DatabaseTestCase
 
     public function testChangeTitleUpdatesCreatorUserTime(): void
     {
-        $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
+        $gameId = $this->gameManager->createGame($this->newGameData());
 
         $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Beach Saturday 20:00');
 
@@ -516,7 +527,7 @@ final class GameManagerTest extends DatabaseTestCase
 
     public function testChangeTitleNormalizesShortTimeFormat(): void
     {
-        $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
+        $gameId = $this->gameManager->createGame($this->newGameData());
 
         $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Beach Saturday 9:00');
 
@@ -526,7 +537,7 @@ final class GameManagerTest extends DatabaseTestCase
 
     public function testChangeTitleKeepsCreatorTimeWhenUnchanged(): void
     {
-        $gameId = $this->gameManager->createGame($this->newGameData(), 'msg_1');
+        $gameId = $this->gameManager->createGame($this->newGameData());
 
         $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Picnic Sunday 18:00');
 

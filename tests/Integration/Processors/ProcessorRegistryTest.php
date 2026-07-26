@@ -41,7 +41,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testResolvesInlineCallbackQueryToGameQueueAndJoinProcessor(): void
     {
-        $gameId = $this->seedFullGame(inlineMessageId: 'msg_inline', inlineQueryId: 'iq_inline');
+        $gameId = $this->seedFullGame(inlineMessageId: 'msg_inline', gameKey: 'iq_inline');
         $update = TelegramUpdate::fromArray($this->callbackQueryPayload('msg_inline', '{"a":"j"}'));
 
         $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
@@ -73,9 +73,9 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testResolvesEditedLocationReplyToGameQueueAndSetLiveLocationProcessor(): void
     {
-        $gameId = $this->seedFullGame(inlineMessageId: 'msg_edit', inlineQueryId: 'iq_edit');
+        $gameId = $this->seedFullGame(inlineMessageId: 'msg_edit', gameKey: 'iq_edit');
         $update = TelegramUpdate::fromArray(
-            $this->editedLocationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'iq_edit'),
+            $this->editedLocationMessagePayload(latitude: 41.4, longitude: 2.2, gameKey: 'iq_edit'),
         );
 
         $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
@@ -87,9 +87,9 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testResolvesLocationReplyToGameQueueAndSetLocationProcessor(): void
     {
-        $gameId = $this->seedFullGame(inlineMessageId: 'msg_loc', inlineQueryId: 'iq_loc');
+        $gameId = $this->seedFullGame(inlineMessageId: 'msg_loc', gameKey: 'iq_loc');
         $update = TelegramUpdate::fromArray(
-            $this->locationMessagePayload(latitude: 41.4, longitude: 2.2, inlineQueryId: 'iq_loc'),
+            $this->locationMessagePayload(latitude: 41.4, longitude: 2.2, gameKey: 'iq_loc'),
         );
 
         $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
@@ -101,7 +101,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testResolvesTimeOnlyReplyToGameQueueAndJoinWithTimeProcessor(): void
     {
-        $gameId = $this->seedFullGame(inlineMessageId: 'msg_time', inlineQueryId: 'iq_time');
+        $gameId = $this->seedFullGame(inlineMessageId: 'msg_time', gameKey: 'iq_time');
         $update = TelegramUpdate::fromArray($this->replyMessagePayload('18:00', 'iq_time'));
 
         $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
@@ -113,7 +113,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testResolvesNonTimeReplyToGameQueueAndChangeTitleProcessor(): void
     {
-        $gameId = $this->seedFullGame(inlineMessageId: 'msg_title', inlineQueryId: 'iq_title');
+        $gameId = $this->seedFullGame(inlineMessageId: 'msg_title', gameKey: 'iq_title');
         $update = TelegramUpdate::fromArray($this->replyMessagePayload('New title', 'iq_title'));
 
         $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
@@ -221,7 +221,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testReturnsNullForInlineQuery(): void
     {
-        $update = TelegramUpdate::fromArray($this->inlineQueryPayload(inlineQueryId: 'iq_x', query: 'anything'));
+        $update = TelegramUpdate::fromArray($this->inlineQueryPayload(gameKey: 'iq_x', query: 'anything'));
 
         $this->assertNull($this->queuedRegistry->resolveQueueName($update));
         $this->assertNull($this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
@@ -236,7 +236,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testImmediateRegistryResolvesInlineQueryToInlineQueryProcessor(): void
     {
-        $update = TelegramUpdate::fromArray($this->inlineQueryPayload(inlineQueryId: 'iq_x', query: 'anything'));
+        $update = TelegramUpdate::fromArray($this->inlineQueryPayload(gameKey: 'iq_x', query: 'anything'));
 
         $this->assertInstanceOf(
             InlineQueryProcessor::class,
@@ -288,7 +288,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
     public function testImmediateRegistryNeverResolvesAQueueName(): void
     {
-        $update = TelegramUpdate::fromArray($this->inlineQueryPayload(inlineQueryId: 'iq_x', query: 'anything'));
+        $update = TelegramUpdate::fromArray($this->inlineQueryPayload(gameKey: 'iq_x', query: 'anything'));
 
         $this->assertNull($this->immediateRegistry->resolveQueueName($update));
     }
