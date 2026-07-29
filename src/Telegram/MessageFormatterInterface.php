@@ -10,6 +10,8 @@ interface MessageFormatterInterface
 
     public function escape(string $text): string;
 
+    public function style(string $text, Style ...$styles): string;
+
     public function bold(string $text): string;
 
     public function italic(string $text): string;

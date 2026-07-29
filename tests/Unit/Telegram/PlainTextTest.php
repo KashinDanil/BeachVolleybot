@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram;
 
 use BeachVolleybot\Telegram\PlainText;
+use BeachVolleybot\Telegram\Style;
 use PHPUnit\Framework\TestCase;
 
 final class PlainTextTest extends TestCase
@@ -25,6 +26,7 @@ final class PlainTextTest extends TestCase
     {
         $this->assertSame('New game', $this->formatter->bold('New game'));
         $this->assertSame('18:30', $this->formatter->italic('18:30'));
+        $this->assertSame('RSVP', $this->formatter->style('RSVP', Style::Bold, Style::Underline));
     }
 
     public function testNewLineIsALineFeed(): void

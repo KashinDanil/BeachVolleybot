@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram;
 
 use BeachVolleybot\Telegram\MarkdownV2;
+use BeachVolleybot\Telegram\Style;
 use PHPUnit\Framework\TestCase;
 
 final class MarkdownV2Test extends TestCase
@@ -99,6 +100,23 @@ final class MarkdownV2Test extends TestCase
     public function testUnderlineEscapesContent(): void
     {
         $this->assertSame('__hello\*world__', $this->formatter->underline('hello*world'));
+    }
+
+    // --- style ---
+
+    public function testStyleCombinesMultipleStyles(): void
+    {
+        $this->assertSame('__*hello*__', $this->formatter->style('hello', Style::Bold, Style::Underline));
+    }
+
+    public function testStyleWithNoStylesOnlyEscapes(): void
+    {
+        $this->assertSame('hello\_world', $this->formatter->style('hello_world'));
+    }
+
+    public function testStyleWithSingleStyleMatchesShorthand(): void
+    {
+        $this->assertSame($this->formatter->bold('hello'), $this->formatter->style('hello', Style::Bold));
     }
 
     // --- code ---

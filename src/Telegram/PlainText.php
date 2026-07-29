@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram;
 
-final readonly class PlainText implements MessageFormatterInterface
+final readonly class PlainText extends AbstractMessageFormatter
 {
     public function parseMode(): string
     {
@@ -21,17 +21,7 @@ final readonly class PlainText implements MessageFormatterInterface
         return $text;
     }
 
-    public function bold(string $text): string
-    {
-        return $text;
-    }
-
-    public function italic(string $text): string
-    {
-        return $text;
-    }
-
-    public function underline(string $text): string
+    protected function wrapStyle(string $text, Style $style): string
     {
         return $text;
     }

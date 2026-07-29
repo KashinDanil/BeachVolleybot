@@ -7,6 +7,7 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
+use BeachVolleybot\Telegram\Style;
 use DateTimeImmutable;
 
 /**
@@ -126,12 +127,14 @@ final readonly class NewGameFormText
     {
         $text = sprintf($this->translator->translate(self::HEADER_STEP), $step);
 
-        return self::HEADER_EMOJI . ' ' . $this->formatter->bold($text);
+        return self::HEADER_EMOJI . ' ' . $this->formatter->style($text, Style::Bold, Style::Underline);
     }
 
     private function successHeader(): string
     {
-        return self::SUCCESS_EMOJI . ' ' . $this->formatter->bold($this->translator->translate(self::HEADER_SUCCESS));
+        $text = $this->translator->translate(self::HEADER_SUCCESS);
+
+        return self::SUCCESS_EMOJI . ' ' . $this->formatter->style($text, Style::Bold, Style::Underline);
     }
 
     private function valueCell(string $emoji, string $value): string

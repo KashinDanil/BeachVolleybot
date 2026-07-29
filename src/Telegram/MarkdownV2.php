@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram;
 
-final readonly class MarkdownV2 implements MessageFormatterInterface
+final readonly class MarkdownV2 extends AbstractMessageFormatter
 {
     private const string PARSE_MODE = 'MarkdownV2';
 
@@ -23,19 +23,13 @@ final readonly class MarkdownV2 implements MessageFormatterInterface
         return preg_replace('/([_*\[\]()~`>#+\-=|{}.!\\\\])/', '\\\\$1', $text);
     }
 
-    public function bold(string $text): string
+    protected function wrapStyle(string $text, Style $style): string
     {
-        return '*' . $this->escape($text) . '*';
-    }
-
-    public function italic(string $text): string
-    {
-        return '_' . $this->escape($text) . '_';
-    }
-
-    public function underline(string $text): string
-    {
-        return '__' . $this->escape($text) . '__';
+        return match ($style) {
+            Style::Bold => '*' . $text . '*',
+            Style::Italic => '_' . $text . '_',
+            Style::Underline => '__' . $text . '__',
+        };
     }
 
     public function code(string $text): string

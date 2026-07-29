@@ -105,9 +105,7 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
         $this->assertNotNull($message);
         $formatter = new MarkdownV2();
         $header = $formatter->bold("Game #$gameId");
-        $notice = $formatter->blockquote(
-            $formatter->escape(ShareGameMessageBuilder::DISABLED_NOTICE),
-        );
+        $notice = $formatter->blockquote($formatter->escape(ShareGameMessageBuilder::DISABLED_NOTICE));
         $body = $formatter->escape('Saturday 01.01.2020 18:00');
 
         // Single newline between header and notice; triple newline before the body.
