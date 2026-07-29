@@ -8,6 +8,7 @@ use BeachVolleybot\Processors\UpdateProcessors\InlineQueryProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use TelegramBot\Api\Types\Inline\QueryResult\Article;
 
 final class InlineQueryProcessorTest extends ProcessorTestCase
 {
@@ -29,6 +30,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertInlineQueryAnswered();
         $call = $this->lastInlineQueryCall();
         $this->assertSame(InlineQueryError::DATE_AND_TIME_NOT_FOUND_TITLE, $call['args'][1][0]->getTitle());
+        $this->assertErrorArticleSuggestsTheWizard($call['args'][1][0]);
     }
 
     public function testPastKickoffDayAnswersWithErrorArticle(): void
@@ -40,6 +42,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertInlineQueryAnswered();
         $call = $this->lastInlineQueryCall();
         $this->assertSame(InlineQueryError::KICKOFF_DAY_IN_THE_PAST_TITLE, $call['args'][1][0]->getTitle());
+        $this->assertErrorArticleSuggestsTheWizard($call['args'][1][0]);
     }
 
     public function testForwardQueryByCreatorAnswersWithForwardArticle(): void
@@ -65,6 +68,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertInlineQueryAnswered();
         $article = $this->lastInlineQueryCall()['args'][1][0];
         $this->assertSame(InlineQueryError::GAME_NOT_FOUND_TITLE, $article->getTitle());
+        $this->assertErrorArticleSuggestsTheWizard($article);
     }
 
     public function testForwardQueryByAdminAnswersWithForwardArticleEvenWhenNotCreator(): void
@@ -93,6 +97,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertInlineQueryAnswered();
         $article = $this->lastInlineQueryCall()['args'][1][0];
         $this->assertSame(InlineQueryError::GAME_FINISHED_TITLE, $article->getTitle());
+        $this->assertErrorArticleSuggestsTheWizard($article);
     }
 
     public function testForwardQueryForNonExistentGameAnswersWithGameNotFoundError(): void
@@ -104,6 +109,7 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertInlineQueryAnswered();
         $article = $this->lastInlineQueryCall()['args'][1][0];
         $this->assertSame(InlineQueryError::GAME_NOT_FOUND_TITLE, $article->getTitle());
+        $this->assertErrorArticleSuggestsTheWizard($article);
     }
 
     private function buildUpdate(string $gameKey, string $query): TelegramUpdate
@@ -125,5 +131,12 @@ final class InlineQueryProcessorTest extends ProcessorTestCase
         $this->assertNotEmpty($calls, 'Expected answerInlineQuery to be called');
 
         return end($calls);
+    }
+
+    private function assertErrorArticleSuggestsTheWizard(Article $article): void
+    {
+        $text = str_replace('\\', '', $article->getInputMessageContent()->getMessageText());
+
+        $this->assertStringContainsString('/new_game', $text);
     }
 }
