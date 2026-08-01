@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\Handlers\PrivateHandlers;
 
+use BeachVolleybot\Common\BotCommand;
 use BeachVolleybot\Processors\AbstractProcessorHandler;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GroupHelpCommandProcessor;
@@ -17,7 +18,7 @@ final readonly class GroupHelpCommandHandler extends AbstractProcessorHandler
         return $update->hasMessage()
             && $update->message->chat->isGroupChat()
             && $update->message->isEphemeral()
-            && $this->isHelpCommand($update->message->text);
+            && BotCommand::matches(UserHelpCommandHandler::COMMAND, $update->message->text);
     }
 
     public function createProcessor(
@@ -25,12 +26,5 @@ final readonly class GroupHelpCommandHandler extends AbstractProcessorHandler
         TelegramUpdate $update,
     ): AbstractActionProcessor {
         return new GroupHelpCommandProcessor($telegramSender);
-    }
-
-    private function isHelpCommand(?string $text): bool
-    {
-        $command = UserHelpCommandHandler::COMMAND;
-
-        return $command === $text || $command . '@' . BOT_USERNAME === $text;
     }
 }

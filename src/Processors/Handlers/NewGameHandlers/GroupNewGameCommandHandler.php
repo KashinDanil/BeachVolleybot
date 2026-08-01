@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\Handlers\NewGameHandlers;
 
+use BeachVolleybot\Common\BotCommand;
 use BeachVolleybot\Processors\AbstractProcessorHandler;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GroupNewGameCommandProcessor;
@@ -19,7 +20,7 @@ final readonly class GroupNewGameCommandHandler extends AbstractProcessorHandler
         return $update->hasMessage()
             && $update->message->chat->isGroupChat()
             && $update->message->isEphemeral()
-            && $this->isNewGameCommand($update->message->text);
+            && BotCommand::matches(self::COMMAND, $update->message->text);
     }
 
     public function createProcessor(
@@ -27,10 +28,5 @@ final readonly class GroupNewGameCommandHandler extends AbstractProcessorHandler
         TelegramUpdate $update,
     ): AbstractActionProcessor {
         return new GroupNewGameCommandProcessor($telegramSender);
-    }
-
-    private function isNewGameCommand(?string $text): bool
-    {
-        return self::COMMAND === $text || self::COMMAND . '@' . BOT_USERNAME === $text;
     }
 }
