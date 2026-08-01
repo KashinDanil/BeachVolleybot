@@ -4,33 +4,33 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Common;
 
-use BeachVolleybot\Common\BotCommand;
+use BeachVolleybot\Common\Command;
 use PHPUnit\Framework\TestCase;
 
-final class BotCommandTest extends TestCase
+final class CommandTest extends TestCase
 {
     public function testMatchesBareCommand(): void
     {
-        $this->assertTrue(BotCommand::matches('/new_game', '/new_game'));
+        $this->assertTrue(Command::NewGame->matches('/new_game'));
     }
 
     public function testMatchesCommandMentioningTheBot(): void
     {
-        $this->assertTrue(BotCommand::matches('/new_game', '/new_game@test_bot'));
+        $this->assertTrue(Command::NewGame->matches('/new_game@test_bot'));
     }
 
     public function testDoesNotMatchUnrelatedText(): void
     {
-        $this->assertFalse(BotCommand::matches('/new_game', '/help'));
+        $this->assertFalse(Command::NewGame->matches('/help'));
     }
 
     public function testDoesNotMatchNullText(): void
     {
-        $this->assertFalse(BotCommand::matches('/new_game', null));
+        $this->assertFalse(Command::NewGame->matches(null));
     }
 
     public function testMentionAppendsTheBotUsername(): void
     {
-        $this->assertSame('/new_game@test_bot', BotCommand::mention('/new_game'));
+        $this->assertSame('/new_game@test_bot', Command::NewGame->mention());
     }
 }

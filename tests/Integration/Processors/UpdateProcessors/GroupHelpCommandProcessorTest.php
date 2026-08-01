@@ -39,12 +39,12 @@ final class GroupHelpCommandProcessorTest extends ProcessorTestCase
         $this->assertSame(self::EPHEMERAL_MESSAGE_ID, $replyParameters['ephemeral_message_id']);
     }
 
-    public function testSendsTheSameHelpBodyAsTheDmCommand(): void
+    public function testSendsTheGroupShapedHelpBody(): void
     {
         $this->processCommand();
 
         $params = $this->lastEphemeralSendParams();
-        $expected = new HelpMessageBuilder(new Translator())->build(BOT_USERNAME);
+        $expected = new HelpMessageBuilder(new Translator())->build(BOT_USERNAME, true);
 
         $this->assertSame($expected->getText()->getMessageText(), $params['text']);
         $this->assertSame('MarkdownV2', $params['parse_mode']);
@@ -65,11 +65,13 @@ final class GroupHelpCommandProcessorTest extends ProcessorTestCase
     {
         $this->processCommand();
 
-        $text = $this->lastEphemeralSendParams()['text'];
+        // In a group the bare command is ambiguous with other bots, so the help
+        // text has to spell out the @mention form instead. Strip the MarkdownV2
+        // escaping backslashes before matching so the assertion doesn't have to
+        // account for BOT_USERNAME's own underscore being escaped too.
+        $text = str_replace('\\', '', $this->lastEphemeralSendParams()['text']);
 
-        // The underscore has to survive MarkdownV2 escaping, otherwise the command
-        // renders as italics and stops being tappable.
-        $this->assertStringContainsString('/new\_game', $text);
+        $this->assertStringContainsString('/new_game@' . BOT_USERNAME, $text);
         $this->assertStringContainsString('help you create a game', $text);
     }
 

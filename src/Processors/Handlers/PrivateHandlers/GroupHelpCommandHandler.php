@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\Handlers\PrivateHandlers;
 
-use BeachVolleybot\Common\BotCommand;
+use BeachVolleybot\Common\Command;
 use BeachVolleybot\Processors\AbstractProcessorHandler;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GroupHelpCommandProcessor;
@@ -18,7 +18,7 @@ final readonly class GroupHelpCommandHandler extends AbstractProcessorHandler
         return $update->hasMessage()
             && $update->message->chat->isGroupChat()
             && $update->message->isEphemeral()
-            && BotCommand::matches(UserHelpCommandHandler::COMMAND, $update->message->text);
+            && Command::Help->matches($update->message->text);
     }
 
     public function createProcessor(

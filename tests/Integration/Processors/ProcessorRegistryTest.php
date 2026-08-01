@@ -352,6 +352,18 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         );
     }
 
+    public function testResolvesPrivateMentionedNewGameCommandToUserNewGameCommandProcessor(): void
+    {
+        // Some clients still send the @mention form in a private chat (e.g. tapping
+        // a command copied from a group), so DMs accept it too, not just the bare form.
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/new_game@' . BOT_USERNAME, fromId: 555));
+
+        $this->assertInstanceOf(
+            UserNewGameCommandProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
     public function testImmediateRegistryIgnoresPrivateNewGameCommand(): void
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/new_game', fromId: 555));

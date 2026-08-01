@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UserProcessors;
 
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserHelpCommandHandler;
+use BeachVolleybot\Common\Command;
 use BeachVolleybot\Processors\UserProcessors\UserHelpCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -28,6 +28,8 @@ final class UserHelpCommandProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('*To join at another time*', $text);
         $this->assertStringContainsString('like *17:30*', $text);
         $this->assertStringContainsString('use the /games command in my DM', $text);
+        $this->assertStringContainsString('/new\_game', $text);
+        $this->assertStringNotContainsString('/new\_game@' . BOT_USERNAME, $text);
 
         $this->assertSame('MarkdownV2', $args[2]);
     }
@@ -47,7 +49,7 @@ final class UserHelpCommandProcessorTest extends ProcessorTestCase
     private function processCommand(): void
     {
         $update = TelegramUpdate::fromArray(
-            $this->privateMessagePayload(UserHelpCommandHandler::COMMAND, fromId: self::SENDER_ID),
+            $this->privateMessagePayload(Command::Help->value, fromId: self::SENDER_ID),
         );
 
         new UserHelpCommandProcessor($this->telegramSender)->process($update);

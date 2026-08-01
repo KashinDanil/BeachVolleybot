@@ -14,7 +14,8 @@ class GroupHelpCommandProcessor extends AbstractActionProcessor
     {
         $message = $update->message;
 
-        $helpMessage = new HelpMessageBuilder(Translator::fromUser($message->from))->build(BOT_USERNAME);
+        $helpMessage = new HelpMessageBuilder(Translator::fromUser($message->from))
+            ->build(BOT_USERNAME, $message->chat->isGroupChat());
 
         $sent = $this->telegramSender->sendEphemeralMessage(
             $message->chat->id,

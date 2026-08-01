@@ -15,7 +15,7 @@ class UserHelpCommandProcessor extends AbstractActionProcessor
     {
         $message = $update->message;
 
-        $welcomeMessage = new HelpMessageBuilder(Translator::fromUser($message->from))->build(BOT_USERNAME);
+        $welcomeMessage = new HelpMessageBuilder(Translator::fromUser($message->from))->build(BOT_USERNAME, $message->chat->isGroupChat());
 
         $this->telegramSender->sendMessage($message->chat->id, $welcomeMessage);
         $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);

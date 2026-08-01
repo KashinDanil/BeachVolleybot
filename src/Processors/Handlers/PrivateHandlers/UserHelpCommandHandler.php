@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\Handlers\PrivateHandlers;
 
+use BeachVolleybot\Common\Command;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserHelpCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -11,14 +12,11 @@ use BeachVolleybot\Telegram\TelegramMessageSender;
 
 final readonly class UserHelpCommandHandler extends AbstractDmQueueHandler
 {
-    public const string COMMAND = '/help';
-    public const string START_COMMAND = '/start';
-
     public function matches(TelegramUpdate $update): bool
     {
         return $update->hasMessage()
             && $update->message->chat->isPrivate()
-            && in_array($update->message->text, [self::COMMAND, self::START_COMMAND], true);
+            && (Command::Help->matches($update->message->text) || Command::Start->matches($update->message->text));
     }
 
     public function createProcessor(
