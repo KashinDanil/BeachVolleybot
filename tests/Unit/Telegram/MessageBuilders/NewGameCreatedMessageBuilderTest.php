@@ -17,7 +17,7 @@ final class NewGameCreatedMessageBuilderTest extends TestCase
         $this->builder = new NewGameCreatedMessageBuilder(new Translator());
     }
 
-    public function testShowsHeaderAndPostedNote(): void
+    public function testShowsHeaderAndPostedMessage(): void
     {
         $text = str_replace('\\', '', $this->builder->build()->getText()->getMessageText());
 

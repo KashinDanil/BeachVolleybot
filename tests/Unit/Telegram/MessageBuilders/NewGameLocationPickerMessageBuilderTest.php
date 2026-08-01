@@ -103,15 +103,15 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
         $this->assertSame(NewGameTimePickerMessageBuilder::START_PAGE, $back->getPage());
     }
 
-    public function testFormShowsStepThreeWithDateTimeAndPostingNote(): void
+    public function testFormShowsStepThreeWithDateAndTime(): void
     {
         $text = str_replace('\\', '', $this->build(1)->getText()->getMessageText());
 
-        $this->assertStringContainsString('Step 3 of 3', $text);
+        $this->assertStringContainsString('Step 3 of 4', $text);
         $this->assertStringContainsString('31.12', $text);
         $this->assertStringContainsString('18:30', $text);
         $this->assertStringContainsString('pick a location below', $text);
-        $this->assertStringContainsString('posted to the chat', $text);
+        $this->assertStringNotContainsString('posted to the chat', $text);
     }
 
     public function testDateAndTimeAreRecoverableFromDisplayedText(): void

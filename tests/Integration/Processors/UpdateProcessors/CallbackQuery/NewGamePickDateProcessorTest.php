@@ -45,7 +45,7 @@ final class NewGamePickDateProcessorTest extends ProcessorTestCase
                     'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
                     'chat' => ['id' => self::DM_CHAT_ID, 'type' => 'private'],
                     'date' => 1700000000,
-                    'text' => 'New game — Step 1 of 3',
+                    'text' => 'New game — Step 1 of 4',
                 ],
                 'data' => NewGameCallbackData::create(NewGameCallbackAction::PickDate)->withDate($isoDate)->toJson(),
             ],

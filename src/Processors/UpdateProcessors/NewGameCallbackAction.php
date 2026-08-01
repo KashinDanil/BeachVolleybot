@@ -8,6 +8,7 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameDatePageProc
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickDateProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickTimeProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickVenueProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameSendProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameTimePageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameVenuePageProcessor;
 use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
@@ -24,6 +25,7 @@ enum NewGameCallbackAction: string implements CallbackActionInterface
     case ShowVenuePage = 'vp';
     case PickVenue     = 'v';
     case SkipVenue     = 'vs';
+    case Send          = 's';
 
     /**
      * @param TelegramMessageSender $telegramSender
@@ -42,6 +44,7 @@ enum NewGameCallbackAction: string implements CallbackActionInterface
             self::PickTime      => new NewGamePickTimeProcessor($telegramSender, $callbackData),
             self::ShowVenuePage => new NewGameVenuePageProcessor($telegramSender, $callbackData),
             self::PickVenue, self::SkipVenue => new NewGamePickVenueProcessor($telegramSender, $callbackData),
+            self::Send => new NewGameSendProcessor($telegramSender, $callbackData),
         };
     }
 }

@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\BotMention;
-use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Game\GameKey;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameMessagePinner;
+use BeachVolleybot\Game\GameMessagePoster;
 use BeachVolleybot\Game\NewGameData;
-use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Game\ShareGameReplySender;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
@@ -40,32 +39,23 @@ class CreateGameFromMessageProcessor extends AbstractActionProcessor
 
         $newGameData = NewGameData::fromUser($message->from, $title, $gameKey);
 
-        $sentMessageId = $this->telegramSender->sendMessage(
-            $chatId,
-            NewGameFactory::create($newGameData)->buildTelegramMessage(),
-            $message->resolveMessageThreadId(),
-        );
+        $posted = new GameMessagePoster($this->telegramSender, $gameManager)
+            ->post($newGameData, $chatId, $message->resolveMessageThreadId());
 
-        if (0 === $sentMessageId) {
-            Logger::logApp('Failed to send game message to chat ' . $chatId);
-
+        if (null === $posted) {
             return;
         }
-
-        $gameId = $gameManager->createGame($newGameData);
-        $gameManager->addChatMessage($gameId, $chatId, $sentMessageId);
 
         //Delete the original user message
         $this->telegramSender->deleteMessage($chatId, $message->messageId);
 
-        if ($message->chat->isGroupChat()) {
-            new GameMessagePinner($this->telegramSender)->pinGameMessage($chatId, $sentMessageId, $title, $message->date);
-        }
+        new GameMessagePinner($this->telegramSender)
+            ->pinGameMessageIfGroup($message->chat, $posted->sentMessageId, $title, $message->date);
 
-        new ShareGameReplySender($this->telegramSender)->sendInDm($message->chat, $sentMessageId, $gameId, $message->from);
+        new ShareGameReplySender($this->telegramSender)->sendInDm($message->chat, $posted->sentMessageId, $posted->gameId, $message->from);
 
-        new WeatherEnqueuer()->enqueue($gameId);
-        $this->logUserAction($message->from, 'create_game_from_message', "gameId=$gameId");
+        new WeatherEnqueuer()->enqueue($posted->gameId);
+        $this->logUserAction($message->from, 'create_game_from_message', "gameId={$posted->gameId}");
     }
 
     private function isKickoffInFuture(string $title, DateTimeImmutable $reference): bool

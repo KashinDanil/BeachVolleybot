@@ -11,28 +11,32 @@ use BeachVolleybot\Telegram\Style;
 use DateTimeImmutable;
 
 /**
- * Renders the shared /new_game wizard form body: a header, the three fields
- * (📅 date, 🕒 time, 📍 location) — each shown as its picked value, a bold
- * "pick … below 👇" placeholder while it is the active field, or a blank dash —
- * and, on the location step, the note that the game will be posted next.
- * The four steps differ only in which field is active and the header/note.
+ * Renders all /new_game wizard text: the four step pages (date, time, location,
+ * confirm), the success screen shown after posting, and the title embedded in
+ * the posted game message itself. The step pages share one header/field-row
+ * layout; only the active field differs, and the confirm step shows all three
+ * fields filled in with no field left active.
  */
 final readonly class NewGameFormText
 {
-    public const string HEADER_STEP    = 'New game — Step %d of 3';
-    public const string HEADER_SUCCESS = 'Game created!';
-    public const string PICK_DATE      = 'pick a date below';
-    public const string PICK_TIME      = 'pick a time below';
-    public const string PICK_LOCATION  = 'pick a location below';
-    public const string POSTING_NOTE   = 'The game will be posted to the chat once you pick a location.';
-    public const string POSTED_NOTE    = 'The game message has been posted to this chat.';
+    private const int STEP_DATE     = 1;
+    private const int STEP_TIME     = 2;
+    private const int STEP_LOCATION = 3;
+    private const int STEP_CONFIRM  = 4;
+    private const int TOTAL_STEPS   = self::STEP_CONFIRM;
+
+    private const string HEADER_STEP     = 'New game — Step %d of %d';
+    private const string HEADER_SUCCESS  = 'Game created!';
+    private const string PICK_DATE       = 'pick a date below';
+    private const string PICK_TIME       = 'pick a time below';
+    private const string PICK_LOCATION   = 'pick a location below';
+    private const string POSTED_MESSAGE  = 'The game message has been posted to this chat.';
 
     private const string HEADER_EMOJI   = '🏐';
     private const string SUCCESS_EMOJI  = '✅';
     private const string DATE_EMOJI     = '📅';
     private const string TIME_EMOJI     = '🕒';
     private const string LOCATION_EMOJI = '📍';
-    private const string NOTE_EMOJI     = 'ℹ️';
     private const string HAND           = ' 👇';
     private const string EMPTY_FIELD    = '—';
     private const string DATE_FORMAT    = 'l, d.m';
@@ -46,46 +50,59 @@ final readonly class NewGameFormText
     public function buildDateStep(): string
     {
         return $this->render(
-            $this->stepHeader(1),
-            $this->activeCell(self::DATE_EMOJI, self::PICK_DATE),
-            $this->emptyCell(self::TIME_EMOJI),
-            $this->emptyCell(self::LOCATION_EMOJI),
-            null,
+            $this->stepHeader(self::STEP_DATE),
+            $this->fieldRows(
+                $this->activeCell(self::DATE_EMOJI, self::PICK_DATE),
+                $this->emptyCell(self::TIME_EMOJI),
+                $this->emptyCell(self::LOCATION_EMOJI),
+            ),
         );
     }
 
     public function buildTimeStep(DateTimeImmutable $date): string
     {
         return $this->render(
-            $this->stepHeader(2),
-            $this->valueCell(self::DATE_EMOJI, $this->formatDate($date)),
-            $this->activeCell(self::TIME_EMOJI, self::PICK_TIME),
-            $this->emptyCell(self::LOCATION_EMOJI),
-            null,
+            $this->stepHeader(self::STEP_TIME),
+            $this->fieldRows(
+                $this->valueCell(self::DATE_EMOJI, $this->formatDate($date)),
+                $this->activeCell(self::TIME_EMOJI, self::PICK_TIME),
+                $this->emptyCell(self::LOCATION_EMOJI),
+            ),
         );
     }
 
     public function buildLocationStep(DateTimeImmutable $date, string $time): string
     {
         return $this->render(
-            $this->stepHeader(3),
-            $this->valueCell(self::DATE_EMOJI, $this->formatDate($date)),
-            $this->valueCell(self::TIME_EMOJI, $time),
-            $this->activeCell(self::LOCATION_EMOJI, self::PICK_LOCATION),
-            $this->note(self::POSTING_NOTE),
+            $this->stepHeader(self::STEP_LOCATION),
+            $this->fieldRows(
+                $this->valueCell(self::DATE_EMOJI, $this->formatDate($date)),
+                $this->valueCell(self::TIME_EMOJI, $time),
+                $this->activeCell(self::LOCATION_EMOJI, self::PICK_LOCATION),
+            ),
+        );
+    }
+
+    public function buildConfirmStep(DateTimeImmutable $date, string $time, ?string $venueName): string
+    {
+        return $this->render(
+            $this->stepHeader(self::STEP_CONFIRM),
+            $this->fieldRows(...$this->gameRows($date, $time, $venueName)),
         );
     }
 
     public function buildSuccess(): string
     {
-        $newLine = $this->formatter->newLine();
-
-        return $this->successHeader() . $newLine
-            . $newLine
-            . $this->note(self::POSTED_NOTE);
+        return $this->render($this->successHeader(), $this->plainLine(self::POSTED_MESSAGE));
     }
 
     public function buildGameTitle(DateTimeImmutable $date, string $time, ?string $venueName): string
+    {
+        return $this->fieldRows(...$this->gameRows($date, $time, $venueName));
+    }
+
+    /** @return list<string> */
+    private function gameRows(DateTimeImmutable $date, string $time, ?string $venueName): array
     {
         $rows = [
             $this->valueCell(self::DATE_EMOJI, $this->formatDate($date)),
@@ -96,36 +113,22 @@ final readonly class NewGameFormText
             $rows[] = $this->valueCell(self::LOCATION_EMOJI, $venueName);
         }
 
-        return implode($this->formatter->newLine(), $rows);
+        return $rows;
     }
 
-    private function render(
-        string $header,
-        string $dateCell,
-        string $timeCell,
-        string $locationCell,
-        ?string $note,
-    ): string {
-        $newLine = $this->formatter->newLine();
+    private function render(string ...$blocks): string
+    {
+        return implode($this->formatter->newLine() . $this->formatter->newLine(), $blocks);
+    }
 
-        $body = $header . $newLine
-            . $newLine
-            . $dateCell . $newLine
-            . $timeCell . $newLine
-            . $locationCell;
-
-        if (null === $note) {
-            return $body;
-        }
-
-        return $body . $newLine
-            . $newLine
-            . $note;
+    private function fieldRows(string ...$cells): string
+    {
+        return implode($this->formatter->newLine(), $cells);
     }
 
     private function stepHeader(int $step): string
     {
-        $text = sprintf($this->translator->translate(self::HEADER_STEP), $step);
+        $text = sprintf($this->translator->translate(self::HEADER_STEP), $step, self::TOTAL_STEPS);
 
         return self::HEADER_EMOJI . ' ' . $this->formatter->style($text, Style::Bold, Style::Underline);
     }
@@ -152,9 +155,9 @@ final readonly class NewGameFormText
         return $emoji . ' ' . $this->formatter->escape(self::EMPTY_FIELD);
     }
 
-    private function note(string $messageKey): string
+    private function plainLine(string $messageKey): string
     {
-        return self::NOTE_EMOJI . ' ' . $this->formatter->escape($this->translator->translate($messageKey));
+        return $this->formatter->escape($this->translator->translate($messageKey));
     }
 
     private function formatDate(DateTimeImmutable $date): string

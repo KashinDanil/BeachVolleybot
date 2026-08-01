@@ -11,6 +11,7 @@ use BeachVolleybot\Processors\ProcessorRegistry;
 use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickVenueProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameSendProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GroupNewGameCommandProcessor;
@@ -384,7 +385,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
                     'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
                     'chat' => ['id' => 555, 'type' => 'private'],
                     'date' => 1700000000,
-                    'text' => 'New game — Step 3 of 3',
+                    'text' => 'New game — Step 3 of 4',
                 ],
                 'data' => NewGameCallbackData::create(NewGameCallbackAction::PickVenue)->withVenueName('Bogatell')->toJson(),
             ],
@@ -393,6 +394,33 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             NewGamePickVenueProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+        $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
+    }
+
+    public function testResolvesNewGameConfirmCallbackToDmQueueAndSendProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray([
+            'update_id' => 1,
+            'callback_query' => [
+                'id' => 'cbq_ng',
+                'from' => ['id' => 555, 'first_name' => 'Danil', 'is_bot' => false],
+                'chat_instance' => '-123',
+                'message' => [
+                    'message_id' => 900,
+                    'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
+                    'chat' => ['id' => 555, 'type' => 'private'],
+                    'date' => 1700000000,
+                    'text' => 'New game — Step 4 of 4',
+                ],
+                'data' => NewGameCallbackData::create(NewGameCallbackAction::Send)->withVenueName('Bogatell')->toJson(),
+            ],
+        ]);
+
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            NewGameSendProcessor::class,
             $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
         $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));

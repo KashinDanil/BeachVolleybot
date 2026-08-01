@@ -13,7 +13,7 @@ readonly class KickoffDayInTheFutureRule implements RuleInterface
     public const string ERROR_MESSAGE = 'Game cannot be in the past';
 
     public function __construct(
-        private string $title,
+        private ?string $title,
         private DateTimeImmutable $createdAt,
         private ?DateTimeImmutable $now = null,
     ) {
@@ -21,7 +21,7 @@ readonly class KickoffDayInTheFutureRule implements RuleInterface
 
     public function isValid(): bool
     {
-        return !GameDateTimeResolver::isKickoffDayPast($this->title, $this->createdAt, $this->now);
+        return !GameDateTimeResolver::isKickoffDayPast($this->title ?? '', $this->createdAt, $this->now);
     }
 
     public function getError(): ValidationError

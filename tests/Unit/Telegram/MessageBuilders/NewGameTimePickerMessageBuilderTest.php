@@ -91,7 +91,7 @@ final class NewGameTimePickerMessageBuilderTest extends TestCase
     {
         $text = $this->displayText($this->buildStartPage());
 
-        $this->assertStringContainsString('Step 2 of 3', $text);
+        $this->assertStringContainsString('Step 2 of 4', $text);
         $this->assertStringContainsString('31.12', $text); // date already picked
         $this->assertStringContainsString('pick a time below', $text);
     }

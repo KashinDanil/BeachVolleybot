@@ -13,9 +13,9 @@ final readonly class Venue
 {
     /** @param list<string> $aliases spellings other than the name — translations, transliterations, full Catalan names */
     public function __construct(
-        public string $name,
-        public LocationCoordinates $coordinates,
-        public array $aliases = [],
+        private(set) string $name,
+        private(set) LocationCoordinates $coordinates,
+        private(set) array $aliases = [],
     ) {
     }
 }

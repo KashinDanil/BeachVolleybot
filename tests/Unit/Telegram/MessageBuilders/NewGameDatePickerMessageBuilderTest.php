@@ -85,7 +85,7 @@ final class NewGameDatePickerMessageBuilderTest extends TestCase
     {
         $text = $this->builder->build(1)->getText()->getMessageText();
 
-        $this->assertStringContainsString('Step 1 of 3', $text);
+        $this->assertStringContainsString('Step 1 of 4', $text);
         $this->assertStringContainsString('pick a date below', $text);
         $this->assertStringContainsString('—', $text); // empty time + location
     }

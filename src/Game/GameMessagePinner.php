@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game;
 
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramChat;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 
 /**
@@ -39,6 +40,15 @@ final readonly class GameMessagePinner
     {
         $messageJson = json_encode(['message_id' => $messageId, 'chat' => ['id' => $chatId], 'date' => $messageDate, 'text' => $title]);
         $this->pin($chatId, $messageId, $messageJson, $title, $messageDate);
+    }
+
+    public function pinGameMessageIfGroup(TelegramChat $chat, int $messageId, string $title, int $messageDate): void
+    {
+        if (!$chat->isGroupChat()) {
+            return;
+        }
+
+        $this->pinGameMessage($chat->id, $messageId, $title, $messageDate);
     }
 
     private function unpinExpired(int $chatId, int $keepPinnedMessageId): void
