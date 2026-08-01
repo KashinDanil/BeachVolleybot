@@ -32,7 +32,6 @@ final readonly class NewGameFormText
     private const string PICK_LOCATION   = 'pick a location below';
     private const string POSTED_MESSAGE  = 'The game message has been posted to this chat.';
 
-    private const string HEADER_EMOJI   = '🏐';
     private const string SUCCESS_EMOJI  = '✅';
     private const string DATE_EMOJI     = '📅';
     private const string TIME_EMOJI     = '🕒';
@@ -130,7 +129,7 @@ final readonly class NewGameFormText
     {
         $text = sprintf($this->translator->translate(self::HEADER_STEP), $step, self::TOTAL_STEPS);
 
-        return self::HEADER_EMOJI . ' ' . $this->formatter->style($text, Style::Bold, Style::Underline);
+        return $this->formatter->style($text, Style::Bold, Style::Underline);
     }
 
     private function successHeader(): string
