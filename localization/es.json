@@ -35,7 +35,7 @@
     "⚠️ Game cannot be in the past": "⚠️ El partido no puede estar en el pasado",
     "Pick a date from today onwards": "Elige una fecha a partir de hoy",
     "Use the following pattern to create a new game:": "Usa el siguiente formato para crear un nuevo partido:",
-    "@%s \n📅 Saturday\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Sábado\n🏖️ Bogatell\n🕙 10:00",
+    "@%s \n📅 Saturday\n🕙 10:00\n🏖️ Bogatell": "@%s \n📅 Sábado\n🕙 10:00\n🏖️ Bogatell",
 
     "**To create a game**, add **@%s** to the start of the message. The text can be anything — just include a **date and time** 📆🕙": "**Para crear un partido**, añade **@%s** al inicio del mensaje. El texto puede ser cualquiera — solo incluye **fecha y hora** 📆🕙",
     "Example:": "Ejemplo:",

@@ -35,7 +35,7 @@
     "⚠️ Game cannot be in the past": "⚠️ Игра не может быть в прошлом",
     "Pick a date from today onwards": "Выберите дату начиная с сегодня",
     "Use the following pattern to create a new game:": "Используйте следующий шаблон для создания новой игры:",
-    "@%s \n📅 Saturday\n🏖️ Bogatell\n🕙 10:00": "@%s \n📅 Суббота\n🏖️ Bogatell\n🕙 10:00",
+    "@%s \n📅 Saturday\n🕙 10:00\n🏖️ Bogatell": "@%s \n📅 Суббота\n🕙 10:00\n🏖️ Bogatell",
 
     "**To create a game**, add **@%s** to the start of the message. The text can be anything — just include a **date and time** 📆🕙": "**Чтобы создать игру**, добавьте **@%s** в начало сообщения. Текст может быть любым, главное — указать **дату и время** 📆🕙",
     "Example:": "Пример:",

@@ -14,7 +14,7 @@ final class HelpMessageBuilder extends AbstractMessageBuilder
 {
     public const string CREATE_PARAGRAPH       = '**To create a game**, add **@%s** to the start of the message. The text can be anything — just include a **date and time** 📆🕙';
     public const string EXAMPLE_LABEL          = 'Example:';
-    public const string EXAMPLE_TEMPLATE       = "@%s \n📅 Saturday\n🏖️ Bogatell\n🕙 10:00";
+    public const string EXAMPLE_TEMPLATE       = "@%s \n📅 Saturday\n🕙 10:00\n🏖️ Bogatell";
     public const string AFTER_EXAMPLE          = "Then just tap the bot's hint to send the message.";
     public const string WIZARD_PARAGRAPH       = "**Or use the %s command** and I'll help you create a game.";
     public const string JOIN_LEAVE_PARAGRAPH   = '**To join a game or leave it**, use the buttons under the message.';
