@@ -15,7 +15,6 @@ final readonly class ErrorArticleBuilder implements ArticleBuilderInterface
     private const string ARTICLE_ID = 'error';
     private const string DEFAULT_MESSAGE = 'Use the following pattern to create a new game:';
     private const string DEFAULT_MESSAGE_EXAMPLE = "@%s \n📅 Saturday\n🏖️ Bogatell\n🕙 10:00";
-    private const string DEFAULT_MESSAGE_WIZARD = "Or use the /new_game command and I'll help you create a game.";
 
     public function __construct(
         private InlineQueryError $error,
@@ -38,13 +37,7 @@ final readonly class ErrorArticleBuilder implements ArticleBuilderInterface
     {
         $text = $this->formatter->escape($this->translator->translate(self::DEFAULT_MESSAGE));
         $example = $this->formatter->codeBlock(sprintf($this->translator->translate(self::DEFAULT_MESSAGE_EXAMPLE), BOT_USERNAME));
-        $wizard = $this->formatter->escape($this->translator->translate(self::DEFAULT_MESSAGE_WIZARD));
 
-        return $text
-            . $this->formatter->newLine()
-            . $example
-            . $this->formatter->newLine()
-            . $this->formatter->newLine()
-            . $wizard;
+        return $text . $this->formatter->newLine() . $example;
     }
 }
