@@ -18,7 +18,7 @@ final class NewGameLocationPickerMessageBuilder extends AbstractMessageBuilder
 {
     public const string SKIP_TEXT = 'Skip location';
 
-    private const int VENUES_PER_PAGE = 6;
+    private const int VENUES_PER_PAGE = 5;
     private const string SKIP_LABEL_WRAP = '— %s —';
 
     private readonly NewGameFormText $formText;

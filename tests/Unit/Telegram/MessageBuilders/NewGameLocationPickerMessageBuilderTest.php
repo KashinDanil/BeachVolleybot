@@ -27,11 +27,11 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
         $this->builder = new NewGameLocationPickerMessageBuilder(new Translator());
     }
 
-    public function testFirstPageHasSixVenuesThenSkipThenNextOnly(): void
+    public function testFirstPageHasFiveVenuesThenSkipThenNextOnly(): void
     {
         $keyboard = $this->extractKeyboard($this->build(1));
 
-        $this->assertCount(9, $keyboard); // 6 venue rows + skip row + nav row + back row
+        $this->assertCount(8, $keyboard); // 5 venue rows + skip row + nav row + back row
         $paginationRow = $this->navigationRow($keyboard);
         $this->assertCount(1, $paginationRow);
         $this->assertStringContainsString('Next', $paginationRow[0]['text']);
@@ -40,12 +40,12 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
     public function testLastPageHasRemainderThenPrevOnly(): void
     {
         $totalVenues = count(KnownVenues::all());
-        $lastPage = (int) ceil($totalVenues / 6);
+        $lastPage = (int) ceil($totalVenues / 5);
 
         $keyboard = $this->extractKeyboard($this->build($lastPage));
 
         $venueRows = count($keyboard) - 3; // minus skip row + nav row + back row
-        $this->assertSame($totalVenues - ($lastPage - 1) * 6, $venueRows);
+        $this->assertSame($totalVenues - ($lastPage - 1) * 5, $venueRows);
         $paginationRow = $this->navigationRow($keyboard);
         $this->assertCount(1, $paginationRow);
         $this->assertStringContainsString('Prev', $paginationRow[0]['text']);
@@ -75,8 +75,8 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
 
         $callbackData = NewGameCallbackData::fromJson($keyboard[0][0]['callback_data']);
         $this->assertSame(NewGameCallbackAction::PickVenue, $callbackData->getAction());
-        // Page 2 starts at the 7th venue; the button carries its name, not a position.
-        $this->assertSame(KnownVenues::all()[6]->name, $keyboard[0][0]['text']);
+        // Page 2 starts at the 6th venue; the button carries its name, not a position.
+        $this->assertSame(KnownVenues::all()[5]->name, $keyboard[0][0]['text']);
         $this->assertSame($keyboard[0][0]['text'], $callbackData->getVenueName());
     }
 
