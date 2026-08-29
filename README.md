@@ -13,7 +13,7 @@ This project was created to address a common frustration: _manually copying part
 - **Game creation** via Telegram inline queries, or by sending a message (in a group or DM) that @mentions the bot with the game details (the bot creates the game, deletes the original message, and posts the game itself — deletion needs the bot's delete-messages admin right)
 - **Join / Leave** with a single button click
 - **Equipment tracking** — volleyballs and nets per user
-- **Time extraction** from game titles (e.g. "Beach Volleyball 18:00"); plain time replies (e.g. `19:30`) join the game at that slot
+- **Time extraction** from game titles (e.g. "Beach Volleyball 18:00"); any reply that mentions a time (e.g. `19:30`, or "I can only make it by 19:30") joins the game at that slot. A reply that is nothing but the time is deleted once applied; one that carries other text stays in the chat
 - **Location setting** with Google Maps link, including live-location updates
 - **Game sharing** — one game can be reposted into multiple chats. Creating a game in a private DM yields a `Share` button to forward it to a chat; the same game keeps its participant list synchronized across every chat it appears in
 - **Title editing** — the game creator can rename a game by replying to its message; in the bot's DM, admins can rename any game the same way (kickoff day must remain in the future)
@@ -62,7 +62,7 @@ Telegram Webhook
                                      → GameMessageRefresher (re-render every posted message of the game — inline or chat)
 ```
 
-Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `createProcessor(sender, update)`, returning the first handler that matches. `ProcessorRegistryFactory` owns two lists: the **immediate** one runs inside the webhook request and is consulted first (inline queries, and the ephemeral group `/help`, whose reply Telegram rejects after 15 seconds); the **queued** one adds `routeToQueue(update)` via `AbstractQueuedProcessorHandler` and is consulted again at worker dispatch, which is why `matches()` must stay pure. Match patterns must be mutually exclusive across both lists, enforced by `HandlerExclusivityTest`.
+Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `createProcessor(sender, update)`, returning the first handler that matches. `ProcessorRegistryFactory` owns two lists: the **immediate** one runs inside the webhook request and is consulted first (inline queries, and the ephemeral group `/help`, whose reply Telegram rejects after 15 seconds); the **queued** one adds `routeToQueue(update)` via `AbstractQueuedProcessorHandler` and is consulted again at worker dispatch, which is why `matches()` must stay pure. Match patterns must be mutually exclusive across both lists, enforced by `HandlerExclusivityTest`. A pattern may read the database to decide — `ChangeTitleHandler` matches a reply only if it is a rename its author is allowed to make, which is what lets every other text reply fall to `JoinWithTimeHandler` — but it must stay free of side effects, since it is evaluated twice.
 
 ### Project Structure
 

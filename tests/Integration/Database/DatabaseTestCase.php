@@ -19,6 +19,8 @@ abstract class DatabaseTestCase extends TestCase
             'type' => 'sqlite',
             'database' => ':memory:',
             'error' => PDO::ERRMODE_EXCEPTION,
+            // Keeps every statement, so tests can assert what did — and did not — hit the DB.
+            'logging' => true,
             'command' => [
                 'PRAGMA foreign_keys = ON',
             ],
@@ -31,6 +33,19 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('007_add_role_to_users.sql');
         $this->applyMigration('008_rename_inline_query_id_to_game_key.sql');
         $this->applyMigration('009_add_game_chat_messages.sql');
+    }
+
+    /**
+     * SQL statements the given action ran, seeding done beforehand excluded.
+     *
+     * @return string[]
+     */
+    protected function queriesDuring(callable $action): array
+    {
+        $before = count($this->db->log());
+        $action();
+
+        return array_slice($this->db->log(), $before);
     }
 
     protected function createGame(

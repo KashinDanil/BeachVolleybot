@@ -33,6 +33,6 @@ class GroupNewGameCommandProcessor extends AbstractActionProcessor
             );
         }
 
-        $this->logUserAction($message->from, 'new_game_start');
+        $this->logUserAction($message->from, 'new_game_start', 'chat=group');
     }
 }

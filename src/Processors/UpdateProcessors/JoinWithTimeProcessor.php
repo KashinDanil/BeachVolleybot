@@ -15,8 +15,9 @@ class JoinWithTimeProcessor extends AbstractGameReplyProcessor
     {
         $message = $update->message;
         $from = $message->from;
+        $text = $message->text ?? '';
 
-        $time = TimeExtractor::extract($message->text ?? '');
+        $time = TimeExtractor::extract($text);
 
         if (null === $time) {
             return;
@@ -33,6 +34,9 @@ class JoinWithTimeProcessor extends AbstractGameReplyProcessor
         $this->logUserAction($from, 'join_with_time', "gameId=$gameRecord->gameId;time=$time");
 
         $this->refreshGameMessages($gameRecord->gameId);
-        $this->deleteMessage($message);
+
+        if (TimeExtractor::isTimeOnly($text)) {
+            $this->deleteMessage($message);
+        }
     }
 }

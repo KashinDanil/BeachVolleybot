@@ -7,7 +7,7 @@ namespace BeachVolleybot\Tests\Integration\Processors\Handlers\GameHandlers;
 use BeachVolleybot\Processors\Handlers\GameHandlers\ChangeTitleHandler;
 use BeachVolleybot\Processors\Handlers\GameHandlers\JoinWithTimeHandler;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use PHPUnit\Framework\TestCase;
+use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 
 /**
  * Reply-based edits key off the game message's meta-button, so they fire on a game
@@ -15,8 +15,17 @@ use PHPUnit\Framework\TestCase;
  * crucially, they stay away from replies to other bot messages (help, settings,
  * the games list), which carry no game key and must reach their own handlers.
  */
-final class GameReplyToBotSentMessageTest extends TestCase
+final class GameReplyToBotSentMessageTest extends ProcessorTestCase
 {
+    private const int CREATOR_ID = 200;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seedFullGame(inlineMessageId: 'msg_bot', gameKey: 'gk1', createdBy: self::CREATOR_ID);
+    }
+
     public function testChangeTitleHandlerMatchesReplyToGameMessage(): void
     {
         $this->assertTrue(new ChangeTitleHandler()->matches($this->replyToGameMessage('New title 31.12.2099 18:00')));
@@ -38,7 +47,7 @@ final class GameReplyToBotSentMessageTest extends TestCase
             'update_id' => 1,
             'message' => [
                 'message_id' => 90,
-                'from' => ['id' => 200, 'first_name' => 'Danil', 'is_bot' => false],
+                'from' => ['id' => self::CREATOR_ID, 'first_name' => 'Danil', 'is_bot' => false],
                 'chat' => ['id' => -100, 'type' => 'group'],
                 'date' => 1700000000,
                 'text' => $text,
@@ -66,7 +75,7 @@ final class GameReplyToBotSentMessageTest extends TestCase
             'update_id' => 1,
             'message' => [
                 'message_id' => 90,
-                'from' => ['id' => 200, 'first_name' => 'Danil', 'is_bot' => false],
+                'from' => ['id' => self::CREATOR_ID, 'first_name' => 'Danil', 'is_bot' => false],
                 'chat' => ['id' => 123, 'type' => 'private'],
                 'date' => 1700000000,
                 'text' => $text,

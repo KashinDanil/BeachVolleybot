@@ -17,11 +17,29 @@ final class HandlerExclusivityTest extends ProcessorTestCase
 {
     private const int NON_ADMIN_ID = 999;
 
+    // The sender replyMessagePayload() puts on every reply fixture.
+    private const int REPLY_SENDER_ID = 200;
+
+    /**
+     * The one overlap the routing table settles by order instead of by pattern: a rename
+     * always carries a time, so it looks like a join-with-time too. Allowed for the named
+     * fixture only, and the handlers are listed in registry order, so this doubles as an
+     * order check — flip them in ProcessorRegistryFactory and the test fails.
+     *
+     * @var array<string, string[]> fixture label => handler names it may match
+     */
+    private const array ORDERED_OVERLAPS = [
+        'reply renaming the game by its creator' => ['ChangeTitleHandler', 'JoinWithTimeHandler'],
+    ];
+
     public function testNoUpdateMatchesMoreThanOneHandler(): void
     {
         // Admin-gated handlers read the role from the DB, so the admin fixtures
-        // only match once the canonical admin actually has the admin role.
+        // only match once the canonical admin actually has the admin role. The rename
+        // handler reads the game the same way, so the reply fixtures need a real game
+        // owned by the sender they use — without it every rename fixture matches nothing.
         $this->seedAdmin();
+        $this->seedFullGame(inlineMessageId: 'imi_game', gameKey: 'iq1', createdBy: self::REPLY_SENDER_ID);
 
         $handlers = $this->allHandlers();
         $conflicts = [];
@@ -29,7 +47,7 @@ final class HandlerExclusivityTest extends ProcessorTestCase
         foreach ($this->fixtures() as $label => $update) {
             $matched = $this->findMatchingHandlerNames($handlers, $update);
 
-            if (count($matched) > 1) {
+            if (count($matched) > 1 && !$this->isOrderedOverlap($label, $matched)) {
                 $conflicts[$label] = $matched;
             }
         }
@@ -38,6 +56,14 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             $conflicts,
             "Handlers must have mutually exclusive match patterns. Overlaps:\n" . $this->formatConflicts($conflicts),
         );
+    }
+
+    /**
+     * @param string[] $matched handler names, in registry order
+     */
+    private function isOrderedOverlap(string $label, array $matched): bool
+    {
+        return (self::ORDERED_OVERLAPS[$label] ?? null) === $matched;
     }
 
     /**
@@ -100,6 +126,17 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             ),
             'reply with non-time text' => TelegramUpdate::fromArray(
                 $this->replyMessagePayload('hello', 'iq1'),
+            ),
+            'reply with time inside other text' => TelegramUpdate::fromArray(
+                $this->replyMessagePayload('I can make it by 18:00', 'iq1'),
+            ),
+            // A rename carries a time too, so this is the fixture that pins the split
+            // between the two reply handlers: it must reach the rename one alone.
+            'reply renaming the game by its creator' => TelegramUpdate::fromArray(
+                $this->replyMessagePayload('Bogatell 31.12.2099 20:00', 'iq1'),
+            ),
+            'reply renaming the game by someone else' => TelegramUpdate::fromArray(
+                $this->replyMessagePayload('Bogatell 31.12.2099 20:00', 'iq1', fromId: $nonAdminId),
             ),
             'group pin notification from bot' => TelegramUpdate::fromArray(
                 $this->pinNotificationPayload(chatId: -100, messageId: 11, pinnedMessageId: 10),

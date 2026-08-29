@@ -76,8 +76,8 @@ final readonly class ProcessorRegistryFactory
             new NewGameCallbackQueryHandler(),
             new SetLiveLocationHandler(),
             new SetLocationHandler(),
+            new ChangeTitleHandler(), //Must be before JoinWithTimeHandler
             new JoinWithTimeHandler(),
-            new ChangeTitleHandler(),
             new CreateGameFromMessageHandler(),
             new SendShareButtonHandler(),
             new SettingsMenuCommandHandler(),

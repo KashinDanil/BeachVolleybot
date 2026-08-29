@@ -58,9 +58,11 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         string $inlineMessageId = 'msg_1',
         string $gameKey = 'query_1',
         string $title = 'Friday Game 18:00',
+        int $createdBy = 100,
     ): int {
         $gameId = $this->createGame(
             title: $title,
+            createdBy: $createdBy,
             inlineMessageId: $inlineMessageId,
             gameKey: $gameKey,
         );
@@ -576,6 +578,18 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     {
         $editCalls = array_filter($this->bot->calls, fn($c) => 'editMessageText' === $c['method']);
         $this->assertEmpty($editCalls, 'Expected editMessageText NOT to be called');
+    }
+
+    protected function assertMessageDeleted(): void
+    {
+        $deleteCalls = array_filter($this->bot->calls, fn($c) => 'deleteMessage' === $c['method']);
+        $this->assertNotEmpty($deleteCalls, 'Expected deleteMessage to be called');
+    }
+
+    protected function assertMessageNotDeleted(): void
+    {
+        $deleteCalls = array_filter($this->bot->calls, fn($c) => 'deleteMessage' === $c['method']);
+        $this->assertEmpty($deleteCalls, 'Expected deleteMessage NOT to be called');
     }
 
     protected function assertKeyboardRemoved(): void

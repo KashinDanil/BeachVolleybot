@@ -17,7 +17,7 @@ final readonly class JoinWithTimeHandler extends AbstractGameReplyQueueHandler
         return $update->hasMessage()
             && $this->repliesToGameMessage($update->message)
             && $update->message->hasText()
-            && TimeExtractor::isTimeOnly($update->message->text);
+            && null !== TimeExtractor::extract($update->message->text);
     }
 
     public function createProcessor(

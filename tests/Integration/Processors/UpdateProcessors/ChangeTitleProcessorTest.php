@@ -10,20 +10,25 @@ use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 
+/**
+ * Who may rename a game, and what counts as a title, is ChangeTitleHandler's business — see
+ * ChangeTitleHandlerTest. What is left here is applying the rename, plus the guards the
+ * processor keeps for itself because they outlive routing: a game whose day has passed and
+ * a reply to a message that carries no game.
+ */
 final class ChangeTitleProcessorTest extends ProcessorTestCase
 {
     private const int CREATOR_ID = 200;
-    private const int NON_CREATOR_ID = 201;
 
     public function testCreatorRenamesGame(): void
     {
         $gameId = $this->seedGameOwnedByCreator();
 
         new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('Picnic Sunday 20:00', self::CREATOR_ID));
+            ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
-        $this->assertSame('Picnic Sunday 20:00', $title);
+        $this->assertSame('Picnic 31.12.2099 20:00', $title);
     }
 
     public function testCreatorUserTimeIsUpdated(): void
@@ -31,7 +36,7 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         $gameId = $this->seedGameOwnedByCreator();
 
         new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('Picnic Sunday 20:00', self::CREATOR_ID));
+            ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
         $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, self::CREATOR_ID);
         $this->assertSame('20:00', $gameUser['time']);
@@ -42,7 +47,7 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         $this->seedGameOwnedByCreator();
 
         new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('Picnic Sunday 20:00', self::CREATOR_ID));
+            ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
         $this->assertMessageEdited();
     }
@@ -52,87 +57,25 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         $this->seedGameOwnedByCreator();
 
         new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('Picnic Sunday 20:00', self::CREATOR_ID));
+            ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
-        $deleteCalls = array_filter($this->bot->calls, fn($c) => 'deleteMessage' === $c['method']);
-        $this->assertNotEmpty($deleteCalls);
-    }
-
-    public function testNonCreatorCannotRename(): void
-    {
-        $gameId = $this->seedGameOwnedByCreator();
-
-        new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('Picnic Sunday 20:00', self::NON_CREATOR_ID));
-
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
-        $this->assertSame('Friday Game 18:00', $title);
-        $this->assertMessageNotEdited();
-    }
-
-    public function testAdminCanRenameGameOwnedByAnotherUserInPrivateChat(): void
-    {
-        $gameId = $this->seedGameOwnedByCreator();
-        $this->seedAdmin();
-
-        new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildPrivateChatUpdate('Picnic Sunday 18:00', self::ADMIN_TELEGRAM_USER_ID));
-
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
-        $this->assertSame('Picnic Sunday 18:00', $title);
-    }
-
-    public function testAdminCannotRenameGameOwnedByAnotherUserInGroupChat(): void
-    {
-        $gameId = $this->seedGameOwnedByCreator();
-        $this->seedAdmin();
-
-        new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('Picnic Sunday 20:00', self::ADMIN_TELEGRAM_USER_ID));
-
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
-        $this->assertSame('Friday Game 18:00', $title);
-        $this->assertMessageNotEdited();
-    }
-
-    public function testInvalidTitleIsRejected(): void
-    {
-        $gameId = $this->seedGameOwnedByCreator();
-
-        new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('no time here', self::CREATOR_ID));
-
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
-        $this->assertSame('Friday Game 18:00', $title);
-        $this->assertMessageNotEdited();
+        $this->assertMessageDeleted();
     }
 
     public function testPastDayGameRejectsRename(): void
     {
         $gameId = $this->createGame(
-            title: 'Old Game 01.01.20 18:00',
+            title: 'Old Game 01.01.2020 18:00',
             createdBy: self::CREATOR_ID,
             inlineMessageId: 'msg_1',
             gameKey: 'query_1',
         );
 
         new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('Beach Sunday 20:00', self::CREATOR_ID));
+            ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
-        $this->assertSame('Old Game 01.01.20 18:00', $title);
-        $this->assertMessageNotEdited();
-    }
-
-    public function testCannotRenameToPastDate(): void
-    {
-        $gameId = $this->seedGameOwnedByCreator();
-
-        new ChangeTitleProcessor($this->telegramSender)
-            ->process($this->buildUpdate('Old Picnic 01.01.20 20:00', self::CREATOR_ID));
-
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
-        $this->assertSame('Friday Game 18:00', $title);
+        $this->assertSame('Old Game 01.01.2020 18:00', $title);
         $this->assertMessageNotEdited();
     }
 
@@ -140,21 +83,21 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
     {
         $gameId = $this->seedGameOwnedByCreator();
 
-        $payload = $this->replyMessagePayload('Picnic Sunday 20:00', 'query_1', fromId: self::CREATOR_ID);
+        $payload = $this->replyMessagePayload('Picnic 31.12.2099 20:00', 'query_1', fromId: self::CREATOR_ID);
         unset($payload['message']['reply_to_message']['reply_markup']);
 
         new ChangeTitleProcessor($this->telegramSender)
             ->process(TelegramUpdate::fromArray($payload));
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
-        $this->assertSame('Friday Game 18:00', $title);
+        $this->assertSame('Bogatell 31.12.2099 18:00', $title);
         $this->assertMessageNotEdited();
     }
 
     private function seedGameOwnedByCreator(): int
     {
         $gameId = $this->createGame(
-            title: 'Friday Game 18:00',
+            title: 'Bogatell 31.12.2099 18:00',
             createdBy: self::CREATOR_ID,
             inlineMessageId: 'msg_1',
             gameKey: 'query_1',
@@ -172,19 +115,10 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         return $gameId;
     }
 
-    private function buildUpdate(string $text, int $fromId): TelegramUpdate
+    private function buildUpdate(string $text): TelegramUpdate
     {
         return TelegramUpdate::fromArray(
-            $this->replyMessagePayload($text, 'query_1', fromId: $fromId),
+            $this->replyMessagePayload($text, 'query_1', fromId: self::CREATOR_ID),
         );
-    }
-
-    private function buildPrivateChatUpdate(string $text, int $fromId): TelegramUpdate
-    {
-        $payload = $this->replyMessagePayload($text, 'query_1', fromId: $fromId);
-        $payload['message']['chat'] = ['id' => $fromId, 'type' => 'private'];
-        $payload['message']['reply_to_message']['chat'] = ['id' => $fromId, 'type' => 'private'];
-
-        return TelegramUpdate::fromArray($payload);
     }
 }

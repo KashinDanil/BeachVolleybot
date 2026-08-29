@@ -85,11 +85,40 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([JoinWithTimeProcessor::class], $this->recorder->selections);
     }
 
-    public function testRoutesNonTimeReplyToChangeTitleProcessor(): void
+    public function testRoutesRenameByCreatorToChangeTitleProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->replyMessagePayload(text: 'New title', gameKey: 'q1')));
+        $this->seedFullGame(inlineMessageId: 'msg_q1', gameKey: 'q1', createdBy: 200);
+
+        $this->processor->process(new QueueMessage($this->replyMessagePayload(text: 'Bogatell 31.12.2099 20:00', gameKey: 'q1')));
 
         $this->assertSame([ChangeTitleProcessor::class], $this->recorder->selections);
+    }
+
+    public function testRoutesReplyWithTimeInsideTextToJoinWithTimeProcessor(): void
+    {
+        $this->seedFullGame(inlineMessageId: 'msg_q1', gameKey: 'q1', createdBy: 200);
+
+        $this->processor->process(new QueueMessage($this->replyMessagePayload(text: 'I can make it by 18:00', gameKey: 'q1')));
+
+        $this->assertSame([JoinWithTimeProcessor::class], $this->recorder->selections);
+    }
+
+    public function testRoutesTitleReplyFromNonCreatorToJoinWithTimeProcessor(): void
+    {
+        $this->seedFullGame(inlineMessageId: 'msg_q1', gameKey: 'q1', createdBy: 999);
+
+        $this->processor->process(new QueueMessage($this->replyMessagePayload(text: 'Bogatell 31.12.2099 20:00', gameKey: 'q1')));
+
+        $this->assertSame([JoinWithTimeProcessor::class], $this->recorder->selections);
+    }
+
+    public function testRoutesNoProcessorForReplyWithoutTimeOrTitle(): void
+    {
+        $this->seedFullGame(inlineMessageId: 'msg_q1', gameKey: 'q1', createdBy: 200);
+
+        $this->processor->process(new QueueMessage($this->replyMessagePayload(text: 'sounds good to me', gameKey: 'q1')));
+
+        $this->assertSame([null], $this->recorder->selections);
     }
 
     public function testRoutesViaBotMessageWithKeyboardToPinMessageProcessor(): void
@@ -136,9 +165,11 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([JoinWithTimeProcessor::class], $this->recorder->selections);
     }
 
-    public function testRoutesPrivateNonTimeReplyToChangeTitleProcessor(): void
+    public function testRoutesPrivateRenameByCreatorToChangeTitleProcessor(): void
     {
-        $this->processor->process(new QueueMessage($this->privateReplyMessagePayload(text: 'New title', gameKey: 'q1')));
+        $this->seedFullGame(inlineMessageId: 'msg_q1', gameKey: 'q1', createdBy: 200);
+
+        $this->processor->process(new QueueMessage($this->privateReplyMessagePayload(text: 'Bogatell 31.12.2099 20:00', gameKey: 'q1')));
 
         $this->assertSame([ChangeTitleProcessor::class], $this->recorder->selections);
     }

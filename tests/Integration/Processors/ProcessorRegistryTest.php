@@ -117,16 +117,50 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         );
     }
 
-    public function testResolvesNonTimeReplyToGameQueueAndChangeTitleProcessor(): void
+    public function testResolvesRenameByCreatorToGameQueueAndChangeTitleProcessor(): void
     {
-        $gameId = $this->seedFullGame(inlineMessageId: 'msg_title', gameKey: 'iq_title');
-        $update = TelegramUpdate::fromArray($this->replyMessagePayload('New title', 'iq_title'));
+        $gameId = $this->seedFullGame(inlineMessageId: 'msg_title', gameKey: 'iq_title', createdBy: 200);
+        $update = TelegramUpdate::fromArray($this->replyMessagePayload('Bogatell 31.12.2099 20:00', 'iq_title'));
 
         $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             ChangeTitleProcessor::class,
             $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
+    }
+
+    public function testResolvesReplyWithTimeInsideTextToGameQueueAndJoinWithTimeProcessor(): void
+    {
+        $gameId = $this->seedFullGame(inlineMessageId: 'msg_mixed', gameKey: 'iq_mixed', createdBy: 200);
+        $update = TelegramUpdate::fromArray($this->replyMessagePayload('I can make it by 18:00', 'iq_mixed'));
+
+        $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            JoinWithTimeProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testResolvesTitleReplyFromNonCreatorToJoinWithTimeProcessor(): void
+    {
+        // The rename is refused by routing, so the reply's time lands on a slot instead.
+        $gameId = $this->seedFullGame(inlineMessageId: 'msg_other', gameKey: 'iq_other', createdBy: 999);
+        $update = TelegramUpdate::fromArray($this->replyMessagePayload('Bogatell 31.12.2099 20:00', 'iq_other'));
+
+        $this->assertSame('game_' . $gameId, $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            JoinWithTimeProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testResolvesNoProcessorForReplyWithoutTimeOrTitle(): void
+    {
+        $this->seedFullGame(inlineMessageId: 'msg_chat', gameKey: 'iq_chat', createdBy: 200);
+        $update = TelegramUpdate::fromArray($this->replyMessagePayload('sounds good to me', 'iq_chat'));
+
+        $this->assertNull($this->queuedRegistry->resolveQueueName($update));
+        $this->assertNull($this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
     public function testResolvesPinNotificationToPinQueueAndDeletePinNotificationProcessor(): void

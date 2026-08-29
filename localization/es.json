@@ -42,7 +42,7 @@
     "Then just tap the bot's hint to send the message.": "Luego solo toca la sugerencia del bot para enviar el mensaje.",
     "**Or use the %s command** and I'll help you create a game.": "**O usa el comando %s** y te ayudo a crear un partido.",
     "**To join a game or leave it**, use the buttons under the message.": "**Para unirte a un partido o salir**, usa los botones debajo del mensaje.",
-    "**To join at another time**, reply to the game message with just the time, like **17:30**.": "**Para unirte a otra hora**, responde al mensaje del partido indicando solo la hora, como **17:30**.",
+    "**To join at another time**, reply to the game message with a time, like **17:30**.": "**Para unirte a otra hora**, responde al mensaje del partido indicando una hora, como **17:30**.",
     "**To add a location** 📍, reply to the game message with a geo point.": "**Para añadir una ubicación** 📍, responde al mensaje del partido con una geolocalización.",
     "**To change the game**, reply to the game message with the new text — just keep a date and time in it. Only the person who created the game can do this.": "**Para cambiar el partido**, responde al mensaje del partido con el nuevo texto — solo mantén una fecha y una hora en él. Únicamente quien creó el partido puede hacerlo.",
     "**Volleyballs and nets** can also be marked with the buttons under the game: +🏐 / −🏐 and +🕸 / −🕸. If something is missing, the bot will show it.": "**Balones y red** también se pueden marcar con los botones debajo del partido: +🏐 / −🏐 y +🕸 / −🕸. Si falta algo, el bot lo mostrará.",

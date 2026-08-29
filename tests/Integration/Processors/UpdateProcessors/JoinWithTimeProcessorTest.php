@@ -65,8 +65,48 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $deleteCalls = array_filter($this->bot->calls, fn($c) => 'deleteMessage' === $c['method']);
-        $this->assertNotEmpty($deleteCalls);
+        $this->assertMessageDeleted();
+    }
+
+    public function testDeletesUserMessageWhenTimeIsPaddedWithWhitespace(): void
+    {
+        $this->seedFullGame(gameKey: 'query_1');
+        $update = $this->buildUpdate("  15:30\n", 'query_1');
+
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
+
+        $this->assertMessageDeleted();
+    }
+
+    public function testJoinsWithTimeFoundInsideOtherText(): void
+    {
+        $gameId = $this->seedFullGame(gameKey: 'query_1');
+        $update = $this->buildUpdate('I can only make it by 15:30 folks', 'query_1');
+
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
+
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertSame('15:30', $gameUser['time']);
+    }
+
+    public function testKeepsUserMessageThatCarriesMoreThanTheTime(): void
+    {
+        $this->seedFullGame(gameKey: 'query_1');
+        $update = $this->buildUpdate('I can only make it by 15:30 folks', 'query_1');
+
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
+
+        $this->assertMessageNotDeleted();
+    }
+
+    public function testKeepsUserMessageWithoutTime(): void
+    {
+        $this->seedFullGame(gameKey: 'query_1');
+        $update = $this->buildUpdate('no time here', 'query_1');
+
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
+
+        $this->assertMessageNotDeleted();
     }
 
     public function testRefreshesInlineMessage(): void
@@ -86,6 +126,22 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
+        $this->assertMessageNotEdited();
+    }
+
+    public function testPastDayGameIgnoresReplyWithTime(): void
+    {
+        $gameId = $this->createGame(
+            title: 'Old Game 01.01.2020 18:00',
+            inlineMessageId: 'msg_1',
+            gameKey: 'query_1',
+        );
+        $update = $this->buildUpdate('15:30', 'query_1');
+
+        new JoinWithTimeProcessor($this->telegramSender)->process($update);
+
+        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $this->assertNull($gameUser);
         $this->assertMessageNotEdited();
     }
 
