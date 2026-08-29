@@ -204,6 +204,15 @@ readonly class TelegramMessageSender
         }
     }
 
+    /**
+     * Only deletes outgoing ephemeral messages
+     *
+     * @param int $chatId
+     * @param int $ephemeralMessageId
+     * @param int $receiverUserId
+     *
+     * @return void
+     */
     public function deleteEphemeralMessage(int $chatId, int $ephemeralMessageId, int $receiverUserId): void
     {
         try {

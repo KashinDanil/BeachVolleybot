@@ -17,21 +17,13 @@ class GroupHelpCommandProcessor extends AbstractActionProcessor
         $helpMessage = new HelpMessageBuilder(Translator::fromUser($message->from))
             ->build(BOT_USERNAME, $message->chat->isGroupChat());
 
-        $sent = $this->telegramSender->sendEphemeralMessage(
+        $this->telegramSender->sendEphemeralMessage(
             $message->chat->id,
             $message->from->id,
             $message->ephemeralMessageId,
             $helpMessage,
             $message->resolveMessageThreadId(),
         );
-
-        if ($sent) {
-            $this->telegramSender->deleteEphemeralMessage(
-                $message->chat->id,
-                $message->ephemeralMessageId,
-                $message->from->id,
-            );
-        }
 
         $this->logUserAction($message->from, 'help_command', 'chat=group');
     }

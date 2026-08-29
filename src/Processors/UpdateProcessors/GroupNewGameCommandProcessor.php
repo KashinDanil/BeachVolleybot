@@ -17,21 +17,13 @@ class GroupNewGameCommandProcessor extends AbstractActionProcessor
 
         $picker = new NewGameDatePickerMessageBuilder(Translator::fromUser($message->from), new DateTimeImmutable())->build();
 
-        $sent = $this->telegramSender->sendEphemeralMessage(
+        $this->telegramSender->sendEphemeralMessage(
             $message->chat->id,
             $message->from->id,
             $message->ephemeralMessageId,
             $picker,
             $message->resolveMessageThreadId(),
         );
-
-        if ($sent) {
-            $this->telegramSender->deleteEphemeralMessage(
-                $message->chat->id,
-                $message->ephemeralMessageId,
-                $message->from->id,
-            );
-        }
 
         $this->logUserAction($message->from, 'new_game_start', 'chat=group');
     }

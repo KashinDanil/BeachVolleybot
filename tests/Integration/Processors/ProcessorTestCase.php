@@ -386,26 +386,6 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         return end($calls)['args'][1];
     }
 
-    /**
-     * Ephemeral deletes go through call('deleteEphemeralMessage', ...).
-     *
-     * @return ?array<string, mixed>
-     */
-    protected function lastEphemeralDeleteParams(): ?array
-    {
-        $calls = array_filter(
-            $this->bot->calls,
-            static fn(array $call): bool => 'call' === $call['method']
-                && 'deleteEphemeralMessage' === ($call['args'][0] ?? null),
-        );
-
-        if (empty($calls)) {
-            return null;
-        }
-
-        return end($calls)['args'][1];
-    }
-
     protected function privateMessagePayload(
         string $text,
         int $fromId = self::ADMIN_TELEGRAM_USER_ID,
