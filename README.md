@@ -20,7 +20,7 @@ This project was created to address a common frustration: _manually copying part
 - **My games** — the `/games` command in DM lists the games a user has created, with pagination and a per-game detail view from which the game can be shared again
 - **Welcome flow** — the `/start` command (also triggered by `/help`) shows a welcome message
 - **Group help** — `/help` in a group sends the same help text as an ephemeral message, visible only to the person who asked; answered inside the webhook request, since Telegram expires an ephemeral reply 15 seconds after the command
-- **Weather forecasts** — hourly forecast for the game window, attached to the message and refreshable on demand; powered by Open-Meteo, resolved per known venue, cached in SQLite, and computed off the request path by a dedicated worker
+- **Weather forecasts** — hourly forecast for the game window, attached to the message and refreshed whenever the game changes; powered by Open-Meteo, resolved per known venue, cached in SQLite, and computed off the request path by a dedicated worker
 - **Multi-language support** — English (default), Russian, Spanish
 - **Concurrency handling** via file-based locking
 - **Asynchronous processing** via file-based queues and workers
@@ -83,7 +83,7 @@ Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `
 │   │   ├── AdminProcessors/    # Admin panel callbacks (game / user / equipment / logs / settings)
 │   │   ├── UserProcessors/     # /help (also /start), /games command and pagination/detail callbacks
 │   │   ├── UpdateProcessors/   # Game lifecycle: create, forward, join-with-time, change-title, set-location, pin-message, group help…
-│   │   │   └── CallbackQuery/  # Per-game callbacks (join, leave, add/remove volleyball/net, refresh weather)
+│   │   │   └── CallbackQuery/  # Per-game callbacks (join, leave, add/remove volleyball/net)
 │   │   ├── Handlers/           # Per-update handlers (matches / createProcessor [/ routeToQueue])
 │   │   │   ├── GameHandlers/      # Routed onto game_<id> queue
 │   │   │   ├── GroupHandlers/     # Answered on the request — ephemeral group /help

@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\AddOns;
 
-use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
-use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
 use BeachVolleybot\Weather\Forecast\WeatherFormatter;
@@ -16,8 +13,6 @@ use BeachVolleybot\Weather\Forecast\WeatherFormatter;
 final class WeatherAddOn implements GameAddOnInterface
 {
     private const int WEATHER_SECTION_POSITION = 3;
-
-    private const string REFRESH_BUTTON_LABEL = '🔄 Weather';
 
     public function __construct(
         private readonly GameWeatherLookup $gameWeatherLookup = new GameWeatherLookup(),
@@ -32,7 +27,6 @@ final class WeatherAddOn implements GameAddOnInterface
         }
 
         $this->installSectionOverride($game->telegramMessageBuilder, $section);
-        $this->installKeyboardOverride($game->telegramMessageBuilder);
     }
 
     private function installSectionOverride(GameMessageBuilder $builder, string $section): void
@@ -46,31 +40,6 @@ final class WeatherAddOn implements GameAddOnInterface
                 array_splice($sections, self::WEATHER_SECTION_POSITION, 0, [$section]);
 
                 return $sections;
-            }
-        );
-    }
-
-    private function installKeyboardOverride(GameMessageBuilder $builder): void
-    {
-        $previousKeyboard = $builder->getEffective('buildKeyboard');
-
-        $builder->override(
-            'buildKeyboard',
-            static function (GameInterface $game) use ($previousKeyboard, $builder): array {
-                $rows = $previousKeyboard($game);
-
-                if (GameDateTimeResolver::isKickoffPast($game->getTitle(), $game->getCreatedAt())) {
-                    return $rows;
-                }
-
-                $rows[] = [
-                    $builder->buildActionButton(
-                        self::REFRESH_BUTTON_LABEL,
-                        GameCallbackData::create(GameCallbackAction::RefreshWeather),
-                    ),
-                ];
-
-                return $rows;
             }
         );
     }

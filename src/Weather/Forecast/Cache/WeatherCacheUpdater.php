@@ -43,7 +43,7 @@ final readonly class WeatherCacheUpdater
         return true;
     }
 
-    public static function isFresh(?WeatherCacheRow $row): bool
+    private function isFresh(?WeatherCacheRow $row): bool
     {
         if (null === $row) {
             return false;
@@ -54,7 +54,7 @@ final readonly class WeatherCacheUpdater
 
     private function needsUpdate(LocationCoordinates $coordinates, DateTimeImmutable $kickoffUtc): bool
     {
-        return !self::isFresh($this->cache->find($coordinates, $kickoffUtc));
+        return !$this->isFresh($this->cache->find($coordinates, $kickoffUtc));
     }
 
     private function tryFetchSnapshot(LocationCoordinates $coordinates, WeatherWindow $window): ?WeatherSnapshot

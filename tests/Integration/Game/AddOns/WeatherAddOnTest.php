@@ -124,7 +124,7 @@ final class WeatherAddOnTest extends DatabaseTestCase
         $this->assertSame('[marker]', $sections[5]);
     }
 
-    public function testRefreshButtonAppendedWhenSectionPresent(): void
+    public function testKeyboardIsUntouchedWhenSectionRenders(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days');
         $coordinates = new LocationCoordinates(41.397, 2.211);
@@ -134,61 +134,26 @@ final class WeatherAddOnTest extends DatabaseTestCase
             title: 'Beach ' . $kickoffDay->format('d.m.Y') . ' 18:00',
             location: '41.397,2.211',
         );
+        $keyboardBefore = $game->telegramMessageBuilder->buildKeyboard($game);
 
         $this->addOn->applyTo($game);
-        $keyboard = $game->telegramMessageBuilder->buildKeyboard($game);
 
-        $refreshRow = $keyboard[array_key_last($keyboard)];
-        $this->assertCount(1, $refreshRow);
-        $this->assertSame('🔄 Weather', $refreshRow[0]['text']);
-        $callbackData = json_decode($refreshRow[0]['callback_data'], true, flags: JSON_THROW_ON_ERROR);
-        $this->assertSame('rw', $callbackData['a']);
+        $this->assertStringContainsString('Weather', $game->telegramMessageBuilder->getSections($game)[3]);
+        $this->assertSame($keyboardBefore, $game->telegramMessageBuilder->buildKeyboard($game));
     }
 
-    public function testRefreshButtonAbsentWhenSectionMissing(): void
+    public function testKeyboardIsUntouchedWhenSectionMissing(): void
     {
         $farFutureDay = new DateTimeImmutable('+10 days');
         $game = $this->game(
             title: 'Beach ' . $farFutureDay->format('d.m.Y') . ' 18:00',
             location: '41.397,2.211',
         );
-
-        $this->addOn->applyTo($game);
-        $keyboard = $game->telegramMessageBuilder->buildKeyboard($game);
-
-        foreach ($keyboard as $row) {
-            foreach ($row as $button) {
-                $this->assertStringNotContainsString('🔄', $button['text']);
-            }
-        }
-    }
-
-    public function testRefreshButtonAbsentWhenKickoffIsPastEvenIfSectionRenders(): void
-    {
-        // Kickoff 2 hours ago: forecast is cached at its original UTC kickoff, so the
-        // weather section still renders (display is not horizon-gated), but refresh is
-        // meaningless — the button must not appear.
-        $pastKickoff = new DateTimeImmutable('-2 hours');
-        $coordinates = new LocationCoordinates(41.397, 2.211);
-        $kickoffUtc = $pastKickoff->setTimezone(new DateTimeZone('UTC'))->setTime((int) $pastKickoff->format('G'), 0);
-        $this->weatherCache->save($coordinates, $kickoffUtc, $this->snapshotForHour($kickoffUtc));
-        $game = $this->game(
-            title: 'Beach ' . $pastKickoff->format('d.m.Y') . ' ' . $pastKickoff->format('H') . ':00',
-            location: '41.397,2.211',
-        );
+        $keyboardBefore = $game->telegramMessageBuilder->buildKeyboard($game);
 
         $this->addOn->applyTo($game);
 
-        $sections = $game->telegramMessageBuilder->getSections($game);
-        $this->assertNotNull($sections[3]);
-        $this->assertStringContainsString('Weather', $sections[3]);
-
-        $keyboard = $game->telegramMessageBuilder->buildKeyboard($game);
-        foreach ($keyboard as $row) {
-            foreach ($row as $button) {
-                $this->assertStringNotContainsString('🔄', $button['text']);
-            }
-        }
+        $this->assertSame($keyboardBefore, $game->telegramMessageBuilder->buildKeyboard($game));
     }
 
     public function testSectionIsCapturedAtApplyTimeAndUnaffectedByLaterCacheChanges(): void
