@@ -12,6 +12,7 @@ use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
 use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
 use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
 use BeachVolleybot\Weather\Location\GameLocationResolver;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use DanilKashin\FileQueue\Queue\QueueMessage;
@@ -283,6 +284,8 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             'location' => $location,
             'created_by' => 100,
             'game_key' => $gameKey ?? 'query_' . $sequence,
+            'kickoff_at' => $this->resolveKickoffAt($title),
+            'venue_name' => KnownVenues::findInTitle($title)?->name,
         ]);
 
         $gameId = (int) $this->db->id();

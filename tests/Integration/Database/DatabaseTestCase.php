@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Database;
 
+use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\User\Role;
+use BeachVolleybot\Weather\Location\KnownVenues;
+use DateTimeImmutable;
 use Medoo\Medoo;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
 abstract class DatabaseTestCase extends TestCase
 {
+    /** Stands in for titles that carry no resolvable kickoff, which games.kickoff_at no longer allows. */
+    private const string FALLBACK_KICKOFF_AT = '2099-12-31 18:00:00';
+
     protected Medoo $db;
 
     protected function setUp(): void
@@ -34,6 +40,7 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('008_rename_inline_query_id_to_game_key.sql');
         $this->applyMigration('009_add_game_chat_messages.sql');
         $this->applyMigration('010_add_kickoff_at_and_venue_name.sql');
+        $this->applyMigration('011_require_kickoff_at.sql');
     }
 
     /**
@@ -54,17 +61,26 @@ abstract class DatabaseTestCase extends TestCase
         int $createdBy = 100,
         string $inlineMessageId = 'msg_1',
         string $gameKey = 'query_1',
+        ?string $kickoffAt = null,
     ): int {
         $this->db->insert('games', [
             'title' => $title,
             'created_by' => $createdBy,
             'game_key' => $gameKey,
+            'kickoff_at' => $kickoffAt ?? $this->resolveKickoffAt($title),
+            'venue_name' => KnownVenues::findInTitle($title)?->name,
         ]);
         $gameId = (int) $this->db->id();
 
         $this->attachInlineMessage($gameId, $inlineMessageId);
 
         return $gameId;
+    }
+
+    protected function resolveKickoffAt(string $title): string
+    {
+        return GameDateTimeResolver::resolve($title, new DateTimeImmutable())?->format('Y-m-d H:i:s')
+            ?? self::FALLBACK_KICKOFF_AT;
     }
 
     protected function attachInlineMessage(int $gameId, string $inlineMessageId): void

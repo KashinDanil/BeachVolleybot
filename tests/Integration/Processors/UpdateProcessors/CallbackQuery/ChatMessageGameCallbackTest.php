@@ -35,6 +35,8 @@ final class ChatMessageGameCallbackTest extends ProcessorTestCase
             'title' => 'Bogatell 31.12.2099 18:00',
             'created_by' => 200,
             'game_key' => 'gk_chat',
+            'kickoff_at' => '2099-12-31 18:00:00',
+            'venue_name' => 'Bogatell',
         ]);
         $gameId = (int) $this->db->id();
         $this->db->insert('game_chat_messages', ['game_id' => $gameId, 'chat_id' => $chatId, 'message_id' => $messageId]);
