@@ -33,6 +33,7 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('007_add_role_to_users.sql');
         $this->applyMigration('008_rename_inline_query_id_to_game_key.sql');
         $this->applyMigration('009_add_game_chat_messages.sql');
+        $this->applyMigration('010_add_kickoff_at_and_venue_name.sql');
     }
 
     /**

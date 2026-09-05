@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Database;
 
+use BeachVolleybot\Game\ParsedTitle;
+use DateTimeImmutable;
+
 readonly class GameRepository extends AbstractRepository
 {
     protected function table(): string
@@ -16,13 +19,20 @@ readonly class GameRepository extends AbstractRepository
         return 'game_id';
     }
 
-    public function create(string $title, int $createdBy, string $gameKey, ?string $location = null): int
-    {
+    public function create(
+        string $title,
+        int $createdBy,
+        string $gameKey,
+        ParsedTitle $parsedTitle,
+        ?string $location = null,
+    ): int {
         $this->db->insert($this->table(), [
             'title' => $title,
             'location' => $location,
             'created_by' => $createdBy,
             'game_key' => $gameKey,
+            'kickoff_at' => $parsedTitle->kickoffAt,
+            'venue_name' => $parsedTitle->venueName,
         ]);
 
         return (int) $this->db->id();
@@ -33,14 +43,25 @@ readonly class GameRepository extends AbstractRepository
         $this->db->update($this->table(), ['location' => $location], ['game_id' => $gameId]);
     }
 
-    public function updateTitle(int $gameId, string $title): void
+    public function updateTitle(int $gameId, string $title, ParsedTitle $parsedTitle): void
     {
-        $this->db->update($this->table(), ['title' => $title], ['game_id' => $gameId]);
+        $this->db->update($this->table(), [
+            'title' => $title,
+            'kickoff_at' => $parsedTitle->kickoffAt,
+            'venue_name' => $parsedTitle->venueName,
+        ], ['game_id' => $gameId]);
     }
 
     public function findTitleByGameId(int $gameId): ?string
     {
         return $this->db->get($this->table(), 'title', ['game_id' => $gameId]) ?: null;
+    }
+
+    public function findCreatedAtByGameId(int $gameId): ?DateTimeImmutable
+    {
+        $createdAt = $this->db->get($this->table(), 'created_at', ['game_id' => $gameId]);
+
+        return $createdAt ? new DateTimeImmutable((string) $createdAt) : null;
     }
 
     public function findByGameKey(string $gameKey): ?array

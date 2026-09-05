@@ -51,6 +51,7 @@ readonly class GameManager
             $data->title,
             $data->telegramUserId,
             $data->gameKey,
+            ParsedTitle::resolve($data->title, new DateTimeImmutable()),
         );
 
         $this->gameUserRepository->create(
@@ -201,7 +202,7 @@ readonly class GameManager
             return;
         }
 
-        $this->gameRepository->updateTitle($gameId, $normalizedTitle);
+        $this->gameRepository->updateTitle($gameId, $normalizedTitle, $this->parseTitle($gameId, $normalizedTitle));
         $this->setUserTime($gameId, $telegramUserId, $firstName, $lastName, $username, $proposedTime);
     }
 
@@ -343,12 +344,13 @@ readonly class GameManager
             return;
         }
 
-        $title = $this->gameRepository->findTitleByGameId($gameId);
+        $game = $this->gameRepository->findById($gameId);
 
-        if (null === $title) {
+        if (null === $game) {
             return;
         }
 
+        $title = (string) $game['title'];
         $currentTime = TimeExtractor::extractRaw($title);
 
         if (null === $currentTime || $currentTime === $earliestTime) {
@@ -356,6 +358,15 @@ readonly class GameManager
         }
 
         $updatedTitle = str_replace($currentTime, $earliestTime, $title);
-        $this->gameRepository->updateTitle($gameId, $updatedTitle);
+        $createdAt = new DateTimeImmutable((string) $game['created_at']);
+
+        $this->gameRepository->updateTitle($gameId, $updatedTitle, ParsedTitle::resolve($updatedTitle, $createdAt));
+    }
+
+    private function parseTitle(int $gameId, string $title): ParsedTitle
+    {
+        $createdAt = $this->gameRepository->findCreatedAtByGameId($gameId) ?? new DateTimeImmutable();
+
+        return ParsedTitle::resolve($title, $createdAt);
     }
 }

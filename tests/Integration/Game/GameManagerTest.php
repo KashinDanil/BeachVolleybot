@@ -47,6 +47,21 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Game 18:00', $game['title']);
     }
 
+    public function testCreateGameStoresKickoffAndVenueFromTitle(): void
+    {
+        $data = NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Somorrostro 31.12.2099 18:00',
+            'query_1',
+        );
+
+        $gameId = $this->gameManager->createGame($data);
+
+        $game = new GameRepository($this->db)->findById($gameId);
+        $this->assertSame('2099-12-31 18:00:00', $game['kickoff_at']);
+        $this->assertSame('Somorrostro', $game['venue_name']);
+    }
+
     public function testAddInlineMessageAttachesToJunctionTable(): void
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
@@ -406,6 +421,19 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Beach 16:00', $title);
     }
 
+    public function testRecalculatedGameTimeAlsoRewritesKickoff(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, net: 0, time: '16:00');
+
+        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
+
+        $game = new GameRepository($this->db)->findById($gameId);
+        $this->assertSame('Beach 31.12.2099 16:00', $game['title']);
+        $this->assertSame('2099-12-31 16:00:00', $game['kickoff_at']);
+    }
+
     public function testRemoveNetRecalculatesGameTimeToNextNetHolder(): void
     {
         $gameId = $this->createGame(title: 'Beach 16:00');
@@ -487,6 +515,17 @@ final class GameManagerTest extends DatabaseTestCase
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach Saturday 20:00', $title);
+    }
+
+    public function testChangeTitleRewritesKickoffAndVenue(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+
+        $this->gameManager->changeTitle($gameId, 200, 'Danil', null, null, 'Bogatell 31.12.2099 20:00');
+
+        $game = new GameRepository($this->db)->findById($gameId);
+        $this->assertSame('2099-12-31 20:00:00', $game['kickoff_at']);
+        $this->assertSame('Bogatell', $game['venue_name']);
     }
 
     public function testChangeTitleUpdatesCreatorUserTime(): void
