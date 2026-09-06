@@ -79,11 +79,6 @@ final class GameRepositoryTest extends DatabaseTestCase
         $this->assertNull($game['venue_name']);
     }
 
-    public function testFindCreatedAtByGameIdReturnsNullWhenNotFound(): void
-    {
-        $this->assertNull($this->repository->findCreatedAtByGameId(999));
-    }
-
     public function testFindByIdReturnsNullWhenNotFound(): void
     {
         $this->assertNull($this->repository->findById(999));

@@ -16,14 +16,14 @@ final class GameDetailMessageFactory
 {
     public static function build(int $gameId): TelegramMessage
     {
-        $game = GameFactory::tryFromGameId($gameId, addOns: []);
+        $gameRecord = new GameManager()->findGameRecordById($gameId);
         $builder = new GameDetailMessageBuilder();
 
-        if (null === $game) {
+        if (null === $gameRecord) {
             return $builder->buildGameNotFound();
         }
 
-        $gameRecord = new GameManager()->findGameRecordById($gameId);
+        $game = GameFactory::fromRecord($gameRecord, addOns: []);
         $creatorRow = new UserRepository(Connection::get())->findById($gameRecord->createdBy);
         // Mirrors the inline-share gate (`GameNotFinishedRule`): share stays available
         // until the kickoff day is over, not just until the kickoff hour.

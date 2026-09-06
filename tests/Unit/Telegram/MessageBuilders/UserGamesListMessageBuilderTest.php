@@ -10,10 +10,13 @@ use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\KeyboardPagination;
 use BeachVolleybot\Telegram\MessageBuilders\UserGamesListMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use DanilKashin\Localization\Language;
 use PHPUnit\Framework\TestCase;
 
 final class UserGamesListMessageBuilderTest extends TestCase
 {
+    private const string KICKOFF_AT = '2099-12-31 18:00:00';
+
     private UserGamesListMessageBuilder $builder;
 
     protected function setUp(): void
@@ -66,19 +69,30 @@ final class UserGamesListMessageBuilderTest extends TestCase
         $this->assertSame(1, count($keyboard[0]));
     }
 
-    public function testGameButtonLabelIncludesGameId(): void
+    public function testGameButtonLabelShowsIdAndKickoff(): void
     {
-        $games = [['game_id' => 42, 'title' => 'Friday Game 18:00']];
+        $games = [['game_id' => 42, 'kickoff_at' => self::KICKOFF_AT]];
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(1));
         $keyboard = $this->extractKeyboard($message);
 
-        $this->assertStringContainsString('#42', $keyboard[0][0]['text']);
+        $this->assertSame('#42 · Thu, 31 Dec 2099 18:00', $keyboard[0][0]['text']);
+    }
+
+    public function testGameButtonLabelIsSpelledInTheUsersLanguage(): void
+    {
+        $games = [['game_id' => 42, 'kickoff_at' => self::KICKOFF_AT]];
+        $builder = new UserGamesListMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
+
+        $message = $builder->buildGamesList($games, $this->paginationFor(1));
+        $keyboard = $this->extractKeyboard($message);
+
+        $this->assertSame('#42 · чт, 31 дек 2099 18:00', $keyboard[0][0]['text']);
     }
 
     public function testGameButtonCallbackContainsGameIdAndCurrentPage(): void
     {
-        $games = [['game_id' => 42, 'title' => 'Friday Game 18:00']];
+        $games = [['game_id' => 42, 'kickoff_at' => self::KICKOFF_AT]];
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(totalGames: 11, page: 2));
         $keyboard = $this->extractKeyboard($message);
@@ -180,7 +194,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
         $rows = [];
 
         for ($i = 1; $i <= $count; $i++) {
-            $rows[] = ['game_id' => $i, 'title' => "Game $i 18:00"];
+            $rows[] = ['game_id' => $i, 'kickoff_at' => self::KICKOFF_AT];
         }
 
         return $rows;

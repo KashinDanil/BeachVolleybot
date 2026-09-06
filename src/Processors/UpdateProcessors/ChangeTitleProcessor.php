@@ -17,7 +17,7 @@ class ChangeTitleProcessor extends AbstractGameReplyProcessor
         $newTitle = $message->text ?? '';
 
         new GameManager()->changeTitle(
-            $gameRecord->gameId,
+            $gameRecord,
             $from->id,
             $from->firstName,
             $from->lastName,

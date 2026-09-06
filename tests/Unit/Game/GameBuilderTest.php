@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Game;
 
 use BeachVolleybot\Game\GameBuilder;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
@@ -16,7 +17,7 @@ final class GameBuilderTest extends TestCase
 
     public function testGameId(): void
     {
-        $game = $this->buildGame(gameRow: $this->gameRow(gameId: 42));
+        $game = $this->buildGame(game: $this->gameRecord(gameId: 42));
 
         $this->assertSame(42, $game->getGameId());
     }
@@ -32,7 +33,7 @@ final class GameBuilderTest extends TestCase
 
     public function testTitle(): void
     {
-        $game = $this->buildGame(gameRow: $this->gameRow(title: 'Sunday Game 19:00'));
+        $game = $this->buildGame(game: $this->gameRecord(title: 'Sunday Game 19:00'));
 
         $this->assertSame('Sunday Game 19:00', $game->getTitle());
     }
@@ -210,20 +211,21 @@ final class GameBuilderTest extends TestCase
 
     // --- Helpers ---
 
-    private function gameRow(
+    private function gameRecord(
         int $gameId = 1,
         string $gameKey = 'query_1',
         string $title = 'Beach Game 18:00',
         string $createdAt = '2026-01-01 12:00:00',
         string $kickoffAt = '2099-12-31 18:00:00',
-    ): array {
-        return [
+    ): GameRecord {
+        return GameRecord::fromRow([
             'game_id' => $gameId,
             'game_key' => $gameKey,
+            'created_by' => 100,
             'title' => $title,
             'created_at' => $createdAt,
             'kickoff_at' => $kickoffAt,
-        ];
+        ]);
     }
 
     private function slotRow(int $userId = 100, int $position = 1): array
@@ -265,14 +267,14 @@ final class GameBuilderTest extends TestCase
     }
 
     private function buildGame(
-        ?array $gameRow = null,
+        ?GameRecord $game = null,
         array $messageTargets = [new InlineGameMessageTarget('msg_1')],
         array $slotRows = [],
         array $gameUserRows = [],
         array $userRows = [],
     ): GameInterface {
         return new GameBuilder(
-            gameRow: $gameRow ?? $this->gameRow(),
+            game: $game ?? $this->gameRecord(),
             messageTargets: $messageTargets,
             slotRows: $slotRows,
             gameUserRows: $gameUserRows,

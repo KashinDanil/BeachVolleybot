@@ -6,6 +6,7 @@ namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 
 use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\GameFactory;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
@@ -19,13 +20,10 @@ final class UserGameDetailMessageFactory
 {
     public const string HEADER_FORMAT = 'Game #%d';
 
-    public static function build(int $gameId, int $listPage, Translator $translator): ?TelegramMessage
+    public static function build(GameRecord $gameRecord, int $listPage, Translator $translator): TelegramMessage
     {
-        $game = GameFactory::tryFromGameId($gameId);
-
-        if (null === $game) {
-            return null;
-        }
+        $game = GameFactory::fromRecord($gameRecord);
+        $gameId = $gameRecord->gameId;
 
         $builder = $game->telegramMessageBuilder;
         // Mirrors the inline-share gate (`GameNotFinishedRule`): share stays available

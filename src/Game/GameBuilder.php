@@ -10,12 +10,10 @@ use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
-use DateTimeImmutable;
 
 readonly class GameBuilder
 {
     /**
-     * @param array<string, mixed> $gameRow
      * @param list<GameMessageTarget> $messageTargets
      * @param list<array<string, mixed>> $slotRows
      * @param list<array<string, mixed>> $gameUserRows
@@ -23,7 +21,7 @@ readonly class GameBuilder
      * @param list<class-string<GameAddOnInterface>> $addOns
      */
     public function __construct(
-        private array $gameRow,
+        private GameRecord $game,
         private array $messageTargets,
         private array $slotRows,
         private array $gameUserRows,
@@ -34,18 +32,16 @@ readonly class GameBuilder
 
     public function build(): GameInterface
     {
-        $title = (string)$this->gameRow['title'];
-
         $game = new Game(
-            gameId: (int)$this->gameRow['game_id'],
-            gameKey: (string)$this->gameRow['game_key'],
+            gameId: $this->game->gameId,
+            gameKey: $this->game->gameKey,
             messageTargets: $this->messageTargets,
-            title: $title,
+            title: $this->game->title,
             users: $this->buildUsersFromRows(),
-            createdAt: new DateTimeImmutable((string)$this->gameRow['created_at']),
-            kickoffAt: new DateTimeImmutable((string)$this->gameRow['kickoff_at']),
-            venueName: $this->gameRow['venue_name'] ?? null,
-            location: $this->gameRow['location'] ?? null,
+            createdAt: $this->game->createdAt,
+            kickoffAt: $this->game->kickoffAt,
+            venueName: $this->game->venueName,
+            location: $this->game->location,
         );
 
         return GameAddOnApplier::apply($game, $this->addOns);

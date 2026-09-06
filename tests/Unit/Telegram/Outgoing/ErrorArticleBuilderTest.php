@@ -70,7 +70,7 @@ final class ErrorArticleBuilderTest extends TestCase
     public function testTranslatesTitle(): void
     {
         $error = InlineQueryError::fromError(new ValidationError(DateTimeInTitleRule::ERROR_DATE_AND_TIME_MISSING));
-        $translator = new Translator(Language::RU);
+        $translator = new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_'));
         $article = (new ErrorArticleBuilder($error, $translator))->build();
 
         $this->assertNotSame(InlineQueryError::DATE_AND_TIME_NOT_FOUND_TITLE, $article->getTitle());
@@ -79,7 +79,7 @@ final class ErrorArticleBuilderTest extends TestCase
     public function testTranslatesDescription(): void
     {
         $error = InlineQueryError::fromError(new ValidationError(DateTimeInTitleRule::ERROR_DATE_AND_TIME_MISSING));
-        $translator = new Translator(Language::RU);
+        $translator = new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_'));
         $article = (new ErrorArticleBuilder($error, $translator))->build();
 
         $this->assertNotSame(InlineQueryError::DATE_AND_TIME_NOT_FOUND_DESCRIPTION, $article->getDescription());

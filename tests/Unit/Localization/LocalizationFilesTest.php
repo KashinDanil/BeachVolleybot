@@ -10,10 +10,22 @@ final class LocalizationFilesTest extends TestCase
 {
     private const string LOCALIZATION_DIR = __DIR__ . '/../../../localization';
 
+    /** The bot writes this one itself; it is a report, not a translation file. */
+    private const string MISSING_TRANSLATIONS_FILE = 'missing.json';
+
+    /** @return list<string> */
+    private static function translationFiles(): array
+    {
+        return array_values(array_filter(
+            glob(self::LOCALIZATION_DIR . '/*.json'),
+            static fn(string $path): bool => self::MISSING_TRANSLATIONS_FILE !== basename($path),
+        ));
+    }
+
     /** @return array<string, array<string, string>> filename => translations */
     private static function loadAllFiles(): array
     {
-        $files = glob(self::LOCALIZATION_DIR . '/*.json');
+        $files = self::translationFiles();
         self::assertNotEmpty($files, 'No localization files found');
 
         $all = [];
@@ -31,9 +43,18 @@ final class LocalizationFilesTest extends TestCase
         return $all;
     }
 
+    /** Translator writes here by default, so a test that skipped passing its own file left this behind. */
+    public function testNoMissingTranslationsFileIsLeftInTheRepository(): void
+    {
+        $this->assertFileDoesNotExist(
+            self::LOCALIZATION_DIR . '/' . self::MISSING_TRANSLATIONS_FILE,
+            'A test wrote this. Pass a temporary file as the Translator\'s second argument.',
+        );
+    }
+
     public function testAllFilesContainValidJson(): void
     {
-        foreach (glob(self::LOCALIZATION_DIR . '/*.json') as $path) {
+        foreach (self::translationFiles() as $path) {
             $filename = basename($path);
             $content = file_get_contents($path);
 

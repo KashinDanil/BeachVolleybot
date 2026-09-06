@@ -19,14 +19,14 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     private GameRepository $gameRepository;
 
-    public function testGameLabelContainsIdDayOfWeekAndTime(): void
+    public function testGameButtonShowsIdWeekdayDateAndTime(): void
     {
-        $this->createGame(title: 'Friday Game 18:00');
+        $this->createGame(title: 'Beach 31.12.2099 18:00');
 
         $message = $this->buildGamesList();
         $keyboard = $this->extractKeyboard($message);
 
-        $this->assertSame('#1 Friday 18:00', $keyboard[0][0]['text']);
+        $this->assertSame('#1 · Thu, 31 Dec 2099 18:00', $keyboard[0][0]['text']);
     }
 
     private function buildGamesList(int $page = 1): TelegramMessage
@@ -45,53 +45,33 @@ final class GameMessageBuilderTest extends DatabaseTestCase
         return json_decode($message->getKeyboard()->toJson(), true)['inline_keyboard'];
     }
 
-    public function testGameLabelContainsIdDateAndTime(): void
+    public function testGameButtonReadsTheStoredKickoffRatherThanTheTitle(): void
     {
-        $this->createGame(title: 'Beach 12.04 18:00');
+        $this->createGame(title: 'Beach 12.04.2020 10:00', kickoffAt: '2099-12-31 18:00:00');
 
         $message = $this->buildGamesList();
         $keyboard = $this->extractKeyboard($message);
 
-        $this->assertSame('#1 12.04 18:00', $keyboard[0][0]['text']);
-    }
-
-    public function testGameLabelContainsIdAndDateWithTextMonth(): void
-    {
-        $this->createGame(title: 'Beach 5th April 18:00');
-
-        $message = $this->buildGamesList();
-        $keyboard = $this->extractKeyboard($message);
-
-        $this->assertSame('#1 5th April 18:00', $keyboard[0][0]['text']);
-    }
-
-    public function testGameLabelFallsBackToIdWhenNoDateOrTime(): void
-    {
-        $this->createGame(title: 'Just a game');
-
-        $message = $this->buildGamesList();
-        $keyboard = $this->extractKeyboard($message);
-
-        $this->assertSame('#1', $keyboard[0][0]['text']);
+        $this->assertSame('#1 · Thu, 31 Dec 2099 18:00', $keyboard[0][0]['text']);
     }
 
     public function testGamesListOrdersDescendingById(): void
     {
-        $this->createGame(title: 'First 10:00', inlineMessageId: 'msg_1', gameKey: 'q_1');
-        $this->createGame(title: 'Second 14:00', inlineMessageId: 'msg_2', gameKey: 'q_2');
+        $this->createGame(title: 'First 01.01.2020 10:00', inlineMessageId: 'msg_1', gameKey: 'q_1');
+        $this->createGame(title: 'Second 01.01.2020 14:00', inlineMessageId: 'msg_2', gameKey: 'q_2');
 
         $message = $this->buildGamesList();
         $keyboard = $this->extractKeyboard($message);
 
-        $this->assertSame('#2 14:00', $keyboard[0][0]['text']);
-        $this->assertSame('#1 10:00', $keyboard[1][0]['text']);
+        $this->assertSame('#2 · Wed, 1 Jan 2020 14:00', $keyboard[0][0]['text']);
+        $this->assertSame('#1 · Wed, 1 Jan 2020 10:00', $keyboard[1][0]['text']);
     }
 
     // --- paginationRow ---
 
     public function testNoPaginationRowOnSinglePage(): void
     {
-        $games = [['game_id' => 1, 'title' => 'Game 18:00']];
+        $games = [['game_id' => 1, 'kickoff_at' => '2099-12-31 18:00:00']];
         $pagination = new KeyboardPagination(totalItems: 1, perPage: 5, page: 1);
 
         $message = $this->gamesListViewBuilder->buildGamesList($games, $pagination);
@@ -99,13 +79,13 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
         // row 0: game button, row 1: back button — no pagination row
         $this->assertCount(2, $keyboard);
-        $this->assertSame('#1 18:00', $keyboard[0][0]['text']);
+        $this->assertSame('#1 · Thu, 31 Dec 2099 18:00', $keyboard[0][0]['text']);
         $this->assertSame('↩ Back', $keyboard[1][0]['text']);
     }
 
     public function testPaginationRowAppearsOnMultiplePages(): void
     {
-        $games = [['game_id' => 1, 'title' => 'Game 18:00']];
+        $games = [['game_id' => 1, 'kickoff_at' => '2099-12-31 18:00:00']];
         $pagination = new KeyboardPagination(totalItems: 10, perPage: 5, page: 1);
 
         $message = $this->gamesListViewBuilder->buildGamesList($games, $pagination);
@@ -119,7 +99,7 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     public function testPaginationRowHasBothButtonsOnMiddlePage(): void
     {
-        $games = [['game_id' => 1, 'title' => 'Game 18:00']];
+        $games = [['game_id' => 1, 'kickoff_at' => '2099-12-31 18:00:00']];
         $pagination = new KeyboardPagination(totalItems: 15, perPage: 5, page: 2);
 
         $message = $this->gamesListViewBuilder->buildGamesList($games, $pagination);

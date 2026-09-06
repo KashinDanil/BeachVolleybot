@@ -11,6 +11,7 @@ use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use DateTimeImmutable;
 
 final class UserGamesListMessageBuilder extends AbstractMessageBuilder
 {
@@ -62,7 +63,11 @@ final class UserGamesListMessageBuilder extends AbstractMessageBuilder
         $keyboard = [];
 
         foreach ($games as $game) {
-            $keyboard[] = [$this->buildGameButton((int)$game['game_id'], (string)$game['title'], $pagination->getPage())];
+            $keyboard[] = [$this->buildGameButton(
+                (int)$game['game_id'],
+                new DateTimeImmutable((string)$game['kickoff_at']),
+                $pagination->getPage(),
+            )];
         }
 
         $paginationRow = $this->paginationRow(
@@ -79,10 +84,10 @@ final class UserGamesListMessageBuilder extends AbstractMessageBuilder
         return $keyboard;
     }
 
-    private function buildGameButton(int $gameId, string $title, int $currentPage): array
+    private function buildGameButton(int $gameId, DateTimeImmutable $kickoffAt, int $currentPage): array
     {
         return $this->buildActionButton(
-            GameLabel::format($gameId, $title),
+            GameLabel::format($gameId, $kickoffAt, $this->translator),
             UserCallbackData::create(UserCallbackAction::GameDetail)
                 ->withGameId($gameId)
                 ->withPage($currentPage),

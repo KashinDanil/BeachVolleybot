@@ -72,7 +72,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
         )->validate();
 
         if ($validationState->isSuccess()) {
-            return new ForwardGameArticleBuilder($inlineQuery, $gameId, $gameRecord->title, $translator);
+            return new ForwardGameArticleBuilder($inlineQuery, $gameRecord, $translator);
         }
 
         return new ErrorArticleBuilder(

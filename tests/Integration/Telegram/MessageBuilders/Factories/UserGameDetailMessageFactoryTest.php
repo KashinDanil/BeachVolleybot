@@ -6,6 +6,8 @@ namespace BeachVolleybot\Tests\Integration\Telegram\MessageBuilders\Factories;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\GameFactory;
+use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
@@ -32,20 +34,12 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
         Connection::close();
     }
 
-    public function testReturnsNullForNonexistentGame(): void
-    {
-        $this->assertNull(
-            UserGameDetailMessageFactory::build(gameId: 99999, listPage: 1, translator: new Translator()),
-        );
-    }
-
     public function testPrependsHeaderWithGameIdToText(): void
     {
         $gameId = $this->createGame(title: self::GAME_TITLE);
 
-        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+        $message = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 1, translator: new Translator());
 
-        $this->assertNotNull($message);
         $text = $message->getText()->getMessageText();
         $expectedHeader = new MarkdownV2()->bold("Game #$gameId");
         $this->assertStringContainsString($expectedHeader, $text);
@@ -61,7 +55,7 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: self::GAME_TITLE);
 
-        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+        $message = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 1, translator: new Translator());
 
         $this->assertStringContainsString('18:00', $message->getText()->getMessageText());
     }
@@ -70,7 +64,7 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: self::GAME_TITLE);
 
-        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+        $message = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 1, translator: new Translator());
 
         $this->assertCount(2, $this->extractKeyboard($message));
     }
@@ -79,7 +73,7 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: 'Saturday 01.01.2020 18:00');
 
-        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+        $message = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 1, translator: new Translator());
 
         $keyboard = $this->extractKeyboard($message);
         $this->assertCount(1, $keyboard, 'Past game should expose only Back; no Share row');
@@ -90,7 +84,7 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: 'Saturday 01.01.2020 18:00');
 
-        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+        $message = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 1, translator: new Translator());
 
         $keyboard = $this->extractKeyboard($message);
         $this->assertArrayNotHasKey('switch_inline_query', $keyboard[0][0]);
@@ -100,9 +94,8 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: 'Saturday 01.01.2020 18:00');
 
-        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+        $message = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 1, translator: new Translator());
 
-        $this->assertNotNull($message);
         $formatter = new MarkdownV2();
         $header = $formatter->bold("Game #$gameId");
         $notice = $formatter->blockquote($formatter->escape(ShareGameMessageBuilder::DISABLED_NOTICE));
@@ -116,9 +109,8 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: self::GAME_TITLE);
 
-        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+        $message = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 1, translator: new Translator());
 
-        $this->assertNotNull($message);
         $this->assertStringNotContainsString(
             ShareGameMessageBuilder::DISABLED_NOTICE,
             $message->getText()->getMessageText(),
@@ -129,7 +121,7 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: self::GAME_TITLE);
 
-        $message = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+        $message = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 1, translator: new Translator());
         $keyboard = $this->extractKeyboard($message);
 
         $shareButton = $keyboard[0][0];
@@ -141,7 +133,7 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: self::GAME_TITLE);
 
-        $message = UserGameDetailMessageFactory::build($gameId, listPage: 4, translator: new Translator());
+        $message = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 4, translator: new Translator());
         $keyboard = $this->extractKeyboard($message);
 
         $backButton = $keyboard[1][0];
@@ -157,20 +149,22 @@ final class UserGameDetailMessageFactoryTest extends DatabaseTestCase
     {
         $gameId = $this->createGame(title: self::GAME_TITLE);
 
-        $userMessage = UserGameDetailMessageFactory::build($gameId, listPage: 1, translator: new Translator());
+        $userMessage = UserGameDetailMessageFactory::build($this->gameRecord($gameId), listPage: 1, translator: new Translator());
         $realMessage = GameFactory::fromGameId($gameId)->buildTelegramMessage();
 
-        $this->assertNotNull($userMessage);
         // Stripping the prepended header should yield the same body as the real game view.
         $realText = $realMessage->getText()->getMessageText();
         $userText = $userMessage->getText()->getMessageText();
         $this->assertStringEndsWith($realText, $userText);
     }
 
-    private function extractKeyboard(?TelegramMessage $message): array
+    private function extractKeyboard(TelegramMessage $message): array
     {
-        $this->assertNotNull($message);
-
         return json_decode($message->getKeyboard()->toJson(), true)['inline_keyboard'];
+    }
+
+    private function gameRecord(int $gameId): GameRecord
+    {
+        return new GameManager()->findGameRecordById($gameId);
     }
 }

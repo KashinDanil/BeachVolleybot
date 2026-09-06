@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace BeachVolleybot\Database;
 
 use BeachVolleybot\Game\ParsedTitle;
-use DateTimeImmutable;
 
 readonly class GameRepository extends AbstractRepository
 {
@@ -57,13 +56,6 @@ readonly class GameRepository extends AbstractRepository
     public function findTitleByGameId(int $gameId): ?string
     {
         return $this->db->get($this->table(), 'title', ['game_id' => $gameId]) ?: null;
-    }
-
-    public function findCreatedAtByGameId(int $gameId): ?DateTimeImmutable
-    {
-        $createdAt = $this->db->get($this->table(), 'created_at', ['game_id' => $gameId]);
-
-        return $createdAt ? new DateTimeImmutable((string) $createdAt) : null;
     }
 
     public function findByGameKey(string $gameKey): ?array

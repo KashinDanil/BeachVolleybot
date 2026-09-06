@@ -28,19 +28,18 @@ final class GameFactory
             return null;
         }
 
-        return self::buildFromRow($gameRow, $addOns);
+        return self::fromRecord(GameRecord::fromRow($gameRow), $addOns);
     }
 
-    private static function buildFromRow(array $gameRow, array $addOns = GAME_ADD_ONS): GameInterface
+    public static function fromRecord(GameRecord $game, array $addOns = GAME_ADD_ONS): GameInterface
     {
         $db = Connection::get();
-        $gameId = (int)$gameRow['game_id'];
 
-        $messageTargets = new GameMessageRepository($db)->findTargetsByGameId($gameId);
-        $slotRows = new GameSlotRepository($db)->findByGameId($gameId);
-        $gameUserRows = new GameUserRepository($db)->findByGameId($gameId);
+        $messageTargets = new GameMessageRepository($db)->findTargetsByGameId($game->gameId);
+        $slotRows = new GameSlotRepository($db)->findByGameId($game->gameId);
+        $gameUserRows = new GameUserRepository($db)->findByGameId($game->gameId);
         $userRows = new UserRepository($db)->findByIds(array_column($gameUserRows, 'telegram_user_id'));
 
-        return new GameBuilder($gameRow, $messageTargets, $slotRows, $gameUserRows, $userRows, $addOns)->build();
+        return new GameBuilder($game, $messageTargets, $slotRows, $gameUserRows, $userRows, $addOns)->build();
     }
 }

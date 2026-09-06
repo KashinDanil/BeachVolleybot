@@ -50,16 +50,10 @@ class UserGameDetailCallbackProcessor extends AbstractCallbackProcessor
         }
 
         $message = UserGameDetailMessageFactory::build(
-            gameId: $gameId,
+            gameRecord: $gameRecord,
             listPage: $this->callbackData->getPage(),
             translator: Translator::fromUser($callbackQuery->from),
         );
-
-        if (null === $message) {
-            $this->answerCallbackQuery($callbackQuery, '');
-
-            return;
-        }
 
         $this->telegramSender->editMessage(
             $callbackQuery->message->chat->id,

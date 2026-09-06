@@ -189,7 +189,7 @@ readonly class GameManager
     }
 
     public function changeTitle(
-        int $gameId,
+        GameRecord $game,
         int $telegramUserId,
         string $firstName,
         ?string $lastName,
@@ -202,8 +202,10 @@ readonly class GameManager
             return;
         }
 
-        $this->gameRepository->updateTitle($gameId, $normalizedTitle, $this->parseTitle($gameId, $normalizedTitle));
-        $this->setUserTime($gameId, $telegramUserId, $firstName, $lastName, $username, $proposedTime);
+        $parsedTitle = ParsedTitle::parse($normalizedTitle, $game->createdAt);
+
+        $this->gameRepository->updateTitle($game->gameId, $normalizedTitle, $parsedTitle);
+        $this->setUserTime($game->gameId, $telegramUserId, $firstName, $lastName, $username, $proposedTime);
     }
 
     public function isUserInGame(int $gameId, int $telegramUserId): bool
@@ -256,18 +258,7 @@ readonly class GameManager
 
     private function buildGameRecord(?array $row): ?GameRecord
     {
-        if (null === $row) {
-            return null;
-        }
-
-        return new GameRecord(
-            (int)$row['game_id'],
-            (string)$row['game_key'],
-            (int)$row['created_by'],
-            (string)$row['title'],
-            new DateTimeImmutable((string)$row['created_at']),
-            new DateTimeImmutable((string)$row['kickoff_at']),
-        );
+        return null !== $row ? GameRecord::fromRow($row) : null;
     }
 
     protected function incrementNet(int $gameId, int $telegramUserId): EquipmentResult
@@ -362,12 +353,5 @@ readonly class GameManager
         $createdAt = new DateTimeImmutable((string) $game['created_at']);
 
         $this->gameRepository->updateTitle($gameId, $updatedTitle, ParsedTitle::parse($updatedTitle, $createdAt));
-    }
-
-    private function parseTitle(int $gameId, string $title): ParsedTitle
-    {
-        $createdAt = $this->gameRepository->findCreatedAtByGameId($gameId) ?? new DateTimeImmutable();
-
-        return ParsedTitle::parse($title, $createdAt);
     }
 }

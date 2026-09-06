@@ -65,5 +65,26 @@
     "Page %d of %d": "Página %d de %d",
     "« Prev": "« Anterior",
     "Next »": "Siguiente »",
-    "↩ Back": "↩ Atrás"
+    "↩ Back": "↩ Atrás",
+
+    "Mon": "lun",
+    "Tue": "mar",
+    "Wed": "mié",
+    "Thu": "jue",
+    "Fri": "vie",
+    "Sat": "sáb",
+    "Sun": "dom",
+
+    "Jan": "ene",
+    "Feb": "feb",
+    "Mar": "mzo",
+    "Apr": "abr",
+    "May": "may",
+    "Jun": "jun",
+    "Jul": "jul",
+    "Aug": "ago",
+    "Sep": "sep",
+    "Oct": "oct",
+    "Nov": "nov",
+    "Dec": "dic"
 }

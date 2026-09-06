@@ -5,14 +5,25 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\GameLabel;
+use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
+use BeachVolleybot\Telegram\MarkdownV2;
+use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use DateTimeImmutable;
 
 final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
 {
     public const string  HEADER_MESSAGE = 'Games';
     private const string NO_GAMES_FOUND = 'No games found';
+
+    public function __construct(
+        private readonly Translator $translator = new Translator(),
+        MessageFormatterInterface $formatter = new MarkdownV2(),
+    ) {
+        parent::__construct($formatter);
+    }
 
     public function buildGamesList(array $games, KeyboardPagination $pagination): TelegramMessage
     {
@@ -38,7 +49,7 @@ final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
         $keyboard = [];
 
         foreach ($games as $game) {
-            $keyboard[] = [$this->buildGameButton((int)$game['game_id'], $game['title'])];
+            $keyboard[] = [$this->buildGameButton((int)$game['game_id'], new DateTimeImmutable((string)$game['kickoff_at']))];
         }
 
         $paginationRow = $this->paginationRow($pagination, AdminCallbackData::create(AdminCallbackAction::GamesList));
@@ -51,10 +62,10 @@ final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
         return $keyboard;
     }
 
-    private function buildGameButton(int $gameId, string $title): array
+    private function buildGameButton(int $gameId, DateTimeImmutable $kickoffAt): array
     {
         return $this->buildActionButton(
-            GameLabel::format($gameId, $title),
+            GameLabel::format($gameId, $kickoffAt, $this->translator),
             AdminCallbackData::create(AdminCallbackAction::GameDetail)->withGameId($gameId),
         );
     }

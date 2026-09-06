@@ -6,6 +6,7 @@ namespace BeachVolleybot\Telegram\Messages\Outgoing;
 
 use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameLabel;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramInlineQuery;
 use TelegramBot\Api\Types\Inline\QueryResult\Article;
@@ -17,15 +18,14 @@ final readonly class ForwardGameArticleBuilder implements ArticleBuilderInterfac
 
     public function __construct(
         private TelegramInlineQuery $inlineQuery,
-        private int $gameId,
-        private string $gameTitle,
+        private GameRecord $gameRecord,
         private Translator $translator,
     ) {
     }
 
     public function build(): Article
     {
-        $game = GameFactory::fromGameId($this->gameId);
+        $game = GameFactory::fromRecord($this->gameRecord);
         $message = $game->buildTelegramMessage();
 
         return new Article(
@@ -39,6 +39,8 @@ final readonly class ForwardGameArticleBuilder implements ArticleBuilderInterfac
 
     private function buildArticleTitle(): string
     {
-        return $this->translator->translate(self::ARTICLE_TITLE_PREFIX) . ' ' . GameLabel::format($this->gameId, $this->gameTitle);
+        $label = GameLabel::format($this->gameRecord->gameId, $this->gameRecord->kickoffAt, $this->translator);
+
+        return $this->translator->translate(self::ARTICLE_TITLE_PREFIX) . ' ' . $label;
     }
 }
