@@ -522,6 +522,34 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         ];
     }
 
+    /**
+     * Text of the first message edit, with the MarkdownV2 escaping stripped as Telegram
+     * echoes it back. A DM edit and a group ephemeral edit land on different API methods.
+     */
+    protected function editedText(): ?string
+    {
+        foreach ($this->bot->calls as $call) {
+            if ('editMessageText' === $call['method']) {
+                return $this->stripEscaping($call['args'][2]);
+            }
+
+            if ('call' === $call['method'] && 'editEphemeralMessageText' === ($call['args'][0] ?? null)) {
+                return $this->stripEscaping($call['args'][1]['text'] ?? null);
+            }
+        }
+
+        return null;
+    }
+
+    private function stripEscaping(?string $text): ?string
+    {
+        if (null === $text) {
+            return null;
+        }
+
+        return str_replace('\\', '', $text);
+    }
+
     protected function assertMessageSent(): void
     {
         $calls = array_filter($this->bot->calls, fn($c) => 'sendMessage' === $c['method']);

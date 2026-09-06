@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQ
 use BeachVolleybot\Common\GameDateResolver;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameSendProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
@@ -79,10 +80,11 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
         $this->assertSame(0, new GameRepository($this->db)->countAll());
     }
 
-    public function testRejectsAKickoffWhoseDayHasAlreadyPassed(): void
+    public function testRestartsTheWizardWhenTheKickoffDayHasAlreadyPassed(): void
     {
         // The wizard can sit on the confirm page for days; by the time Send is tapped
-        // the chosen date may be in the past, so no game must be created.
+        // the chosen date may be in the past, so no game must be created and the
+        // wizard rewinds to step 1 instead.
         $update = $this->dmCallbackUpdate(
             NewGameCallbackData::create(NewGameCallbackAction::Send)->toJson(),
             $this->staleWizardText(),
@@ -92,6 +94,26 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
         $this->assertSame(0, new GameRepository($this->db)->countAll());
         $this->assertSame(0, $this->sendMessageCount());
+
+        $text = $this->editedText();
+        $this->assertNotNull($text, 'Expected the wizard to rewind to the date picker');
+        $this->assertStringContainsString('Step 1 of 4', $text);
+        $this->assertAnsweredWith(CallbackAnswer::DATE_ALREADY_PASSED);
+    }
+
+    // Telegram delivers no callback for a tap on an old ephemeral message, so this path
+    // cannot be reached today; it is kept for if that changes.
+    public function testRestartsTheEphemeralWizardWhenTheKickoffDayHasAlreadyPassed(): void
+    {
+        $update = $this->groupEphemeralSendUpdate('Bogatell', $this->staleWizardText());
+
+        $this->runProcessor($update);
+
+        $this->assertSame(0, new GameRepository($this->db)->countAll());
+
+        $text = $this->editedText();
+        $this->assertNotNull($text, 'Expected the ephemeral wizard to rewind to the date picker');
+        $this->assertStringContainsString('Step 1 of 4', $text);
     }
 
     public function testRejectsAnUnknownVenue(): void
@@ -190,7 +212,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
         ]);
     }
 
-    private function groupEphemeralSendUpdate(string $venueName): TelegramUpdate
+    private function groupEphemeralSendUpdate(string $venueName, ?string $text = null): TelegramUpdate
     {
         return TelegramUpdate::fromArray([
             'update_id' => 1,
@@ -204,7 +226,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
                     'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
                     'chat' => ['id' => self::GROUP_CHAT_ID, 'type' => 'supergroup'],
                     'date' => 1700000000,
-                    'text' => $this->wizardText($venueName),
+                    'text' => $text ?? $this->wizardText($venueName),
                 ],
                 'data' => NewGameCallbackData::create(NewGameCallbackAction::Send)->withVenueName($venueName)->toJson(),
             ],

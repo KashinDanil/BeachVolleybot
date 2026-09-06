@@ -19,4 +19,5 @@ final class CallbackAnswer
     public const string NO_NETS               = "You don't have any nets to remove";
     public const string SOMETHING_WENT_WRONG  = "Something went wrong";
     public const string GAME_ALREADY_FINISHED = "🏁 This game has already finished";
+    public const string DATE_ALREADY_PASSED   = "📅 That date has already gone by — let's pick a new one";
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickDateProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
@@ -21,15 +22,20 @@ final class NewGamePickDateProcessorTest extends ProcessorTestCase
     {
         $this->runProcessor(self::FUTURE_DATE);
 
-        $this->assertTrue($this->editedTheWizard(), 'Expected the wizard to advance to the time picker');
+        $text = $this->editedText();
+        $this->assertNotNull($text, 'Expected the wizard to advance to the time picker');
+        $this->assertStringContainsString('Step 2 of 4', $text);
     }
 
-    public function testRejectsADateWhoseDayHasAlreadyPassed(): void
+    public function testRestartsTheWizardForADateWhoseDayHasAlreadyPassed(): void
     {
         // A date button rendered on an earlier day can be tapped once its day is already gone.
         $this->runProcessor(self::PAST_DATE);
 
-        $this->assertFalse($this->editedTheWizard(), 'A past date must not advance the wizard');
+        $text = $this->editedText();
+        $this->assertNotNull($text, 'Expected the wizard to rewind to the date picker');
+        $this->assertStringContainsString('Step 1 of 4', $text);
+        $this->assertAnsweredWith(CallbackAnswer::DATE_ALREADY_PASSED);
     }
 
     private function runProcessor(string $isoDate): void
@@ -53,16 +59,5 @@ final class NewGamePickDateProcessorTest extends ProcessorTestCase
 
         $callbackData = NewGameCallbackData::fromJson($update->callbackQuery->data);
         new NewGamePickDateProcessor($this->telegramSender, $callbackData)->process($update);
-    }
-
-    private function editedTheWizard(): bool
-    {
-        foreach ($this->bot->calls as $call) {
-            if ('editMessageText' === $call['method']) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

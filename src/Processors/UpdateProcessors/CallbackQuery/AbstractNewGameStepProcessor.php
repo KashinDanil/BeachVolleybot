@@ -7,11 +7,16 @@ namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Common\GameDateResolver;
 use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Errors\ErrorInterface;
+use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
+use BeachVolleybot\Telegram\MessageBuilders\NewGameDatePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramCallbackQuery;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\Validator\Rules\DateInTheFutureRule;
+use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Rules\RuleInterface;
 use BeachVolleybot\Validator\Validator;
 use DateTimeImmutable;
@@ -68,7 +73,15 @@ abstract class AbstractNewGameStepProcessor extends AbstractCallbackProcessor
             return true;
         }
 
-        $this->abort($callbackQuery, 'new_game: ' . $state->getError()->getMessage());
+        $error = $state->getError();
+
+        if ($this->isPastDateError($error)) {
+            $this->restartWizard($callbackQuery);
+
+            return false;
+        }
+
+        $this->abort($callbackQuery, 'new_game: ' . $error->getMessage());
 
         return false;
     }
@@ -77,5 +90,21 @@ abstract class AbstractNewGameStepProcessor extends AbstractCallbackProcessor
     {
         Logger::logApp($reason);
         $this->answerCallbackQuery($callbackQuery, CallbackAnswer::SOMETHING_WENT_WRONG);
+    }
+
+    /** A wizard left open for days carries a date that has since gone by, so it rewinds to a freshly dated step 1. */
+    private function restartWizard(TelegramCallbackQuery $callbackQuery): void
+    {
+        $picker = new NewGameDatePickerMessageBuilder(Translator::fromUser($callbackQuery->from))->build();
+
+        $this->editWizard($callbackQuery, $picker);
+        $this->answerCallbackQuery($callbackQuery, CallbackAnswer::DATE_ALREADY_PASSED);
+    }
+
+    private function isPastDateError(ErrorInterface $error): bool
+    {
+        $pastDateMessages = [DateInTheFutureRule::ERROR_MESSAGE, KickoffDayInTheFutureRule::ERROR_MESSAGE];
+
+        return in_array($error->getMessage(), $pastDateMessages, true);
     }
 }

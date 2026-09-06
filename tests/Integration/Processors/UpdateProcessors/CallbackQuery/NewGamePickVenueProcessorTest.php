@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickVenueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
@@ -44,10 +45,10 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->assertStringNotContainsString('📍', $text);
     }
 
-    public function testRejectsAKickoffWhoseDayHasAlreadyPassed(): void
+    public function testRestartsTheWizardWhenTheKickoffDayHasAlreadyPassed(): void
     {
         // The wizard can sit on the location step for days; by the time the location is
-        // picked the chosen date may be in the past, so the confirm page must not appear.
+        // picked the chosen date may be in the past, so the wizard rewinds to step 1.
         $update = $this->dmCallbackUpdate(
             NewGameCallbackData::create(NewGameCallbackAction::PickVenue)->withVenueName('Bogatell')->toJson(),
             $this->staleWizardText(),
@@ -55,7 +56,10 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
 
         $this->runProcessor($update);
 
-        $this->assertNull($this->editedText());
+        $text = $this->editedText();
+        $this->assertNotNull($text, 'Expected the wizard to rewind to the date picker');
+        $this->assertStringContainsString('Step 1 of 4', $text);
+        $this->assertAnsweredWith(CallbackAnswer::DATE_ALREADY_PASSED);
     }
 
     public function testGroupEditsTheEphemeralWizardMessage(): void
@@ -139,21 +143,6 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
     private function sendMessageCount(): int
     {
         return count(array_filter($this->bot->calls, static fn(array $call): bool => 'sendMessage' === $call['method']));
-    }
-
-    private function editedText(): ?string
-    {
-        foreach ($this->bot->calls as $call) {
-            if ('editMessageText' === $call['method']) {
-                return str_replace('\\', '', $call['args'][2]);
-            }
-
-            if ('call' === $call['method'] && 'editEphemeralMessageText' === ($call['args'][0] ?? null)) {
-                return null === $call['args'][1]['text'] ? null : str_replace('\\', '', $call['args'][1]['text']);
-            }
-        }
-
-        return null;
     }
 
     private function calledApi(string $method): bool
