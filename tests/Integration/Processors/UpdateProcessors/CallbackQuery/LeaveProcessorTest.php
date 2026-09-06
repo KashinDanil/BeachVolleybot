@@ -93,7 +93,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
     public function testPastDayRemovesKeyboardAndAnswersGameFinishedAndDoesNotLeave(): void
     {
         $gameId = $this->seedGameWithUser(telegramUserId: 200, position: 1);
-        $this->db->update('games', ['title' => 'Bogatell 10.04.2020 18:00'], ['game_id' => $gameId]);
+        $this->retitleGame($gameId, 'Bogatell 10.04.2020 18:00');
         $update = $this->buildUpdate('msg_1');
 
         new LeaveProcessor($this->telegramSender)->process($update);
@@ -109,7 +109,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
     {
         $today = new \DateTimeImmutable()->format('d.m.Y');
         $gameId = $this->seedGameWithUser(telegramUserId: 200, position: 1);
-        $this->db->update('games', ['title' => "Bogatell {$today} 00:01"], ['game_id' => $gameId]);
+        $this->retitleGame($gameId, "Bogatell {$today} 00:01");
         $update = $this->buildUpdate('msg_1');
 
         new LeaveProcessor($this->telegramSender)->process($update);

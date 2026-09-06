@@ -12,12 +12,14 @@ use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
+use DateTimeImmutable;
 
 final class GameManagerTest extends DatabaseTestCase
 {
@@ -60,6 +62,25 @@ final class GameManagerTest extends DatabaseTestCase
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertSame('2099-12-31 18:00:00', $game['kickoff_at']);
         $this->assertSame('Somorrostro', $game['venue_name']);
+    }
+
+    public function testPostedCardAndStoredRowShareOneKickoff(): void
+    {
+        // A bare weekday is anchored on the creation instant. Pinned to the last second of a
+        // Friday, so anything reading the clock a second later would resolve a week further out.
+        $data = NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Somorrostro Saturday 18:00',
+            'query_1',
+            new DateTimeImmutable('2026-08-14 23:59:59'),
+        );
+
+        $card = NewGameFactory::create($data);
+        $gameId = $this->gameManager->createGame($data);
+
+        $game = new GameRepository($this->db)->findById($gameId);
+        $this->assertSame('2026-08-15 18:00:00', $game['kickoff_at']);
+        $this->assertSame('2026-08-15 18:00:00', $card->getKickoffAt()->format('Y-m-d H:i:s'));
     }
 
     public function testAddInlineMessageAttachesToJunctionTable(): void

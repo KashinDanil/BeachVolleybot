@@ -51,7 +51,7 @@ abstract class AbstractGameCallbackProcessor extends AbstractCallbackProcessor
 
     private function isKickoffPast(GameInterface $game): bool
     {
-        return GameDateTimeResolver::isKickoffDayPast($game->getTitle(), $game->getCreatedAt());
+        return GameDateTimeResolver::isKickoffDayPast($game->getKickoffAt());
     }
 
     private function respondGameNotFound(TelegramCallbackQuery $callbackQuery, GameMessageTarget $target): void

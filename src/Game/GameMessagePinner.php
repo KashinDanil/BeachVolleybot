@@ -6,6 +6,7 @@ namespace BeachVolleybot\Game;
 
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramChat;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use DateTimeImmutable;
 
 /**
  * Pins a game message and unpins any previously pinned game messages whose
@@ -20,35 +21,41 @@ final readonly class GameMessagePinner
     ) {
     }
 
-    public function pin(int $chatId, int $messageId, string $messageJson, string $messageText, int $messageDate): void
+    public function pin(int $chatId, int $messageId, string $messageJson, ?DateTimeImmutable $eventDate): void
     {
         $pinned = $this->sender->pinChatMessage($chatId, $messageId);
 
         if ($pinned) {
-            $this->manager->register($chatId, $messageId, $messageJson, $messageText, $messageDate);
+            $this->manager->register($chatId, $messageId, $messageJson, $eventDate);
         }
 
         $this->unpinExpired($chatId, keepPinnedMessageId: $messageId);
     }
 
-    /**
-     * Pins a game message the bot itself posted, where we hold only the message id (not a full
-     * Message): builds the synthetic pinned-message payload MessagePinManager stores. Shared by
-     * the create-from-message and /new_game flows so the payload shape lives in one place.
-     */
-    public function pinGameMessage(int $chatId, int $messageId, string $title, int $messageDate): void
-    {
-        $messageJson = json_encode(['message_id' => $messageId, 'chat' => ['id' => $chatId], 'date' => $messageDate, 'text' => $title]);
-        $this->pin($chatId, $messageId, $messageJson, $title, $messageDate);
-    }
-
-    public function pinGameMessageIfGroup(TelegramChat $chat, int $messageId, string $title, int $messageDate): void
+    public function pinGameMessageIfGroup(TelegramChat $chat, PostedGame $game, string $title, int $messageDate): void
     {
         if (!$chat->isGroupChat()) {
             return;
         }
 
-        $this->pinGameMessage($chat->id, $messageId, $title, $messageDate);
+        $this->pinGameMessage($chat->id, $game, $title, $messageDate);
+    }
+
+    /**
+     * Pins a game message the bot itself posted. Telegram gives no Message back from sendMessage,
+     * so this builds the synthetic pinned-message payload MessagePinManager stores. Shared by the
+     * create-from-message and /new_game flows so the payload shape lives in one place.
+     */
+    private function pinGameMessage(int $chatId, PostedGame $game, string $title, int $messageDate): void
+    {
+        $messageJson = json_encode([
+            'message_id' => $game->sentMessageId,
+            'chat' => ['id' => $chatId],
+            'date' => $messageDate,
+            'text' => $title,
+        ]);
+
+        $this->pin($chatId, $game->sentMessageId, $messageJson, $game->kickoffAt);
     }
 
     private function unpinExpired(int $chatId, int $keepPinnedMessageId): void

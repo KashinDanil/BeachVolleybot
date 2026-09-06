@@ -26,6 +26,8 @@ final class Game implements GameInterface
         public string $title,
         public array $users,
         private readonly DateTimeImmutable $createdAt,
+        private readonly DateTimeImmutable $kickoffAt,
+        public ?string $venueName = null,
         public ?string $location = null,
         public GameMessageBuilder $telegramMessageBuilder = new GameMessageBuilder(),
     ) {
@@ -65,6 +67,16 @@ final class Game implements GameInterface
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getKickoffAt(): DateTimeImmutable
+    {
+        return $this->kickoffAt;
+    }
+
+    public function getVenueName(): ?string
+    {
+        return $this->venueName;
     }
 
     public function getTime(): string

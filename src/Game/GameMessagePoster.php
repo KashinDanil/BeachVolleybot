@@ -17,9 +17,11 @@ readonly class GameMessagePoster
 
     public function post(NewGameData $newGameData, int $chatId, ?int $messageThreadId): ?PostedGame
     {
+        $game = NewGameFactory::create($newGameData);
+
         $sentMessageId = $this->telegramSender->sendMessage(
             $chatId,
-            NewGameFactory::create($newGameData)->buildTelegramMessage(),
+            $game->buildTelegramMessage(),
             $messageThreadId,
         );
 
@@ -32,6 +34,6 @@ readonly class GameMessagePoster
         $gameId = $this->gameManager->createGame($newGameData);
         $this->gameManager->addChatMessage($gameId, $chatId, $sentMessageId);
 
-        return new PostedGame($gameId, $sentMessageId);
+        return new PostedGame($gameId, $sentMessageId, $game->getKickoffAt());
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Game\AddOns;
 
+use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\AddOns\WeatherAddOn;
 use BeachVolleybot\Game\Models\Game;
@@ -185,6 +186,7 @@ final class WeatherAddOnTest extends DatabaseTestCase
             title: $title,
             users: [],
             createdAt: new DateTimeImmutable(),
+            kickoffAt: GameDateTimeResolver::resolveOrFail($title, new DateTimeImmutable()),
             location: $location,
         );
         $game->init();

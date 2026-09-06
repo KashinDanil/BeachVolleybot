@@ -77,7 +77,7 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
     public function testPastDayRemovesKeyboardAndAnswersGameFinishedAndDoesNotAdd(): void
     {
         $gameId = $this->seedGameWithUser(telegramUserId: 200, volleyball: 1);
-        $this->db->update('games', ['title' => 'Bogatell 10.04.2020 18:00'], ['game_id' => $gameId]);
+        $this->retitleGame($gameId, 'Bogatell 10.04.2020 18:00');
         $update = $this->buildUpdate('msg_1');
 
         new AddVolleyballProcessor($this->telegramSender)->process($update);
@@ -93,7 +93,7 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
     {
         $today = new \DateTimeImmutable()->format('d.m.Y');
         $gameId = $this->seedGameWithUser(telegramUserId: 200, volleyball: 1);
-        $this->db->update('games', ['title' => "Bogatell {$today} 00:01"], ['game_id' => $gameId]);
+        $this->retitleGame($gameId, "Bogatell {$today} 00:01");
         $update = $this->buildUpdate('msg_1');
 
         new AddVolleyballProcessor($this->telegramSender)->process($update);

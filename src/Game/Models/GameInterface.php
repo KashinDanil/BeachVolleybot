@@ -25,6 +25,10 @@ interface GameInterface
 
     public function getCreatedAt(): DateTimeImmutable;
 
+    public function getKickoffAt(): DateTimeImmutable;
+
+    public function getVenueName(): ?string;
+
     /** @return UserInterface[] */
     public function getUsers(): array;
 

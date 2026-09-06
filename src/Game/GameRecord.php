@@ -14,6 +14,7 @@ readonly class GameRecord
         public int $createdBy,
         public string $title,
         public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $kickoffAt,
     ) {
     }
 }

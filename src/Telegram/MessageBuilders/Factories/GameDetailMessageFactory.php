@@ -25,9 +25,9 @@ final class GameDetailMessageFactory
 
         $gameRecord = new GameManager()->findGameRecordById($gameId);
         $creatorRow = new UserRepository(Connection::get())->findById($gameRecord->createdBy);
-        // Mirrors the inline-share gate (`KickoffDayInTheFutureRule`): share stays available
+        // Mirrors the inline-share gate (`GameNotFinishedRule`): share stays available
         // until the kickoff day is over, not just until the kickoff hour.
-        $sharingEnabled = !GameDateTimeResolver::isKickoffDayPast($game->getTitle(), $game->getCreatedAt());
+        $sharingEnabled = !GameDateTimeResolver::isKickoffDayPast($game->getKickoffAt());
 
         return $builder->buildGameDetail($game, $creatorRow, $sharingEnabled);
     }

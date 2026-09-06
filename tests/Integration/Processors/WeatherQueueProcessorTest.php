@@ -212,7 +212,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         );
 
         $this->processor->process($this->messageFor($gameId));
-        $this->db->update('games', ['title' => "Bogatell $kickoffDay 10:00"], ['game_id' => $gameId]);
+        $this->retitleGame($gameId, "Bogatell $kickoffDay 10:00");
         $this->processor->process($this->messageFor($gameId));
 
         $this->assertSame(2, $this->db->count('weather_cache'));

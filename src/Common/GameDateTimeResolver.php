@@ -6,6 +6,7 @@ namespace BeachVolleybot\Common;
 
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 final class GameDateTimeResolver
 {
@@ -23,29 +24,19 @@ final class GameDateTimeResolver
         return $gameDate->setTime((int) $hour, (int) $minute);
     }
 
-    public static function isKickoffPast(
-        string $title,
-        DateTimeImmutable $creationDate,
-        ?DateTimeImmutable $now = null,
-    ): bool {
-        $kickoff = self::resolve($title, $creationDate);
-
-        return null !== $kickoff && $kickoff < ($now ?? new DateTimeImmutable());
+    public static function resolveOrFail(string $title, DateTimeImmutable $creationDate): DateTimeImmutable
+    {
+        return self::resolve($title, $creationDate)
+            ?? throw new InvalidArgumentException("Game title carries no kickoff time: $title");
     }
 
-    public static function isKickoffDayPast(
-        string $title,
-        DateTimeImmutable $creationDate,
-        ?DateTimeImmutable $now = null,
-    ): bool {
-        $kickoff = self::resolve($title, $creationDate);
+    public static function isKickoffPast(DateTimeImmutable $kickoff, ?DateTimeImmutable $now = null): bool
+    {
+        return $kickoff < ($now ?? new DateTimeImmutable());
+    }
 
-        if (null === $kickoff) {
-            return false;
-        }
-
-        $startOfToday = ($now ?? new DateTimeImmutable())->setTime(0, 0);
-
-        return $kickoff < $startOfToday;
+    public static function isKickoffDayPast(DateTimeImmutable $kickoff, ?DateTimeImmutable $now = null): bool
+    {
+        return $kickoff < ($now ?? new DateTimeImmutable())->setTime(0, 0);
     }
 }

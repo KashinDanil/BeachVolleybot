@@ -6,6 +6,7 @@ namespace BeachVolleybot\Telegram\Messages\Outgoing;
 
 use BeachVolleybot\Errors\ErrorInterface;
 use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
+use BeachVolleybot\Validator\Rules\GameNotFinishedRule;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 
 final readonly class InlineQueryError
@@ -51,7 +52,7 @@ final readonly class InlineQueryError
     public static function fromForwardError(ErrorInterface $error): self
     {
         return match ($error->getMessage()) {
-            KickoffDayInTheFutureRule::ERROR_MESSAGE => new self(self::GAME_FINISHED_TITLE, self::GAME_FINISHED_DESCRIPTION),
+            GameNotFinishedRule::ERROR_MESSAGE => new self(self::GAME_FINISHED_TITLE, self::GAME_FINISHED_DESCRIPTION),
             default => self::gameNotFound(),
         };
     }

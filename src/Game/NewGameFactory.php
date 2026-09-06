@@ -9,7 +9,6 @@ use BeachVolleybot\Game\AddOns\GameAddOnApplier;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
-use DateTimeImmutable;
 
 final class NewGameFactory
 {
@@ -17,6 +16,8 @@ final class NewGameFactory
 
     public static function create(NewGameData $data): GameInterface
     {
+        $parsedTitle = ParsedTitle::parse($data->title, $data->createdAt);
+
         $user = new User(
             telegramUserId: $data->telegramUserId,
             number: (string)NewGameData::INITIAL_POSITION,
@@ -33,7 +34,9 @@ final class NewGameFactory
             messageTargets: [],
             title: $data->title,
             users: [$user],
-            createdAt: new DateTimeImmutable(),
+            createdAt: $data->createdAt,
+            kickoffAt: $parsedTitle->kickoffAt,
+            venueName: $parsedTitle->venueName,
         );
 
         return GameAddOnApplier::apply($game);

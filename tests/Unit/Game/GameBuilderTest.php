@@ -215,12 +215,14 @@ final class GameBuilderTest extends TestCase
         string $gameKey = 'query_1',
         string $title = 'Beach Game 18:00',
         string $createdAt = '2026-01-01 12:00:00',
+        string $kickoffAt = '2099-12-31 18:00:00',
     ): array {
         return [
             'game_id' => $gameId,
             'game_key' => $gameKey,
             'title' => $title,
             'created_at' => $createdAt,
+            'kickoff_at' => $kickoffAt,
         ];
     }
 

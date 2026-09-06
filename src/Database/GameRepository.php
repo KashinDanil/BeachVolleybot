@@ -9,6 +9,8 @@ use DateTimeImmutable;
 
 readonly class GameRepository extends AbstractRepository
 {
+    private const string TIMESTAMP_FORMAT = 'Y-m-d H:i:s';
+
     protected function table(): string
     {
         return 'games';
@@ -31,7 +33,7 @@ readonly class GameRepository extends AbstractRepository
             'location' => $location,
             'created_by' => $createdBy,
             'game_key' => $gameKey,
-            'kickoff_at' => $parsedTitle->kickoffAt,
+            'kickoff_at' => $parsedTitle->kickoffAt->format(self::TIMESTAMP_FORMAT),
             'venue_name' => $parsedTitle->venueName,
         ]);
 
@@ -47,7 +49,7 @@ readonly class GameRepository extends AbstractRepository
     {
         $this->db->update($this->table(), [
             'title' => $title,
-            'kickoff_at' => $parsedTitle->kickoffAt,
+            'kickoff_at' => $parsedTitle->kickoffAt->format(self::TIMESTAMP_FORMAT),
             'venue_name' => $parsedTitle->venueName,
         ], ['game_id' => $gameId]);
     }

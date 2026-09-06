@@ -6,6 +6,7 @@ namespace BeachVolleybot\Game;
 
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
+use DateTimeImmutable;
 
 readonly class NewGameData
 {
@@ -20,6 +21,7 @@ readonly class NewGameData
         public ?string $username,
         public string $title,
         public string $gameKey,
+        public DateTimeImmutable $createdAt,
     ) {
     }
 
@@ -27,6 +29,7 @@ readonly class NewGameData
         TelegramUser $creator,
         string $title,
         string $gameKey,
+        ?DateTimeImmutable $createdAt = null,
     ): self {
         return new self(
             telegramUserId: $creator->id,
@@ -35,6 +38,7 @@ readonly class NewGameData
             username: $creator->username,
             title: TimeExtractor::normalize($title),
             gameKey: $gameKey,
+            createdAt: $createdAt ?? new DateTimeImmutable(),
         );
     }
 }

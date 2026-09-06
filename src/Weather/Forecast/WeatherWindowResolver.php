@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Weather\Forecast;
 
-use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Weather\Forecast\Models\WeatherWindow;
 use DateTimeImmutable;
@@ -19,10 +18,6 @@ final readonly class WeatherWindowResolver
     {
         $kickoffHour = $this->resolveKickoffHour($game);
 
-        if (null === $kickoffHour) {
-            return new WeatherWindow($game->getCreatedAt(), []);
-        }
-
         if (!$this->isWithinForecastHorizon($kickoffHour)) {
             return new WeatherWindow($kickoffHour, []);
         }
@@ -30,14 +25,9 @@ final readonly class WeatherWindowResolver
         return new WeatherWindow($kickoffHour, $this->buildHourRangeAround($kickoffHour));
     }
 
-    private function resolveKickoffHour(GameInterface $game): ?DateTimeImmutable
+    private function resolveKickoffHour(GameInterface $game): DateTimeImmutable
     {
-        $kickoff = GameDateTimeResolver::resolve($game->getTitle(), $game->getCreatedAt());
-        if (null === $kickoff) {
-            return null;
-        }
-
-        return $this->roundToNearestHour($kickoff);
+        return $this->roundToNearestHour($game->getKickoffAt());
     }
 
     private function isWithinForecastHorizon(DateTimeImmutable $kickoffHour): bool

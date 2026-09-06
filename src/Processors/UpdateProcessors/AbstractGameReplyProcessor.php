@@ -33,7 +33,7 @@ abstract class AbstractGameReplyProcessor extends AbstractActionReplyProcessor
             return;
         }
 
-        if (GameDateTimeResolver::isKickoffDayPast($gameRecord->title, $gameRecord->createdAt)) {
+        if (GameDateTimeResolver::isKickoffDayPast($gameRecord->kickoffAt)) {
             return;
         }
 

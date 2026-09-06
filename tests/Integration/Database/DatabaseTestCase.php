@@ -77,6 +77,16 @@ abstract class DatabaseTestCase extends TestCase
         return $gameId;
     }
 
+    /** Moves the derived columns with the title, the way every production write path does. */
+    protected function retitleGame(int $gameId, string $title): void
+    {
+        $this->db->update('games', [
+            'title' => $title,
+            'kickoff_at' => $this->resolveKickoffAt($title),
+            'venue_name' => KnownVenues::findInTitle($title)?->name,
+        ], ['game_id' => $gameId]);
+    }
+
     protected function resolveKickoffAt(string $title): string
     {
         return GameDateTimeResolver::resolve($title, new DateTimeImmutable())?->format('Y-m-d H:i:s')

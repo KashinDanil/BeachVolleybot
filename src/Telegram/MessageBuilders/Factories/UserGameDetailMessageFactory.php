@@ -28,9 +28,9 @@ final class UserGameDetailMessageFactory
         }
 
         $builder = $game->telegramMessageBuilder;
-        // Mirrors the inline-share gate (`KickoffDayInTheFutureRule`): share stays available
+        // Mirrors the inline-share gate (`GameNotFinishedRule`): share stays available
         // until the kickoff day is over, not just until the kickoff hour.
-        $sharingEnabled = !GameDateTimeResolver::isKickoffDayPast($game->getTitle(), $game->getCreatedAt());
+        $sharingEnabled = !GameDateTimeResolver::isKickoffDayPast($game->getKickoffAt());
 
         self::prependSection($builder, self::buildLeadingSection($builder, $gameId, $translator, $sharingEnabled));
         self::overrideKeyboard($builder, $gameId, $listPage, $translator, $sharingEnabled);

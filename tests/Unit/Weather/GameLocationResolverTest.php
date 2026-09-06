@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Weather;
 
+use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Weather\Location\GameLocationResolver;
 use BeachVolleybot\Weather\Location\Models\DefaultLocationCoordinates;
@@ -67,7 +68,37 @@ final class GameLocationResolverTest extends TestCase
         $this->assertSame(41.394, $coordinates->latitude);
     }
 
-    private function makeGame(string $title, ?string $location = null): Game
+    public function testVenueColumnIsUsedWhenPresent(): void
+    {
+        $game = $this->makeGame(title: 'Beach volley 18:30', venueName: 'Bogatell');
+
+        $coordinates = $this->resolver->resolve($game);
+
+        $this->assertSame(41.394, $coordinates->latitude);
+    }
+
+    public function testVenueColumnWinsOverADifferentVenueNamedInTheTitle(): void
+    {
+        $game = $this->makeGame(title: 'Somorrostro 18:30', venueName: 'Bogatell');
+
+        $this->assertSame(41.394, $this->resolver->resolve($game)->latitude);
+    }
+
+    public function testFallsBackToTitleScanWhenVenueColumnIsEmpty(): void
+    {
+        $game = $this->makeGame(title: 'Somorrostro 18:30');
+
+        $this->assertSame(41.383, $this->resolver->resolve($game)->latitude);
+    }
+
+    public function testExplicitCoordinatesWinOverTheVenueColumn(): void
+    {
+        $game = $this->makeGame(title: 'Beach volley 18:30', location: '40.0,-3.0', venueName: 'Bogatell');
+
+        $this->assertSame(40.0, $this->resolver->resolve($game)->latitude);
+    }
+
+    private function makeGame(string $title, ?string $location = null, ?string $venueName = null): Game
     {
         $game = new Game(
             gameId: 1,
@@ -76,6 +107,8 @@ final class GameLocationResolverTest extends TestCase
             title: $title,
             users: [],
             createdAt: new DateTimeImmutable(),
+            kickoffAt: GameDateTimeResolver::resolve($title, new DateTimeImmutable()) ?? new DateTimeImmutable('2099-12-31 18:00:00'),
+            venueName: $venueName,
             location: $location,
         );
         $game->init();

@@ -83,6 +83,7 @@ final class GameAddOnTest extends TestCase
             title: $title,
             users: [],
             createdAt: new DateTimeImmutable(),
+            kickoffAt: new DateTimeImmutable('2099-12-31 18:00:00'),
         );
     }
 }

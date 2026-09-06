@@ -63,7 +63,7 @@ class NewGameSendProcessor extends AbstractVenueSelectionStepProcessor
         $this->answerCallbackQuery($callbackQuery, '');
 
         new GameMessagePinner($this->telegramSender)
-            ->pinGameMessageIfGroup($wizardMessage->chat, $postedGame->sentMessageId, $newGameData->title, $wizardMessage->date);
+            ->pinGameMessageIfGroup($wizardMessage->chat, $postedGame, $newGameData->title, $wizardMessage->date);
 
         new ShareGameReplySender($this->telegramSender)->sendInDm($wizardMessage->chat, $postedGame->sentMessageId, $postedGame->gameId, $callbackQuery->from);
 

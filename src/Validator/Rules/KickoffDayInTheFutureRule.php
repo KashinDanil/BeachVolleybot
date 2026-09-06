@@ -21,7 +21,14 @@ readonly class KickoffDayInTheFutureRule implements RuleInterface
 
     public function isValid(): bool
     {
-        return !GameDateTimeResolver::isKickoffDayPast($this->title ?? '', $this->createdAt, $this->now);
+        $kickoff = GameDateTimeResolver::resolve($this->title ?? '', $this->createdAt);
+
+        // No readable kickoff means the title itself is unusable, so it cannot pass.
+        if (null === $kickoff) {
+            return false;
+        }
+
+        return !GameDateTimeResolver::isKickoffDayPast($kickoff, $this->now);
     }
 
     public function getError(): ValidationError

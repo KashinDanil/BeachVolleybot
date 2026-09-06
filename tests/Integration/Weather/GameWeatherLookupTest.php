@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Weather;
 
+use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
@@ -36,15 +37,6 @@ final class GameWeatherLookupTest extends DatabaseTestCase
     protected function tearDown(): void
     {
         Connection::close();
-    }
-
-    public function testReturnsNullWhenTitleHasNoTime(): void
-    {
-        // Without a kickoff time in the title we can't compute a cache key,
-        // so the lookup bails regardless of whether rows exist.
-        $game = $this->game('Beach Saturday', '41.397,2.211');
-
-        $this->assertNull($this->lookup->find($game));
     }
 
     public function testReturnsNullWhenCacheHasNoRow(): void
@@ -135,6 +127,7 @@ final class GameWeatherLookupTest extends DatabaseTestCase
             title: $title,
             users: [],
             createdAt: new DateTimeImmutable(),
+            kickoffAt: GameDateTimeResolver::resolveOrFail($title, new DateTimeImmutable()),
             location: $location,
         );
         $game->init();

@@ -43,6 +43,8 @@ readonly class GameBuilder
             title: $title,
             users: $this->buildUsersFromRows(),
             createdAt: new DateTimeImmutable((string)$this->gameRow['created_at']),
+            kickoffAt: new DateTimeImmutable((string)$this->gameRow['kickoff_at']),
+            venueName: $this->gameRow['venue_name'] ?? null,
             location: $this->gameRow['location'] ?? null,
         );
 

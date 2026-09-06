@@ -50,6 +50,7 @@ final class GameAddOnApplierTest extends TestCase
             title: 'Beach Game 18:00',
             users: [],
             createdAt: new DateTimeImmutable(),
+            kickoffAt: new DateTimeImmutable('2099-12-31 18:00:00'),
         );
     }
 }

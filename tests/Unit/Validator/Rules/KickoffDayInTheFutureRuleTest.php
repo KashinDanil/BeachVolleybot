@@ -44,7 +44,7 @@ final class KickoffDayInTheFutureRuleTest extends TestCase
         $this->assertSame(KickoffDayInTheFutureRule::ERROR_MESSAGE, $rule->getError()->getMessage());
     }
 
-    public function testValidWhenTitleHasNoResolvableKickoff(): void
+    public function testInvalidWhenTitleHasNoResolvableKickoff(): void
     {
         $rule = new KickoffDayInTheFutureRule(
             title: 'Beach Game',
@@ -52,20 +52,20 @@ final class KickoffDayInTheFutureRuleTest extends TestCase
             now: new DateTimeImmutable('2026-04-24 12:00'),
         );
 
-        $this->assertTrue($rule->isValid());
+        $this->assertFalse($rule->isValid());
     }
 
-    public function testValidWhenTitleIsNull(): void
+    public function testInvalidWhenTitleIsNull(): void
     {
         // A wizard message can carry a null text (e.g. a non-text message); this must
-        // not throw under strict_types, it's simply treated as no resolvable kickoff.
+        // not throw under strict_types, it is simply a title with no usable kickoff.
         $rule = new KickoffDayInTheFutureRule(
             title: null,
             createdAt: new DateTimeImmutable('2020-01-01 09:00'),
             now: new DateTimeImmutable('2026-04-24 12:00'),
         );
 
-        $this->assertTrue($rule->isValid());
+        $this->assertFalse($rule->isValid());
     }
 
     public function testErrorContainsTitle(): void

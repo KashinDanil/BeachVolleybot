@@ -20,7 +20,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     private function parsedTitle(string $title): ParsedTitle
     {
-        return ParsedTitle::resolve($title, new DateTimeImmutable());
+        return ParsedTitle::parse($title, new DateTimeImmutable());
     }
 
     public function testCreateReturnsId(): void

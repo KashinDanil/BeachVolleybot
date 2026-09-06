@@ -33,7 +33,7 @@ final class KickoffInTheFutureRuleTest extends TestCase
         $this->assertSame(KickoffInTheFutureRule::ERROR_MESSAGE, $rule->getError()->getMessage());
     }
 
-    public function testValidWhenTitleHasNoResolvableKickoff(): void
+    public function testInvalidWhenTitleHasNoResolvableKickoff(): void
     {
         $rule = new KickoffInTheFutureRule(
             title: 'Beach Game',
@@ -41,7 +41,7 @@ final class KickoffInTheFutureRuleTest extends TestCase
             now: new DateTimeImmutable('2026-04-24 12:00'),
         );
 
-        $this->assertTrue($rule->isValid());
+        $this->assertFalse($rule->isValid());
     }
 
     public function testErrorContainsTitle(): void

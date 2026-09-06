@@ -17,7 +17,7 @@ final class ParsedTitleTest extends TestCase
     {
         $parsedTitle = $this->resolve('Somorrostro 31.12.2099 18:00');
 
-        $this->assertSame('2099-12-31 18:00:00', $parsedTitle->kickoffAt);
+        $this->assertSame('2099-12-31 18:00:00', $parsedTitle->kickoffAt->format('Y-m-d H:i:s'));
         $this->assertSame('Somorrostro', $parsedTitle->venueName);
     }
 
@@ -33,13 +33,13 @@ final class ParsedTitleTest extends TestCase
 
     public function testFallsBackToCreationDayWhenTitleCarriesNoDate(): void
     {
-        $this->assertSame('2026-08-12 16:00:00', $this->resolve('Today at 16:00')->kickoffAt);
+        $this->assertSame('2026-08-12 16:00:00', $this->resolve('Today at 16:00')->kickoffAt->format('Y-m-d H:i:s'));
     }
 
     public function testAnchorsBareWeekdayOnCreationDate(): void
     {
         // 2026-08-12 is a Wednesday, so the next Saturday is the 15th.
-        $this->assertSame('2026-08-15 10:00:00', $this->resolve('Saturday 10:00')->kickoffAt);
+        $this->assertSame('2026-08-15 10:00:00', $this->resolve('Saturday 10:00')->kickoffAt->format('Y-m-d H:i:s'));
     }
 
     public function testRejectsTitleWithoutTime(): void
@@ -51,6 +51,6 @@ final class ParsedTitleTest extends TestCase
 
     private function resolve(string $title): ParsedTitle
     {
-        return ParsedTitle::resolve($title, new DateTimeImmutable(self::CREATED_AT));
+        return ParsedTitle::parse($title, new DateTimeImmutable(self::CREATED_AT));
     }
 }

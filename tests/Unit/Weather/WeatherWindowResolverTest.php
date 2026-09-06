@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Weather;
 
+use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use DateTimeImmutable;
@@ -137,15 +138,6 @@ final class WeatherWindowResolverTest extends TestCase
         $this->assertSame($kickoffDay->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
     }
 
-    public function testTitleWithoutTimeReturnsEmptyWindow(): void
-    {
-        $game = $this->makeGame('Bogatell Saturday', createdAt: new DateTimeImmutable());
-
-        $window = $this->resolver->windowForGame($game);
-
-        $this->assertSame([], $window->hours);
-    }
-
     private function makeGame(string $title, DateTimeImmutable $createdAt): Game
     {
         $game = new Game(
@@ -155,6 +147,7 @@ final class WeatherWindowResolverTest extends TestCase
             title: $title,
             users: [],
             createdAt: $createdAt,
+            kickoffAt: GameDateTimeResolver::resolveOrFail($title, $createdAt),
         );
         $game->init();
 

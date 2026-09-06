@@ -13,49 +13,32 @@ final class MessagePinManagerTest extends DatabaseTestCase
 {
     private MessagePinManager $manager;
 
-    public function testRegisterSetsUnpinAfterToNextDayMidnightWhenDateInTitle(): void
-    {
-        $messageDate = (new DateTimeImmutable('2026-04-17 12:00:00'))->getTimestamp();
-
-        $this->manager->register(1, 42, '{}', 'Beach 17.04 18:00', $messageDate);
-
-        $rows = $this->db->select('pinned_messages', '*', ['chat_id' => 1]);
-        $this->assertCount(1, $rows);
-        $this->assertSame('2026-04-18 00:00:00', $rows[0]['unpin_after']);
-    }
-
-    public function testRegisterSetsUnpinAfterToNextDayMidnightForDayOfWeekTitle(): void
-    {
-        $messageDate = (new DateTimeImmutable('2026-04-15 10:00:00'))->getTimestamp(); // Wednesday
-
-        $this->manager->register(1, 43, '{}', 'Friday 18:00', $messageDate);
-
-        $rows = $this->db->select('pinned_messages', '*', ['chat_id' => 1]);
-        $this->assertCount(1, $rows);
-        $this->assertSame('2026-04-18 00:00:00', $rows[0]['unpin_after']);
-    }
-
     // --- register: unpin_after computation ---
 
-    public function testRegisterSetsUnpinAfterNullWhenNoDateInTitle(): void
+    public function testRegisterSetsUnpinAfterToNextDayMidnight(): void
     {
-        $messageDate = (new DateTimeImmutable('2026-04-17 12:00:00'))->getTimestamp();
-
-        $this->manager->register(1, 44, '{}', 'Beach game 18:00', $messageDate);
+        $this->manager->register(1, 42, '{}', new DateTimeImmutable('2026-04-17 18:00:00'));
 
         $rows = $this->db->select('pinned_messages', '*', ['chat_id' => 1]);
         $this->assertCount(1, $rows);
-        $this->assertNull($rows[0]['unpin_after']);
+        $this->assertSame('2026-04-18 00:00:00', $rows[0]['unpin_after']);
     }
 
     public function testRegisterUnpinAfterIsAlwaysMidnightRegardlessOfEventTime(): void
     {
-        $messageDate = (new DateTimeImmutable('2026-04-17 23:59:00'))->getTimestamp();
-
-        $this->manager->register(1, 45, '{}', 'Beach 17.04 23:30', $messageDate);
+        $this->manager->register(1, 45, '{}', new DateTimeImmutable('2026-04-17 23:30:00'));
 
         $rows = $this->db->select('pinned_messages', '*', ['chat_id' => 1]);
         $this->assertSame('2026-04-18 00:00:00', $rows[0]['unpin_after']);
+    }
+
+    public function testRegisterSetsUnpinAfterNullWhenNoEventDateIsKnown(): void
+    {
+        $this->manager->register(1, 44, '{}', null);
+
+        $rows = $this->db->select('pinned_messages', '*', ['chat_id' => 1]);
+        $this->assertCount(1, $rows);
+        $this->assertNull($rows[0]['unpin_after']);
     }
 
     protected function setUp(): void

@@ -79,7 +79,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
     public function testPastDayRemovesKeyboardAndAnswersGameFinishedAndDoesNotRemove(): void
     {
         $gameId = $this->seedGameWithUser(telegramUserId: 200, net: 2);
-        $this->db->update('games', ['title' => 'Bogatell 10.04.2020 18:00'], ['game_id' => $gameId]);
+        $this->retitleGame($gameId, 'Bogatell 10.04.2020 18:00');
         $update = $this->buildUpdate('msg_1');
 
         new RemoveNetProcessor($this->telegramSender)->process($update);
@@ -95,7 +95,7 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
     {
         $today = new \DateTimeImmutable()->format('d.m.Y');
         $gameId = $this->seedGameWithUser(telegramUserId: 200, net: 2);
-        $this->db->update('games', ['title' => "Bogatell {$today} 00:01"], ['game_id' => $gameId]);
+        $this->retitleGame($gameId, "Bogatell {$today} 00:01");
         $update = $this->buildUpdate('msg_1');
 
         new RemoveNetProcessor($this->telegramSender)->process($update);

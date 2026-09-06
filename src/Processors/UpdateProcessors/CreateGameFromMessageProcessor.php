@@ -50,7 +50,7 @@ class CreateGameFromMessageProcessor extends AbstractActionProcessor
         $this->telegramSender->deleteMessage($chatId, $message->messageId);
 
         new GameMessagePinner($this->telegramSender)
-            ->pinGameMessageIfGroup($message->chat, $posted->sentMessageId, $title, $message->date);
+            ->pinGameMessageIfGroup($message->chat, $posted, $title, $message->date);
 
         new ShareGameReplySender($this->telegramSender)->sendInDm($message->chat, $posted->sentMessageId, $posted->gameId, $message->from);
 

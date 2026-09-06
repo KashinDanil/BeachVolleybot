@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game;
 
-use BeachVolleybot\Common\GameDateResolver;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\PinnedMessageRepository;
 use DateTimeImmutable;
@@ -18,11 +17,8 @@ readonly class MessagePinManager
         $this->pinnedMessageRepository = new PinnedMessageRepository(Connection::get());
     }
 
-    public function register(int $chatId, int $messageId, string $messageJson, string $messageText, int $messageDate): void
+    public function register(int $chatId, int $messageId, string $messageJson, ?DateTimeImmutable $eventDate): void
     {
-        $creationDate = new DateTimeImmutable("@$messageDate");
-        $eventDate = GameDateResolver::resolve($messageText, $creationDate);
-
         $unpinAfter = $eventDate?->modify('tomorrow midnight');
 
         $this->pinnedMessageRepository->create(
