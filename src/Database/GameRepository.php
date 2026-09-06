@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Database;
 
 use BeachVolleybot\Game\ParsedTitle;
+use DateTimeImmutable;
 
 readonly class GameRepository extends AbstractRepository
 {
@@ -97,5 +98,18 @@ readonly class GameRepository extends AbstractRepository
     public function countByCreator(int $createdBy): int
     {
         return $this->db->count($this->table(), ['created_by' => $createdBy]);
+    }
+
+    /**
+     * Games kicking off inside the window, soonest first.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function findUpcoming(DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        return $this->db->select($this->table(), '*', [
+            'kickoff_at[<>]' => [$from->format(self::TIMESTAMP_FORMAT), $to->format(self::TIMESTAMP_FORMAT)],
+            'ORDER' => ['kickoff_at' => 'ASC'],
+        ]);
     }
 }

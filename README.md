@@ -21,6 +21,7 @@ This project was created to address a common frustration: _manually copying part
 - **Welcome flow** — the `/start` command (also triggered by `/help`) shows a welcome message
 - **Group help** — `/help` in a group sends the same help text as an ephemeral message, visible only to the person who asked; answered inside the webhook request, since Telegram expires an ephemeral reply 15 seconds after the command
 - **Weather forecasts** — hourly forecast for the game window, attached to the message and refreshed whenever the game changes; powered by Open-Meteo, resolved per known venue, cached in SQLite, and computed off the request path by a dedicated worker
+- **Automatic forecast refresh** — a scan worker re-fetches each upcoming game's forecast on a ladder that tightens toward kickoff
 - **Multi-language support** — English (default), Russian, Spanish
 - **Concurrency handling** via file-based locking
 - **Asynchronous processing** via file-based queues and workers
@@ -60,6 +61,12 @@ Telegram Webhook
                                  → WeatherQueueProcessor
                                    → OpenMeteoWeatherClient (forecast fetch + cache)
                                      → GameMessageRefresher (re-render every posted message of the game — inline or chat)
+
+WeatherScanWorker (every 5 minutes, independent of any update)
+  → WeatherRefreshScheduler
+    → GameRepository.findUpcoming (games kicking off within the 7-day forecast horizon)
+      → WeatherRefreshLadder (is the cached forecast older than this game's rung?)
+        → WeatherEnqueuer → weather queue (same path as above)
 ```
 
 Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `createProcessor(sender, update)`, returning the first handler that matches. `ProcessorRegistryFactory` owns two lists: the **immediate** one runs inside the webhook request and is consulted first (inline queries, and the ephemeral group `/help`, whose reply Telegram rejects after 15 seconds); the **queued** one adds `routeToQueue(update)` via `AbstractQueuedProcessorHandler` and is consulted again at worker dispatch, which is why `matches()` must stay pure. Match patterns must be mutually exclusive across both lists, enforced by `HandlerExclusivityTest`. A pattern may read the database to decide — `ChangeTitleHandler` matches a reply only if it is a rename its author is allowed to make, which is what lets every other text reply fall to `JoinWithTimeHandler` — but it must stay free of side effects, since it is evaluated twice.
@@ -105,8 +112,9 @@ Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `
 │   ├── Weather/         # Open-Meteo client, forecast cache, known venues, weather queue payloads
 │   │   ├── Forecast/           # Cache, Client, GameWeatherLookup, Models, Formatter, WindowResolver
 │   │   ├── Location/           # GameLocationResolver, KnownVenues catalog, VenueDirectory, Venue / VenueAlias
-│   │   └── Queue/              # WeatherEnqueuer, WeatherQueuePayload
-│   └── Workers/         # AppQueueWorker, WeatherQueueWorker
+│   │   ├── Queue/              # WeatherEnqueuer, WeatherQueuePayload
+│   │   └── Schedule/           # WeatherRefreshScheduler, WeatherRefreshLadder
+│   └── Workers/         # AppQueueWorker, WeatherQueueWorker, WeatherScanWorker
 └── tests/               # PHPUnit tests (Unit + Integration)
 ```
 
@@ -182,23 +190,23 @@ sqlite3 <db> "UPDATE users SET role = 2 WHERE telegram_user_id = <telegram_user_
 
 ## Workers
 
-The project runs two workers concurrently: the **app worker** (processes Telegram updates from per-game / per-DM / per-chat queues) and the **weather worker** (fetches forecasts for games). Both are started automatically by `install.sh`.
+The project runs three workers concurrently: the **app worker** (processes Telegram updates from per-game / per-DM / per-chat queues), the **weather worker** (fetches forecasts for games), and the **weather scan worker** (wakes every 5 minutes and enqueues the upcoming games whose forecast has aged past its ladder rung). All three are started automatically by `install.sh`.
 
-To start both in the background:
+To start them in the background:
 
 ```bash
 make workers-start
 ```
 
-App errors log to `logs/app-worker-errors.log`; weather errors log to `logs/weather-worker-errors.log`.
+App errors log to `logs/app-worker-errors.log`; weather errors log to `logs/weather-worker-errors.log`; scan errors log to `logs/weather-scan-worker-errors.log`.
 
-To restart both (stops running processes, then starts fresh ones):
+To restart them (stops running processes, then starts fresh ones):
 
 ```bash
 make workers-restart
 ```
 
-To stop both:
+To stop them:
 
 ```bash
 make workers-stop
@@ -209,6 +217,7 @@ To run a single worker in the foreground (stdout output, useful during developme
 ```bash
 make app-worker-run
 make weather-worker-run
+make weather-scan-worker-run
 ```
 
 ## Testing
