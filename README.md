@@ -220,6 +220,24 @@ make weather-worker-run
 make weather-scan-worker-run
 ```
 
+## Localization
+
+`src/Localization/Translator.php` looks up the **English string as the key** in `localization/<lang>.json`,
+falling back to English when a key is absent. The game card and admin panel are deliberately not localized.
+
+Adding a language is two steps:
+
+**1. Output** — copy a file and translate the values; no code. `LocalizationFilesTest` fails until the new
+file has all 82 keys.
+
+```bash
+cp localization/ru.json localization/de.json
+```
+
+**2. Typed dates (optional)** — add the language's month and weekday names to `DateExtractor::MONTH_MAP` and
+`DayOfWeekExtractor::DAY_OF_WEEK_MAP` so users can write dates in it. A code change with tests, since it
+changes which messages create a game. Skippable: numeric dates (`14.08 18:00`) parse in any language.
+
 ## Testing
 
 ```bash
