@@ -274,7 +274,7 @@ final class GameBuilderTest extends TestCase
         array $userRows = [],
     ): GameInterface {
         return new GameBuilder(
-            game: $game ?? $this->gameRecord(),
+            gameRecord: $game ?? $this->gameRecord(),
             messageTargets: $messageTargets,
             slotRows: $slotRows,
             gameUserRows: $gameUserRows,

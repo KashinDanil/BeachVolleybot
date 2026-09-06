@@ -6,7 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Weather;
 
 use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Game\Models\Game;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
@@ -44,7 +44,7 @@ final class GameWeatherLookupTest extends DatabaseTestCase
         $kickoffDay = new DateTimeImmutable('+2 days');
         $game = $this->game('Beach ' . $kickoffDay->format('d.m.Y') . ' 18:00', '41.397,2.211');
 
-        $this->assertNull($this->lookup->find($game));
+        $this->assertNull($this->lookup->findForGameRecord($game));
     }
 
     public function testReturnsRowEvenWhenKickoffIsInThePast(): void
@@ -60,7 +60,7 @@ final class GameWeatherLookupTest extends DatabaseTestCase
         );
         $game = $this->game('Beach ' . $kickoffDay->format('d.m.Y') . ' 18:00', '41.397,2.211');
 
-        $result = $this->lookup->find($game);
+        $result = $this->lookup->findForGameRecord($game);
 
         $this->assertNotNull($result);
         $this->assertSame('18:00', $result->kickoffHour->format('H:i'));
@@ -77,7 +77,7 @@ final class GameWeatherLookupTest extends DatabaseTestCase
         );
         $game = $this->game('Beach ' . $kickoffDay->format('d.m.Y') . ' 18:00', '41.397,2.211');
 
-        $result = $this->lookup->find($game);
+        $result = $this->lookup->findForGameRecord($game);
 
         $this->assertNotNull($result);
         $this->assertSame(41.397, $result->row->coordinates->latitude);
@@ -98,7 +98,7 @@ final class GameWeatherLookupTest extends DatabaseTestCase
         // Game location's exact coords round to the seeded row.
         $game = $this->game('Beach ' . $kickoffDay->format('d.m.Y') . ' 18:00', '41.3971,2.2112');
 
-        $result = $this->lookup->find($game);
+        $result = $this->lookup->findForGameRecord($game);
 
         $this->assertNotNull($result);
         $this->assertSame(41.397, $result->row->coordinates->latitude);
@@ -115,24 +115,20 @@ final class GameWeatherLookupTest extends DatabaseTestCase
         // Same day + beach but 10:00 kickoff — different forecast_ts key.
         $game = $this->game('Beach ' . $kickoffDay->format('d.m.Y') . ' 10:00', '41.397,2.211');
 
-        $this->assertNull($this->lookup->find($game));
+        $this->assertNull($this->lookup->findForGameRecord($game));
     }
 
-    private function game(string $title, string $location): Game
+    private function game(string $title, string $location): GameRecord
     {
-        $game = new Game(
+        return new GameRecord(
             gameId: 1,
             gameKey: 'iq',
-            messageTargets: [],
+            createdBy: 100,
             title: $title,
-            users: [],
             createdAt: new DateTimeImmutable(),
             kickoffAt: GameDateTimeResolver::resolveOrFail($title, new DateTimeImmutable()),
             location: $location,
         );
-        $game->init();
-
-        return $game;
     }
 
     private function kickoffUtc(DateTimeImmutable $kickoffDay, int $hour): DateTimeImmutable

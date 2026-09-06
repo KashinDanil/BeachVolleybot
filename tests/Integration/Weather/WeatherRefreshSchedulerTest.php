@@ -6,8 +6,8 @@ namespace BeachVolleybot\Tests\Integration\Weather;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\AddOns\WeatherAddOn;
-use BeachVolleybot\Game\GameFactory;
-use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
@@ -116,12 +116,12 @@ final class WeatherRefreshSchedulerTest extends DatabaseTestCase
     {
         $game = $this->loadGame($gameId);
         $kickoffUtc = new WeatherWindowResolver()
-            ->windowForGame($game)
+            ->windowFor($game->kickoffAt)
             ->kickoffHour
             ->setTimezone(new DateTimeZone('UTC'));
 
         new WeatherCacheManager()->save(
-            new GameLocationResolver()->resolve($game)->rounded(),
+            new GameLocationResolver()->resolve($game->location, $game->venueName, $game->title)->rounded(),
             $kickoffUtc,
             new WeatherSnapshot([new WeatherHour($kickoffUtc, 22.0, 0, 3.0, 0)]),
         );
@@ -129,9 +129,9 @@ final class WeatherRefreshSchedulerTest extends DatabaseTestCase
         $this->db->pdo->exec("UPDATE weather_cache SET fetched_at = datetime('now', '$aged')");
     }
 
-    private function loadGame(int $gameId): GameInterface
+    private function loadGame(int $gameId): GameRecord
     {
-        $game = GameFactory::tryFromGameId($gameId, addOns: []);
+        $game = new GameManager()->findGameRecordById($gameId);
         $this->assertNotNull($game);
 
         return $game;

@@ -21,7 +21,7 @@ readonly class GameBuilder
      * @param list<class-string<GameAddOnInterface>> $addOns
      */
     public function __construct(
-        private GameRecord $game,
+        private GameRecord $gameRecord,
         private array $messageTargets,
         private array $slotRows,
         private array $gameUserRows,
@@ -33,15 +33,15 @@ readonly class GameBuilder
     public function build(): GameInterface
     {
         $game = new Game(
-            gameId: $this->game->gameId,
-            gameKey: $this->game->gameKey,
+            gameId: $this->gameRecord->gameId,
+            gameKey: $this->gameRecord->gameKey,
             messageTargets: $this->messageTargets,
-            title: $this->game->title,
+            title: $this->gameRecord->title,
             users: $this->buildUsersFromRows(),
-            createdAt: $this->game->createdAt,
-            kickoffAt: $this->game->kickoffAt,
-            venueName: $this->game->venueName,
-            location: $this->game->location,
+            createdAt: $this->gameRecord->createdAt,
+            kickoffAt: $this->gameRecord->kickoffAt,
+            venueName: $this->gameRecord->venueName,
+            location: $this->gameRecord->location,
         );
 
         return GameAddOnApplier::apply($game, $this->addOns);

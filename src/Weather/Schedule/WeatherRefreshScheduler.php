@@ -7,7 +7,6 @@ namespace BeachVolleybot\Weather\Schedule;
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameRepository;
-use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
 use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
@@ -39,11 +38,11 @@ final readonly class WeatherRefreshScheduler
     private function enqueueIfDue(array $gameRow, DateTimeImmutable $now): void
     {
         try {
-            $game = GameFactory::fromRecord(GameRecord::fromRow($gameRow), addOns: []);
-            $fetchedAt = $this->weatherLookup->find($game)?->row->fetchedAt;
+            $gameRecord = GameRecord::fromRow($gameRow);
+            $fetchedAt = $this->weatherLookup->findForGameRecord($gameRecord)?->row->fetchedAt;
 
-            if ($this->ladder->isDue($now, $game->getKickoffAt(), $fetchedAt)) {
-                $this->enqueuer->enqueue($game->getGameId());
+            if ($this->ladder->isDue($now, $gameRecord->kickoffAt, $fetchedAt)) {
+                $this->enqueuer->enqueue($gameRecord->gameId);
             }
         } catch (Throwable $e) {
             Logger::logApp('Weather refresh scan skipped game id=' . (int)$gameRow['game_id'] . ': ' . $e->getMessage());

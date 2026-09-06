@@ -46,7 +46,7 @@ final class WeatherAddOn implements GameAddOnInterface
 
     private function computeWeatherSection(Game $game): ?string
     {
-        $lookup = $this->gameWeatherLookup->find($game);
+        $lookup = $this->gameWeatherLookup->findForGame($game);
         if (null === $lookup) {
             return null;
         }

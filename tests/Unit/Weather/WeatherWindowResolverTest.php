@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Weather;
 
 use BeachVolleybot\Common\GameDateTimeResolver;
-use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -22,12 +21,12 @@ final class WeatherWindowResolverTest extends TestCase
     public function testWindowContainsFiveHoursCentredOnKickoffInNearFuture(): void
     {
         $kickoffDay = new DateTimeImmutable('+3 days');
-        $game = $this->makeGame(
+        $kickoffAt = $this->makeKickoff(
             title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:00',
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowForGame($game);
+        $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame($kickoffDay->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
         $this->assertCount(5, $window->hours);
@@ -44,9 +43,9 @@ final class WeatherWindowResolverTest extends TestCase
         // To keep kickoff in the future for the horizon check, the creation date is today minus 0 days.
         $creationDate = new DateTimeImmutable('next friday')->setTime(10, 0);
         $expectedKickoffDay = $creationDate->modify('+1 day');
-        $game = $this->makeGame('Bogatell Saturday 18:00', createdAt: $creationDate);
+        $kickoffAt = $this->makeKickoff('Bogatell Saturday 18:00', createdAt: $creationDate);
 
-        $window = $this->resolver->windowForGame($game);
+        $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame($expectedKickoffDay->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
     }
@@ -54,9 +53,9 @@ final class WeatherWindowResolverTest extends TestCase
     public function testFallsBackToCreationDateWhenNoDateInTitle(): void
     {
         $creationDate = new DateTimeImmutable()->setTime(10, 0);
-        $game = $this->makeGame('Bogatell 18:00', createdAt: $creationDate);
+        $kickoffAt = $this->makeKickoff('Bogatell 18:00', createdAt: $creationDate);
 
-        $window = $this->resolver->windowForGame($game);
+        $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame($creationDate->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
     }
@@ -64,9 +63,9 @@ final class WeatherWindowResolverTest extends TestCase
     public function testKickoffInPastReturnsEmptyHours(): void
     {
         // Fixed past date — reliably in the past regardless of when tests run.
-        $game = $this->makeGame('Bogatell 10.04.2020 12:00', createdAt: new DateTimeImmutable('2020-04-01'));
+        $kickoffAt = $this->makeKickoff('Bogatell 10.04.2020 12:00', createdAt: new DateTimeImmutable('2020-04-01'));
 
-        $window = $this->resolver->windowForGame($game);
+        $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame('2020-04-10 12:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
         $this->assertSame([], $window->hours);
@@ -75,12 +74,12 @@ final class WeatherWindowResolverTest extends TestCase
     public function testKickoffBeyondSevenDaysReturnsEmptyHours(): void
     {
         $kickoffDay = new DateTimeImmutable('+10 days');
-        $game = $this->makeGame(
+        $kickoffAt = $this->makeKickoff(
             title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:00',
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowForGame($game);
+        $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame([], $window->hours);
     }
@@ -89,12 +88,12 @@ final class WeatherWindowResolverTest extends TestCase
     {
         // Kickoff exactly 6 days and 23 hours out — safely within the 7-day horizon.
         $kickoffDay = new DateTimeImmutable('+6 days');
-        $game = $this->makeGame(
+        $kickoffAt = $this->makeKickoff(
             title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 12:00',
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowForGame($game);
+        $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertCount(5, $window->hours);
     }
@@ -102,12 +101,12 @@ final class WeatherWindowResolverTest extends TestCase
     public function testRoundsKickoffAfterHalfPastUpToNextHour(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days');
-        $game = $this->makeGame(
+        $kickoffAt = $this->makeKickoff(
             title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:45',
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowForGame($game);
+        $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame($kickoffDay->format('Y-m-d') . ' 19:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
     }
@@ -115,12 +114,12 @@ final class WeatherWindowResolverTest extends TestCase
     public function testRoundsKickoffAtHalfPastUpToNextHour(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days');
-        $game = $this->makeGame(
+        $kickoffAt = $this->makeKickoff(
             title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:30',
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowForGame($game);
+        $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame($kickoffDay->format('Y-m-d') . ' 19:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
     }
@@ -128,29 +127,18 @@ final class WeatherWindowResolverTest extends TestCase
     public function testRoundsKickoffBeforeHalfPastDownToCurrentHour(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days');
-        $game = $this->makeGame(
+        $kickoffAt = $this->makeKickoff(
             title: 'Bogatell ' . $kickoffDay->format('d.m.Y') . ' 18:15',
             createdAt: new DateTimeImmutable(),
         );
 
-        $window = $this->resolver->windowForGame($game);
+        $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame($kickoffDay->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
     }
 
-    private function makeGame(string $title, DateTimeImmutable $createdAt): Game
+    private function makeKickoff(string $title, DateTimeImmutable $createdAt): DateTimeImmutable
     {
-        $game = new Game(
-            gameId: 1,
-            gameKey: 'iq',
-            messageTargets: [],
-            title: $title,
-            users: [],
-            createdAt: $createdAt,
-            kickoffAt: GameDateTimeResolver::resolveOrFail($title, $createdAt),
-        );
-        $game->init();
-
-        return $game;
+        return GameDateTimeResolver::resolveOrFail($title, $createdAt);
     }
 }

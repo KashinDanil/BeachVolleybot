@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors;
 
 use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Game\GameFactory;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\GameMessageRefresher;
 use BeachVolleybot\Telegram\RateLimitedBotApi;
 use BeachVolleybot\Telegram\TelegramMessageSender;
@@ -30,25 +30,27 @@ final readonly class WeatherQueueProcessor implements QueueProcessorInterface
     public function process(QueueMessage $message): bool
     {
         $payload = WeatherQueuePayload::fromArray($message->payload);
-        $game = GameFactory::tryFromGameId($payload->gameId, addOns: []);
+        $gameRecord = new GameManager()->findGameRecordById($payload->gameId);
 
-        if (null === $game) {
+        if (null === $gameRecord) {
             Logger::logVerbose('Weather fetch skipped: game gone (id=' . $payload->gameId . ')');
 
             return true;
         }
 
-        $window = $this->windowResolver->windowForGame($game);
+        $window = $this->windowResolver->windowFor($gameRecord->kickoffAt);
 
         if (empty($window->hours)) {
             return true;
         }
 
-        $coordinates = $this->locationResolver->resolve($game)->rounded();
+        $coordinates = $this->locationResolver
+            ->resolve($gameRecord->location, $gameRecord->venueName, $gameRecord->title)
+            ->rounded();
         $updated = $this->weatherCacheUpdater->update($coordinates, $window);
 
         if ($updated) {
-            $this->gameMessageRefresher->refresh($game->getGameId());
+            $this->gameMessageRefresher->refresh($gameRecord->gameId);
         }
 
         return true;
