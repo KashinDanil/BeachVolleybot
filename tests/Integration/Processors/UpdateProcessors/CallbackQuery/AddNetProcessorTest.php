@@ -91,7 +91,7 @@ final class AddNetProcessorTest extends ProcessorTestCase
 
     public function testTodayPastHourStillAddsBecauseDayHasNotEnded(): void
     {
-        $today = new \DateTimeImmutable()->format('d.m.Y');
+        $today = $this->todayAtTheVenue();
         $gameId = $this->seedGameWithUser(telegramUserId: 200, net: 1);
         $this->retitleGame($gameId, "Bogatell {$today} 00:01");
         $update = $this->buildUpdate('msg_1');

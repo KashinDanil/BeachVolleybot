@@ -105,7 +105,7 @@ final class JoinProcessorTest extends ProcessorTestCase
 
     public function testTodayPastHourStillJoinsBecauseDayHasNotEnded(): void
     {
-        $today = new \DateTimeImmutable()->format('d.m.Y');
+        $today = $this->todayAtTheVenue();
         $gameId = $this->seedFullGame(title: "Bogatell {$today} 00:01");
         $update = $this->buildUpdate('msg_1');
 

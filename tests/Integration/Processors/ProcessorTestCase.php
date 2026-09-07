@@ -9,7 +9,9 @@ use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
 use BeachVolleybot\User\Role;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
+use DateTimeImmutable;
 
 abstract class ProcessorTestCase extends DatabaseTestCase
 {
@@ -52,6 +54,12 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     protected function seedRoot(): void
     {
         $this->createUser(self::ADMIN_TELEGRAM_USER_ID, role: Role::Root->value);
+    }
+
+    /** A game's day is judged at its venue, so a fixture that means "today" has to say whose. */
+    protected function todayAtTheVenue(): string
+    {
+        return new DateTimeImmutable()->setTimezone(KnownVenues::defaultVenue()->timezone)->format('d.m.Y');
     }
 
     protected function seedFullGame(

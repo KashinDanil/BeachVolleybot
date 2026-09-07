@@ -93,7 +93,7 @@ final class RemoveVolleyballProcessorTest extends ProcessorTestCase
 
     public function testTodayPastHourStillRemovesBecauseDayHasNotEnded(): void
     {
-        $today = new \DateTimeImmutable()->format('d.m.Y');
+        $today = $this->todayAtTheVenue();
         $gameId = $this->seedGameWithUser(telegramUserId: 200, volleyball: 2);
         $this->retitleGame($gameId, "Bogatell {$today} 00:01");
         $update = $this->buildUpdate('msg_1');

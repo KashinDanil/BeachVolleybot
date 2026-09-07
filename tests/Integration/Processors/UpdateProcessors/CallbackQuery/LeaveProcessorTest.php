@@ -107,7 +107,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
 
     public function testTodayPastHourStillLeavesBecauseDayHasNotEnded(): void
     {
-        $today = new \DateTimeImmutable()->format('d.m.Y');
+        $today = $this->todayAtTheVenue();
         $gameId = $this->seedGameWithUser(telegramUserId: 200, position: 1);
         $this->retitleGame($gameId, "Bogatell {$today} 00:01");
         $update = $this->buildUpdate('msg_1');
