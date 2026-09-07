@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -26,7 +27,7 @@ final class KickoffDayInTheFutureRuleTest extends TestCase
         $rule = new KickoffDayInTheFutureRule(
             title: 'Beach 24.04.26 10:00',
             createdAt: new DateTimeImmutable('2026-04-01 10:00'),
-            now: new DateTimeImmutable('2026-04-24 18:00'),
+            now: new DateTimeImmutable('2026-04-24 18:00', KnownVenues::defaultVenue()->timezone),
         );
 
         $this->assertTrue($rule->isValid());

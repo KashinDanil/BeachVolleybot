@@ -205,15 +205,11 @@ final class WeatherFormatterTest extends TestCase
 
     public function testFooterAnchorRendersFetchedAtInKickoffLocationZone(): void
     {
-        // fetchedAt is persisted as UTC; the snapshot hours carry Open-Meteo's
-        // local zone for the kickoff location. The footer must show wall-clock
-        // time in that local zone, not UTC.
-        $snapshotZone = new DateTimeZone('Europe/Madrid');
-
+        // Cached hours and fetchedAt are UTC; the kickoff hour carries the venue's clock.
         $output = (string) $this->formatter->format(
-            new WeatherSnapshot([$this->weatherHour('2026-04-15 18:00:00', zone: $snapshotZone)]),
+            new WeatherSnapshot([$this->weatherHour('2026-04-15 16:00:00')]),
             new LocationCoordinates(41.397, 2.211),
-            $this->hour('2026-04-15 18:00:00'),
+            new DateTimeImmutable('2026-04-15 18:00:00', new DateTimeZone('Europe/Madrid')),
             // 12:34 UTC = 14:34 in Madrid (UTC+2 in April).
             $this->hour('2026-04-15 12:34:56'),
         );

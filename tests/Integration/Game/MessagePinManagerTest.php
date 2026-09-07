@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Integration\Game;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\MessagePinManager;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 
 final class MessagePinManagerTest extends DatabaseTestCase
@@ -17,19 +18,20 @@ final class MessagePinManagerTest extends DatabaseTestCase
 
     public function testRegisterSetsUnpinAfterToNextDayMidnight(): void
     {
-        $this->manager->register(1, 42, '{}', new DateTimeImmutable('2026-04-17 18:00:00'));
+        $this->manager->register(1, 42, '{}', $this->atTheVenue('2026-04-17 18:00:00'));
 
         $rows = $this->db->select('pinned_messages', '*', ['chat_id' => 1]);
         $this->assertCount(1, $rows);
-        $this->assertSame('2026-04-18 00:00:00', $rows[0]['unpin_after']);
+        // Stored as UTC: midnight at the venue on the 18th is 22:00Z on the 17th.
+        $this->assertSame('2026-04-17 22:00:00', $rows[0]['unpin_after']);
     }
 
     public function testRegisterUnpinAfterIsAlwaysMidnightRegardlessOfEventTime(): void
     {
-        $this->manager->register(1, 45, '{}', new DateTimeImmutable('2026-04-17 23:30:00'));
+        $this->manager->register(1, 45, '{}', $this->atTheVenue('2026-04-17 23:30:00'));
 
         $rows = $this->db->select('pinned_messages', '*', ['chat_id' => 1]);
-        $this->assertSame('2026-04-18 00:00:00', $rows[0]['unpin_after']);
+        $this->assertSame('2026-04-17 22:00:00', $rows[0]['unpin_after']);
     }
 
     public function testRegisterSetsUnpinAfterNullWhenNoEventDateIsKnown(): void
@@ -55,5 +57,10 @@ final class MessagePinManagerTest extends DatabaseTestCase
     protected function tearDown(): void
     {
         Connection::close();
+    }
+
+    private function atTheVenue(string $wallClock): DateTimeImmutable
+    {
+        return new DateTimeImmutable($wallClock, KnownVenues::defaultVenue()->timezone);
     }
 }

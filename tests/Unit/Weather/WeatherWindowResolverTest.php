@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Weather;
 
 use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -41,7 +42,7 @@ final class WeatherWindowResolverTest extends TestCase
     {
         // Creation on a Friday (actual date) — "Saturday" means tomorrow from creation.
         // To keep kickoff in the future for the horizon check, the creation date is today minus 0 days.
-        $creationDate = new DateTimeImmutable('next friday')->setTime(10, 0);
+        $creationDate = new DateTimeImmutable('next friday', KnownVenues::defaultVenue()->timezone)->setTime(10, 0);
         $expectedKickoffDay = $creationDate->modify('+1 day');
         $kickoffAt = $this->makeKickoff('Bogatell Saturday 18:00', createdAt: $creationDate);
 
@@ -52,7 +53,7 @@ final class WeatherWindowResolverTest extends TestCase
 
     public function testFallsBackToCreationDateWhenNoDateInTitle(): void
     {
-        $creationDate = new DateTimeImmutable()->setTime(10, 0);
+        $creationDate = new DateTimeImmutable('now', KnownVenues::defaultVenue()->timezone)->setTime(10, 0);
         $kickoffAt = $this->makeKickoff('Bogatell 18:00', createdAt: $creationDate);
 
         $window = $this->resolver->windowFor($kickoffAt);

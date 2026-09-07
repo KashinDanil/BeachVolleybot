@@ -8,7 +8,6 @@ use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameDatePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use DateTimeImmutable;
 
 class UserNewGameCommandProcessor extends AbstractActionProcessor
 {
@@ -16,7 +15,7 @@ class UserNewGameCommandProcessor extends AbstractActionProcessor
     {
         $message = $update->message;
 
-        $picker = new NewGameDatePickerMessageBuilder(Translator::fromUser($message->from), new DateTimeImmutable())->build();
+        $picker = new NewGameDatePickerMessageBuilder(Translator::fromUser($message->from))->build();
 
         $sentMessageId = $this->telegramSender->sendMessage($message->chat->id, $picker);
 

@@ -21,7 +21,7 @@ class NewGameTimePageProcessor extends AbstractNewGameStepProcessor
         $isValid = $this->passesValidation(
             $callbackQuery,
             new ResolvableDateRule($text, new DateTimeImmutable()),
-            new DateInTheFutureRule($this->parseDate($text), new DateTimeImmutable()),
+            new DateInTheFutureRule($this->parseDate($text), self::defaultVenueNow()),
         );
 
         if (!$isValid) {

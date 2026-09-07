@@ -11,7 +11,6 @@ use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
 use BeachVolleybot\Weather\Forecast\Models\WeatherWindow;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
-use DateTimeZone;
 use Throwable;
 
 final readonly class WeatherCacheUpdater
@@ -26,9 +25,7 @@ final readonly class WeatherCacheUpdater
 
     public function update(LocationCoordinates $coordinates, WeatherWindow $window): bool
     {
-        $kickoffUtc = $window->kickoffHour->setTimezone(new DateTimeZone('UTC'));
-
-        if (!$this->needsUpdate($coordinates, $kickoffUtc)) {
+        if (!$this->needsUpdate($coordinates, $window->kickoffHour)) {
             return false;
         }
 
@@ -38,7 +35,7 @@ final readonly class WeatherCacheUpdater
             return false;
         }
 
-        $this->cache->save($coordinates, $kickoffUtc, $snapshot);
+        $this->cache->save($coordinates, $window->kickoffHour, $snapshot);
 
         return true;
     }
@@ -52,9 +49,9 @@ final readonly class WeatherCacheUpdater
         return time() - $row->fetchedAt->getTimestamp() < self::CACHE_TTL_SECONDS;
     }
 
-    private function needsUpdate(LocationCoordinates $coordinates, DateTimeImmutable $kickoffUtc): bool
+    private function needsUpdate(LocationCoordinates $coordinates, DateTimeImmutable $kickoffHour): bool
     {
-        return !$this->isFresh($this->cache->find($coordinates, $kickoffUtc));
+        return !$this->isFresh($this->cache->find($coordinates, $kickoffHour));
     }
 
     private function tryFetchSnapshot(LocationCoordinates $coordinates, WeatherWindow $window): ?WeatherSnapshot

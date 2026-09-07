@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game;
 
+use BeachVolleybot\Database\Timestamp;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 
 readonly class GameRecord
@@ -28,10 +30,16 @@ readonly class GameRecord
             (string)$row['game_key'],
             (int)$row['created_by'],
             (string)$row['title'],
-            new DateTimeImmutable((string)$row['created_at']),
-            new DateTimeImmutable((string)$row['kickoff_at']),
+            Timestamp::parse((string)$row['created_at']),
+            self::venueTime((string)$row['kickoff_at'], $row['venue_name'] ?? null),
             $row['venue_name'] ?? null,
             $row['location'] ?? null,
         );
+    }
+
+    /** From here on the kickoff carries the venue's clock, so nothing downstream needs a timezone. */
+    private static function venueTime(string $kickoffAt, ?string $venueName): DateTimeImmutable
+    {
+        return Timestamp::parse($kickoffAt)->setTimezone(KnownVenues::findByNameOrDefault($venueName)->timezone);
     }
 }

@@ -8,6 +8,7 @@ use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameTimePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Validator\Rules\DateInTheFutureRule;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Validator\Rules\SelectedDateRule;
 use DateTimeImmutable;
 
@@ -22,8 +23,8 @@ class NewGamePickDateProcessor extends AbstractNewGameStepProcessor
             return;
         }
 
-        $date = new DateTimeImmutable($rawDate);
-        if (!$this->passesValidation($callbackQuery, new DateInTheFutureRule($date, new DateTimeImmutable()))) {
+        $date = new DateTimeImmutable($rawDate, KnownVenues::defaultVenue()->timezone);
+        if (!$this->passesValidation($callbackQuery, new DateInTheFutureRule($date, self::defaultVenueNow()))) {
             return;
         }
 

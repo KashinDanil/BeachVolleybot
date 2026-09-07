@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\PinnedMessageRepository;
 use DateTimeImmutable;
+use DateTimeZone;
 
 final class PinnedMessageRepositoryTest extends DatabaseTestCase
 {
@@ -26,7 +27,8 @@ final class PinnedMessageRepositoryTest extends DatabaseTestCase
 
         $this->repository = new PinnedMessageRepository($this->db);
 
-        $today = new DateTimeImmutable('today');
+        // unpin_after holds UTC, so the day boundaries seeded here are UTC too.
+        $today = new DateTimeImmutable('today', new DateTimeZone('UTC'));
         $this->todayMidnight = $today->format('Y-m-d H:i:s');
         $this->yesterdayMidnight = $today->modify('-1 day')->format('Y-m-d H:i:s');
         $this->tomorrowMidnight = $today->modify('+1 day')->format('Y-m-d H:i:s');

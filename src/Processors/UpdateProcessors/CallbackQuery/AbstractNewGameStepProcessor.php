@@ -6,6 +6,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Common\GameDateResolver;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Errors\ErrorInterface;
 use BeachVolleybot\Localization\Translator;
@@ -57,7 +58,12 @@ abstract class AbstractNewGameStepProcessor extends AbstractCallbackProcessor
 
     protected function parseDate(?string $text): ?DateTimeImmutable
     {
-        return GameDateResolver::resolve($text ?? '', new DateTimeImmutable());
+        return GameDateResolver::resolve($text ?? '', self::defaultVenueNow());
+    }
+
+    protected static function defaultVenueNow(): DateTimeImmutable
+    {
+        return new DateTimeImmutable()->setTimezone(KnownVenues::defaultVenue()->timezone);
     }
 
     protected function parseTime(?string $text): ?string

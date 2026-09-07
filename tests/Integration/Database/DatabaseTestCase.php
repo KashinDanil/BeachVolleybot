@@ -8,14 +8,15 @@ use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\User\Role;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
+use DateTimeZone;
 use Medoo\Medoo;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
 abstract class DatabaseTestCase extends TestCase
 {
-    /** Stands in for titles that carry no resolvable kickoff, which games.kickoff_at no longer allows. */
-    private const string FALLBACK_KICKOFF_AT = '2099-12-31 18:00:00';
+    /** Stands in for titles with no resolvable kickoff. UTC, like the column: 18:00 in Barcelona. */
+    private const string FALLBACK_KICKOFF_AT = '2099-12-31 17:00:00';
 
     protected Medoo $db;
 
@@ -89,7 +90,9 @@ abstract class DatabaseTestCase extends TestCase
 
     protected function resolveKickoffAt(string $title): string
     {
-        return GameDateTimeResolver::resolve($title, new DateTimeImmutable())?->format('Y-m-d H:i:s')
+        return GameDateTimeResolver::resolve($title, new DateTimeImmutable())
+            ?->setTimezone(new DateTimeZone('UTC'))
+            ->format('Y-m-d H:i:s')
             ?? self::FALLBACK_KICKOFF_AT;
     }
 

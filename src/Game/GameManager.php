@@ -9,12 +9,12 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Database\Timestamp;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
-use DateTimeImmutable;
 
 readonly class GameManager
 {
@@ -350,7 +350,7 @@ readonly class GameManager
         }
 
         $updatedTitle = str_replace($currentTime, $earliestTime, $title);
-        $createdAt = new DateTimeImmutable((string) $game['created_at']);
+        $createdAt = Timestamp::parse((string) $game['created_at']);
 
         $this->gameRepository->updateTitle($gameId, $updatedTitle, ParsedTitle::parse($updatedTitle, $createdAt));
     }

@@ -116,10 +116,10 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $ok = $this->processor->process($this->messageFor($gameId));
 
         $this->assertTrue($ok);
-        // Default coords (Playa de Bogatell) after ->rounded() → 41.394, 2.207.
+        // Falls back to the default venue, Bogatell.
         $this->assertCount(1, $this->weatherClient->calls);
         $this->assertSame(41.394, $this->weatherClient->calls[0]['coords']->latitude);
-        $this->assertSame(2.207, $this->weatherClient->calls[0]['coords']->longitude);
+        $this->assertSame(2.208, $this->weatherClient->calls[0]['coords']->longitude);
     }
 
     public function testFreshCacheShortCircuitsWithoutHttpOrRefresh(): void
@@ -230,8 +230,8 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
 
         $row = $this->db->get('weather_cache', '*');
         $this->assertNotFalse($row);
-        // SQLite stores TIMESTAMP as a string in the format we wrote.
-        $this->assertStringEndsWith(' 18:00:00', $row['forecast_ts']);
+        // SQLite stores TIMESTAMP as the string we wrote: the kickoff hour as UTC.
+        $this->assertSame($this->kickoffUtcFor($kickoffDay, 18)->format('Y-m-d H:i:s'), $row['forecast_ts']);
     }
 
     public function testPayloadGameIdRoundTripsThroughMessage(): void
@@ -296,8 +296,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
 
     private function seedCacheForGame(int $gameId, float $temperature): void
     {
-        $kickoffDay = new DateTimeImmutable('+2 days')->format('Y-m-d');
-        $kickoffUtc = new DateTimeImmutable("$kickoffDay 18:00:00", new DateTimeZone('UTC'));
+        $kickoffUtc = $this->kickoffUtcFor(new DateTimeImmutable('+2 days')->format('d.m.Y'), 18);
         $this->weatherCache->save(
             new LocationCoordinates(41.397, 2.211),
             $kickoffUtc,
@@ -307,6 +306,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         );
     }
 
+    /** The hour is wall clock at the venue; the cache keys on the instant it stands for. */
     private function kickoffUtcFor(string $kickoffDay, int $hour): DateTimeImmutable
     {
         $date = DateTimeImmutable::createFromFormat('d.m.Y', $kickoffDay);
@@ -314,7 +314,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
 
         return new DateTimeImmutable(
             $date->format('Y-m-d') . ' ' . str_pad((string) $hour, 2, '0', STR_PAD_LEFT) . ':00:00',
-            new DateTimeZone('UTC'),
-        );
+            KnownVenues::defaultVenue()->timezone,
+        )->setTimezone(new DateTimeZone('UTC'));
     }
 }

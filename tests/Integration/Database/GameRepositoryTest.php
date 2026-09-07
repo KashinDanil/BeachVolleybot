@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Game\ParsedTitle;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 
 final class GameRepositoryTest extends DatabaseTestCase
@@ -48,8 +49,34 @@ final class GameRepositoryTest extends DatabaseTestCase
         $id = $this->repository->create($title, 100, 'query_1', $this->parsedTitle($title));
 
         $game = $this->repository->findById($id);
-        $this->assertSame('2099-12-31 18:00:00', $game['kickoff_at']);
+        // The title says 18:00 in Barcelona; the column keeps the instant that stands for.
+        $this->assertSame('2099-12-31 17:00:00', $game['kickoff_at']);
         $this->assertSame('Somorrostro', $game['venue_name']);
+    }
+
+    public function testKickoffIsStoredAtTheVenuesOffsetForThatDate(): void
+    {
+        $summerId = $this->createFromTitle('Bogatell 15.07.2099 18:00', 'query_summer');
+        $winterId = $this->createFromTitle('Bogatell 15.01.2099 18:00', 'query_winter');
+
+        // Same wall clock, different offset: CEST in July, CET in January.
+        $this->assertSame('2099-07-15 16:00:00', $this->repository->findById($summerId)['kickoff_at']);
+        $this->assertSame('2099-01-15 17:00:00', $this->repository->findById($winterId)['kickoff_at']);
+    }
+
+    public function testUpcomingWindowSelectsByInstantWhateverZoneItsBoundsCarry(): void
+    {
+        // The scan builds its bounds from its own clock, which is not the venue's.
+        $venue = KnownVenues::defaultVenue()->timezone;
+        $aheadId = $this->createFromTitle('Bogatell ' . $this->venueWallClock('+30 minutes'), 'query_ahead');
+        $this->createFromTitle('Bogatell ' . $this->venueWallClock('-30 minutes'), 'query_started');
+
+        $rows = $this->repository->findUpcoming(
+            new DateTimeImmutable('now', $venue),
+            new DateTimeImmutable('+7 days', $venue),
+        );
+
+        $this->assertSame([$aheadId], array_map(static fn(array $row): int => (int)$row['game_id'], $rows));
     }
 
     public function testUpdateTitleRewritesKickoffAndVenue(): void
@@ -62,7 +89,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
         $game = $this->repository->findById($id);
         $this->assertSame($newTitle, $game['title']);
-        $this->assertSame('2020-01-01 09:30:00', $game['kickoff_at']);
+        $this->assertSame('2020-01-01 08:30:00', $game['kickoff_at']);
         $this->assertSame('Bogatell', $game['venue_name']);
     }
 
@@ -75,7 +102,8 @@ final class GameRepositoryTest extends DatabaseTestCase
         $this->repository->updateTitle($id, $newTitle, $this->parsedTitle($newTitle));
 
         $game = $this->repository->findById($id);
-        $this->assertSame('2099-12-31 18:00:00', $game['kickoff_at']);
+        // The title says 18:00 in Barcelona; the column keeps the instant that stands for.
+        $this->assertSame('2099-12-31 17:00:00', $game['kickoff_at']);
         $this->assertNull($game['venue_name']);
     }
 
@@ -177,5 +205,15 @@ final class GameRepositoryTest extends DatabaseTestCase
         $this->repository->create('Friday Game 18:00', 100, 'query_a', $this->parsedTitle('Friday Game 18:00'));
 
         $this->assertSame(0, $this->repository->countByCreator(999));
+    }
+
+    private function createFromTitle(string $title, string $gameKey): int
+    {
+        return $this->repository->create($title, 100, $gameKey, $this->parsedTitle($title));
+    }
+
+    private function venueWallClock(string $offset): string
+    {
+        return new DateTimeImmutable($offset)->setTimezone(KnownVenues::defaultVenue()->timezone)->format('d.m.Y H:i');
     }
 }

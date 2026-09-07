@@ -141,7 +141,7 @@ final class DateExtractor implements ExtractorInterface
         }
 
         if (null !== $parsed->year) {
-            return self::createValidDate($parsed->year, $parsed->month, $parsed->day);
+            return self::createValidDate($parsed->year, $parsed->month, $parsed->day, $now);
         }
 
         return self::resolveClosestYear($parsed->day, $parsed->month, $now);
@@ -209,7 +209,7 @@ final class DateExtractor implements ExtractorInterface
         $smallestDistance = PHP_INT_MAX;
 
         foreach ([$currentYear - 1, $currentYear, $currentYear + 1] as $candidateYear) {
-            $date = self::createValidDate($candidateYear, $month, $day);
+            $date = self::createValidDate($candidateYear, $month, $day, $now);
 
             if (null === $date) {
                 continue;
@@ -226,12 +226,13 @@ final class DateExtractor implements ExtractorInterface
         return $closestDate;
     }
 
-    private static function createValidDate(int $year, int $month, int $day): ?DateTimeImmutable
+    /** Built off $now so the date keeps the caller's timezone instead of the server's. */
+    private static function createValidDate(int $year, int $month, int $day, DateTimeImmutable $now): ?DateTimeImmutable
     {
         if (!checkdate($month, $day, $year)) {
             return null;
         }
 
-        return new DateTimeImmutable()->setDate($year, $month, $day)->setTime(0, 0);
+        return $now->setDate($year, $month, $day)->setTime(0, 0);
     }
 }

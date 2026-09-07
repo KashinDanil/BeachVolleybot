@@ -90,6 +90,15 @@ final class WeatherRefreshSchedulerTest extends DatabaseTestCase
         $this->assertEnqueued($healthyGameId);
     }
 
+    public function testGameThatAlreadyKickedOffIsNotScanned(): void
+    {
+        $startedGameId = $this->seedGame(kickoffIn: '-30 minutes', suffix: 'started');
+
+        $this->scheduler->scan();
+
+        $this->assertNotEnqueued($startedGameId);
+    }
+
     public function testGamesOutsideTheForecastHorizonAreNotScanned(): void
     {
         $pastGameId = $this->seedGame(kickoffIn: '-1 hour', suffix: 'past');
@@ -107,7 +116,7 @@ final class WeatherRefreshSchedulerTest extends DatabaseTestCase
             title: 'Bogatell 18:00',
             inlineMessageId: 'msg_' . $suffix,
             gameKey: 'query_' . $suffix,
-            kickoffAt: new DateTimeImmutable($kickoffIn)->format('Y-m-d H:i:s'),
+            kickoffAt: new DateTimeImmutable($kickoffIn)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
         );
     }
 
@@ -121,7 +130,7 @@ final class WeatherRefreshSchedulerTest extends DatabaseTestCase
             ->setTimezone(new DateTimeZone('UTC'));
 
         new WeatherCacheManager()->save(
-            new GameLocationResolver()->resolve($game->location, $game->venueName, $game->title)->rounded(),
+            new GameLocationResolver()->resolve($game->location, $game->venueName)->rounded(),
             $kickoffUtc,
             new WeatherSnapshot([new WeatherHour($kickoffUtc, 22.0, 0, 3.0, 0)]),
         );

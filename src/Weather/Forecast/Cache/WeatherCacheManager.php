@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace BeachVolleybot\Weather\Forecast\Cache;
 
 use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Database\Timestamp;
 use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
-use DateTimeZone;
 
 final readonly class WeatherCacheManager
 {
@@ -24,7 +24,7 @@ final readonly class WeatherCacheManager
         $row = $this->repository->findByCoordsAndKickoff(
             $coordinates->latitude,
             $coordinates->longitude,
-            $this->formatTimestamp($kickoffHour),
+            Timestamp::format($kickoffHour),
         );
 
         return null === $row ? null : $this->hydrate($row);
@@ -38,14 +38,9 @@ final readonly class WeatherCacheManager
         $this->repository->upsert(
             $coordinates->latitude,
             $coordinates->longitude,
-            $this->formatTimestamp($kickoffHour),
+            Timestamp::format($kickoffHour),
             json_encode($snapshot, JSON_THROW_ON_ERROR),
         );
-    }
-
-    private function formatTimestamp(DateTimeImmutable $dateTime): string
-    {
-        return $dateTime->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
     }
 
     /** @param array<string, mixed> $row */
@@ -56,7 +51,7 @@ final readonly class WeatherCacheManager
                 latitude: (float)$row['latitude'],
                 longitude: (float)$row['longitude'],
             ),
-            fetchedAt: new DateTimeImmutable((string)$row['fetched_at'], new DateTimeZone('UTC')),
+            fetchedAt: Timestamp::parse((string)$row['fetched_at']),
             snapshot: WeatherSnapshot::fromArray(
                 json_decode((string)$row['data_json'], associative: true, flags: JSON_THROW_ON_ERROR),
             ),

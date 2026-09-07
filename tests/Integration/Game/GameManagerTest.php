@@ -61,7 +61,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->gameManager->createGame($data);
 
         $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('2099-12-31 18:00:00', $game['kickoff_at']);
+        $this->assertSame('2099-12-31 17:00:00', $game['kickoff_at']);
         $this->assertSame('Somorrostro', $game['venue_name']);
     }
 
@@ -80,7 +80,8 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->gameManager->createGame($data);
 
         $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('2026-08-15 18:00:00', $game['kickoff_at']);
+        // One kickoff, two readings: 16:00Z in the column, 18:00 on the card's Barcelona clock.
+        $this->assertSame('2026-08-15 16:00:00', $game['kickoff_at']);
         $this->assertSame('2026-08-15 18:00:00', $card->getKickoffAt()->format('Y-m-d H:i:s'));
     }
 
@@ -453,7 +454,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertSame('Beach 31.12.2099 16:00', $game['title']);
-        $this->assertSame('2099-12-31 16:00:00', $game['kickoff_at']);
+        $this->assertSame('2099-12-31 15:00:00', $game['kickoff_at']);
     }
 
     public function testRemoveNetRecalculatesGameTimeToNextNetHolder(): void
@@ -559,7 +560,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Bogatell 31.12.2099 20:00');
 
         $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('2099-12-31 20:00:00', $game['kickoff_at']);
+        $this->assertSame('2099-12-31 19:00:00', $game['kickoff_at']);
         $this->assertSame('Bogatell', $game['venue_name']);
     }
 

@@ -9,8 +9,6 @@ use DateTimeImmutable;
 
 readonly class GameRepository extends AbstractRepository
 {
-    private const string TIMESTAMP_FORMAT = 'Y-m-d H:i:s';
-
     protected function table(): string
     {
         return 'games';
@@ -33,7 +31,7 @@ readonly class GameRepository extends AbstractRepository
             'location' => $location,
             'created_by' => $createdBy,
             'game_key' => $gameKey,
-            'kickoff_at' => $parsedTitle->kickoffAt->format(self::TIMESTAMP_FORMAT),
+            'kickoff_at' => Timestamp::format($parsedTitle->kickoffAt),
             'venue_name' => $parsedTitle->venueName,
         ]);
 
@@ -49,7 +47,7 @@ readonly class GameRepository extends AbstractRepository
     {
         $this->db->update($this->table(), [
             'title' => $title,
-            'kickoff_at' => $parsedTitle->kickoffAt->format(self::TIMESTAMP_FORMAT),
+            'kickoff_at' => Timestamp::format($parsedTitle->kickoffAt),
             'venue_name' => $parsedTitle->venueName,
         ], ['game_id' => $gameId]);
     }
@@ -108,7 +106,7 @@ readonly class GameRepository extends AbstractRepository
     public function findUpcoming(DateTimeImmutable $from, DateTimeImmutable $to): array
     {
         return $this->db->select($this->table(), '*', [
-            'kickoff_at[<>]' => [$from->format(self::TIMESTAMP_FORMAT), $to->format(self::TIMESTAMP_FORMAT)],
+            'kickoff_at[<>]' => [Timestamp::format($from), Timestamp::format($to)],
             'ORDER' => ['kickoff_at' => 'ASC'],
         ]);
     }

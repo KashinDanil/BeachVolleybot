@@ -40,6 +40,21 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     // --- buildGamesList label format ---
 
+    /** The columns `select '*'` hands the builder, which reads them as a GameRecord. */
+    private function gameRow(int $gameId, string $kickoffAtUtc = '2099-12-31 17:00:00'): array
+    {
+        return [
+            'game_id' => $gameId,
+            'game_key' => 'query_' . $gameId,
+            'created_by' => 100,
+            'title' => 'Bogatell 31.12.2099 18:00',
+            'created_at' => '2099-12-01 10:00:00',
+            'kickoff_at' => $kickoffAtUtc,
+            'venue_name' => 'Bogatell',
+            'location' => null,
+        ];
+    }
+
     private function extractKeyboard($message): array
     {
         return json_decode($message->getKeyboard()->toJson(), true)['inline_keyboard'];
@@ -47,7 +62,8 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     public function testGameButtonReadsTheStoredKickoffRatherThanTheTitle(): void
     {
-        $this->createGame(title: 'Beach 12.04.2020 10:00', kickoffAt: '2099-12-31 18:00:00');
+        // kickoffAt is UTC in the column: 17:00Z is 18:00 in Barcelona in December.
+        $this->createGame(title: 'Beach 12.04.2020 10:00', kickoffAt: '2099-12-31 17:00:00');
 
         $message = $this->buildGamesList();
         $keyboard = $this->extractKeyboard($message);
@@ -71,7 +87,7 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     public function testNoPaginationRowOnSinglePage(): void
     {
-        $games = [['game_id' => 1, 'kickoff_at' => '2099-12-31 18:00:00']];
+        $games = [$this->gameRow(1)];
         $pagination = new KeyboardPagination(totalItems: 1, perPage: 5, page: 1);
 
         $message = $this->gamesListViewBuilder->buildGamesList($games, $pagination);
@@ -85,7 +101,7 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     public function testPaginationRowAppearsOnMultiplePages(): void
     {
-        $games = [['game_id' => 1, 'kickoff_at' => '2099-12-31 18:00:00']];
+        $games = [$this->gameRow(1)];
         $pagination = new KeyboardPagination(totalItems: 10, perPage: 5, page: 1);
 
         $message = $this->gamesListViewBuilder->buildGamesList($games, $pagination);
@@ -99,7 +115,7 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     public function testPaginationRowHasBothButtonsOnMiddlePage(): void
     {
-        $games = [['game_id' => 1, 'kickoff_at' => '2099-12-31 18:00:00']];
+        $games = [$this->gameRow(1)];
         $pagination = new KeyboardPagination(totalItems: 15, perPage: 5, page: 2);
 
         $message = $this->gamesListViewBuilder->buildGamesList($games, $pagination);

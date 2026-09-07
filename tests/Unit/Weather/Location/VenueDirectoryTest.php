@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Weather\Location;
 
+use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use BeachVolleybot\Weather\Location\Venue;
 use BeachVolleybot\Weather\Location\VenueDirectory;
@@ -17,8 +18,13 @@ final class VenueDirectoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->shortName = new Venue('Mar Bella', new LocationCoordinates(41.400, 2.216), ['Platja de la Mar Bella', 'Мар Белья']);
-        $this->longName = new Venue('Nova Mar Bella', new LocationCoordinates(41.405, 2.224), []);
+        $this->shortName = new Venue(
+            'Mar Bella',
+            new LocationCoordinates(41.400, 2.216),
+            ['Platja de la Mar Bella', 'Мар Белья'],
+            KnownVenues::defaultVenue()->timezone,
+        );
+        $this->longName = new Venue('Nova Mar Bella', new LocationCoordinates(41.405, 2.224), [], KnownVenues::defaultVenue()->timezone);
 
         $this->directory = new VenueDirectory([$this->shortName, $this->longName]);
     }

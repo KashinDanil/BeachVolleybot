@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Game;
 
 use BeachVolleybot\Game\ParsedTitle;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -51,6 +52,6 @@ final class ParsedTitleTest extends TestCase
 
     private function resolve(string $title): ParsedTitle
     {
-        return ParsedTitle::parse($title, new DateTimeImmutable(self::CREATED_AT));
+        return ParsedTitle::parse($title, new DateTimeImmutable(self::CREATED_AT, KnownVenues::defaultVenue()->timezone));
     }
 }

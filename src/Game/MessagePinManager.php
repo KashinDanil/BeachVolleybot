@@ -6,6 +6,7 @@ namespace BeachVolleybot\Game;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\PinnedMessageRepository;
+use BeachVolleybot\Database\Timestamp;
 use DateTimeImmutable;
 
 readonly class MessagePinManager
@@ -25,7 +26,7 @@ readonly class MessagePinManager
             $chatId,
             $messageId,
             $messageJson,
-            $unpinAfter?->format('Y-m-d H:i:s'),
+            null === $unpinAfter ? null : Timestamp::format($unpinAfter),
         );
     }
 

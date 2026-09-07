@@ -13,6 +13,8 @@ final readonly class WeatherWindowResolver
     public const int HOURS_AFTER_KICKOFF   = 3;
     public const int FORECAST_HORIZON_DAYS = 7;
 
+    private const int SECONDS_PER_HOUR = 3600;
+
     public function windowFor(DateTimeImmutable $kickoffAt): WeatherWindow
     {
         $kickoffHour = $this->roundToNearestHour($kickoffAt);
@@ -35,15 +37,12 @@ final readonly class WeatherWindowResolver
 
     private function truncateToHour(DateTimeImmutable $dateTime): DateTimeImmutable
     {
-        return $dateTime->setTime((int)$dateTime->format('G'), 0);
+        return $dateTime->setTimestamp(intdiv($dateTime->getTimestamp(), self::SECONDS_PER_HOUR) * self::SECONDS_PER_HOUR);
     }
 
     private function roundToNearestHour(DateTimeImmutable $dateTime): DateTimeImmutable
     {
-        $minutes = (int)$dateTime->format('i');
-        $base = 30 <= $minutes ? $dateTime->modify('+1 hour') : $dateTime;
-
-        return $this->truncateToHour($base);
+        return $dateTime->setTimestamp((int)round($dateTime->getTimestamp() / self::SECONDS_PER_HOUR) * self::SECONDS_PER_HOUR);
     }
 
     /** @return list<DateTimeImmutable> */

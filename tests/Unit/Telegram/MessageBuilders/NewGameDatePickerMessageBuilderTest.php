@@ -9,7 +9,9 @@ use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameDatePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
+use DateTimeZone;
 use PHPUnit\Framework\TestCase;
 
 final class NewGameDatePickerMessageBuilderTest extends TestCase
@@ -20,7 +22,10 @@ final class NewGameDatePickerMessageBuilderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->builder = new NewGameDatePickerMessageBuilder(new Translator(), new DateTimeImmutable(self::TODAY));
+        $this->builder = new NewGameDatePickerMessageBuilder(
+            new Translator(),
+            new DateTimeImmutable(self::TODAY, KnownVenues::defaultVenue()->timezone),
+        );
     }
 
     public function testFirstPageHasSevenDatesThenNextOnly(): void
@@ -31,6 +36,18 @@ final class NewGameDatePickerMessageBuilderTest extends TestCase
         $paginationRow = end($keyboard);
         $this->assertCount(1, $paginationRow);
         $this->assertStringContainsString('Next', $paginationRow[0]['text']);
+    }
+
+    public function testFirstDateIsTheDayItIsAtTheVenueNotOnTheServer(): void
+    {
+        // 22:01 UTC is already 00:01 the next day in Barcelona, and that is the day to offer.
+        $justAfterMidnight = new DateTimeImmutable('2026-09-07 22:01:00', new DateTimeZone('UTC'));
+        $keyboard = $this->extractKeyboard(
+            new NewGameDatePickerMessageBuilder(new Translator(), $justAfterMidnight)->build(1),
+        );
+
+        $this->assertStringContainsString('08.09', $keyboard[0][0]['text']);
+        $this->assertSame('2026-09-08', NewGameCallbackData::fromJson($keyboard[0][0]['callback_data'])->getDate());
     }
 
     public function testFirstDateIsTodayWithoutYear(): void

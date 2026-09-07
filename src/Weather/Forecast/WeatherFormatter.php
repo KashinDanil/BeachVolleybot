@@ -39,11 +39,10 @@ final readonly class WeatherFormatter
             return null;
         }
 
-        $localFetchedAt = $fetchedAt->setTimezone($snapshot->timezone());
-
+        // Cached hours and fetchedAt are UTC; the kickoff carries the venue's clock to read them by.
         $heading = $this->buildHeading();
         $rows = $this->buildRows($snapshot, $kickoffHour);
-        $footer = $this->buildFooter($localFetchedAt, $coordinates);
+        $footer = $this->buildFooter($fetchedAt->setTimezone($kickoffHour->getTimezone()), $coordinates);
         $section = implode($this->messageFormatter->newLine(), [$heading, ...$rows, $footer]);
 
         return $this->messageFormatter->blockquote($section) . $this->messageFormatter->newLine();
@@ -65,7 +64,7 @@ final readonly class WeatherFormatter
 
     private function formatRow(WeatherHour $hour, DateTimeImmutable $kickoffHour): string
     {
-        $time = $hour->hour->format('H:i');
+        $time = $hour->hour->setTimezone($kickoffHour->getTimezone())->format('H:i');
         $sky = $this->emojiForWeatherCode($hour->weatherCode) . ' ' . $this->formatTemperature($hour->temperatureC);
         $wind = $this->formatWind($hour);
         $line = implode(self::ROW_GROUP_SEPARATOR, [$time, $sky, $wind]);
@@ -92,12 +91,7 @@ final readonly class WeatherFormatter
 
     private function isKickoffHour(WeatherHour $hour, DateTimeImmutable $kickoffHour): bool
     {
-        // Wall-clock match (each side's own zone), not absolute timestamp: the
-        // snapshot's hours carry Open-Meteo's local zone while $kickoffHour
-        // typically arrives in UTC (from the game's created_at). Comparing
-        // `Y-m-d H` makes "kickoff is 18:00" pick the row labelled 18:00,
-        // regardless of zone offsets — same semantic as WeatherSnapshot::forHour.
-        return $hour->hour->format('Y-m-d H') === $kickoffHour->format('Y-m-d H');
+        return $hour->hour->getTimestamp() === $kickoffHour->getTimestamp();
     }
 
     private function buildFooter(DateTimeImmutable $fetchedAt, LocationCoordinates $coordinates): string

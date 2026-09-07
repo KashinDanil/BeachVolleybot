@@ -22,6 +22,28 @@ final class KnownVenuesTest extends TestCase
         $this->assertSame(2.198, $venue->coordinates->longitude);
     }
 
+    public function testEveryVenueCarriesTheClockItsKickoffsAreReadBy(): void
+    {
+        foreach (KnownVenues::all() as $venue) {
+            $this->assertSame('Europe/Madrid', $venue->timezone->getName(), $venue->name);
+        }
+    }
+
+    public function testLookupsFallBackToTheDefaultVenue(): void
+    {
+        $default = KnownVenues::defaultVenue();
+
+        $this->assertSame($default, KnownVenues::findByNameOrDefault(null));
+        $this->assertSame($default, KnownVenues::findByNameOrDefault('Copacabana'));
+        $this->assertSame($default, KnownVenues::findInTitleOrDefault('Friday 18:30'));
+    }
+
+    public function testLookupsReturnTheNamedVenueWhenThereIsOne(): void
+    {
+        $this->assertSame('Sitges', KnownVenues::findByNameOrDefault('Sitges')->name);
+        $this->assertSame('Sitges', KnownVenues::findInTitleOrDefault('Sitges 18:30')->name);
+    }
+
     public function testFindsVenueByCatalanAlias(): void
     {
         $venue = KnownVenues::findInTitle('Platja del Bogatell en la tarde');

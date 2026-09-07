@@ -10,6 +10,7 @@ use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use DateTimeImmutable;
 
@@ -23,12 +24,17 @@ final class NewGameDatePickerMessageBuilder extends AbstractMessageBuilder
 
     private readonly NewGameFormText $formText;
 
+    /** No venue is chosen yet, so the days offered are the default venue's — the one the
+     *  kickoff will be resolved at if the finished title names none. */
+    private readonly DateTimeImmutable $today;
+
     public function __construct(
         private readonly Translator $translator,
-        private readonly DateTimeImmutable $today = new DateTimeImmutable(),
+        ?DateTimeImmutable $today = null,
         MessageFormatterInterface $formatter = new MarkdownV2(),
     ) {
         parent::__construct($formatter);
+        $this->today = ($today ?? new DateTimeImmutable())->setTimezone(KnownVenues::defaultVenue()->timezone);
         $this->formText = new NewGameFormText($translator, $this->formatter);
     }
 

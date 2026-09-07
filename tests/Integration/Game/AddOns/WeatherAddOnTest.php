@@ -14,6 +14,7 @@ use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
 use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
 use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -194,12 +195,13 @@ final class WeatherAddOnTest extends DatabaseTestCase
         return $game;
     }
 
+    /** The hour is wall clock at the venue; the cache keys on the instant it stands for. */
     private function kickoffUtc(DateTimeImmutable $kickoffDay, int $hour): DateTimeImmutable
     {
         return new DateTimeImmutable(
             $kickoffDay->format('Y-m-d') . ' ' . str_pad((string) $hour, 2, '0', STR_PAD_LEFT) . ':00:00',
-            new DateTimeZone('UTC'),
-        );
+            KnownVenues::defaultVenue()->timezone,
+        )->setTimezone(new DateTimeZone('UTC'));
     }
 
     private function snapshotForHour(DateTimeImmutable $hour): WeatherSnapshot

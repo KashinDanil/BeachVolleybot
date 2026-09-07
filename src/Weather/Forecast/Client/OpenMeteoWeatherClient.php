@@ -28,12 +28,19 @@ final readonly class OpenMeteoWeatherClient extends AbstractOpenMeteoClient impl
             'latitude' => $coordinates->latitude,
             'longitude' => $coordinates->longitude,
             'hourly' => self::HOURLY_METRICS,
-            'timezone' => 'auto',
-            'start_hour' => $startHour->format('Y-m-d\TH:i'),
-            'end_hour' => $endHour->format('Y-m-d\TH:i'),
+            // start_hour/end_hour carry no offset and are read in whatever `timezone` says, so
+            // both sides have to be UTC — an offset in the value itself is rejected.
+            'timezone' => 'UTC',
+            'start_hour' => self::utcHour($startHour),
+            'end_hour' => self::utcHour($endHour),
         ]);
 
         return $this->parseResponse($response);
+    }
+
+    private static function utcHour(DateTimeImmutable $hour): string
+    {
+        return $hour->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i');
     }
 
     /** @param array<string, mixed> $response */

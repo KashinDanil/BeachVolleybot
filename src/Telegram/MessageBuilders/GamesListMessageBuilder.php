@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\GameLabel;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
@@ -49,7 +50,8 @@ final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
         $keyboard = [];
 
         foreach ($games as $game) {
-            $keyboard[] = [$this->buildGameButton((int)$game['game_id'], new DateTimeImmutable((string)$game['kickoff_at']))];
+            $gameRecord = GameRecord::fromRow($game);
+            $keyboard[] = [$this->buildGameButton($gameRecord->gameId, $gameRecord->kickoffAt)];
         }
 
         $paginationRow = $this->paginationRow($pagination, AdminCallbackData::create(AdminCallbackAction::GamesList));
