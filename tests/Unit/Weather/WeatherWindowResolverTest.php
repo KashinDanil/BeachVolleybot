@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Weather;
 
 use BeachVolleybot\Common\GameDateTimeResolver;
+use BeachVolleybot\Weather\Forecast\Models\WeatherWindow;
 use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
+use DateTimeZone;
 use PHPUnit\Framework\TestCase;
 
 final class WeatherWindowResolverTest extends TestCase
@@ -136,6 +138,89 @@ final class WeatherWindowResolverTest extends TestCase
         $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame($kickoffDay->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
+    }
+
+    public function testWindowSpanningSpringForwardStaysOnConsecutiveHours(): void
+    {
+        // Barcelona jumps 02:00 -> 03:00 on 29.03.2026, so 03:00 local is the first hour of CEST.
+        $kickoffAt = $this->makeKickoff('Bogatell 29.03.2026 03:00', createdAt: new DateTimeImmutable('2026-03-20'));
+
+        $window = $this->resolver->windowFor($kickoffAt, new DateTimeImmutable('2026-03-27 12:00'));
+
+        $this->assertSame([
+            '2026-03-29 00:00',
+            '2026-03-29 01:00',
+            '2026-03-29 02:00',
+            '2026-03-29 03:00',
+            '2026-03-29 04:00',
+        ], $this->hoursAsUtc($window));
+    }
+
+    public function testWindowSpanningFallBackStaysOnConsecutiveHours(): void
+    {
+        // Barcelona repeats 02:00 -> 03:00 on 25.10.2026, so this wall clock happens twice.
+        $kickoffAt = $this->makeKickoff('Bogatell 25.10.2026 02:00', createdAt: new DateTimeImmutable('2026-10-20'));
+
+        $window = $this->resolver->windowFor($kickoffAt, new DateTimeImmutable('2026-10-23 12:00'));
+
+        $this->assertSame([
+            '2026-10-24 23:00',
+            '2026-10-25 00:00',
+            '2026-10-25 01:00',
+            '2026-10-25 02:00',
+            '2026-10-25 03:00',
+        ], $this->hoursAsUtc($window));
+    }
+
+    public function testWindowHoldsWhileNowIsInsideTheRepeatedFallBackHour(): void
+    {
+        // 00:30Z and 01:30Z are both 02:30 in Barcelona on 25.10.2026 — that hour runs twice.
+        $kickoffAt = $this->makeKickoff('Bogatell 25.10.2026 06:00', createdAt: new DateTimeImmutable('2026-10-20'));
+
+        foreach (['2026-10-25 00:30', '2026-10-25 01:30'] as $nowInUtc) {
+            $window = $this->resolver->windowFor($kickoffAt, $this->instant($nowInUtc));
+
+            $this->assertSame([
+                '2026-10-25 04:00',
+                '2026-10-25 05:00',
+                '2026-10-25 06:00',
+                '2026-10-25 07:00',
+                '2026-10-25 08:00',
+            ], $this->hoursAsUtc($window), "now={$nowInUtc}Z");
+        }
+    }
+
+    public function testWindowHoldsWhileNowIsInsideTheSpringForwardJump(): void
+    {
+        // Barcelona has no 02:30 on 29.03.2026: 00:30Z is 01:30 CET, and 01:00Z is the jump to 03:00 CEST.
+        $kickoffAt = $this->makeKickoff('Bogatell 29.03.2026 06:00', createdAt: new DateTimeImmutable('2026-03-20'));
+
+        foreach (['2026-03-29 00:30', '2026-03-29 01:00'] as $nowInUtc) {
+            $window = $this->resolver->windowFor($kickoffAt, $this->instant($nowInUtc));
+
+            $this->assertSame([
+                '2026-03-29 03:00',
+                '2026-03-29 04:00',
+                '2026-03-29 05:00',
+                '2026-03-29 06:00',
+                '2026-03-29 07:00',
+            ], $this->hoursAsUtc($window), "now={$nowInUtc}Z");
+        }
+    }
+
+    /** A wall clock cannot name an instant inside a transition, so these read as UTC. */
+    private function instant(string $utcWallClock): DateTimeImmutable
+    {
+        return new DateTimeImmutable($utcWallClock, new DateTimeZone('UTC'));
+    }
+
+    /** @return list<string> */
+    private function hoursAsUtc(WeatherWindow $window): array
+    {
+        return array_map(
+            static fn(DateTimeImmutable $hour): string => $hour->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i'),
+            $window->hours,
+        );
     }
 
     private function makeKickoff(string $title, DateTimeImmutable $createdAt): DateTimeImmutable

@@ -15,20 +15,19 @@ final readonly class WeatherWindowResolver
 
     private const int SECONDS_PER_HOUR = 3600;
 
-    public function windowFor(DateTimeImmutable $kickoffAt): WeatherWindow
+    public function windowFor(DateTimeImmutable $kickoffAt, DateTimeImmutable $now = new DateTimeImmutable()): WeatherWindow
     {
         $kickoffHour = $this->roundToNearestHour($kickoffAt);
 
-        if (!$this->isWithinForecastHorizon($kickoffHour)) {
+        if (!$this->isWithinForecastHorizon($kickoffHour, $now)) {
             return new WeatherWindow($kickoffHour, []);
         }
 
         return new WeatherWindow($kickoffHour, $this->buildHourRangeAround($kickoffHour));
     }
 
-    private function isWithinForecastHorizon(DateTimeImmutable $kickoffHour): bool
+    private function isWithinForecastHorizon(DateTimeImmutable $kickoffHour, DateTimeImmutable $now): bool
     {
-        $now = new DateTimeImmutable();
         $horizonCutoff = $now->modify('+' . self::FORECAST_HORIZON_DAYS . ' days');
 
         return $kickoffHour >= $this->truncateToHour($now)
@@ -50,8 +49,9 @@ final readonly class WeatherWindowResolver
     {
         $hours = [];
 
+        // Real hours, not wall clock: modify('+1 hours') repeats or skips an hour across a DST switch.
         for ($offset = -self::HOURS_BEFORE_KICKOFF; $offset <= self::HOURS_AFTER_KICKOFF; $offset++) {
-            $hours[] = $kickoffHour->modify("$offset hours");
+            $hours[] = $kickoffHour->setTimestamp($kickoffHour->getTimestamp() + $offset * self::SECONDS_PER_HOUR);
         }
 
         return $hours;
