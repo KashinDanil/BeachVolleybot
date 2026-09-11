@@ -12,7 +12,8 @@ use DanilKashin\Localization\Translator as VendorTranslator;
 readonly class Translator
 {
     private const string TRANSLATIONS_PATH = __DIR__ . '/../../localization';
-    private const string MISSING_TRANSLATIONS_FILE = self::TRANSLATIONS_PATH . '/missing.json';
+    private const string MISSING_TRANSLATIONS_BASENAME = 'missing.json';
+    private const string MISSING_TRANSLATIONS_FILE = self::TRANSLATIONS_PATH . '/' . self::MISSING_TRANSLATIONS_BASENAME;
     private const string DEFAULT_LANGUAGE = Language::EN;
 
     private VendorTranslator $inner;
@@ -30,6 +31,20 @@ readonly class Translator
     public static function fromUser(TelegramUser $user): self
     {
         return new self(Language::fromCode($user->languageCode ?? self::DEFAULT_LANGUAGE));
+    }
+
+    public static function supportedLanguages(): array
+    {
+        $files = glob(self::TRANSLATIONS_PATH . '/*.json') ?: [];
+
+        $translated = array_filter(
+            $files,
+            static fn(string $path): bool => self::MISSING_TRANSLATIONS_BASENAME !== basename($path),
+        );
+
+        $languages = array_map(static fn(string $path): string => basename($path, '.json'), array_values($translated));
+
+        return array_values(array_unique([self::DEFAULT_LANGUAGE, ...$languages]));
     }
 
     public function isDefaultLanguage(): bool

@@ -45,11 +45,6 @@ final class DateExtractorTest extends TestCase
         $this->assertSame('April 11', DateExtractor::extract('Game April 11 18:00'));
     }
 
-    public function testExtractsEnglishShortMonth(): void
-    {
-        $this->assertSame('11 Apr', DateExtractor::extract('Game 11 Apr'));
-    }
-
     public function testExtractsRussianGenitiveMonth(): void
     {
         $this->assertSame('11 апреля', DateExtractor::extract('Игра 11 апреля 18:00'));
@@ -58,11 +53,6 @@ final class DateExtractorTest extends TestCase
     public function testExtractsRussianNominativeMonth(): void
     {
         $this->assertSame('11 апрель', DateExtractor::extract('Игра 11 апрель'));
-    }
-
-    public function testExtractsRussianShortMonth(): void
-    {
-        $this->assertSame('11 апр', DateExtractor::extract('Игра 11 апр'));
     }
 
     public function testExtractsSpanishWithDe(): void

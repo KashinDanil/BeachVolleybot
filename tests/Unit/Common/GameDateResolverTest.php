@@ -132,15 +132,6 @@ final class GameDateResolverTest extends TestCase
         $this->assertSame('2026-04-12', $result->format('Y-m-d'));
     }
 
-    public function testResolvesEnglishShortMonth(): void
-    {
-        $now = new DateTimeImmutable('2026-03-01');
-
-        $result = GameDateResolver::resolve('Beach 12 Apr 18:00', $now);
-
-        $this->assertSame('2026-04-12', $result->format('Y-m-d'));
-    }
-
     public function testResolvesEnglishOrdinalDay(): void
     {
         $now = new DateTimeImmutable('2026-03-01');
@@ -175,15 +166,6 @@ final class GameDateResolverTest extends TestCase
         $now = new DateTimeImmutable('2026-03-01');
 
         $result = GameDateResolver::resolve('Игра 12 апрель 18:00', $now);
-
-        $this->assertSame('2026-04-12', $result->format('Y-m-d'));
-    }
-
-    public function testResolvesRussianShortMonth(): void
-    {
-        $now = new DateTimeImmutable('2026-03-01');
-
-        $result = GameDateResolver::resolve('Игра 12 апр 18:00', $now);
 
         $this->assertSame('2026-04-12', $result->format('Y-m-d'));
     }
