@@ -42,6 +42,7 @@ readonly class GameBuilder
             kickoffAt: $this->gameRecord->kickoffAt,
             venueName: $this->gameRecord->venueName,
             location: $this->gameRecord->location,
+            settings: $this->gameRecord->settings,
         );
 
         return GameAddOnApplier::apply($game, $this->addOns);

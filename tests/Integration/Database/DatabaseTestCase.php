@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Common\GameDateTimeResolver;
+use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\User\Role;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
@@ -42,6 +44,7 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('009_add_game_chat_messages.sql');
         $this->applyMigration('010_add_kickoff_at_and_venue_name.sql');
         $this->applyMigration('011_require_kickoff_at.sql');
+        $this->applyMigration('012_add_settings_json_to_games.sql');
     }
 
     /**
@@ -87,6 +90,11 @@ abstract class DatabaseTestCase extends TestCase
             'kickoff_at' => $this->resolveKickoffAt($title),
             'venue_name' => KnownVenues::findInTitle($title)?->name,
         ], ['game_id' => $gameId]);
+    }
+
+    protected function setGameSettings(int $gameId, GameSettings $settings): void
+    {
+        new GameRepository($this->db)->updateSettings($gameId, $settings);
     }
 
     protected function resolveKickoffAt(string $title): string

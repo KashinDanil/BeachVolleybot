@@ -282,6 +282,57 @@ final class MigratorTest extends TestCase
         $this->assertSame(0, (int)$this->db->count('game_chat_messages'));
     }
 
+    public function testAddSettingsJsonMigrationLeavesExistingGamesAlone(): void
+    {
+        $this->db->pdo->exec('PRAGMA foreign_keys = ON');
+
+        foreach ([
+            '001_create_games_and_participants.sql',
+            '004_split_game_inline_messages.sql',
+            '005_require_game_player_time.sql',
+            '006_rename_players_to_users.sql',
+            '007_add_role_to_users.sql',
+            '008_rename_inline_query_id_to_game_key.sql',
+            '009_add_game_chat_messages.sql',
+            '010_add_kickoff_at_and_venue_name.sql',
+            '011_require_kickoff_at.sql',
+        ] as $filename) {
+            $this->copyRealMigration($filename);
+        }
+
+        $migrator = new Migrator($this->migrationsDir, $this->db);
+        $migrator->run();
+
+        $this->db->insert('games', [
+            'game_id' => 1,
+            'game_key' => 'query_1',
+            'title' => 'Friday Game 18:00',
+            'kickoff_at' => '2099-12-31 17:00:00',
+            'created_by' => 200,
+        ]);
+
+        $this->copyRealMigration('012_add_settings_json_to_games.sql');
+        $this->assertSame(1, $migrator->run());
+
+        $game = (array) $this->db->get('games', '*', ['game_id' => 1]);
+        $this->assertSame('Friday Game 18:00', $game['title']);
+        $this->assertSame('2099-12-31 17:00:00', $game['kickoff_at']);
+        $this->assertNull($game['settings_json']);
+
+        $columns = $this->db->pdo->query('PRAGMA table_info(games)')->fetchAll(PDO::FETCH_ASSOC);
+        $settingsColumn = array_values(array_filter(
+            $columns,
+            fn (array $column) => 'settings_json' === $column['name'],
+        ))[0] ?? null;
+        $this->assertNotNull($settingsColumn);
+        $this->assertSame('TEXT', $settingsColumn['type']);
+        $this->assertSame(0, (int)$settingsColumn['notnull']);
+        $this->assertNull($settingsColumn['dflt_value']);
+
+        $violations = $this->db->pdo->query('PRAGMA foreign_key_check')->fetchAll(PDO::FETCH_ASSOC);
+        $this->assertSame([], $violations);
+    }
+
     private function copyRealMigration(string $filename): void
     {
         copy(self::REAL_MIGRATIONS_DIR . '/' . $filename, $this->migrationsDir . '/' . $filename);

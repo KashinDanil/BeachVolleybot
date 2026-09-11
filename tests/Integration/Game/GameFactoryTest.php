@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Game;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\GameFactory;
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use RuntimeException;
@@ -54,6 +55,23 @@ final class GameFactoryTest extends DatabaseTestCase
         $this->expectException(RuntimeException::class);
 
         GameFactory::fromGameId(999);
+    }
+
+    public function testSettingsReachTheModel(): void
+    {
+        $gameId = $this->createGame();
+        $this->setGameSettings($gameId, new GameSettings(playersPerNet: 6));
+
+        $game = GameFactory::fromGameId($gameId);
+
+        $this->assertSame(6, $game->getSettings()->playersPerNet);
+    }
+
+    public function testAGameWithoutSettingsCarriesEmptyOnes(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->assertNull(GameFactory::fromGameId($gameId)->getSettings()->playersPerNet);
     }
 
     // --- Users ---

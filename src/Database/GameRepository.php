@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Database;
 
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\ParsedTitle;
 use DateTimeImmutable;
 
@@ -25,6 +26,7 @@ readonly class GameRepository extends AbstractRepository
         string $gameKey,
         ParsedTitle $parsedTitle,
         ?string $location = null,
+        GameSettings $settings = new GameSettings(),
     ): int {
         $this->db->insert($this->table(), [
             'title' => $title,
@@ -33,6 +35,7 @@ readonly class GameRepository extends AbstractRepository
             'game_key' => $gameKey,
             'kickoff_at' => Timestamp::format($parsedTitle->kickoffAt),
             'venue_name' => $parsedTitle->venueName,
+            'settings_json' => json_encode($settings, JSON_THROW_ON_ERROR),
         ]);
 
         return (int) $this->db->id();
@@ -41,6 +44,15 @@ readonly class GameRepository extends AbstractRepository
     public function updateLocation(int $gameId, ?string $location): void
     {
         $this->db->update($this->table(), ['location' => $location], ['game_id' => $gameId]);
+    }
+
+    public function updateSettings(int $gameId, GameSettings $settings): void
+    {
+        $this->db->update(
+            $this->table(),
+            ['settings_json' => json_encode($settings, JSON_THROW_ON_ERROR)],
+            ['game_id' => $gameId],
+        );
     }
 
     public function updateTitle(int $gameId, string $title, ParsedTitle $parsedTitle): void

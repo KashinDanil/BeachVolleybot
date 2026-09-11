@@ -13,6 +13,8 @@ use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
+use BeachVolleybot\Game\GameSettings;
+use BeachVolleybot\Validator\Rules\PlayersPerNetRule;
 use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
@@ -21,6 +23,7 @@ use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 final class GameManagerTest extends DatabaseTestCase
 {
@@ -384,6 +387,111 @@ final class GameManagerTest extends DatabaseTestCase
 
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertSame('55.751244,37.618423', $game['location']);
+    }
+
+    // --- settings ---
+
+    public function testSetPlayersPerNetPersistsTheLimit(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testSetPlayersPerNetReplacesAnEarlierLimit(): void
+    {
+        $gameId = $this->createGame();
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        $this->gameManager->setPlayersPerNet($gameId, 8);
+
+        $this->assertSame(8, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testSetPlayersPerNetNullClearsTheLimit(): void
+    {
+        $gameId = $this->createGame();
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        $this->gameManager->setPlayersPerNet($gameId, null);
+
+        $this->assertNull($this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testSetPlayersPerNetReadsTheStoredSettingsBeforeWriting(): void
+    {
+        $gameId = $this->createGame();
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        $selects = $this->selectsAgainstGames($this->queriesDuring(
+            fn() => $this->gameManager->setPlayersPerNet($gameId, 8),
+        ));
+
+        $this->assertNotEmpty($selects);
+    }
+
+    public function testSetPlayersPerNetRejectsAValueBelowTheMinimum(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->gameManager->setPlayersPerNet($gameId, PlayersPerNetRule::MINIMUM - 1);
+    }
+
+    public function testSetPlayersPerNetRejectsZeroWhichWouldReserveTheWholeRoster(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->gameManager->setPlayersPerNet($gameId, 0);
+    }
+
+    public function testSetPlayersPerNetRejectsANegativeLimitThatWouldNeverApply(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->gameManager->setPlayersPerNet($gameId, -4);
+    }
+
+    public function testARejectedLimitLeavesTheStoredSettingsAlone(): void
+    {
+        $gameId = $this->createGame();
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        try {
+            $this->gameManager->setPlayersPerNet($gameId, 1);
+        } catch (InvalidArgumentException) {
+            // Swallowed on purpose; the assertion below is the point.
+        }
+
+        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testSetPlayersPerNetAcceptsTheMinimum(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->gameManager->setPlayersPerNet($gameId, PlayersPerNetRule::MINIMUM);
+
+        $this->assertSame(
+            PlayersPerNetRule::MINIMUM,
+            $this->gameRecord($gameId)->settings->playersPerNet,
+        );
+    }
+
+    public function testSetPlayersPerNetRoundTripsThroughTheGameRecord(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->gameManager->setPlayersPerNet($gameId, 4);
+
+        $this->assertEquals(new GameSettings(playersPerNet: 4), $this->gameRecord($gameId)->settings);
     }
 
     // --- joinWithTime ---
