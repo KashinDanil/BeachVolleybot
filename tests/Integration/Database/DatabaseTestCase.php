@@ -54,7 +54,8 @@ abstract class DatabaseTestCase extends TestCase
         $before = count($this->db->log());
         $action();
 
-        return array_slice($this->db->log(), $before);
+        // Medoo logs each statement as [sql, elapsed]; only the statement is of interest here.
+        return array_column(array_slice($this->db->log(), $before), 0);
     }
 
     protected function createGame(
