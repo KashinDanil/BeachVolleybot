@@ -19,6 +19,7 @@ readonly class GameRecord
         public DateTimeImmutable $kickoffAt,
         public ?string $venueName = null,
         public ?string $location = null,
+        public GameSettings $settings = new GameSettings(),
     ) {
     }
 
@@ -34,6 +35,7 @@ readonly class GameRecord
             self::venueTime((string)$row['kickoff_at'], $row['venue_name'] ?? null),
             $row['venue_name'] ?? null,
             $row['location'] ?? null,
+            GameSettings::fromJson($row['settings_json'] ?? null),
         );
     }
 

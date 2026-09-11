@@ -15,6 +15,9 @@ use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
+use BeachVolleybot\Validator\Rules\PlayersPerNetRule;
+use BeachVolleybot\Validator\Validator;
+use InvalidArgumentException;
 
 readonly class GameManager
 {
@@ -171,6 +174,21 @@ readonly class GameManager
     public function removeLocation(int $gameId): void
     {
         $this->gameRepository->updateLocation($gameId, null);
+    }
+
+    public function setPlayersPerNet(int $gameId, ?int $playersPerNet): void
+    {
+        $validationState = new Validator([
+            new PlayersPerNetRule($playersPerNet),
+        ])->validate();
+
+        if (!$validationState->isSuccess()) {
+            throw new InvalidArgumentException($validationState->getError()->getMessage());
+        }
+
+        $stored = $this->findGameRecordById($gameId)?->settings ?? new GameSettings();
+
+        $this->gameRepository->updateSettings($gameId, $stored->withPlayersPerNet($playersPerNet));
     }
 
     public function setUserTime(

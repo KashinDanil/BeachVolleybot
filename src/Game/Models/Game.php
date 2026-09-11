@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Common\Extractors\TimeExtractor;
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
@@ -29,6 +30,7 @@ final class Game implements GameInterface
         private readonly DateTimeImmutable $kickoffAt,
         public ?string $venueName = null,
         public ?string $location = null,
+        public GameSettings $settings = new GameSettings(),
         public GameMessageBuilder $telegramMessageBuilder = new GameMessageBuilder(),
     ) {
     }
@@ -77,6 +79,11 @@ final class Game implements GameInterface
     public function getVenueName(): ?string
     {
         return $this->venueName;
+    }
+
+    public function getSettings(): GameSettings
+    {
+        return $this->settings;
     }
 
     public function getTime(): string

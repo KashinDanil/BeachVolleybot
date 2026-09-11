@@ -6,6 +6,8 @@ namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\Timestamp;
+use BeachVolleybot\Game\GameRecord;
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\ParsedTitle;
 use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use BeachVolleybot\Weather\Location\KnownVenues;
@@ -263,6 +265,50 @@ final class GameRepositoryTest extends DatabaseTestCase
             gameKey: 'query_' . $suffix,
             kickoffAt: Timestamp::format($forecastHour->setTimestamp($forecastHour->getTimestamp() + $offsetSeconds)),
         );
+    }
+
+    public function testCreateWithoutSettingsStoresAnUnsetLimit(): void
+    {
+        $id = $this->createFromTitle('Friday Game 18:00', 'query_1');
+
+        $this->assertSame('{"players_per_net":null}', $this->repository->findById($id)['settings_json']);
+    }
+
+    public function testCreateStoresTheSerializedSettings(): void
+    {
+        $title = 'Friday Game 18:00';
+
+        $id = $this->repository->create(
+            $title,
+            100,
+            'query_1',
+            $this->parsedTitle($title),
+            settings: new GameSettings(playersPerNet: 6),
+        );
+
+        $this->assertSame('{"players_per_net":6}', $this->repository->findById($id)['settings_json']);
+    }
+
+    public function testUpdateSettingsRoundTripsBackIntoTheValueObject(): void
+    {
+        $id = $this->createFromTitle('Friday Game 18:00', 'query_1');
+
+        $this->repository->updateSettings($id, new GameSettings(playersPerNet: 8));
+
+        $this->assertEquals(
+            new GameSettings(playersPerNet: 8),
+            GameRecord::fromRow($this->repository->findById($id))->settings,
+        );
+    }
+
+    public function testUpdateSettingsWithEmptySettingsClearsTheLimit(): void
+    {
+        $id = $this->createFromTitle('Friday Game 18:00', 'query_1');
+        $this->repository->updateSettings($id, new GameSettings(playersPerNet: 8));
+
+        $this->repository->updateSettings($id, new GameSettings());
+
+        $this->assertNull(GameRecord::fromRow($this->repository->findById($id))->settings->playersPerNet);
     }
 
     private function createFromTitle(string $title, string $gameKey): int

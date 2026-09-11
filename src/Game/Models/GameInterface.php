@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Models;
 
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 use DateTimeImmutable;
@@ -28,6 +29,8 @@ interface GameInterface
     public function getKickoffAt(): DateTimeImmutable;
 
     public function getVenueName(): ?string;
+
+    public function getSettings(): GameSettings;
 
     /** @return UserInterface[] */
     public function getUsers(): array;
