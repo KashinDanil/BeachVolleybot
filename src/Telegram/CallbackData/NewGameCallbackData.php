@@ -8,11 +8,12 @@ use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 
 final readonly class NewGameCallbackData extends AbstractCallbackData implements PageableCallbackDataInterface
 {
-    private const string KEY_ACTION = 'na';
-    private const string KEY_DATE   = 'd';
-    private const string KEY_TIME   = 't';
-    private const string KEY_VENUE  = 'v';
-    private const string KEY_PAGE   = 'p';
+    private const string KEY_ACTION   = 'na';
+    private const string KEY_DATE     = 'd';
+    private const string KEY_TIME     = 't';
+    private const string KEY_VENUE    = 'v';
+    private const string KEY_PAGE     = 'p';
+    private const string KEY_LANGUAGE = 'l';
 
     private function __construct(
         private NewGameCallbackAction $action,
@@ -20,6 +21,7 @@ final readonly class NewGameCallbackData extends AbstractCallbackData implements
         private ?string $time = null,
         private ?string $venueName = null,
         private ?int $page = null,
+        private ?string $language = null,
     ) {
     }
 
@@ -45,6 +47,7 @@ final readonly class NewGameCallbackData extends AbstractCallbackData implements
         $time = $data[self::KEY_TIME] ?? null;
         $venueName = $data[self::KEY_VENUE] ?? null;
         $page = $data[self::KEY_PAGE] ?? null;
+        $language = $data[self::KEY_LANGUAGE] ?? null;
 
         return new self(
             action: $action,
@@ -52,27 +55,33 @@ final readonly class NewGameCallbackData extends AbstractCallbackData implements
             time: is_string($time) ? $time : null,
             venueName: is_string($venueName) ? $venueName : null,
             page: is_int($page) ? $page : null,
+            language: is_string($language) ? $language : null,
         );
     }
 
     public function withDate(string $date): self
     {
-        return new self($this->action, $date, $this->time, $this->venueName, $this->page);
+        return new self($this->action, $date, $this->time, $this->venueName, $this->page, $this->language);
     }
 
     public function withTime(string $time): self
     {
-        return new self($this->action, $this->date, $time, $this->venueName, $this->page);
+        return new self($this->action, $this->date, $time, $this->venueName, $this->page, $this->language);
     }
 
     public function withVenueName(string $venueName): self
     {
-        return new self($this->action, $this->date, $this->time, $venueName, $this->page);
+        return new self($this->action, $this->date, $this->time, $venueName, $this->page, $this->language);
     }
 
     public function withPage(int $page): static
     {
-        return new self($this->action, $this->date, $this->time, $this->venueName, $page);
+        return new self($this->action, $this->date, $this->time, $this->venueName, $page, $this->language);
+    }
+
+    public function withLanguage(string $language): self
+    {
+        return new self($this->action, $this->date, $this->time, $this->venueName, $this->page, $language);
     }
 
     public function getAction(): NewGameCallbackAction
@@ -100,6 +109,11 @@ final readonly class NewGameCallbackData extends AbstractCallbackData implements
         return $this->page ?? 1;
     }
 
+    public function getLanguage(): ?string
+    {
+        return $this->language;
+    }
+
     public function jsonSerialize(): array
     {
         $data = [self::KEY_ACTION => $this->action->value];
@@ -118,6 +132,10 @@ final readonly class NewGameCallbackData extends AbstractCallbackData implements
 
         if (null !== $this->page) {
             $data[self::KEY_PAGE] = $this->page;
+        }
+
+        if (null !== $this->language) {
+            $data[self::KEY_LANGUAGE] = $this->language;
         }
 
         return $data;

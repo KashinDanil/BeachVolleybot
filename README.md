@@ -84,7 +84,7 @@ Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `
 │   ├── Database/        # Connection, repositories, migrator
 │   ├── Errors/          # Error types
 │   ├── Game/            # Core game logic, models, add-ons (registry + WeatherAddOn, MergeConsecutiveSlotsAddOn, StylizeTitleAddOn)
-│   ├── Localization/    # Translator
+│   ├── Localization/    # Translator (what the bot writes), CalendarVocabulary (what it reads)
 │   ├── Log/             # Log file management
 │   ├── Processors/
 │   │   ├── AdminProcessors/    # Admin panel callbacks (game / user / equipment / logs / settings)
@@ -246,15 +246,17 @@ falling back to English when a key is absent. The game card and admin panel are 
 Adding a language is two steps:
 
 **1. Output** — copy a file and translate the values; no code. `LocalizationFilesTest` fails until the new
-file has all 82 keys.
+file has all the keys.
 
 ```bash
 cp localization/ru.json localization/de.json
 ```
 
-**2. Typed dates (optional)** — add the language's month and weekday names to `DateExtractor::MONTH_MAP` and
-`DayOfWeekExtractor::DAY_OF_WEEK_MAP` so users can write dates in it. A code change with tests, since it
-changes which messages create a game. Skippable: numeric dates (`14.08 18:00`) parse in any language.
+**2. Typed dates** — add the language's weekday and month names to `src/Localization/CalendarVocabulary.php`,
+the sole declaration of what the bot can **read**, as `Translator` is of what it can write. `CalendarVocabularyTest`
+holds the two sides together: it fails while a language has a file but no vocabulary, while a language is missing
+a weekday or a month, and while a name means two things at once. Names are spelled out in full — titles do not
+abbreviate, and short forms like `mar` or `sun` would turn a beach or a sunny day into a date.
 
 ## Testing
 

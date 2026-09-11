@@ -76,6 +76,14 @@
     "Sat": "sáb",
     "Sun": "dom",
 
+    "Monday": "Lunes",
+    "Tuesday": "Martes",
+    "Wednesday": "Miércoles",
+    "Thursday": "Jueves",
+    "Friday": "Viernes",
+    "Saturday": "Sábado",
+    "Sunday": "Domingo",
+
     "Jan": "ene",
     "Feb": "feb",
     "Mar": "mzo",

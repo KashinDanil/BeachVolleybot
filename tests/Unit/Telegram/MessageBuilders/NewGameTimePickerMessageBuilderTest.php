@@ -9,6 +9,7 @@ use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameTimePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -94,6 +95,33 @@ final class NewGameTimePickerMessageBuilderTest extends TestCase
         $this->assertStringContainsString('Step 2 of 4', $text);
         $this->assertStringContainsString('31.12', $text); // date already picked
         $this->assertStringContainsString('pick a time below', $text);
+    }
+
+    public function testTheStepRendersInTheChosenLanguage(): void
+    {
+        $message = $this->russianBuilder()->build(new DateTimeImmutable('2099-12-31'), NewGameTimePickerMessageBuilder::START_PAGE);
+
+        $this->assertStringContainsString('Четверг, 31.12', $this->displayText($message));
+        $this->assertStringContainsString('выберите время ниже', $this->displayText($message));
+        $this->assertSame('↩ Назад', $this->backRow($this->extractKeyboard($message))[0]['text']);
+    }
+
+    public function testEveryButtonCarriesTheChosenLanguage(): void
+    {
+        $keyboard = $this->extractKeyboard(
+            $this->russianBuilder()->build(new DateTimeImmutable('2099-12-31'), NewGameTimePickerMessageBuilder::START_PAGE),
+        );
+
+        foreach (array_merge(...$keyboard) as $button) {
+            $language = NewGameCallbackData::fromJson($button['callback_data'])->getLanguage();
+
+            $this->assertSame(Language::RU, $language, "'{$button['text']}' carries no language");
+        }
+    }
+
+    private function russianBuilder(): NewGameTimePickerMessageBuilder
+    {
+        return new NewGameTimePickerMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
     }
 
     private function buildStartPage(): TelegramMessage

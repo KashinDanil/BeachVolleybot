@@ -38,7 +38,8 @@ final readonly class NewGameFormText
     private const string LOCATION_EMOJI = '📍';
     private const string HAND           = ' 👇';
     private const string EMPTY_FIELD    = '—';
-    private const string DATE_FORMAT    = 'l, d.m';
+    private const string WEEKDAY_FORMAT = 'l';
+    private const string DAY_FORMAT     = 'd.m';
 
     public function __construct(
         private Translator $translator,
@@ -100,6 +101,14 @@ final readonly class NewGameFormText
         return $this->fieldRows(...$this->gameRows($date, $time, $venueName));
     }
 
+    /** The day number is what the wizard text and the posted title are parsed back from. */
+    public function formatDate(DateTimeImmutable $date): string
+    {
+        $weekday = $this->translator->translate($date->format(self::WEEKDAY_FORMAT));
+
+        return $weekday . ', ' . $date->format(self::DAY_FORMAT);
+    }
+
     /** @return list<string> */
     private function gameRows(DateTimeImmutable $date, string $time, ?string $venueName): array
     {
@@ -157,10 +166,5 @@ final readonly class NewGameFormText
     private function plainLine(string $messageKey): string
     {
         return $this->formatter->escape($this->translator->translate($messageKey));
-    }
-
-    private function formatDate(DateTimeImmutable $date): string
-    {
-        return $date->format(self::DATE_FORMAT);
     }
 }

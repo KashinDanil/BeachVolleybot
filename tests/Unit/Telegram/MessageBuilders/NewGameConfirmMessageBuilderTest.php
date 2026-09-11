@@ -9,6 +9,7 @@ use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameConfirmMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -69,12 +70,70 @@ final class NewGameConfirmMessageBuilderTest extends TestCase
     public function testBackRowReturnsToTheLocationStep(): void
     {
         $keyboard = $this->extractKeyboard($this->build(self::VENUE));
-        $backRow = $keyboard[1];
+        $backRow = $keyboard[2];
 
         $this->assertStringContainsString('Back', $backRow[0]['text']);
 
         $back = NewGameCallbackData::fromJson($backRow[0]['callback_data']);
         $this->assertSame(NewGameCallbackAction::ShowVenuePage, $back->getAction());
+    }
+
+    public function testLanguageRowOffersEveryLanguageButTheOneInForce(): void
+    {
+        $keyboard = $this->extractKeyboard($this->build(self::VENUE));
+        $labels = array_column($keyboard[1], 'text');
+
+        $expected = array_values(array_diff(Translator::supportedLanguages(), [Language::EN]));
+
+        $this->assertSame(array_map(ucfirst(...), $expected), $labels);
+    }
+
+    public function testLanguageButtonCarriesTheLanguageItSwitchesToAndKeepsTheVenue(): void
+    {
+        $keyboard = $this->extractKeyboard($this->build(self::VENUE));
+
+        $callbackData = NewGameCallbackData::fromJson($keyboard[1][0]['callback_data']);
+        $this->assertSame(NewGameCallbackAction::SetLanguage, $callbackData->getAction());
+        $this->assertNotSame(Language::EN, $callbackData->getLanguage());
+        $this->assertSame(self::VENUE, $callbackData->getVenueName());
+    }
+
+    public function testLanguageButtonCarriesNoVenueWhenSkipped(): void
+    {
+        $keyboard = $this->extractKeyboard($this->build(null));
+
+        $this->assertNull(NewGameCallbackData::fromJson($keyboard[1][0]['callback_data'])->getVenueName());
+    }
+
+    public function testARussianWizardPostsInRussianAndOffersTheRestOfTheLanguages(): void
+    {
+        $message = new NewGameConfirmMessageBuilder(self::russian())
+            ->build(new DateTimeImmutable('2099-12-31'), self::TIME, self::VENUE);
+        $keyboard = $this->extractKeyboard($message);
+
+        $this->assertStringContainsString('Четверг, 31.12', $this->displayText($message));
+        $this->assertSame('Опубликовать', $keyboard[0][0]['text']);
+        $this->assertNotContains('Ru', array_column($keyboard[1], 'text'));
+        $this->assertContains('En', array_column($keyboard[1], 'text'));
+    }
+
+    public function testEveryButtonCarriesTheChosenLanguage(): void
+    {
+        $keyboard = $this->extractKeyboard(
+            new NewGameConfirmMessageBuilder(self::russian())
+                ->build(new DateTimeImmutable('2099-12-31'), self::TIME, self::VENUE),
+        );
+
+        foreach ([$keyboard[0][0], ...$keyboard[2]] as $button) {
+            $language = NewGameCallbackData::fromJson($button['callback_data'])->getLanguage();
+
+            $this->assertSame(Language::RU, $language, "'{$button['text']}' carries no language");
+        }
+    }
+
+    private static function russian(): Translator
+    {
+        return new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_'));
     }
 
     private function build(?string $venueName): TelegramMessage

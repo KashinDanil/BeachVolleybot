@@ -13,6 +13,7 @@ use BeachVolleybot\Telegram\MessageBuilders\NewGameLocationPickerMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameTimePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Weather\Location\KnownVenues;
+use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -124,6 +125,31 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
         $this->assertNotNull($recoveredDate);
         $this->assertSame('31.12.2099', $recoveredDate->format('d.m.Y'));
         $this->assertSame(self::TIME, TimeExtractor::extract($displayText));
+    }
+
+    public function testRunningStateIsStillRecoverableFromATranslatedStep(): void
+    {
+        $displayText = str_replace('\\', '', $this->russianBuilder()->build(new DateTimeImmutable('2099-12-31'), self::TIME, 1)->getText()->getMessageText());
+
+        $this->assertStringContainsString('Четверг, 31.12', $displayText);
+        $this->assertSame('31.12.2099', GameDateResolver::resolve($displayText, new DateTimeImmutable('2099-12-01'))?->format('d.m.Y'));
+        $this->assertSame(self::TIME, TimeExtractor::extract($displayText));
+    }
+
+    public function testEveryButtonCarriesTheChosenLanguage(): void
+    {
+        $keyboard = $this->extractKeyboard($this->russianBuilder()->build(new DateTimeImmutable('2099-12-31'), self::TIME, 1));
+
+        foreach (array_merge(...$keyboard) as $button) {
+            $language = NewGameCallbackData::fromJson($button['callback_data'])->getLanguage();
+
+            $this->assertSame(Language::RU, $language, "'{$button['text']}' carries no language");
+        }
+    }
+
+    private function russianBuilder(): NewGameLocationPickerMessageBuilder
+    {
+        return new NewGameLocationPickerMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
     }
 
     private function build(int $page): TelegramMessage
