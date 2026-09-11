@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameFormText;
+use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -110,6 +111,20 @@ final class NewGameFormTextTest extends TestCase
         $text = $this->formText->buildConfirmStep($this->date, self::TIME, 'Sant Sebastia (court 2)');
 
         $this->assertStringContainsString('Sant Sebastia \\(court 2\\)', $text);
+    }
+
+    public function testTheDateIsSpelledInTheReadersLanguage(): void
+    {
+        $formText = new NewGameFormText(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
+
+        $this->assertStringContainsString(
+            '📅 Четверг, 31.12',
+            $this->displayText($formText->buildConfirmStep($this->date, self::TIME, self::VENUE)),
+        );
+        $this->assertStringContainsString(
+            '📅 Четверг, 31.12',
+            $this->displayText($formText->buildGameTitle($this->date, self::TIME, self::VENUE)),
+        );
     }
 
     private function displayText(string $text): string

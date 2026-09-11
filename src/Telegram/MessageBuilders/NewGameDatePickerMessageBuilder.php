@@ -6,7 +6,6 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
-use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
@@ -14,28 +13,24 @@ use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use DateTimeImmutable;
 
-final class NewGameDatePickerMessageBuilder extends AbstractMessageBuilder
+final class NewGameDatePickerMessageBuilder extends AbstractNewGameMessageBuilder
 {
     private const int TOTAL_DAYS    = 28;
     private const int DAYS_PER_PAGE = 7;
     private const int SATURDAY      = 6;
     private const int SUNDAY        = 7;
-    private const string BUTTON_DATE_FORMAT = 'l, d.m';
-
-    private readonly NewGameFormText $formText;
 
     /** No venue is chosen yet, so the days offered are the default venue's — the one the
      *  kickoff will be resolved at if the finished title names none. */
     private readonly DateTimeImmutable $today;
 
     public function __construct(
-        private readonly Translator $translator,
+        Translator $translator,
         ?DateTimeImmutable $today = null,
         MessageFormatterInterface $formatter = new MarkdownV2(),
     ) {
-        parent::__construct($formatter);
+        parent::__construct($translator, $formatter);
         $this->today = ($today ?? new DateTimeImmutable())->setTimezone(KnownVenues::defaultVenue()->timezone);
-        $this->formText = new NewGameFormText($translator, $this->formatter);
     }
 
     public function build(int $page = 1): TelegramMessage
@@ -59,7 +54,7 @@ final class NewGameDatePickerMessageBuilder extends AbstractMessageBuilder
 
         $paginationRow = $this->paginationRow(
             $pagination,
-            NewGameCallbackData::create(NewGameCallbackAction::ShowDatePage),
+            $this->callbackData(NewGameCallbackAction::ShowDatePage),
             $this->translator->translate(self::LABEL_PREVIOUS),
             $this->translator->translate(self::LABEL_NEXT),
         );
@@ -74,8 +69,8 @@ final class NewGameDatePickerMessageBuilder extends AbstractMessageBuilder
     private function buildDateButton(DateTimeImmutable $date): array
     {
         return $this->buildActionButton(
-            $date->format(self::BUTTON_DATE_FORMAT),
-            NewGameCallbackData::create(NewGameCallbackAction::PickDate)->withDate($date->format('Y-m-d')),
+            $this->formText->formatDate($date),
+            $this->callbackData(NewGameCallbackAction::PickDate)->withDate($date->format('Y-m-d')),
             $this->buttonStyle($date),
         );
     }

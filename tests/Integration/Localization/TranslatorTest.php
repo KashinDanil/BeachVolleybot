@@ -27,6 +27,11 @@ final class TranslatorTest extends TestCase
         $this->assertFalse((new Translator(Language::RU))->isDefaultLanguage());
     }
 
+    public function testLanguageReportsWhatItTranslatesInto(): void
+    {
+        $this->assertSame(Language::RU, new Translator(Language::RU)->language());
+    }
+
     public function testTranslateReturnsTranslatedStringForRu(): void
     {
         $translator = new Translator(Language::RU);

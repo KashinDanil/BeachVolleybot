@@ -23,6 +23,9 @@ final class CalendarVocabularyTest extends TestCase
     private const array WEEKDAY_KEYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     private const array MONTH_KEYS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+    /** The keys the /new_game wizard translates to print a date. */
+    private const array FULL_WEEKDAY_KEYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
     public function testTheBotReadsExactlyTheLanguagesItWrites(): void
     {
         $written = Translator::supportedLanguages();
@@ -151,6 +154,33 @@ final class CalendarVocabularyTest extends TestCase
         }
     }
 
+    public function testEveryLocaleSpellsEveryWeekdayOutInFull(): void
+    {
+        foreach (self::printedNames() as $locale => $names) {
+            $missing = array_diff(self::FULL_WEEKDAY_KEYS, array_keys($names));
+
+            $this->assertEmpty($missing, "$locale has no full name for: " . implode(', ', $missing));
+        }
+    }
+
+    public function testEveryFullWeekdayItWritesItCanReadBack(): void
+    {
+        // The wizard prints these into the game title, which is re-read later for the kickoff.
+        $monday = new DateTimeImmutable('2026-01-05');
+
+        foreach (self::printedNames() as $locale => $names) {
+            foreach (self::FULL_WEEKDAY_KEYS as $index => $key) {
+                $printed = $names[$key];
+
+                $this->assertSame(
+                    $index + 1,
+                    (int) DayOfWeekExtractor::resolveDate("Game $printed 18:00", $monday)?->format('N'),
+                    "$locale prints '$printed' for $key but cannot read it back",
+                );
+            }
+        }
+    }
+
     /**
      * @param array<string, int> $names
      *
@@ -179,7 +209,7 @@ final class CalendarVocabularyTest extends TestCase
      */
     private static function printedNames(): array
     {
-        $keys = [...self::WEEKDAY_KEYS, ...self::MONTH_KEYS];
+        $keys = [...self::WEEKDAY_KEYS, ...self::MONTH_KEYS, ...self::FULL_WEEKDAY_KEYS];
         $printed = [Language::EN => array_combine($keys, $keys)];
 
         foreach (glob(self::LOCALIZATION_DIR . '/*.json') ?: [] as $path) {

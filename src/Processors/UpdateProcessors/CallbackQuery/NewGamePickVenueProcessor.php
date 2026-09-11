@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameConfirmMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
@@ -23,7 +22,7 @@ class NewGamePickVenueProcessor extends AbstractVenueSelectionStepProcessor
         $time = $this->parseTime($text);
         $venue = $this->resolveVenue();
 
-        $confirmPage = new NewGameConfirmMessageBuilder(Translator::fromUser($callbackQuery->from))
+        $confirmPage = new NewGameConfirmMessageBuilder($this->translator($callbackQuery))
             ->build($date, $time, $venue?->name);
 
         $this->editWizard($callbackQuery, $confirmPage);

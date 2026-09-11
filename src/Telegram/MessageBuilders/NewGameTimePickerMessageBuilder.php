@@ -4,31 +4,17 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
-use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
-use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
-use BeachVolleybot\Telegram\MarkdownV2;
-use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use DateTimeImmutable;
 
-final class NewGameTimePickerMessageBuilder extends AbstractMessageBuilder
+final class NewGameTimePickerMessageBuilder extends AbstractNewGameMessageBuilder
 {
     public const int START_PAGE = 2;
 
     private const int TOTAL_HOURS   = 24;
     private const int HOURS_PER_PAGE = 6;
     private const array MINUTES     = [0, 15, 30, 45];
-
-    private readonly NewGameFormText $formText;
-
-    public function __construct(
-        private readonly Translator $translator,
-        MessageFormatterInterface $formatter = new MarkdownV2(),
-    ) {
-        parent::__construct($formatter);
-        $this->formText = new NewGameFormText($translator, $this->formatter);
-    }
 
     public function build(DateTimeImmutable $date, int $page): TelegramMessage
     {
@@ -50,7 +36,7 @@ final class NewGameTimePickerMessageBuilder extends AbstractMessageBuilder
 
         $paginationRow = $this->paginationRow(
             $pagination,
-            NewGameCallbackData::create(NewGameCallbackAction::ShowTimePage),
+            $this->callbackData(NewGameCallbackAction::ShowTimePage),
             $this->translator->translate(self::LABEL_PREVIOUS),
             $this->translator->translate(self::LABEL_NEXT),
         );
@@ -60,7 +46,7 @@ final class NewGameTimePickerMessageBuilder extends AbstractMessageBuilder
         }
 
         $keyboard[] = $this->backButtonRow(
-            NewGameCallbackData::create(NewGameCallbackAction::ShowDatePage),
+            $this->callbackData(NewGameCallbackAction::ShowDatePage),
             $this->translator->translate(self::LABEL_BACK),
         );
 
@@ -82,7 +68,7 @@ final class NewGameTimePickerMessageBuilder extends AbstractMessageBuilder
     {
         return $this->buildActionButton(
             sprintf('%d:%02d', $hour, $minute),
-            NewGameCallbackData::create(NewGameCallbackAction::PickTime)->withTime(sprintf('%02d:%02d', $hour, $minute)),
+            $this->callbackData(NewGameCallbackAction::PickTime)->withTime(sprintf('%02d:%02d', $hour, $minute)),
         );
     }
 }

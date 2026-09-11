@@ -8,10 +8,12 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickVenueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
+use BeachVolleybot\Telegram\MessageBuilders\NewGameConfirmMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameLocationPickerMessageBuilder;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 
 final class NewGamePickVenueProcessorTest extends ProcessorTestCase
@@ -67,6 +69,53 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->runProcessor($this->groupEphemeralPickVenueUpdate('Bogatell'));
 
         $this->assertTrue($this->calledApi('editEphemeralMessageText'), 'Expected the ephemeral wizard message to be edited to the confirm page');
+    }
+
+    public function testSwitchingLanguageRedrawsTheConfirmPageInTheNewOne(): void
+    {
+        $update = $this->dmCallbackUpdate(
+            NewGameCallbackData::create(NewGameCallbackAction::SetLanguage)
+                ->withVenueName('Bogatell')
+                ->withLanguage(Language::RU)
+                ->toJson(),
+            $this->confirmText(Language::EN),
+        );
+
+        $this->runProcessor($update);
+
+        $text = $this->editedText();
+        $this->assertNotNull($text);
+        $this->assertStringContainsString('шаг 4 из 4', $text);
+        $this->assertStringContainsString('Четверг, 31.12', $text);
+        $this->assertStringContainsString(self::PICKED_TIME, $text);
+        $this->assertStringContainsString('Bogatell', $text);
+    }
+
+    public function testSwitchingAwayFromATranslatedPageKeepsTheRunningSelection(): void
+    {
+        $update = $this->dmCallbackUpdate(
+            NewGameCallbackData::create(NewGameCallbackAction::SetLanguage)
+                ->withVenueName('Bogatell')
+                ->withLanguage(Language::EN)
+                ->toJson(),
+            $this->confirmText(Language::RU),
+        );
+
+        $this->runProcessor($update);
+
+        $text = $this->editedText();
+        $this->assertNotNull($text);
+        $this->assertStringContainsString('Step 4 of 4', $text);
+        $this->assertStringContainsString('Thursday, 31.12', $text);
+        $this->assertStringContainsString(self::PICKED_TIME, $text);
+    }
+
+    private function confirmText(string $language): string
+    {
+        $message = new NewGameConfirmMessageBuilder(new Translator($language, tempnam(sys_get_temp_dir(), 'bvb_missing_')))
+            ->build(new DateTimeImmutable(self::PICKED_DATE), self::PICKED_TIME, 'Bogatell');
+
+        return str_replace('\\', '', $message->getText()->getMessageText());
     }
 
     private function runProcessor(TelegramUpdate $update): void

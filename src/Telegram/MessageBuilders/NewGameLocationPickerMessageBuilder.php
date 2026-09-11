@@ -4,32 +4,18 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
-use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
-use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
-use BeachVolleybot\Telegram\MarkdownV2;
-use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Location\Venue;
 use DateTimeImmutable;
 
-final class NewGameLocationPickerMessageBuilder extends AbstractMessageBuilder
+final class NewGameLocationPickerMessageBuilder extends AbstractNewGameMessageBuilder
 {
     public const string SKIP_TEXT = 'Skip location';
 
     private const int VENUES_PER_PAGE = 5;
     private const string SKIP_LABEL_WRAP = '— %s —';
-
-    private readonly NewGameFormText $formText;
-
-    public function __construct(
-        private readonly Translator $translator,
-        MessageFormatterInterface $formatter = new MarkdownV2(),
-    ) {
-        parent::__construct($formatter);
-        $this->formText = new NewGameFormText($translator, $this->formatter);
-    }
 
     public function build(DateTimeImmutable $date, string $time, int $page = 1): TelegramMessage
     {
@@ -56,7 +42,7 @@ final class NewGameLocationPickerMessageBuilder extends AbstractMessageBuilder
 
         $paginationRow = $this->paginationRow(
             $pagination,
-            NewGameCallbackData::create(NewGameCallbackAction::ShowVenuePage),
+            $this->callbackData(NewGameCallbackAction::ShowVenuePage),
             $this->translator->translate(self::LABEL_PREVIOUS),
             $this->translator->translate(self::LABEL_NEXT),
         );
@@ -66,7 +52,7 @@ final class NewGameLocationPickerMessageBuilder extends AbstractMessageBuilder
         }
 
         $keyboard[] = $this->backButtonRow(
-            NewGameCallbackData::create(NewGameCallbackAction::ShowTimePage)
+            $this->callbackData(NewGameCallbackAction::ShowTimePage)
                 ->withPage(NewGameTimePickerMessageBuilder::START_PAGE),
             $this->translator->translate(self::LABEL_BACK),
         );
@@ -78,7 +64,7 @@ final class NewGameLocationPickerMessageBuilder extends AbstractMessageBuilder
     {
         return $this->buildActionButton(
             $venue->name,
-            NewGameCallbackData::create(NewGameCallbackAction::PickVenue)->withVenueName($venue->name),
+            $this->callbackData(NewGameCallbackAction::PickVenue)->withVenueName($venue->name),
         );
     }
 
@@ -86,6 +72,6 @@ final class NewGameLocationPickerMessageBuilder extends AbstractMessageBuilder
     {
         $label = sprintf(self::SKIP_LABEL_WRAP, $this->translator->translate(self::SKIP_TEXT));
 
-        return $this->buildActionButton($label, NewGameCallbackData::create(NewGameCallbackAction::SkipVenue));
+        return $this->buildActionButton($label, $this->callbackData(NewGameCallbackAction::SkipVenue));
     }
 }

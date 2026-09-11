@@ -12,6 +12,8 @@ use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
+use BeachVolleybot\Weather\Location\KnownVenues;
+use BeachVolleybot\Weather\Location\Venue;
 use PHPUnit\Framework\TestCase;
 
 final class NewGameCallbackDataTest extends TestCase
@@ -46,6 +48,30 @@ final class NewGameCallbackDataTest extends TestCase
         $this->assertSame('{"na":"v","v":"Bogatell"}', $json);
     }
 
+    public function testLanguageRidesAlongsideTheAction(): void
+    {
+        $json = NewGameCallbackData::create(NewGameCallbackAction::SetLanguage)
+            ->withVenueName('Bogatell')
+            ->withLanguage('ru')
+            ->toJson();
+
+        $this->assertSame('{"na":"l","v":"Bogatell","l":"ru"}', $json);
+    }
+
+    public function testTheHeaviestWizardPayloadFitsTelegramsCallbackDataLimit(): void
+    {
+        // Telegram rejects callback_data over 64 bytes, and an accented venue name escapes to \uXXXX.
+        $venueNames = array_map(static fn(Venue $venue): string => $venue->name, KnownVenues::all());
+        usort($venueNames, static fn(string $one, string $other): int => strlen(json_encode($other)) <=> strlen(json_encode($one)));
+
+        $json = NewGameCallbackData::create(NewGameCallbackAction::Send)
+            ->withVenueName($venueNames[0])
+            ->withLanguage('ru')
+            ->toJson();
+
+        $this->assertLessThanOrEqual(64, strlen($json), "Payload too long: $json");
+    }
+
     // --- fromJson + getters ---
 
     public function testRoundtrip(): void
@@ -55,6 +81,7 @@ final class NewGameCallbackDataTest extends TestCase
             ->withTime('18:30')
             ->withVenueName('Nova Mar Bella')
             ->withPage(3)
+            ->withLanguage('ru')
             ->toJson();
 
         $parsed = NewGameCallbackData::fromJson($json);
@@ -64,6 +91,24 @@ final class NewGameCallbackDataTest extends TestCase
         $this->assertSame('18:30', $parsed->getTime());
         $this->assertSame('Nova Mar Bella', $parsed->getVenueName());
         $this->assertSame(3, $parsed->getPage());
+        $this->assertSame('ru', $parsed->getLanguage());
+    }
+
+    public function testEveryWitherKeepsTheLanguage(): void
+    {
+        $callbackData = NewGameCallbackData::create(NewGameCallbackAction::PickDate)
+            ->withLanguage('es')
+            ->withDate('2099-12-31')
+            ->withTime('18:30')
+            ->withVenueName('Bogatell')
+            ->withPage(2);
+
+        $this->assertSame('es', $callbackData->getLanguage());
+    }
+
+    public function testLanguageIsNullOnAButtonThatPredatesIt(): void
+    {
+        $this->assertNull(NewGameCallbackData::fromJson('{"na":"d","d":"2099-12-31"}')->getLanguage());
     }
 
     public function testGetPageDefaultsToOne(): void
@@ -110,11 +155,12 @@ final class NewGameCallbackDataTest extends TestCase
 
     public function testFromJsonNullsWrongTypeFieldsInsteadOfThrowing(): void
     {
-        $parsed = NewGameCallbackData::fromJson('{"na":"v","v":123,"d":123,"p":"x"}');
+        $parsed = NewGameCallbackData::fromJson('{"na":"v","v":123,"d":123,"p":"x","l":7}');
 
         $this->assertNotNull($parsed);
         $this->assertNull($parsed->getVenueName());
         $this->assertNull($parsed->getDate());
+        $this->assertNull($parsed->getLanguage());
         $this->assertSame(1, $parsed->getPage());
     }
 

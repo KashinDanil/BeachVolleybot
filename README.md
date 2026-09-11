@@ -246,7 +246,7 @@ falling back to English when a key is absent. The game card and admin panel are 
 Adding a language is two steps:
 
 **1. Output** — copy a file and translate the values; no code. `LocalizationFilesTest` fails until the new
-file has all 83 keys.
+file has all the keys.
 
 ```bash
 cp localization/ru.json localization/de.json

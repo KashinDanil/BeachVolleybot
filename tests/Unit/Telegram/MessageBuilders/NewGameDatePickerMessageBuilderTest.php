@@ -10,6 +10,7 @@ use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameDatePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Weather\Location\KnownVenues;
+use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use DateTimeZone;
 use PHPUnit\Framework\TestCase;
@@ -105,6 +106,32 @@ final class NewGameDatePickerMessageBuilderTest extends TestCase
         $this->assertStringContainsString('Step 1 of 4', $text);
         $this->assertStringContainsString('pick a date below', $text);
         $this->assertStringContainsString('—', $text); // empty time + location
+    }
+
+    public function testDateButtonsSpellTheWeekdayInTheChosenLanguage(): void
+    {
+        $keyboard = $this->extractKeyboard($this->russianBuilder()->build(1));
+
+        $this->assertSame('Четверг, 31.12', $keyboard[0][0]['text']);
+    }
+
+    public function testEveryButtonCarriesTheChosenLanguage(): void
+    {
+        $keyboard = $this->extractKeyboard($this->russianBuilder()->build(1));
+
+        foreach (array_merge(...$keyboard) as $button) {
+            $language = NewGameCallbackData::fromJson($button['callback_data'])->getLanguage();
+
+            $this->assertSame(Language::RU, $language, "'{$button['text']}' carries no language");
+        }
+    }
+
+    private function russianBuilder(): NewGameDatePickerMessageBuilder
+    {
+        return new NewGameDatePickerMessageBuilder(
+            new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')),
+            new DateTimeImmutable(self::TODAY, KnownVenues::defaultVenue()->timezone),
+        );
     }
 
     private function extractKeyboard(TelegramMessage $message): array

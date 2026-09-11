@@ -16,6 +16,7 @@ use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\Weather\Location\KnownVenues;
+use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 
 final class NewGameSendProcessorTest extends ProcessorTestCase
@@ -56,6 +57,27 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
         $resolved = GameDateResolver::resolve($title, new DateTimeImmutable());
         $this->assertNotNull($resolved);
         $this->assertSame('31.12', $resolved->format('d.m'));
+    }
+
+    public function testTitleIsWrittenInTheLanguageTheWizardWasFinishedIn(): void
+    {
+        // The card around it stays English; the title is the creator's own line.
+        $update = $this->dmCallbackUpdate(
+            NewGameCallbackData::create(NewGameCallbackAction::Send)
+                ->withVenueName('Bogatell')
+                ->withLanguage(Language::RU)
+                ->toJson(),
+            $this->wizardText('Bogatell', Language::RU),
+        );
+
+        $this->runProcessor($update);
+
+        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $title = new GameRepository($this->db)->findById($gameId)['title'];
+
+        $this->assertStringContainsString('Четверг, 31.12', $title);
+        $this->assertSame('31.12', GameDateResolver::resolve($title, new DateTimeImmutable())->format('d.m'));
+        $this->assertStringContainsString('Игра создана!', $this->editedText());
     }
 
     public function testSkipCreatesGameWithNoLocation(): void
@@ -235,9 +257,9 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
     // The exact confirm-page text the wizard renders (weekday, dd.mm — no year), with the
     // MarkdownV2 escaping stripped, as Telegram echoes it back in the callback.
-    private function wizardText(?string $venueName): string
+    private function wizardText(?string $venueName, string $language = Language::EN): string
     {
-        $message = new NewGameConfirmMessageBuilder(new Translator())
+        $message = new NewGameConfirmMessageBuilder(new Translator($language, tempnam(sys_get_temp_dir(), 'bvb_missing_')))
             ->build(new DateTimeImmutable(self::PICKED_DATE), self::PICKED_TIME, $venueName);
 
         return str_replace('\\', '', $message->getText()->getMessageText());

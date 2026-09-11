@@ -20,6 +20,7 @@ use BeachVolleybot\Validator\Rules\DateInTheFutureRule;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Rules\RuleInterface;
 use BeachVolleybot\Validator\Validator;
+use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 
 /**
@@ -54,6 +55,17 @@ abstract class AbstractNewGameStepProcessor extends AbstractCallbackProcessor
         }
 
         $this->telegramSender->editMessage($wizardMessage->chat->id, $wizardMessage->messageId, $message);
+    }
+
+    protected function translator(TelegramCallbackQuery $callbackQuery): Translator
+    {
+        $language = $this->callbackData->getLanguage();
+
+        if (null === $language) {
+            return Translator::fromUser($callbackQuery->from);
+        }
+
+        return new Translator(Language::fromCode($language));
     }
 
     protected function parseDate(?string $text): ?DateTimeImmutable
@@ -101,7 +113,7 @@ abstract class AbstractNewGameStepProcessor extends AbstractCallbackProcessor
     /** A wizard left open for days carries a date that has since gone by, so it rewinds to a freshly dated step 1. */
     private function restartWizard(TelegramCallbackQuery $callbackQuery): void
     {
-        $picker = new NewGameDatePickerMessageBuilder(Translator::fromUser($callbackQuery->from))->build();
+        $picker = new NewGameDatePickerMessageBuilder($this->translator($callbackQuery))->build();
 
         $this->editWizard($callbackQuery, $picker);
         $this->answerCallbackQuery($callbackQuery, CallbackAnswer::DATE_ALREADY_PASSED);

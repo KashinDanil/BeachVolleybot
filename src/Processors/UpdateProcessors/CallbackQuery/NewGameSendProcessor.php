@@ -10,7 +10,6 @@ use BeachVolleybot\Game\GameMessagePinner;
 use BeachVolleybot\Game\GameMessagePoster;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Game\ShareGameReplySender;
-use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameCreatedMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameFormText;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
@@ -45,7 +44,7 @@ class NewGameSendProcessor extends AbstractVenueSelectionStepProcessor
             return;
         }
 
-        $translator = Translator::fromUser($callbackQuery->from);
+        $translator = $this->translator($callbackQuery);
         $title = new NewGameFormText($translator, new PlainText())
             ->buildGameTitle($date, $time, $venue?->name);
         $newGameData = NewGameData::fromUser($callbackQuery->from, $title, $gameKey);

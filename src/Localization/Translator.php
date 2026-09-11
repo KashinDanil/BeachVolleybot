@@ -18,10 +18,12 @@ readonly class Translator
 
     private VendorTranslator $inner;
 
-    public function __construct(string $language = self::DEFAULT_LANGUAGE, ?string $missingFile = null)
-    {
+    public function __construct(
+        private string $language = self::DEFAULT_LANGUAGE,
+        ?string $missingFile = null,
+    ) {
         $this->inner = new VendorTranslator(
-            $language,
+            $this->language,
             self::TRANSLATIONS_PATH,
             self::DEFAULT_LANGUAGE,
             new JsonFileMissingTranslationHandler($missingFile ?? self::MISSING_TRANSLATIONS_FILE),
@@ -47,6 +49,11 @@ readonly class Translator
         return array_values(array_unique([self::DEFAULT_LANGUAGE, ...$languages]));
     }
 
+    public function language(): string
+    {
+        return $this->language;
+    }
+
     public function isDefaultLanguage(): bool
     {
         return $this->inner->isDefaultLanguage();
@@ -58,6 +65,11 @@ readonly class Translator
      */
     public function translate(string $text): string
     {
+        $text = trim($text);
+        if ('' === $text) {
+            return '';
+        }
+
         return $this->inner->translate($text);
     }
 }

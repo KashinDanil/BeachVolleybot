@@ -10,6 +10,7 @@ use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use DanilKashin\Localization\Language;
 
 final class NewGamePickDateProcessorTest extends ProcessorTestCase
 {
@@ -38,7 +39,17 @@ final class NewGamePickDateProcessorTest extends ProcessorTestCase
         $this->assertAnsweredWith(CallbackAnswer::DATE_ALREADY_PASSED);
     }
 
-    private function runProcessor(string $isoDate): void
+    public function testTheNextStepIsRenderedInTheLanguageTheTappedButtonCarried(): void
+    {
+        $this->runProcessor(self::FUTURE_DATE, Language::RU);
+
+        $text = $this->editedText();
+        $this->assertNotNull($text);
+        $this->assertStringContainsString('шаг 2 из 4', $text);
+        $this->assertStringContainsString('Четверг, 31.12', $text);
+    }
+
+    private function runProcessor(string $isoDate, string $language = Language::EN): void
     {
         $update = TelegramUpdate::fromArray([
             'update_id' => 1,
@@ -53,7 +64,10 @@ final class NewGamePickDateProcessorTest extends ProcessorTestCase
                     'date' => 1700000000,
                     'text' => 'New game — Step 1 of 4',
                 ],
-                'data' => NewGameCallbackData::create(NewGameCallbackAction::PickDate)->withDate($isoDate)->toJson(),
+                'data' => NewGameCallbackData::create(NewGameCallbackAction::PickDate)
+                    ->withDate($isoDate)
+                    ->withLanguage($language)
+                    ->toJson(),
             ],
         ]);
 
