@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders\Warnings;
 
 use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\GameWarningCollector;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoEquipmentWarning;
 use PHPUnit\Framework\TestCase;
@@ -13,11 +14,14 @@ final class GameWarningCollectorTest extends TestCase
 {
     private GameWarningCollector $collector;
 
+    private Translator $translator;
+
     protected function setUp(): void
     {
         $this->collector = new GameWarningCollector(
             new NoEquipmentWarning(),
         );
+        $this->translator = new Translator();
     }
 
     public function testReturnsEmptyArrayWhenUsersHaveEquipment(): void
@@ -26,7 +30,7 @@ final class GameWarningCollectorTest extends TestCase
             $this->user(volleyball: 1, net: 1),
         ];
 
-        $this->assertSame([], $this->collector->collect($users));
+        $this->assertSame([], $this->collector->collect($users, $this->translator));
     }
 
     public function testReturnsWarningWhenNetMissing(): void
@@ -35,7 +39,7 @@ final class GameWarningCollectorTest extends TestCase
             $this->user(volleyball: 1, net: 0),
         ];
 
-        $this->assertSame(['Someone needs to bring a net'], $this->collector->collect($users));
+        $this->assertSame(['Someone needs to bring a net'], $this->collector->collect($users, $this->translator));
     }
 
     public function testReturnsWarningWhenVolleyballMissing(): void
@@ -44,7 +48,7 @@ final class GameWarningCollectorTest extends TestCase
             $this->user(volleyball: 0, net: 1),
         ];
 
-        $this->assertSame(['Someone needs to bring a volleyball'], $this->collector->collect($users));
+        $this->assertSame(['Someone needs to bring a volleyball'], $this->collector->collect($users, $this->translator));
     }
 
     public function testReturnsCombinedWarningWhenBothMissing(): void
@@ -55,7 +59,7 @@ final class GameWarningCollectorTest extends TestCase
 
         $this->assertSame(
             ['Someone needs to bring a net and a volleyball'],
-            $this->collector->collect($users),
+            $this->collector->collect($users, $this->translator),
         );
     }
 
@@ -66,7 +70,7 @@ final class GameWarningCollectorTest extends TestCase
             $this->user(volleyball: 0, net: 0),
         ];
 
-        $this->assertSame([], $collector->collect($users));
+        $this->assertSame([], $collector->collect($users, $this->translator));
     }
 
     private function user(int $volleyball, int $net): UserInterface

@@ -187,8 +187,8 @@ final class IncomingMessageQueueRouterTest extends TestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => 'query_dm'])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => 'query_dm'])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],
@@ -220,8 +220,8 @@ final class IncomingMessageQueueRouterTest extends TestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => 'query_dm_edit'])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => 'query_dm_edit'])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],
@@ -482,8 +482,8 @@ final class IncomingMessageQueueRouterTest extends TestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],
@@ -510,8 +510,8 @@ final class IncomingMessageQueueRouterTest extends TestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],

@@ -6,8 +6,11 @@ namespace BeachVolleybot\Game\AddOns;
 
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
+use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
+use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookupResult;
 use BeachVolleybot\Weather\Forecast\WeatherFormatter;
 
 final class WeatherAddOn implements GameAddOnInterface
@@ -21,39 +24,41 @@ final class WeatherAddOn implements GameAddOnInterface
 
     public function applyTo(Game $game): void
     {
-        $section = $this->computeWeatherSection($game);
-        if (null === $section) {
+        $lookup = $this->gameWeatherLookup->findForGame($game);
+
+        if (null === $lookup) {
             return;
         }
 
-        $this->installSectionOverride($game->telegramMessageBuilder, $section);
+        $this->installSectionOverride($game->telegramMessageBuilder, $lookup);
     }
 
-    private function installSectionOverride(GameMessageBuilder $builder, string $section): void
+    private function installSectionOverride(GameMessageBuilder $builder, GameWeatherLookupResult $lookup): void
     {
         $previousSections = $builder->getEffective('getSections');
+        $formatter = $builder->getFormatter();
 
         $builder->override(
             'getSections',
-            static function (GameInterface $game) use ($previousSections, $section): array {
-                $sections = $previousSections($game);
-                array_splice($sections, self::WEATHER_SECTION_POSITION, 0, [$section]);
+            static function (GameInterface $game, Translator $translator) use ($previousSections, $lookup, $formatter): array {
+                $sections = $previousSections($game, $translator);
+                $section = self::computeWeatherSection($lookup, $formatter, $translator);
+
+                if (null !== $section) {
+                    array_splice($sections, self::WEATHER_SECTION_POSITION, 0, [$section]);
+                }
 
                 return $sections;
             }
         );
     }
 
-    private function computeWeatherSection(Game $game): ?string
-    {
-        $lookup = $this->gameWeatherLookup->findForGame($game);
-        if (null === $lookup) {
-            return null;
-        }
-
-        $weatherFormatter = new WeatherFormatter($game->telegramMessageBuilder->getFormatter());
-
-        return $weatherFormatter->format(
+    private static function computeWeatherSection(
+        GameWeatherLookupResult $lookup,
+        MessageFormatterInterface $formatter,
+        Translator $translator,
+    ): ?string {
+        return new WeatherFormatter($translator, $formatter)->format(
             $lookup->row->snapshot,
             $lookup->row->coordinates,
             $lookup->kickoffHour,

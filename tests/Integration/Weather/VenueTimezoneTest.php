@@ -10,6 +10,7 @@ use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Game\AddOns\WeatherAddOn;
 use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Game\ParsedTitle;
+use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
@@ -144,7 +145,7 @@ final class VenueTimezoneTest extends DatabaseTestCase
             $window->hours,
         );
 
-        return (string) new WeatherFormatter()->format(
+        return (string) new WeatherFormatter(new Translator())->format(
             new WeatherSnapshot($hours),
             new GameLocationResolver()->resolve($game->location, $game->venueName)->rounded(),
             $window->kickoffHour,

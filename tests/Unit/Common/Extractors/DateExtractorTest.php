@@ -212,4 +212,31 @@ final class DateExtractorTest extends TestCase
 
         $this->assertNull(DateExtractor::resolveDate('Game 30.02 18:00', $now));
     }
+
+    // --- extractMonthName() ---
+
+    public function testExtractMonthNameFromEnglishDayBeforeMonth(): void
+    {
+        $this->assertSame('april', DateExtractor::extractMonthName('Game 11 April 18:00'));
+    }
+
+    public function testExtractMonthNameFromSpanishWithDe(): void
+    {
+        $this->assertSame('abril', DateExtractor::extractMonthName('Juego 11 de abril 18:00'));
+    }
+
+    public function testExtractMonthNameFromRussianGenitiveMonth(): void
+    {
+        $this->assertSame('апреля', DateExtractor::extractMonthName('Игра 11 апреля 18:00'));
+    }
+
+    public function testExtractMonthNameReturnsNullForNumericDate(): void
+    {
+        $this->assertNull(DateExtractor::extractMonthName('Beach 31.12.2099 18:00'));
+    }
+
+    public function testExtractMonthNameReturnsNullWhenNoDate(): void
+    {
+        $this->assertNull(DateExtractor::extractMonthName('Friday Game 18:00'));
+    }
 }

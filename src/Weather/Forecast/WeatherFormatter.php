@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Weather\Forecast;
 
+use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
@@ -17,6 +18,10 @@ final readonly class WeatherFormatter
     private const string WIND_EMOJI          = '💨';
     private const string ROW_GROUP_SEPARATOR = '   ';
 
+    private const string WEATHER_HEADING        = 'Weather';
+    private const string UPDATED_AT_FORMAT      = 'Updated at %s';
+    private const string METERS_PER_SECOND_UNIT = 'm/s';
+
     private const string OPEN_METEO_URL_TEMPLATE = 'https://open-meteo.com/en/docs?latitude=%.4f&longitude=%.4f';
 
     private const int DEGREES_PER_COMPASS_POINT = 45;
@@ -25,6 +30,7 @@ final readonly class WeatherFormatter
     private const array COMPASS_POINTS = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
 
     public function __construct(
+        private Translator $translator,
         private MessageFormatterInterface $messageFormatter = new MarkdownV2(),
     ) {
     }
@@ -50,7 +56,7 @@ final readonly class WeatherFormatter
 
     private function buildHeading(): string
     {
-        return $this->messageFormatter->bold('Weather');
+        return $this->messageFormatter->bold($this->translator->translate(self::WEATHER_HEADING));
     }
 
     /** @return list<string> */
@@ -79,13 +85,18 @@ final readonly class WeatherFormatter
         return (int)round($celsius) . '°';
     }
 
+    /**
+     * Escaped here rather than left to the row's occasional bold() wrap: a non-kickoff row
+     * reaches blockquote() with no escaping at all, and blockquote() itself never escapes.
+     */
     private function formatWind(WeatherHour $hour): string
     {
         return sprintf(
-            '%s %s %d m/s',
+            '%s %s %d %s',
             self::WIND_EMOJI,
             $this->compassDirection($hour->windDirectionDegrees),
             (int)round($hour->windMetersPerSecond),
+            $this->messageFormatter->escape($this->translator->translate(self::METERS_PER_SECOND_UNIT)),
         );
     }
 
@@ -96,7 +107,7 @@ final readonly class WeatherFormatter
 
     private function buildFooter(DateTimeImmutable $fetchedAt, LocationCoordinates $coordinates): string
     {
-        $anchor = 'Updated at ' . $fetchedAt->format('H:i');
+        $anchor = sprintf($this->translator->translate(self::UPDATED_AT_FORMAT), $fetchedAt->format('H:i'));
         $url = sprintf(self::OPEN_METEO_URL_TEMPLATE, $coordinates->latitude, $coordinates->longitude);
 
         return $this->messageFormatter->link($anchor, $url);

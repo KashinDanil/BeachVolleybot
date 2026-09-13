@@ -188,8 +188,8 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],
@@ -222,8 +222,8 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],
@@ -246,7 +246,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                 'reply_markup' => [
                     'inline_keyboard' => [
                         [
-                            ['text' => 'Join', 'callback_data' => '{"a":"j"}'],
+                            ['text' => 'Join (+1)', 'callback_data' => '{"a":"j"}'],
                         ],
                     ],
                 ],
@@ -278,8 +278,8 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],
@@ -429,8 +429,8 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                 'reply_markup' => [
                     'inline_keyboard' => [
                         [
-                            ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
-                            ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                            ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
+                            ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                         ],
                     ],
                 ],
@@ -462,8 +462,8 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],
@@ -495,8 +495,8 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => $gameKey])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],

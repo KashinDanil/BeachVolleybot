@@ -112,7 +112,7 @@ final class GroupHelpCommandProcessorTest extends ProcessorTestCase
     {
         $this->processCommand(languageCode: 'ru');
 
-        $this->assertStringContainsString('*Чтобы присоединиться к игре или выйти из неё*', $this->lastEphemeralSendParams()['text']);
+        $this->assertStringContainsString('*Чтобы записаться в игру или выписаться из неё*', $this->lastEphemeralSendParams()['text']);
     }
 
     private function processCommand(?string $languageCode = null): void

@@ -17,7 +17,7 @@ final class HelpMessageBuilder extends AbstractMessageBuilder
     public const string EXAMPLE_TEMPLATE       = "@%s \n📅 Saturday\n🕙 10:00\n🏖️ Bogatell";
     public const string AFTER_EXAMPLE          = "Then just tap the bot's hint to send the message.";
     public const string WIZARD_PARAGRAPH       = "**Or use the %s command** and I'll help you create a game.";
-    public const string JOIN_LEAVE_PARAGRAPH   = '**To join a game or leave it**, use the buttons under the message.';
+    public const string JOIN_LEAVE_PARAGRAPH   = '**To join a game or leave it**, use the buttons under the message — tapping join again books you another slot.';
     public const string LATE_PARAGRAPH         = '**To join at another time**, reply to the game message with a time, like **17:30**.';
     public const string LOCATION_PARAGRAPH     = '**To add a location** 📍, reply to the game message with a geo point.';
     public const string CHANGE_TITLE_PARAGRAPH = '**To change the game**, reply to the game message with the new text — just keep a date and time in it. Only the person who created the game can do this.';

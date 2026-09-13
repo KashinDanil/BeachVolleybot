@@ -6,7 +6,9 @@ namespace BeachVolleybot\Tests\Unit\Game\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
+use DanilKashin\Localization\Language;
 use PHPUnit\Framework\TestCase;
 
 final class GameMessageBuilderTest extends TestCase
@@ -378,12 +380,47 @@ final class GameMessageBuilderTest extends TestCase
         $game = $this->game('Game 18:00', []);
         $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
 
-        $this->assertSame('Leave', $keyboard[0][0]['text']);
-        $this->assertSame('Join', $keyboard[0][1]['text']);
+        $this->assertSame('Leave (−1)', $keyboard[0][0]['text']);
+        $this->assertSame('Join (+1)', $keyboard[0][1]['text']);
         $this->assertSame('-🏐', $keyboard[1][0]['text']);
         $this->assertSame('+🏐', $keyboard[1][1]['text']);
         $this->assertSame('-🕸️', $keyboard[2][0]['text']);
         $this->assertSame('+🕸️', $keyboard[2][1]['text']);
+    }
+
+    /**
+     * Language selection itself (title -> language) is TitleLanguageResolverTest's job; this
+     * only proves buildKeyboard() renders correctly once handed a Russian translator — so it
+     * calls buildKeyboard() directly rather than build(), which would construct its own
+     * Translator bound to the repo's real localization/missing.json.
+     */
+    public function testButtonLabelsFollowRussianTitleLanguage(): void
+    {
+        $translator = new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_'));
+        $game = $this->game('Суббота 18:00', []);
+        $keyboard = $this->builder->buildKeyboard($game, $translator);
+
+        $this->assertSame('Выписаться (−1)', $keyboard[0][0]['text']);
+        $this->assertSame('Записаться (+1)', $keyboard[0][1]['text']);
+    }
+
+    public function testButtonLabelsFollowSpanishTitleLanguage(): void
+    {
+        $translator = new Translator(Language::ES, tempnam(sys_get_temp_dir(), 'bvb_missing_'));
+        $game = $this->game('Bogatell 11 de abril 18:00', []);
+        $keyboard = $this->builder->buildKeyboard($game, $translator);
+
+        $this->assertSame('Salir (−1)', $keyboard[0][0]['text']);
+        $this->assertSame('Unirse (+1)', $keyboard[0][1]['text']);
+    }
+
+    public function testButtonLabelsFallBackToEnglishForNumericDateTitle(): void
+    {
+        $game = $this->game('Beach 31.12.2099 18:00', []);
+        $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
+
+        $this->assertSame('Leave (−1)', $keyboard[0][0]['text']);
+        $this->assertSame('Join (+1)', $keyboard[0][1]['text']);
     }
 
     // --- Keyboard: callback data ---

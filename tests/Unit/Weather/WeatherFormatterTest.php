@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Weather;
 
+use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
 use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
 use BeachVolleybot\Weather\Forecast\WeatherFormatter;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
+use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use DateTimeZone;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -17,9 +19,12 @@ final class WeatherFormatterTest extends TestCase
 {
     private WeatherFormatter $formatter;
 
+    private Translator $translator;
+
     protected function setUp(): void
     {
-        $this->formatter = new WeatherFormatter();
+        $this->translator = new Translator();
+        $this->formatter = new WeatherFormatter($this->translator);
     }
 
     public function testReturnsNullForSnapshotWithNoHours(): void
@@ -66,6 +71,21 @@ final class WeatherFormatterTest extends TestCase
         );
 
         $this->assertStringStartsWith('>*Weather*', (string) $output);
+    }
+
+    public function testHeadingIsTranslatedForANonDefaultLocale(): void
+    {
+        $translator = new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_'));
+        $formatter = new WeatherFormatter($translator);
+
+        $output = $formatter->format(
+            new WeatherSnapshot([$this->weatherHour('2026-04-15 18:00:00', weatherCode: 0)]),
+            new LocationCoordinates(41.397, 2.211),
+            $this->hour('2026-04-15 18:00:00'),
+            $this->hour('2026-04-15 12:00:00'),
+        );
+
+        $this->assertStringStartsWith('>*Погода*', (string) $output);
     }
 
     // --- row layout ---
@@ -218,6 +238,21 @@ final class WeatherFormatterTest extends TestCase
         $this->assertStringNotContainsString('Updated at 12:34', $output);
     }
 
+    public function testFooterIsTranslatedForANonDefaultLocale(): void
+    {
+        $translator = new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_'));
+        $formatter = new WeatherFormatter($translator);
+
+        $output = (string) $formatter->format(
+            new WeatherSnapshot([$this->weatherHour('2026-04-15 18:00:00')]),
+            new LocationCoordinates(41.397, 2.211),
+            $this->hour('2026-04-15 18:00:00'),
+            $this->hour('2026-04-15 12:34:56'),
+        );
+
+        $this->assertStringContainsString('Обновлено в 12:34', $output);
+    }
+
     // --- wind direction compass ---
 
     #[DataProvider('compassBearings')]
@@ -263,6 +298,45 @@ final class WeatherFormatterTest extends TestCase
         );
 
         $this->assertStringContainsString('3 m/s', $output);
+    }
+
+    public function testWindUnitIsTranslatedForANonDefaultLocale(): void
+    {
+        $translator = new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_'));
+        $formatter = new WeatherFormatter($translator);
+
+        $output = (string) $formatter->format(
+            new WeatherSnapshot([$this->weatherHour('2026-04-15 18:00:00', windMetersPerSecond: 3.2)]),
+            new LocationCoordinates(41.397, 2.211),
+            $this->hour('2026-04-15 18:00:00'),
+            $this->hour('2026-04-15 12:00:00'),
+        );
+
+        $this->assertStringContainsString('3 м/с', $output);
+    }
+
+    /**
+     * A non-kickoff row is never wrapped in bold() (which would otherwise escape it), and
+     * blockquote() never escapes either — so the wind unit must escape itself. Uses a stub
+     * translator so this doesn't depend on today's locale files staying free of special chars.
+     */
+    public function testWindUnitIsEscapedOnANonKickoffRowEvenWithSpecialCharacters(): void
+    {
+        $translator = $this->createStub(Translator::class);
+        $translator->method('translate')->willReturnCallback(
+            static fn(string $text): string => 'm/s' === $text ? 'm.s (bad)' : $text,
+        );
+        $formatter = new WeatherFormatter($translator);
+
+        $output = (string) $formatter->format(
+            new WeatherSnapshot([$this->weatherHour('2026-04-15 17:00:00')]),
+            new LocationCoordinates(41.397, 2.211),
+            // Kickoff is 18:00, so the 17:00 row above is never bold()-wrapped.
+            $this->hour('2026-04-15 18:00:00'),
+            $this->hour('2026-04-15 12:00:00'),
+        );
+
+        $this->assertStringContainsString('m\\.s \\(bad\\)', $output);
     }
 
     public function testTemperatureRenderedAsInteger(): void

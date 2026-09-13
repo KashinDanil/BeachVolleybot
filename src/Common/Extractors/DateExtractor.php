@@ -41,6 +41,16 @@ final class DateExtractor implements ExtractorInterface
         return $matches[0];
     }
 
+    /** The month name a text date in the title carries, or null when it carries none. */
+    public static function extractMonthName(string $text): ?string
+    {
+        if (1 !== preg_match(self::textPattern(), $text, $matches)) {
+            return null;
+        }
+
+        return self::toMonthName($matches[0]);
+    }
+
     public static function resolveDate(string $text, DateTimeImmutable $now): ?DateTimeImmutable
     {
         $dateString = self::extract($text);
@@ -122,15 +132,21 @@ final class DateExtractor implements ExtractorInterface
         }
 
         $day = (int) $dayMatch[0];
-        $monthName = preg_replace(self::nonMonthStripPattern(), '', $dateString);
-        $monthName = mb_strtolower(trim($monthName));
-        $month = CalendarVocabulary::months()[$monthName] ?? null;
+        $month = CalendarVocabulary::months()[self::toMonthName($dateString)] ?? null;
 
         if (null === $month) {
             return null;
         }
 
         return new ParsedDate($day, $month);
+    }
+
+    /** The month name alone — the day number, ordinal and preposition stripped off. */
+    private static function toMonthName(string $dateString): string
+    {
+        return preg_replace(self::nonMonthStripPattern(), '', $dateString)
+            |> trim(...)
+            |> mb_strtolower(...);
     }
 
     private static function resolveClosestYear(int $day, int $month, DateTimeImmutable $now): ?DateTimeImmutable

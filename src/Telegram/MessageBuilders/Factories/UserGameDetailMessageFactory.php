@@ -69,8 +69,8 @@ final class UserGameDetailMessageFactory
 
         $builder->override(
             'getSections',
-            static function (GameInterface $game) use ($previousSections, $section): array {
-                return [$section, ...$previousSections($game)];
+            static function (GameInterface $game, Translator $translator) use ($previousSections, $section): array {
+                return [$section, ...$previousSections($game, $translator)];
             },
         );
     }

@@ -143,6 +143,24 @@ final class CalendarVocabularyTest extends TestCase
         $this->assertEmpty($ambiguous, 'Read as both a day and a month: ' . implode(', ', array_keys($ambiguous)));
     }
 
+    /** languageByName() picks the first-declared language on a collision; this keeps that tie-break from ever firing. */
+    public function testNoNameIsClaimedByTwoLanguages(): void
+    {
+        foreach (['WEEKDAYS', 'MONTHS'] as $kind) {
+            $byLanguage = self::vocabulary()[$kind];
+            $languageByName = [];
+
+            foreach ($byLanguage as $language => $names) {
+                foreach (array_keys($names) as $name) {
+                    $existing = $languageByName[$name] ?? $language;
+
+                    $this->assertSame($existing, $language, "$kind: '$name' is named by both $existing and $language");
+                    $languageByName[$name] = $language;
+                }
+            }
+        }
+    }
+
     public function testEveryLocaleNamesEveryWeekdayAndMonth(): void
     {
         $required = [...self::WEEKDAY_KEYS, ...self::MONTH_KEYS];

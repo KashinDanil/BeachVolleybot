@@ -106,8 +106,8 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
                     'reply_markup' => [
                         'inline_keyboard' => [
                             [
-                                ['text' => 'Leave', 'callback_data' => json_encode(['a' => 'l', 'q' => 'query_dm'])],
-                                ['text' => 'Join', 'callback_data' => json_encode(['a' => 'j'])],
+                                ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => 'query_dm'])],
+                                ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j'])],
                             ],
                         ],
                     ],

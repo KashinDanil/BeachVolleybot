@@ -119,6 +119,9 @@ final class CalendarVocabulary
     /** @var array<string, int>|null */
     private static ?array $months = null;
 
+    /** @var array<string, string>|null */
+    private static ?array $languageByName = null;
+
     /** @return list<string> */
     public static function languages(): array
     {
@@ -135,6 +138,17 @@ final class CalendarVocabulary
     public static function months(): array
     {
         return self::$months ??= self::flatten(self::MONTHS);
+    }
+
+    /**
+     * Every weekday and month name mapped back to the language that declares it, so a name
+     * matched in a title can be traced to the language it was written in.
+     *
+     * @return array<string, string> name => language
+     */
+    public static function languageByName(): array
+    {
+        return self::$languageByName ??= self::buildLanguageByName();
     }
 
     /** @return list<string> */
@@ -159,5 +173,19 @@ final class CalendarVocabulary
     private static function flatten(array $byLanguage): array
     {
         return array_merge(...array_values($byLanguage));
+    }
+
+    /** @return array<string, string> */
+    private static function buildLanguageByName(): array
+    {
+        $languageByName = [];
+
+        foreach ([self::WEEKDAYS, self::MONTHS] as $namesByLanguage) {
+            foreach ($namesByLanguage as $language => $names) {
+                $languageByName += array_fill_keys(array_keys($names), $language);
+            }
+        }
+
+        return $languageByName;
     }
 }

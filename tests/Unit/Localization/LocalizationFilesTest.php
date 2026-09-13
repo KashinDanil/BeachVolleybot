@@ -121,4 +121,52 @@ final class LocalizationFilesTest extends TestCase
             }
         }
     }
+
+    /**
+     * A translation that drops a placeholder throws ArgumentCountError at render time, not just
+     * at read time. Reordering via positional specifiers (`%1$s`, `%2$s`) is legitimate and must
+     * not be flagged — so this compares the number of sprintf *arguments* each string requires,
+     * not a literal count of `%s`/`%d` occurrences.
+     */
+    public function testSprintfPlaceholdersMatchTheEnglishKeyInEveryLocale(): void
+    {
+        $all = self::loadAllFiles();
+
+        foreach ($all as $filename => $translations) {
+            foreach ($translations as $key => $value) {
+                $this->assertSame(
+                    self::requiredArgumentCount($key),
+                    self::requiredArgumentCount($value),
+                    "File $filename: '$value' requires a different number of sprintf arguments than '$key'",
+                );
+            }
+        }
+    }
+
+    /**
+     * How many positional arguments a sprintf() call against $text must supply, so a translation
+     * that reorders arguments (`%1$s`), or adds flags/width/precision (`%.2f`, `%05d`), still
+     * compares correctly against the English key.
+     */
+    private static function requiredArgumentCount(string $text): int
+    {
+        preg_match_all("/%(?:(\d+)\\\$)?(?:[-+ 0]|'.)*\d*(?:\.\d+)?([%bcdeEufFgGosxX])/", $text, $matches, PREG_SET_ORDER);
+
+        $sequentialCount = 0;
+        $maxPositionalIndex = 0;
+
+        foreach ($matches as [, $positionalIndex, $specifier]) {
+            if ('%' === $specifier) {
+                continue; // %% is a literal percent sign — it consumes no argument
+            }
+
+            if ('' === $positionalIndex) {
+                $sequentialCount++;
+            } else {
+                $maxPositionalIndex = max($maxPositionalIndex, (int) $positionalIndex);
+            }
+        }
+
+        return max($sequentialCount, $maxPositionalIndex);
+    }
 }

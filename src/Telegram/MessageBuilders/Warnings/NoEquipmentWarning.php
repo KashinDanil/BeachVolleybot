@@ -5,30 +5,33 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders\Warnings;
 
 use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Localization\Translator;
 
 final class NoEquipmentWarning implements GameWarningInterface
 {
+    private const string MISSING_NET        = 'Someone needs to bring a net';
+    private const string MISSING_VOLLEYBALL = 'Someone needs to bring a volleyball';
+    private const string MISSING_BOTH       = 'Someone needs to bring a net and a volleyball';
+
     /**
      * @param UserInterface[] $users
      */
-    public function check(array $users): ?string
+    public function check(array $users, Translator $translator): ?string
     {
         $hasNet = array_any($users, static fn(UserInterface $user) => 0 < $user->getNet());
         $hasVolleyball = array_any($users, static fn(UserInterface $user) => 0 < $user->getVolleyball());
 
-        if ($hasNet && $hasVolleyball) {
+        $message = match (true) {
+            $hasNet && $hasVolleyball => null,
+            !$hasNet && !$hasVolleyball => self::MISSING_BOTH,
+            !$hasNet => self::MISSING_NET,
+            default => self::MISSING_VOLLEYBALL,
+        };
+
+        if (null === $message) {
             return null;
         }
 
-        $missing = [];
-        if (!$hasNet) {
-            $missing[] = 'a net';
-        }
-
-        if (!$hasVolleyball) {
-            $missing[] = 'a volleyball';
-        }
-
-        return 'Someone needs to bring ' . implode(' and ', $missing);
+        return $translator->translate($message);
     }
 }

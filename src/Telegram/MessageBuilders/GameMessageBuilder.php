@@ -6,6 +6,8 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Localization\TitleLanguageResolver;
+use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
@@ -17,25 +19,28 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 /**
  * @method string  separator()
- * @method string  buildText(GameInterface $game)
- * @method list<?string> getSections(GameInterface $game)
+ * @method string  buildText(GameInterface $game, Translator $translator)
+ * @method list<?string> getSections(GameInterface $game, Translator $translator)
  * @method string  buildTitle(GameInterface $game)
  * @method string  buildUserList(GameInterface $game)
  * @method string  buildUserLine(UserInterface $user, int $appearance, string $gameTime)
  * @method string  displayName(UserInterface $user, int $appearance)
  * @method int     plusCount(UserInterface $user, int $appearance)
  * @method string  displayTime(string $userTime, string $gameTime)
- * @method string|null buildLocationLink(?string $location)
- * @method string|null buildWarning(array $users)
+ * @method string|null buildLocationLink(?string $location, Translator $translator)
+ * @method string|null buildWarning(array $users, Translator $translator)
  * @method string  userKey(UserInterface $user)
  * @method string  formatEmoji(int $count, string $emoji)
- * @method array   buildKeyboard(GameInterface $game)
+ * @method array   buildKeyboard(GameInterface $game, Translator $translator)
  */
 final class GameMessageBuilder extends AbstractMessageBuilder
 {
     private const string VOLLEYBALL_EMOJI        = '🏐';
     private const string NET_EMOJI               = '🕸️';
     private const int    EMOJI_COMPACT_THRESHOLD = 3;
+
+    public const string LABEL_JOIN  = 'Join (+1)';
+    public const string LABEL_LEAVE = 'Leave (−1)';
 
     public function __construct(
         MessageFormatterInterface $formatter = new MarkdownV2(),
@@ -48,7 +53,9 @@ final class GameMessageBuilder extends AbstractMessageBuilder
 
     public function build(GameInterface $game): TelegramMessage
     {
-        return $this->buildMessage($this->buildText($game), $this->buildKeyboard($game));
+        $translator = new Translator(TitleLanguageResolver::resolve($game->getTitle()));
+
+        return $this->buildMessage($this->buildText($game, $translator), $this->buildKeyboard($game, $translator));
     }
 
     protected function defaultSeparator(): string
@@ -56,30 +63,30 @@ final class GameMessageBuilder extends AbstractMessageBuilder
         return $this->formatter->newLine() . $this->formatter->newLine();
     }
 
-    protected function defaultBuildText(GameInterface $game): string
+    protected function defaultBuildText(GameInterface $game, Translator $translator): string
     {
-        return implode($this->separator(), array_filter($this->getSections($game)));
+        return implode($this->separator(), array_filter($this->getSections($game, $translator)));
     }
 
     /** @return list<?string> */
-    protected function defaultGetSections(GameInterface $game): array
+    protected function defaultGetSections(GameInterface $game, Translator $translator): array
     {
         return [
-            $this->buildWarning($game->getUsers()),
+            $this->buildWarning($game->getUsers(), $translator),
             $this->buildTitle($game),
             $this->buildUserList($game),
-            $this->buildLocationLink($game->getLocation()),
+            $this->buildLocationLink($game->getLocation(), $translator),
         ];
     }
 
     /** @param UserInterface[] $users */
-    protected function defaultBuildWarning(array $users): ?string
+    protected function defaultBuildWarning(array $users, Translator $translator): ?string
     {
         if (empty($users)) {
             return null;
         }
 
-        $messages = $this->warningCollector->collect($users);
+        $messages = $this->warningCollector->collect($users, $translator);
 
         if (empty($messages)) {
             return null;
@@ -156,13 +163,13 @@ final class GameMessageBuilder extends AbstractMessageBuilder
         return $this->formatter->escape($userTime);
     }
 
-    protected function defaultBuildLocationLink(?string $location): ?string
+    protected function defaultBuildLocationLink(?string $location, Translator $translator): ?string
     {
         if (null === $location) {
             return null;
         }
 
-        return $this->formatter->link('📍 Location', 'https://maps.google.com/?q=' . $location);
+        return $this->formatter->link($translator->translate('📍 Location'), 'https://maps.google.com/?q=' . $location);
     }
 
     protected function defaultUserKey(UserInterface $user): string
@@ -179,12 +186,12 @@ final class GameMessageBuilder extends AbstractMessageBuilder
         };
     }
 
-    protected function defaultBuildKeyboard(GameInterface $game): array
+    protected function defaultBuildKeyboard(GameInterface $game, Translator $translator): array
     {
         return [
             [ // The first button is the meta-button — it carries the game key
-                $this->buildActionButton('Leave', GameCallbackData::create(GameCallbackAction::Leave)->withGameKey($game->getGameKey()), InlineButtonStyle::DANGER),
-                $this->buildActionButton('Join', GameCallbackData::create(GameCallbackAction::Join), InlineButtonStyle::SUCCESS),
+                $this->buildActionButton($translator->translate(self::LABEL_LEAVE), GameCallbackData::create(GameCallbackAction::Leave)->withGameKey($game->getGameKey()), InlineButtonStyle::DANGER),
+                $this->buildActionButton($translator->translate(self::LABEL_JOIN), GameCallbackData::create(GameCallbackAction::Join), InlineButtonStyle::SUCCESS),
             ],
             [
                 $this->buildActionButton('-' . self::VOLLEYBALL_EMOJI, GameCallbackData::create(GameCallbackAction::RemoveVolleyball)),
