@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders\Warnings;
 
+use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoEquipmentWarning;
@@ -23,40 +24,48 @@ final class NoEquipmentWarningTest extends TestCase
 
     public function testReturnsNullWhenBothPresent(): void
     {
-        $users = [$this->user(volleyball: 1, net: 1)];
+        $game = $this->game($this->user(volleyball: 1, net: 1));
 
-        $this->assertNull($this->warning->check($users, $this->translator));
+        $this->assertNull($this->warning->check($game, $this->translator));
     }
 
     public function testReturnsNetWarningWhenOnlyNetMissing(): void
     {
-        $users = [$this->user(volleyball: 1, net: 0)];
+        $game = $this->game($this->user(volleyball: 1, net: 0));
 
-        $this->assertSame('Someone needs to bring a net', $this->warning->check($users, $this->translator));
+        $this->assertSame('Someone needs to bring a net', $this->warning->check($game, $this->translator));
     }
 
     public function testReturnsVolleyballWarningWhenOnlyVolleyballMissing(): void
     {
-        $users = [$this->user(volleyball: 0, net: 1)];
+        $game = $this->game($this->user(volleyball: 0, net: 1));
 
-        $this->assertSame('Someone needs to bring a volleyball', $this->warning->check($users, $this->translator));
+        $this->assertSame('Someone needs to bring a volleyball', $this->warning->check($game, $this->translator));
     }
 
     public function testReturnsCombinedWarningWhenBothMissing(): void
     {
-        $users = [$this->user(volleyball: 0, net: 0)];
+        $game = $this->game($this->user(volleyball: 0, net: 0));
 
-        $this->assertSame('Someone needs to bring a net and a volleyball', $this->warning->check($users, $this->translator));
+        $this->assertSame('Someone needs to bring a net and a volleyball', $this->warning->check($game, $this->translator));
     }
 
     public function testChecksAcrossMultipleUsers(): void
     {
-        $users = [
+        $game = $this->game(
             $this->user(volleyball: 0, net: 1),
             $this->user(volleyball: 1, net: 0),
-        ];
+        );
 
-        $this->assertNull($this->warning->check($users, $this->translator));
+        $this->assertNull($this->warning->check($game, $this->translator));
+    }
+
+    private function game(UserInterface ...$users): GameInterface
+    {
+        $game = $this->createStub(GameInterface::class);
+        $game->method('getUsers')->willReturn($users);
+
+        return $game;
     }
 
     private function user(int $volleyball, int $net): UserInterface

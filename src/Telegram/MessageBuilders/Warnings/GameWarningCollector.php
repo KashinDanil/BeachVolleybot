@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Warnings;
 
-use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Localization\Translator;
 
 final class GameWarningCollector
@@ -17,15 +17,11 @@ final class GameWarningCollector
         $this->warnings = $warnings;
     }
 
-    /**
-     * @param UserInterface[] $users
-     *
-     * @return list<string>
-     */
-    public function collect(array $users, Translator $translator): array
+    /** @return list<string> */
+    public function collect(GameInterface $game, Translator $translator): array
     {
         return array_map(
-                static fn(GameWarningInterface $warning) => $warning->check($users, $translator),
+                static fn(GameWarningInterface $warning) => $warning->check($game, $translator),
                 $this->warnings,
             )
                 |> array_filter(...)

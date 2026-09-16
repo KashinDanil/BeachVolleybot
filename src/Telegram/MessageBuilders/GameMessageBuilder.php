@@ -28,7 +28,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
  * @method int     plusCount(UserInterface $user, int $appearance)
  * @method string  displayTime(string $userTime, string $gameTime)
  * @method string|null buildLocationLink(?string $location, Translator $translator)
- * @method string|null buildWarning(array $users, Translator $translator)
+ * @method string|null buildWarning(GameInterface $game, Translator $translator)
  * @method string  userKey(UserInterface $user)
  * @method string  formatEmoji(int $count, string $emoji)
  * @method array   buildKeyboard(GameInterface $game, Translator $translator)
@@ -72,21 +72,16 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     protected function defaultGetSections(GameInterface $game, Translator $translator): array
     {
         return [
-            $this->buildWarning($game->getUsers(), $translator),
+            $this->buildWarning($game, $translator),
             $this->buildTitle($game),
             $this->buildUserList($game),
             $this->buildLocationLink($game->getLocation(), $translator),
         ];
     }
 
-    /** @param UserInterface[] $users */
-    protected function defaultBuildWarning(array $users, Translator $translator): ?string
+    protected function defaultBuildWarning(GameInterface $game, Translator $translator): ?string
     {
-        if (empty($users)) {
-            return null;
-        }
-
-        $messages = $this->warningCollector->collect($users, $translator);
+        $messages = $this->warningCollector->collect($game, $translator);
 
         if (empty($messages)) {
             return null;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Warnings;
 
+use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Localization\Translator;
 
@@ -13,11 +14,13 @@ final class NoEquipmentWarning implements GameWarningInterface
     private const string MISSING_VOLLEYBALL = 'Someone needs to bring a volleyball';
     private const string MISSING_BOTH       = 'Someone needs to bring a net and a volleyball';
 
-    /**
-     * @param UserInterface[] $users
-     */
-    public function check(array $users, Translator $translator): ?string
+    public function check(GameInterface $game, Translator $translator): ?string
     {
+        $users = $game->getUsers();
+        if (empty($users)) {
+            return null;
+        }
+
         $hasNet = array_any($users, static fn(UserInterface $user) => 0 < $user->getNet());
         $hasVolleyball = array_any($users, static fn(UserInterface $user) => 0 < $user->getVolleyball());
 
