@@ -23,6 +23,7 @@ final class GameDetailMessageFactory
             return $builder->buildGameNotFound();
         }
 
+        // addOns: [] skips merging/stylizing/weather, not promotion — that runs upstream in GameBuilder.
         $game = GameFactory::fromRecord($gameRecord, addOns: []);
         $creatorRow = new UserRepository(Connection::get())->findById($gameRecord->createdBy);
         // Mirrors the inline-share gate (`GameNotFinishedRule`): share stays available
