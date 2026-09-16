@@ -66,7 +66,7 @@ class NewGameSendProcessor extends AbstractVenueSelectionStepProcessor
 
         new ShareGameReplySender($this->telegramSender)->sendInDm($wizardMessage->chat, $postedGame->sentMessageId, $postedGame->gameId, $callbackQuery->from);
 
-        new WeatherEnqueuer()->enqueue($postedGame->gameId);
+        new WeatherEnqueuer()->enqueueForGameId($postedGame->gameId);
         $this->logUserAction($callbackQuery->from, 'create_game_from_new_game_wizard', "gameId={$postedGame->gameId}");
     }
 

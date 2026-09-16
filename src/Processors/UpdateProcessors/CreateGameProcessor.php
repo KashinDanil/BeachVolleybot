@@ -20,6 +20,6 @@ class CreateGameProcessor extends AbstractActionProcessor
         $gameId = $gameManager->createGame($newGameData);
         $gameManager->addInlineMessage($gameId, $result->inlineMessageId);
         $this->logUserAction($result->from, 'create_game', "gameId=$gameId;query=$result->query");
-        new WeatherEnqueuer()->enqueue($gameId);
+        new WeatherEnqueuer()->enqueueForGameId($gameId);
     }
 }

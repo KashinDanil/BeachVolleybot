@@ -10,6 +10,7 @@ use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 use DateTimeZone;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class WeatherWindowResolverTest extends TestCase
@@ -138,6 +139,71 @@ final class WeatherWindowResolverTest extends TestCase
         $window = $this->resolver->windowFor($kickoffAt);
 
         $this->assertSame($kickoffDay->format('Y-m-d') . ' 18:00:00', $window->kickoffHour->format('Y-m-d H:i:s'));
+    }
+
+    /** @return array<string, array{string, string, string}> kickoff, its zone => the hour it rounds onto */
+    public static function kickoffs(): array
+    {
+        return [
+            'on the hour' => ['2030-04-25 18:00:00', 'Europe/Madrid', '2030-04-25 18:00:00'],
+            'a second past the hour' => ['2030-04-25 18:00:01', 'Europe/Madrid', '2030-04-25 18:00:00'],
+            'quarter past' => ['2030-04-25 18:15:00', 'Europe/Madrid', '2030-04-25 18:00:00'],
+            'a second before half past' => ['2030-04-25 18:29:59', 'Europe/Madrid', '2030-04-25 18:00:00'],
+            'half past rounds up' => ['2030-04-25 18:30:00', 'Europe/Madrid', '2030-04-25 19:00:00'],
+            'quarter to' => ['2030-04-25 18:45:00', 'Europe/Madrid', '2030-04-25 19:00:00'],
+            'a second before the hour' => ['2030-04-25 18:59:59', 'Europe/Madrid', '2030-04-25 19:00:00'],
+            'midnight' => ['2030-04-25 00:00:00', 'Europe/Madrid', '2030-04-25 00:00:00'],
+            'a second before midnight rolls the date'
+                => ['2030-04-25 23:59:59', 'Europe/Madrid', '2030-04-26 00:00:00'],
+            'spring forward: 02:30 never happens, so it lands at 03:30 and rounds to 04:00'
+                => ['2030-03-31 02:30:00', 'Europe/Madrid', '2030-03-31 04:00:00'],
+            'fall back: 02:30 happens twice, and PHP reads the later one'
+                => ['2030-10-27 02:30:00', 'Europe/Madrid', '2030-10-27 03:00:00'],
+            // A whole UTC hour is half past the hour here, so wall-clock rounding gives 18:00.
+            'half-hour offset rounds onto the forecast grid, not the local clock'
+                => ['2030-04-25 18:15:00', 'Asia/Kolkata', '2030-04-25 18:30:00'],
+            'half-hour offset rounds down from quarter to'
+                => ['2030-04-25 18:45:00', 'Asia/Kolkata', '2030-04-25 18:30:00'],
+        ];
+    }
+
+    #[DataProvider('kickoffs')]
+    public function testAKickoffRoundsToItsHourAndFallsInThatHoursRange(string $kickoff, string $timezone, string $expectedHour): void
+    {
+        $kickoffAt = new DateTimeImmutable($kickoff, new DateTimeZone($timezone));
+        $forecastHour = $this->resolver->roundToNearestHour($kickoffAt);
+        $range = $this->resolver->rangeRoundingTo($forecastHour);
+
+        $this->assertSame($expectedHour, $forecastHour->format('Y-m-d H:i:s'));
+        $this->assertGreaterThanOrEqual($range->from->getTimestamp(), $kickoffAt->getTimestamp());
+        $this->assertLessThan($range->until->getTimestamp(), $kickoffAt->getTimestamp());
+    }
+
+    /** @return array<string, array{int, bool}> seconds from the range start => rounds onto the hour */
+    public static function rangeEdges(): array
+    {
+        return [
+            'a second before the range starts' => [-1, false],
+            'the first instant in the range' => [0, true],
+            'the last instant in the range' => [3599, true],
+            'the instant the range ends' => [3600, false],
+        ];
+    }
+
+    /** Both edges, from both directions: a second either way must move the two answers together. */
+    #[DataProvider('rangeEdges')]
+    public function testRangeMembershipAndRoundingAgreeAtTheEdges(int $offsetFromStart, bool $belongsToTheHour): void
+    {
+        $forecastHour = new DateTimeImmutable('2030-04-25 18:00:00', new DateTimeZone('UTC'));
+        $range = $this->resolver->rangeRoundingTo($forecastHour);
+        $instant = $range->from->setTimestamp($range->from->getTimestamp() + $offsetFromStart);
+
+        $isInRange = $instant->getTimestamp() >= $range->from->getTimestamp()
+            && $instant->getTimestamp() < $range->until->getTimestamp();
+        $roundsOntoTheHour = $this->resolver->roundToNearestHour($instant)->getTimestamp() === $forecastHour->getTimestamp();
+
+        $this->assertSame($belongsToTheHour, $isInRange, 'range membership');
+        $this->assertSame($belongsToTheHour, $roundsOntoTheHour, 'rounding');
     }
 
     public function testWindowSpanningSpringForwardStaysOnConsecutiveHours(): void

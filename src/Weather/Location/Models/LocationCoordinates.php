@@ -33,6 +33,11 @@ readonly class LocationCoordinates
             return null;
         }
 
+        return self::tryCreate($latitude, $longitude);
+    }
+
+    public static function tryCreate(float $latitude, float $longitude): ?self
+    {
         if ($latitude < -90.0 || $latitude > 90.0) {
             return null;
         }

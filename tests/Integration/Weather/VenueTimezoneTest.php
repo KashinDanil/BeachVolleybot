@@ -25,6 +25,7 @@ use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use BeachVolleybot\Weather\Location\Venue;
 use BeachVolleybot\Weather\Location\VenueDirectory;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
+use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use BeachVolleybot\Weather\Schedule\WeatherRefreshScheduler;
 use DanilKashin\FileQueue\Queue\FileQueue;
 use DateTimeImmutable;
@@ -214,6 +215,8 @@ final class VenueTimezoneTest extends DatabaseTestCase
 
     private function dequeue(int $gameId): mixed
     {
-        return new FileQueue('weather_' . $gameId, WeatherEnqueuer::QUEUE_DIR)->dequeue();
+        $game = $this->loadGame($gameId);
+
+        return new FileQueue('weather_' . WeatherQueuePayload::forGameRecord($game)->id(), WeatherEnqueuer::QUEUE_DIR)->dequeue();
     }
 }

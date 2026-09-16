@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Telegram\GameMessageRefresher;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
+use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 
 abstract class AbstractActionProcessor
 {
@@ -28,7 +30,9 @@ abstract class AbstractActionProcessor
 
     protected function refreshGameMessages(int $gameId): void
     {
-        new GameMessageRefresher($this->telegramSender)->refresh($gameId);
-        new WeatherEnqueuer()->enqueue($gameId);
+        $game = GameFactory::fromGameId($gameId);
+
+        new GameMessageRefresher($this->telegramSender)->refreshGame($game);
+        new WeatherEnqueuer()->enqueue(WeatherQueuePayload::forGame($game));
     }
 }

@@ -8,44 +8,67 @@ use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Game\GameRecord;
-use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
+use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
+use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use DateTimeImmutable;
 use Throwable;
 
-/** Queues a forecast refresh for every upcoming game whose cached forecast has aged past its rung. */
+/** Queues one refresh per forecast the ladder calls due, however many games share it. */
 final readonly class WeatherRefreshScheduler
 {
     public function __construct(
         private WeatherEnqueuer $enqueuer = new WeatherEnqueuer(),
         private WeatherRefreshLadder $ladder = new WeatherRefreshLadder(),
-        private GameWeatherLookup $weatherLookup = new GameWeatherLookup(),
+        private WeatherCacheManager $weatherCache = new WeatherCacheManager(),
     ) {
     }
 
     public function scan(): void
     {
         $now = new DateTimeImmutable();
-        $horizon = $now->modify('+' . WeatherWindowResolver::FORECAST_HORIZON_DAYS . ' days');
-        $gameRows = new GameRepository(Connection::get())->findUpcoming($now, $horizon);
+        $seenForecasts = [];
 
-        foreach ($gameRows as $gameRow) {
-            $this->enqueueIfDue($gameRow, $now);
+        foreach ($this->upcomingGames($now) as $game) {
+            $forecast = WeatherQueuePayload::forGameRecord($game);
+
+            // Games arrive soonest first, so the first on a forecast holds its strictest rung.
+            if (isset($seenForecasts[$forecast->id()])) {
+                continue;
+            }
+
+            $seenForecasts[$forecast->id()] = true;
+            $this->enqueueIfDue($forecast, $game->kickoffAt, $now);
         }
     }
 
-    private function enqueueIfDue(array $gameRow, DateTimeImmutable $now): void
+    /**
+     * @return iterable<GameRecord>
+     */
+    private function upcomingGames(DateTimeImmutable $now): iterable
+    {
+        $horizon = $now->modify('+' . WeatherWindowResolver::FORECAST_HORIZON_DAYS . ' days');
+
+        foreach (new GameRepository(Connection::get())->findUpcoming($now, $horizon) as $gameRow) {
+            try {
+                yield GameRecord::fromRow($gameRow);
+            } catch (Throwable $e) {
+                Logger::logApp('Weather refresh scan skipped game id=' . (int)$gameRow['game_id'] . ': ' . $e->getMessage());
+            }
+        }
+    }
+
+    private function enqueueIfDue(WeatherQueuePayload $forecast, DateTimeImmutable $kickoffAt, DateTimeImmutable $now): void
     {
         try {
-            $gameRecord = GameRecord::fromRow($gameRow);
-            $fetchedAt = $this->weatherLookup->findForGameRecord($gameRecord)?->row->fetchedAt;
+            $fetchedAt = $this->weatherCache->find($forecast->coordinates, $forecast->forecastTs)?->fetchedAt;
 
-            if ($this->ladder->isDue($now, $gameRecord->kickoffAt, $fetchedAt)) {
-                $this->enqueuer->enqueue($gameRecord->gameId);
+            if ($this->ladder->isDue($now, $kickoffAt, $fetchedAt)) {
+                $this->enqueuer->enqueue($forecast);
             }
         } catch (Throwable $e) {
-            Logger::logApp('Weather refresh scan skipped game id=' . (int)$gameRow['game_id'] . ': ' . $e->getMessage());
+            Logger::logApp('Weather refresh scan skipped forecast ' . $forecast->id() . ': ' . $e->getMessage());
         }
     }
 }

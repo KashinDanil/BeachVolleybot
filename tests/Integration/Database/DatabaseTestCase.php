@@ -42,6 +42,7 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('009_add_game_chat_messages.sql');
         $this->applyMigration('010_add_kickoff_at_and_venue_name.sql');
         $this->applyMigration('011_require_kickoff_at.sql');
+        $this->applyMigration('012_add_kickoff_at_index.sql');
     }
 
     /**

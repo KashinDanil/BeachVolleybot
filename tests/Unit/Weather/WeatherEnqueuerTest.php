@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Weather;
 
 use BeachVolleybot\Game\AddOns\WeatherAddOn;
+use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use DanilKashin\FileQueue\Queue\FileQueue;
+use DateTimeImmutable;
+use DateTimeZone;
 use PHPUnit\Framework\TestCase;
 
 final class WeatherEnqueuerTest extends TestCase
@@ -29,55 +32,89 @@ final class WeatherEnqueuerTest extends TestCase
 
     public function testEnqueueWritesPayloadThatDequeuesBack(): void
     {
-        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
+        $this->enqueuer()->enqueue($this->keyAt($this->bogatell()));
 
-        $enqueuer->enqueue(42);
-
-        $message = new FileQueue('weather_42', $this->baseDir)->dequeue();
+        $message = new FileQueue($this->bogatellQueueName(), $this->baseDir)->dequeue();
         $this->assertNotNull($message);
 
         $payload = WeatherQueuePayload::fromArray($message->payload);
-        $this->assertSame(42, $payload->gameId);
+        $this->assertNotNull($payload);
+        $this->assertSame(41.394, $payload->coordinates->latitude);
+        $this->assertSame('2030-04-25 18:00:00', $payload->forecastTs->format('Y-m-d H:i:s'));
     }
 
-    public function testDifferentGamesWriteToSeparateQueueFiles(): void
+    public function testCoordinatesWrittenTwoWaysShareOneQueue(): void
     {
-        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
+        $enqueuer = $this->enqueuer();
 
-        $enqueuer->enqueue(1);
-        $enqueuer->enqueue(2);
+        $enqueuer->enqueue($this->keyAt(new LocationCoordinates(41.4, 2.2)));
+        $enqueuer->enqueue($this->keyAt(new LocationCoordinates(41.400, 2.200)));
 
-        $messageForGame1 = new FileQueue('weather_1', $this->baseDir)->dequeue();
-        $messageForGame2 = new FileQueue('weather_2', $this->baseDir)->dequeue();
-
-        $this->assertNotNull($messageForGame1);
-        $this->assertNotNull($messageForGame2);
-        $this->assertSame(1, WeatherQueuePayload::fromArray($messageForGame1->payload)->gameId);
-        $this->assertSame(2, WeatherQueuePayload::fromArray($messageForGame2->payload)->gameId);
+        $queue = new FileQueue($this->queueName('41.4', '2.2'), $this->baseDir);
+        $this->assertNotNull($queue->dequeue());
+        $this->assertNotNull($queue->dequeue());
     }
 
-    public function testMultipleEnqueuesForSameGameAppendToSameQueue(): void
+    public function testDifferentKeysWriteToSeparateQueueFiles(): void
     {
-        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
+        $enqueuer = $this->enqueuer();
 
-        $enqueuer->enqueue(5);
-        $enqueuer->enqueue(5);
+        $enqueuer->enqueue($this->keyAt($this->bogatell()));
+        $enqueuer->enqueue($this->keyAt(new LocationCoordinates(41.415, 2.205)));
 
-        $queue = new FileQueue('weather_5', $this->baseDir);
-        $first = $queue->dequeue();
-        $second = $queue->dequeue();
+        $this->assertNotNull(new FileQueue($this->bogatellQueueName(), $this->baseDir)->dequeue());
+        $this->assertNotNull(new FileQueue($this->queueName('41.415', '2.205'), $this->baseDir)->dequeue());
+    }
 
-        $this->assertNotNull($first);
-        $this->assertNotNull($second);
+    public function testTheSameHourAtTheSameVenueSharesOneQueue(): void
+    {
+        $enqueuer = $this->enqueuer();
+
+        $enqueuer->enqueue($this->keyAt($this->bogatell()));
+        $enqueuer->enqueue($this->keyAt($this->bogatell()));
+
+        $queue = new FileQueue($this->bogatellQueueName(), $this->baseDir);
+
+        $this->assertNotNull($queue->dequeue());
+        $this->assertNotNull($queue->dequeue());
     }
 
     public function testEnqueueSilentlySkipsWhenWeatherAddOnIsNotEnabled(): void
     {
-        $enqueuer = new WeatherEnqueuer(baseDir: $this->baseDir, addOns: []);
+        new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [])
+            ->enqueue($this->keyAt($this->bogatell()));
 
-        $enqueuer->enqueue(42);
+        $this->assertNull(new FileQueue($this->bogatellQueueName(), $this->baseDir)->dequeue());
+    }
 
-        $this->assertNull(new FileQueue('weather_42', $this->baseDir)->dequeue());
+    private function enqueuer(): WeatherEnqueuer
+    {
+        return new WeatherEnqueuer(baseDir: $this->baseDir, addOns: [WeatherAddOn::class]);
+    }
+
+    private function keyAt(LocationCoordinates $coordinates): WeatherQueuePayload
+    {
+        return WeatherQueuePayload::createRounded($coordinates, $this->forecastHour());
+    }
+
+    private function bogatell(): LocationCoordinates
+    {
+        return new LocationCoordinates(41.394, 2.208);
+    }
+
+    private function forecastHour(): DateTimeImmutable
+    {
+        return new DateTimeImmutable('2030-04-25 18:00:00', new DateTimeZone('UTC'));
+    }
+
+    private function bogatellQueueName(): string
+    {
+        return $this->queueName('41.394', '2.208');
+    }
+
+    private function queueName(string $latitude, string $longitude): string
+    {
+        return 'weather_' . $latitude . '_' . $longitude . '_' . $this->forecastHour()->getTimestamp();
     }
 
     private function removeDirectory(string $path): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Weather\Forecast;
 
+use BeachVolleybot\Common\DateTimeRange;
 use BeachVolleybot\Weather\Forecast\Models\WeatherWindow;
 use DateTimeImmutable;
 
@@ -39,9 +40,21 @@ final readonly class WeatherWindowResolver
         return $dateTime->setTimestamp(intdiv($dateTime->getTimestamp(), self::SECONDS_PER_HOUR) * self::SECONDS_PER_HOUR);
     }
 
-    private function roundToNearestHour(DateTimeImmutable $dateTime): DateTimeImmutable
+    public function roundToNearestHour(DateTimeImmutable $dateTime): DateTimeImmutable
     {
         return $dateTime->setTimestamp((int)round($dateTime->getTimestamp() / self::SECONDS_PER_HOUR) * self::SECONDS_PER_HOUR);
+    }
+
+    /** The inverse of roundToNearestHour: every instant that rounds onto $forecastHour. */
+    public function rangeRoundingTo(DateTimeImmutable $forecastHour): DateTimeRange
+    {
+        $halfHour = intdiv(self::SECONDS_PER_HOUR, 2);
+        $timestamp = $forecastHour->getTimestamp();
+
+        return new DateTimeRange(
+            $forecastHour->setTimestamp($timestamp - $halfHour),
+            $forecastHour->setTimestamp($timestamp + $halfHour),
+        );
     }
 
     /** @return list<DateTimeImmutable> */

@@ -54,7 +54,7 @@ class CreateGameFromMessageProcessor extends AbstractActionProcessor
 
         new ShareGameReplySender($this->telegramSender)->sendInDm($message->chat, $posted->sentMessageId, $posted->gameId, $message->from);
 
-        new WeatherEnqueuer()->enqueue($posted->gameId);
+        new WeatherEnqueuer()->enqueueForGameId($posted->gameId);
         $this->logUserAction($message->from, 'create_game_from_message', "gameId={$posted->gameId}");
     }
 

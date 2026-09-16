@@ -23,6 +23,8 @@ use DateTimeZone;
 
 final class WeatherRefreshSchedulerTest extends DatabaseTestCase
 {
+    private const int HOUR = 3600;
+
     private WeatherRefreshScheduler $scheduler;
 
     protected function setUp(): void
@@ -90,6 +92,21 @@ final class WeatherRefreshSchedulerTest extends DatabaseTestCase
         $this->assertEnqueued($healthyGameId);
     }
 
+    public function testGamesSharingAForecastAreEnqueuedOnce(): void
+    {
+        // Anchored to a whole hour, or the two kickoffs straddle the rounding a quarter of the
+        // time and the dedupe under test never runs.
+        $forecastHour = $this->wholeHourAhead();
+        $firstGameId = $this->seedGameAt($forecastHour, suffix: 'first');
+        $this->seedGameAt($this->secondsAfter($forecastHour, 15 * 60), suffix: 'second');
+
+        $this->scheduler->scan();
+
+        $queue = $this->queueFor($firstGameId);
+        $this->assertNotNull($queue->dequeue());
+        $this->assertNull($queue->dequeue(), 'Expected one job for the shared forecast, not one per game');
+    }
+
     public function testGameThatAlreadyKickedOffIsNotScanned(): void
     {
         $startedGameId = $this->seedGame(kickoffIn: '-30 minutes', suffix: 'started');
@@ -112,12 +129,30 @@ final class WeatherRefreshSchedulerTest extends DatabaseTestCase
 
     private function seedGame(string $kickoffIn, string $suffix = 'a'): int
     {
+        return $this->seedGameAt(new DateTimeImmutable($kickoffIn), $suffix);
+    }
+
+    private function seedGameAt(DateTimeImmutable $kickoffAt, string $suffix = 'a'): int
+    {
         return $this->createGame(
             title: 'Bogatell 18:00',
             inlineMessageId: 'msg_' . $suffix,
             gameKey: 'query_' . $suffix,
-            kickoffAt: new DateTimeImmutable($kickoffIn)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
+            kickoffAt: $kickoffAt->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'),
         );
+    }
+
+    /** Two hours out and on the hour, so a kickoff quarter past it still rounds back onto it. */
+    private function wholeHourAhead(): DateTimeImmutable
+    {
+        $now = new DateTimeImmutable();
+
+        return $this->secondsAfter($now, 2 * self::HOUR - $now->getTimestamp() % self::HOUR);
+    }
+
+    private function secondsAfter(DateTimeImmutable $moment, int $seconds): DateTimeImmutable
+    {
+        return $moment->setTimestamp($moment->getTimestamp() + $seconds);
     }
 
     /** Stores a forecast under the very key the scheduler will look for, then backdates it. */
@@ -148,17 +183,24 @@ final class WeatherRefreshSchedulerTest extends DatabaseTestCase
 
     private function assertEnqueued(int $gameId): void
     {
-        $message = new FileQueue('weather_' . $gameId, WeatherEnqueuer::QUEUE_DIR)->dequeue();
+        $message = $this->queueFor($gameId)->dequeue();
 
-        $this->assertNotNull($message, "Expected game $gameId to be enqueued");
-        $this->assertSame($gameId, WeatherQueuePayload::fromArray($message->payload)->gameId);
+        $this->assertNotNull($message, "Expected the key of game $gameId to be enqueued");
+        $this->assertNotNull(WeatherQueuePayload::fromArray($message->payload));
     }
 
     private function assertNotEnqueued(int $gameId): void
     {
         $this->assertNull(
-            new FileQueue('weather_' . $gameId, WeatherEnqueuer::QUEUE_DIR)->dequeue(),
-            "Expected game $gameId NOT to be enqueued",
+            $this->queueFor($gameId)->dequeue(),
+            "Expected the key of game $gameId NOT to be enqueued",
         );
+    }
+
+    private function queueFor(int $gameId): FileQueue
+    {
+        $game = $this->loadGame($gameId);
+
+        return new FileQueue('weather_' . WeatherQueuePayload::forGameRecord($game)->id(), WeatherEnqueuer::QUEUE_DIR);
     }
 }

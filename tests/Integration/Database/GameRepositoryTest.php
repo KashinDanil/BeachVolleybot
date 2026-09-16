@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Database\Timestamp;
 use BeachVolleybot\Game\ParsedTitle;
+use BeachVolleybot\Weather\Forecast\WeatherWindowResolver;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
+use DateTimeZone;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class GameRepositoryTest extends DatabaseTestCase
 {
@@ -205,6 +209,60 @@ final class GameRepositoryTest extends DatabaseTestCase
         $this->repository->create('Friday Game 18:00', 100, 'query_a', $this->parsedTitle('Friday Game 18:00'));
 
         $this->assertSame(0, $this->repository->countByCreator(999));
+    }
+
+    /** @return list<array{int}> seconds from the forecast hour, straddling both edges */
+    public static function kickoffOffsets(): array
+    {
+        return [[-3600], [-1801], [-1800], [-1799], [-1], [0], [1], [1799], [1800], [1801], [3600]];
+    }
+
+    /**
+     * WeatherWindowResolver::roundToNearestHour decides which hour a kickoff belongs to, and
+     * rangeRoundingTo() bounds the query that walks it back. Whichever is edited, this test
+     * fails unless the other agrees.
+     */
+    #[DataProvider('kickoffOffsets')]
+    public function testTheRangeAgreesWithTheRoundingItInverts(int $offsetSeconds): void
+    {
+        $resolver = new WeatherWindowResolver();
+        $forecastHour = new DateTimeImmutable('2099-12-31 17:00:00', new DateTimeZone('UTC'));
+        $kickoffAt = $forecastHour->setTimestamp($forecastHour->getTimestamp() + $offsetSeconds);
+        $gameId = $this->createGame(title: 'Bogatell 31.12.2099 18:00', kickoffAt: Timestamp::format($kickoffAt));
+
+        $range = $resolver->rangeRoundingTo($forecastHour);
+        $found = array_map(intval(...), array_column(
+            $this->repository->findByKickoffBetween($range->from, $range->until),
+            'game_id',
+        ));
+
+        $roundsOntoTheHour = $resolver->roundToNearestHour($kickoffAt)->getTimestamp() === $forecastHour->getTimestamp();
+        $this->assertSame($roundsOntoTheHour, [$gameId] === $found);
+    }
+
+    public function testKickoffsInTheRangeComeSoonestFirst(): void
+    {
+        $forecastHour = new DateTimeImmutable('2099-12-31 17:00:00', new DateTimeZone('UTC'));
+        $later = $this->seedAtOffset($forecastHour, 900, 'later');
+        $sooner = $this->seedAtOffset($forecastHour, -900, 'sooner');
+
+        $range = new WeatherWindowResolver()->rangeRoundingTo($forecastHour);
+        $found = array_map(intval(...), array_column(
+            $this->repository->findByKickoffBetween($range->from, $range->until),
+            'game_id',
+        ));
+
+        $this->assertSame([$sooner, $later], $found);
+    }
+
+    private function seedAtOffset(DateTimeImmutable $forecastHour, int $offsetSeconds, string $suffix): int
+    {
+        return $this->createGame(
+            title: 'Bogatell 31.12.2099 18:00',
+            inlineMessageId: 'msg_' . $suffix,
+            gameKey: 'query_' . $suffix,
+            kickoffAt: Timestamp::format($forecastHour->setTimestamp($forecastHour->getTimestamp() + $offsetSeconds)),
+        );
     }
 
     private function createFromTitle(string $title, string $gameKey): int

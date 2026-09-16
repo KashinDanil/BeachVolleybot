@@ -110,4 +110,16 @@ readonly class GameRepository extends AbstractRepository
             'ORDER' => ['kickoff_at' => 'ASC'],
         ]);
     }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function findByKickoffBetween(DateTimeImmutable $from, DateTimeImmutable $until): array
+    {
+        return $this->db->select($this->table(), '*', [
+            'kickoff_at[>=]' => Timestamp::format($from),
+            'kickoff_at[<]' => Timestamp::format($until),
+            'ORDER' => ['kickoff_at' => 'ASC'],
+        ]);
+    }
 }

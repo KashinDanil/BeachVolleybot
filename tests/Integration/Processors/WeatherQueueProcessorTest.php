@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors;
 
+use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Processors\WeatherQueueProcessor;
 use BeachVolleybot\Telegram\GameMessageRefresher;
+use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Processors\Stub\FakeWeatherApiClient;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheUpdater;
 use BeachVolleybot\Weather\Forecast\Models\WeatherHour;
 use BeachVolleybot\Weather\Forecast\Models\WeatherSnapshot;
-use BeachVolleybot\Weather\Location\GameLocationResolver;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Location\Models\LocationCoordinates;
 use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 use DateTimeImmutable;
 use DateTimeZone;
+use RuntimeException;
 
 final class WeatherQueueProcessorTest extends ProcessorTestCase
 {
@@ -36,19 +39,32 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $this->weatherCache = new WeatherCacheManager();
 
         $this->processor = new WeatherQueueProcessor(
-            locationResolver: new GameLocationResolver(),
             weatherCacheUpdater: new WeatherCacheUpdater($this->weatherClient, $this->weatherCache),
             gameMessageRefresher: new GameMessageRefresher($this->telegramSender),
         );
     }
 
-    public function testDeletedGameIsSkippedCleanly(): void
+    /** A forecast stands on its own: it is fetched whether or not a game happens to read it. */
+    public function testAForecastWithNoGamesIsStillFetched(): void
     {
-        $ok = $this->processor->process($this->messageFor(gameId: 999));
+        $ok = $this->processor->process($this->messageForPayload(WeatherQueuePayload::createRounded(
+            new LocationCoordinates(41.394, 2.208),
+            new DateTimeImmutable('+2 days')->setTime(18, 0)->setTimezone(new DateTimeZone('UTC')),
+        )));
+
+        $this->assertTrue($ok);
+        $this->assertCount(1, $this->weatherClient->calls);
+        $this->assertSame(1, $this->db->count('weather_cache'));
+        $this->assertSame([], $this->refreshedInlineMessageIds());
+    }
+
+    public function testUnrecognisedPayloadIsAckedWithoutFetching(): void
+    {
+        $ok = $this->processor->process(new QueueMessage(['game_id' => 42]));
 
         $this->assertTrue($ok);
         $this->assertSame([], $this->weatherClient->calls);
-        $this->assertSame([], $this->refreshedInlineMessageIds());
+        $this->assertSame(0, $this->db->count('weather_cache'));
     }
 
     public function testPastKickoffReturnsEarlyWithNoHttp(): void
@@ -88,9 +104,10 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $call = $this->weatherClient->calls[0];
         $this->assertSame(41.4, $call['coords']->latitude);
         $this->assertSame(2.221, $call['coords']->longitude);
-        // Window = [kickoff-1, kickoff, kickoff+1, kickoff+2, kickoff+3]
-        $this->assertSame(17, (int) $call['startHour']->format('H'));
-        $this->assertSame(21, (int) $call['endHour']->format('H'));
+        // Window = [kickoff-1 .. kickoff+3], compared as instants: the key travels as UTC.
+        $kickoffUtc = $this->kickoffUtcFor($kickoffDay, 18);
+        $this->assertSame($kickoffUtc->getTimestamp() - 3600, $call['startHour']->getTimestamp());
+        $this->assertSame($kickoffUtc->getTimestamp() + 3 * 3600, $call['endHour']->getTimestamp());
         $this->assertSame(['inline_' . $gameId], $this->refreshedInlineMessageIds());
     }
 
@@ -129,7 +146,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             title: "Bogatell $kickoffDay 18:00",
             location: '41.397,2.211',
         );
-        $this->seedCacheForGame($gameId, temperature: 22.0);
+        $this->seedCache($this->pinnedCoordinates(), $kickoffDay, temperature: 22.0);
 
         $ok = $this->processor->process($this->messageFor($gameId));
 
@@ -145,7 +162,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             title: "Bogatell $kickoffDay 18:00",
             location: '41.397,2.211',
         );
-        $this->seedCacheForGame($gameId, temperature: 22.0);
+        $this->seedCache($this->pinnedCoordinates(), $kickoffDay, temperature: 22.0);
         $this->expireCache();
 
         $ok = $this->processor->process($this->messageFor($gameId));
@@ -162,7 +179,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
             title: "Bogatell $kickoffDay 18:00",
             location: '41.397,2.211',
         );
-        $this->seedCacheForGame($gameId, temperature: 22.0);
+        $this->seedCache($this->pinnedCoordinates(), $kickoffDay, temperature: 22.0);
         $this->expireCache();
         $this->weatherClient->shouldThrow = true;
 
@@ -172,10 +189,7 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $this->assertCount(1, $this->weatherClient->calls);
         $this->assertSame([], $this->refreshedInlineMessageIds());
         // Cache row stays with the original temperature — not overwritten by a failed fetch.
-        $row = $this->weatherCache->find(
-            new LocationCoordinates(41.397, 2.211),
-            $this->kickoffUtcFor($kickoffDay, 18),
-        );
+        $row = $this->weatherCache->find($this->pinnedCoordinates(), $this->kickoffUtcFor($kickoffDay, 18));
         $this->assertNotNull($row);
         $this->assertSame(22.0, $row->snapshot->hours[0]->temperatureC);
     }
@@ -199,23 +213,8 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $this->processor->process($this->messageFor($gameBId));
 
         $this->assertCount(1, $this->weatherClient->calls);
-        $this->assertSame(['inline_a'], $this->refreshedInlineMessageIds());
+        $this->assertSame(['inline_a', 'inline_b'], $this->refreshedInlineMessageIds());
         $this->assertSame(1, $this->db->count('weather_cache'));
-    }
-
-    public function testEditedKickoffProducesSecondRow(): void
-    {
-        $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
-        $gameId = $this->insertGame(
-            title: "Bogatell $kickoffDay 18:00",
-            location: '41.397,2.211',
-        );
-
-        $this->processor->process($this->messageFor($gameId));
-        $this->retitleGame($gameId, "Bogatell $kickoffDay 10:00");
-        $this->processor->process($this->messageFor($gameId));
-
-        $this->assertSame(2, $this->db->count('weather_cache'));
     }
 
     public function testForecastTsStoredInUtc(): void
@@ -234,27 +233,106 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         $this->assertSame($this->kickoffUtcFor($kickoffDay, 18)->format('Y-m-d H:i:s'), $row['forecast_ts']);
     }
 
-    public function testPayloadGameIdRoundTripsThroughMessage(): void
+    public function testAGameWithItsOwnPinIsNotSweptIntoTheVenueKey(): void
     {
         $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
-        $gameId = $this->insertGame(
-            title: "Bogatell $kickoffDay 18:00",
-            location: '41.397,2.211',
+        $this->insertGame(title: "Bogatell $kickoffDay 18:00", inlineMessageId: 'inline_venue');
+        $this->insertGame(
+            title: "Bogatell $kickoffDay 18:15",
+            location: '41.500,2.400',
+            inlineMessageId: 'inline_pinned',
+            gameKey: 'query_pinned',
         );
-        $payload = new WeatherQueuePayload($gameId);
 
-        $this->processor->process(new QueueMessage($payload->jsonSerialize()));
+        $this->processor->process($this->messageForPayload($this->bogatellPayloadAt($kickoffDay, 18)));
+
+        $this->assertSame(['inline_venue'], $this->refreshedInlineMessageIds());
+    }
+
+    public function testAnUnrecognisedVenueFoldsOntoTheDefaultVenueKey(): void
+    {
+        $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
+        $this->insertGame(title: "Bogatell $kickoffDay 18:00", inlineMessageId: 'inline_named');
+        $this->insertGame(
+            title: "Somewhere $kickoffDay 18:15",
+            inlineMessageId: 'inline_unnamed',
+            gameKey: 'query_unnamed',
+        );
+
+        $this->processor->process($this->messageForPayload($this->bogatellPayloadAt($kickoffDay, 18)));
+
+        $this->assertSame(['inline_named', 'inline_unnamed'], $this->refreshedInlineMessageIds());
+    }
+
+    public function testOneFailedRefreshDoesNotCostTheOtherGamesTheirs(): void
+    {
+        $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
+        $doomedGameId = $this->insertGame(title: "Bogatell $kickoffDay 18:00", inlineMessageId: 'inline_doomed');
+        $this->insertGame(
+            title: "Bogatell $kickoffDay 18:15",
+            inlineMessageId: 'inline_survivor',
+            gameKey: 'query_survivor',
+        );
+
+        $processor = new WeatherQueueProcessor(
+            weatherCacheUpdater: new WeatherCacheUpdater($this->weatherClient, $this->weatherCache),
+            gameMessageRefresher: $this->refresherThatFailsFor($doomedGameId),
+        );
+        $processor->process($this->messageForPayload($this->bogatellPayloadAt($kickoffDay, 18)));
+
+        $this->assertSame(['inline_survivor'], $this->refreshedInlineMessageIds());
+    }
+
+    private function refresherThatFailsFor(int $gameId): GameMessageRefresher
+    {
+        return new readonly class($this->telegramSender, $gameId) extends GameMessageRefresher {
+            public function __construct(TelegramMessageSender $sender, private int $failingGameId)
+            {
+                parent::__construct($sender);
+            }
+
+            public function refreshGame(GameInterface $game): void
+            {
+                if ($this->failingGameId === $game->getGameId()) {
+                    throw new RuntimeException('Game not found: ' . $game->getGameId());
+                }
+
+                parent::refreshGame($game);
+            }
+        };
+    }
+
+    public function testPayloadRoundTripsThroughMessage(): void
+    {
+        $kickoffDay = new DateTimeImmutable('+2 days')->format('d.m.Y');
+        $this->insertGame(title: "Bogatell $kickoffDay 18:00");
+
+        $this->processor->process($this->messageForPayload($this->bogatellPayloadAt($kickoffDay, 18)));
 
         $this->assertCount(1, $this->weatherClient->calls);
     }
 
-    // --- helpers ---
-
     private function messageFor(int $gameId): QueueMessage
     {
-        $payload = new WeatherQueuePayload($gameId);
+        $gameRecord = new GameManager()->findGameRecordById($gameId);
+        $this->assertNotNull($gameRecord);
 
+        return $this->messageForPayload(WeatherQueuePayload::forGameRecord($gameRecord));
+    }
+
+    private function messageForPayload(WeatherQueuePayload $payload): QueueMessage
+    {
         return new QueueMessage($payload->jsonSerialize());
+    }
+
+    private function pinnedCoordinates(): LocationCoordinates
+    {
+        return new LocationCoordinates(41.397, 2.211);
+    }
+
+    private function bogatellPayloadAt(string $kickoffDay, int $hour): WeatherQueuePayload
+    {
+        return WeatherQueuePayload::createRounded(new LocationCoordinates(41.394, 2.208), $this->kickoffUtcFor($kickoffDay, $hour));
     }
 
     private function expireCache(): void
@@ -294,11 +372,11 @@ final class WeatherQueueProcessorTest extends ProcessorTestCase
         return $gameId;
     }
 
-    private function seedCacheForGame(int $gameId, float $temperature): void
+    private function seedCache(LocationCoordinates $coordinates, string $kickoffDay, float $temperature): void
     {
-        $kickoffUtc = $this->kickoffUtcFor(new DateTimeImmutable('+2 days')->format('d.m.Y'), 18);
+        $kickoffUtc = $this->kickoffUtcFor($kickoffDay, 18);
         $this->weatherCache->save(
-            new LocationCoordinates(41.397, 2.211),
+            $coordinates,
             $kickoffUtc,
             new WeatherSnapshot([
                 new WeatherHour($kickoffUtc, $temperature, 0, 3.0, 0),

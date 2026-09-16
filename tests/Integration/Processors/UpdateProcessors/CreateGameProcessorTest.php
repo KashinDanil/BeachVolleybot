@@ -14,7 +14,6 @@ use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
-use DanilKashin\FileQueue\Queue\FileQueue;
 
 final class CreateGameProcessorTest extends ProcessorTestCase
 {
@@ -86,8 +85,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
-        $this->assertNull(new FileQueue('weather_' . $gameId, WeatherEnqueuer::QUEUE_DIR)->dequeue());
+        $this->assertSame([], glob(WeatherEnqueuer::QUEUE_DIR . '/*.queue.data') ?: []);
     }
 
     private function buildUpdate(
