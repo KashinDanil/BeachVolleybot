@@ -116,7 +116,7 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     protected function defaultBuildUserLine(UserInterface $user, int $appearance, string $gameTime): string
     {
         $parts = [
-            $this->formatter->escape($user->getNumber() . '.'),
+            $this->formatter->escape($user->getPosition()->format() . '.'),
             $this->displayName($user, $appearance),
         ];
 

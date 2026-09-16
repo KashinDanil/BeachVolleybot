@@ -9,6 +9,7 @@ use BeachVolleybot\Game\AddOns\GameAddOnApplier;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Roster\Position;
 
 final class NewGameFactory
 {
@@ -20,7 +21,7 @@ final class NewGameFactory
 
         $user = new User(
             telegramUserId: $data->telegramUserId,
-            number: (string)NewGameData::INITIAL_POSITION,
+            position: new Position(NewGameData::INITIAL_POSITION),
             name: User::buildName($data->firstName, $data->lastName),
             link: User::buildLink($data->username),
             volleyball: NewGameData::INITIAL_VOLLEYBALL,

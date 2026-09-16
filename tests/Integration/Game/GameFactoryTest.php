@@ -94,7 +94,7 @@ final class GameFactoryTest extends DatabaseTestCase
 
         $user = GameFactory::fromGameId($gameId)->getUsers()[0];
 
-        $this->assertSame('1', $user->getNumber());
+        $this->assertSame('1', $user->getPosition()->format());
         $this->assertSame('Alice Smith', $user->getName());
         $this->assertSame('https://t.me/alice', $user->getLink());
         $this->assertSame('19:30', $user->getTime());

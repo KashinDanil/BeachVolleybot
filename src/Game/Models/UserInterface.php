@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Models;
 
+use BeachVolleybot\Game\Roster\PositionInterface;
+
 interface UserInterface
 {
     public function getTelegramUserId(): int;
 
-    public function getNumber(): string;
+    public function getPosition(): PositionInterface;
 
     public function getName(): string;
 

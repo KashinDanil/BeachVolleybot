@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Models;
 
+use BeachVolleybot\Game\Roster\PositionInterface;
+
 readonly class User implements UserInterface
 {
     private const string PROFILE_URL_PREFIX = 'https://t.me/';
 
     public function __construct(
         private int $telegramUserId,
-        public string $number,
+        public PositionInterface $position,
         public string $name,
         public ?string $link,
         public int $volleyball,
@@ -38,9 +40,9 @@ readonly class User implements UserInterface
         return $this->telegramUserId;
     }
 
-    public function getNumber(): string
+    public function getPosition(): PositionInterface
     {
-        return $this->number;
+        return $this->position;
     }
 
     public function getName(): string

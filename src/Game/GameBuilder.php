@@ -9,6 +9,7 @@ use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Roster\Position;
 use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 
 readonly class GameBuilder
@@ -68,7 +69,7 @@ readonly class GameBuilder
     {
         return new User(
             telegramUserId: (int)$slot['telegram_user_id'],
-            number: (string)$slot['position'],
+            position: new Position((int)$slot['position']),
             name: User::buildName($userRow['first_name'], $userRow['last_name'] ?? null),
             link: User::buildLink($userRow['username'] ?? null),
             volleyball: (int)$gameUserRow['volleyball'],
