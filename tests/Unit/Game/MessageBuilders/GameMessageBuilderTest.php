@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Game\MessageBuilders;
 
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Game\Roster\Position;
@@ -17,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 final class GameMessageBuilderTest extends TestCase
 {
     private const string SEPARATOR = "\n\n";
+    private const string DIVIDER   = '———';
 
     private GameMessageBuilder $builder;
 
@@ -299,6 +301,92 @@ final class GameMessageBuilderTest extends TestCase
         $this->assertStringContainsString('4\-7\. Alice', $this->builder->build($game)->getText()->getMessageText());
     }
 
+    // --- Text: reserves divider ---
+
+    public function testNoDividerWithoutLimit(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->user(new Position(1), 'Alice', net: 1),
+            $this->user(new Position(2), 'Bob'),
+        ]);
+
+        $this->assertStringNotContainsString(self::DIVIDER, $this->builder->build($game)->getText()->getMessageText());
+    }
+
+    public function testDividerInTheRightPlace(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->user(new Position(1), 'Alice', volleyball: 1, net: 1, telegramUserId: 1),
+            $this->user(new Position(2), 'Bob', telegramUserId: 2),
+            $this->user(new Position(3), 'Carol', telegramUserId: 3),
+            $this->user(new Position(4), 'Dave', telegramUserId: 4),
+            $this->user(new Position(5), 'Erin', telegramUserId: 5),
+        ], settings: new GameSettings(playersPerNet: 4));
+
+        $lines = explode("\n", explode(self::SEPARATOR, $this->builder->build($game)->getText()->getMessageText())[1]);
+
+        $this->assertSame(self::DIVIDER, $lines[4]);
+        $this->assertStringContainsString('Erin', $lines[5]);
+    }
+
+    public function testNoDividerWhenLimitEqualsNumberOfPlaces(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->user(new Position(1), 'Alice', net: 1, telegramUserId: 1),
+            $this->user(new Position(2), 'Bob', telegramUserId: 2),
+            $this->user(new Position(3), 'Carol', telegramUserId: 3),
+            $this->user(new Position(4), 'Dave', telegramUserId: 4),
+        ], settings: new GameSettings(playersPerNet: 4));
+
+        $this->assertStringNotContainsString(self::DIVIDER, $this->builder->build($game)->getText()->getMessageText());
+    }
+
+    public function testTwoDigitNumbersAndRangeSurviveTheDivider(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->user(new Position(1), 'Alice', net: 1, telegramUserId: 1),
+            $this->user(new Position(2), 'Bob', net: 1, telegramUserId: 2),
+            $this->user(new Position(3), 'Carol', net: 1, telegramUserId: 3),
+            $this->user(new PositionRange(4, 11), 'Dave', telegramUserId: 4),
+            $this->user(new Position(12), 'Liam', telegramUserId: 5),
+            $this->user(new PositionRange(13, 15), 'Mia', telegramUserId: 6),
+        ], settings: new GameSettings(playersPerNet: 4));
+
+        $text = $this->builder->build($game)->getText()->getMessageText();
+
+        $this->assertStringContainsString('12\. Liam', $text);
+        $this->assertStringContainsString(self::DIVIDER, $text);
+        $this->assertStringContainsString('13\-15\. Mia', $text);
+    }
+
+    public function testCardNeverOpensWithADivider(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->user(new Position(5), 'Alice', volleyball: 1, net: 1),
+        ], settings: new GameSettings(playersPerNet: 4));
+
+        $lines = explode("\n", explode(self::SEPARATOR, $this->builder->build($game)->getText()->getMessageText())[1]);
+
+        $this->assertStringNotContainsString(self::DIVIDER, $lines[0]);
+        $this->assertStringContainsString('Alice', $lines[0]);
+    }
+
+    /** One person holding places 1-6 gets cut at the limit; equipment belongs to the first half only. */
+    public function testEquipmentAndPlusNOnCorrectSideWhenRangeStraddlesDivider(): void
+    {
+        $game = $this->game('Game 18:00', [
+            $this->user(new PositionRange(1, 6), 'Alice', volleyball: 1, net: 1, telegramUserId: 1),
+        ], settings: new GameSettings(playersPerNet: 4));
+
+        $lines = explode("\n", explode(self::SEPARATOR, $this->builder->build($game)->getText()->getMessageText())[1]);
+
+        $this->assertStringContainsString('1\-4\. Alice', $lines[0]);
+        $this->assertStringContainsString('🕸️', $lines[0]);
+        $this->assertSame(self::DIVIDER, $lines[1]);
+        $this->assertStringContainsString('5\-6\. \+1 \(Alice\)', $lines[2]);
+        $this->assertStringNotContainsString('🕸️', $lines[2]);
+    }
+
     // --- Text: warnings ---
 
     public function testNoWarningWhenNoUsers(): void
@@ -486,6 +574,7 @@ final class GameMessageBuilderTest extends TestCase
         int $volleyball = 0,
         int $net = 0,
         string $time = '18:00',
+        int $telegramUserId = 1,
     ): UserInterface {
         $user = $this->createStub(UserInterface::class);
         $user->method('getPosition')->willReturn($position);
@@ -494,6 +583,7 @@ final class GameMessageBuilderTest extends TestCase
         $user->method('getVolleyball')->willReturn($volleyball);
         $user->method('getNet')->willReturn($net);
         $user->method('getTime')->willReturn($time);
+        $user->method('getTelegramUserId')->willReturn($telegramUserId);
 
         return $user;
     }
@@ -505,6 +595,7 @@ final class GameMessageBuilderTest extends TestCase
         string $gameTime = '18:00',
         int $gameId = 1,
         string $gameKey = 'query_1',
+        GameSettings $settings = new GameSettings(),
     ): GameInterface {
         $game = $this->createStub(GameInterface::class);
         $game->method('getGameId')->willReturn($gameId);
@@ -513,6 +604,7 @@ final class GameMessageBuilderTest extends TestCase
         $game->method('getLocation')->willReturn($location);
         $game->method('getUsers')->willReturn($users);
         $game->method('getTime')->willReturn($gameTime);
+        $game->method('getSettings')->willReturn($settings);
 
         return $game;
     }

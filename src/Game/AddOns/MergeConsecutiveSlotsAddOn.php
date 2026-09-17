@@ -33,9 +33,9 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
     /**
      * @param UserInterface[] $users
      *
-     * @return UserInterface[]
+     * @return list<UserInterface>
      */
-    private function mergeConsecutive(array $users): array
+    public function mergeConsecutive(array $users): array
     {
         $groups = $this->groupConsecutive($users);
 
