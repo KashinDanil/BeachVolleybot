@@ -38,6 +38,7 @@ final class NewGameFactory
             createdAt: $data->createdAt,
             kickoffAt: $parsedTitle->kickoffAt,
             venueName: $parsedTitle->venueName,
+            settings: new GameSettings($parsedTitle->playersPerNet),
         );
 
         return GameAddOnApplier::apply($game);

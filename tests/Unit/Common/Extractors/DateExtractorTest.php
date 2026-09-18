@@ -239,4 +239,15 @@ final class DateExtractorTest extends TestCase
     {
         $this->assertNull(DateExtractor::extractMonthName('Friday Game 18:00'));
     }
+
+    // --- players-per-net phrase interaction ---
+
+    /**
+     * Pre-existing quirk, not a regression: monthBeforeDay already reads "MONTH \s+ \d{1,2}" as a
+     * date, so a bare month next to the roster count's leading digit resolves to that day.
+     */
+    public function testBareMonthNextToPlayersPerNetCountResolvesToThatDay(): void
+    {
+        $this->assertSame('июль 6', DateExtractor::extract('Волейбол июль 6 мест на сетку 19:00'));
+    }
 }

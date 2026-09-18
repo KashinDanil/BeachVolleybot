@@ -9,7 +9,6 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
-use BeachVolleybot\Database\Timestamp;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
@@ -50,11 +49,16 @@ readonly class GameManager
             $data->username,
         );
 
+        $parsedTitle = ParsedTitle::parse($data->title, $data->createdAt);
+        $settings = new GameSettings($parsedTitle->playersPerNet);
+
         $gameId = $this->gameRepository->create(
             $data->title,
             $data->telegramUserId,
             $data->gameKey,
-            ParsedTitle::parse($data->title, $data->createdAt),
+            $parsedTitle->kickoffAt,
+            $parsedTitle->venueName,
+            settings: $settings,
         );
 
         $this->gameUserRepository->create(
@@ -222,7 +226,13 @@ readonly class GameManager
 
         $parsedTitle = ParsedTitle::parse($normalizedTitle, $game->createdAt);
 
-        $this->gameRepository->updateTitle($game->gameId, $normalizedTitle, $parsedTitle);
+        $this->gameRepository->updateTitleWithDependencies(
+            $game->gameId,
+            $normalizedTitle,
+            $parsedTitle->kickoffAt,
+            $parsedTitle->venueName,
+            $game->settings->withPlayersPerNet($parsedTitle->playersPerNet),
+        );
         $this->setUserTime($game->gameId, $telegramUserId, $firstName, $lastName, $username, $proposedTime);
     }
 
@@ -354,22 +364,27 @@ readonly class GameManager
             return;
         }
 
-        $game = $this->gameRepository->findById($gameId);
+        $gameRecord = $this->findGameRecordById($gameId);
 
-        if (null === $game) {
+        if (null === $gameRecord) {
             return;
         }
 
-        $title = (string) $game['title'];
-        $currentTime = TimeExtractor::extractRaw($title);
+        $currentTime = TimeExtractor::extractRaw($gameRecord->title);
 
         if (null === $currentTime || $currentTime === $earliestTime) {
             return;
         }
 
-        $updatedTitle = str_replace($currentTime, $earliestTime, $title);
-        $createdAt = Timestamp::parse((string) $game['created_at']);
+        $updatedTitle = str_replace($currentTime, $earliestTime, $gameRecord->title);
+        $parsedTitle = ParsedTitle::parse($updatedTitle, $gameRecord->createdAt);
 
-        $this->gameRepository->updateTitle($gameId, $updatedTitle, ParsedTitle::parse($updatedTitle, $createdAt));
+        $this->gameRepository->updateTitleWithDependencies(
+            $gameId,
+            $updatedTitle,
+            $parsedTitle->kickoffAt,
+            $parsedTitle->venueName,
+            $gameRecord->settings,
+        );
     }
 }

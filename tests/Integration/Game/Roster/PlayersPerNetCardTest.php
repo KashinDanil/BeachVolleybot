@@ -7,6 +7,8 @@ namespace BeachVolleybot\Tests\Integration\Game\Roster;
 use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameSettings;
+use BeachVolleybot\Game\NewGameData;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 
 final class PlayersPerNetCardTest extends ProcessorTestCase
@@ -215,6 +217,30 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
         $this->assertSame(self::DIVIDER, $lines[2]);
         $this->assertStringContainsString('5\-6\. \+2 \(Bob\)', $lines[3]);
         $this->assertStringNotContainsString('🕸️', $lines[3]);
+    }
+
+    // --- Reachable end-to-end through the title phrase ---
+
+    /** Proves the feature is reachable by a real user: no setGameSettings shortcut, just the title and joinGame. */
+    public function testPlayersPerNetPhraseInTitleDrawsTheDividerAfterJoining(): void
+    {
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Alice'),
+            'Beach 18:00, 4 spots per net',
+            'query_1',
+        ));
+        $this->gameManager->addInlineMessage($gameId, 'msg_1');
+
+        $this->gameManager->joinGame($gameId, 201, 'Bob', null, null);
+        $this->gameManager->joinGame($gameId, 202, 'Carol', null, null);
+        $this->gameManager->joinGame($gameId, 203, 'Dave', null, null);
+        $this->gameManager->joinGame($gameId, 204, 'Erin', null, null);
+
+        $lines = $this->cardLines($gameId);
+
+        $this->assertStringContainsString('1\. Alice', $lines[0]);
+        $this->assertSame(self::DIVIDER, $lines[4]);
+        $this->assertStringContainsString('Erin', $lines[5]);
     }
 
     // --- Helpers ---

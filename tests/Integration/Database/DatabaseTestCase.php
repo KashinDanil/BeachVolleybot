@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Database;
 
+use BeachVolleybot\Common\Extractors\PlayersPerNetExtractor;
 use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Game\GameSettings;
@@ -75,6 +76,7 @@ abstract class DatabaseTestCase extends TestCase
             'game_key' => $gameKey,
             'kickoff_at' => $kickoffAt ?? $this->resolveKickoffAt($title),
             'venue_name' => KnownVenues::findInTitle($title)?->name,
+            'settings_json' => $this->settingsJsonFromTitle($title),
         ]);
         $gameId = (int) $this->db->id();
 
@@ -90,7 +92,16 @@ abstract class DatabaseTestCase extends TestCase
             'title' => $title,
             'kickoff_at' => $this->resolveKickoffAt($title),
             'venue_name' => KnownVenues::findInTitle($title)?->name,
+            'settings_json' => $this->settingsJsonFromTitle($title),
         ], ['game_id' => $gameId]);
+    }
+
+    private function settingsJsonFromTitle(string $title): string
+    {
+        return json_encode(
+            new GameSettings(PlayersPerNetExtractor::resolvePlayersPerNet($title)),
+            JSON_THROW_ON_ERROR,
+        );
     }
 
     protected function setGameSettings(int $gameId, GameSettings $settings): void

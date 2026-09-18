@@ -6,8 +6,10 @@ namespace BeachVolleybot\Tests\Unit\Localization;
 
 use BeachVolleybot\Common\Extractors\DateExtractor;
 use BeachVolleybot\Common\Extractors\DayOfWeekExtractor;
+use BeachVolleybot\Common\Extractors\PlayersPerNetExtractor;
 use BeachVolleybot\Localization\InputVocabulary;
 use BeachVolleybot\Localization\Translator;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -47,11 +49,11 @@ final class InputVocabularyTest extends TestCase
         $this->assertEmpty(array_diff($months, $weekdays), 'Named months but no weekdays: ' . implode(', ', array_diff($months, $weekdays)));
     }
 
-    public function testOrdinalsAndPrepositionsBelongToDeclaredLanguages(): void
+    public function testWordListsBelongToDeclaredLanguages(): void
     {
         $vocabulary = self::vocabulary();
 
-        foreach (['ORDINALS', 'PREPOSITIONS'] as $kind) {
+        foreach (['ORDINALS', 'PREPOSITIONS', 'SLOT_NOUNS', 'NET_NOUNS', 'PER_PREPOSITIONS'] as $kind) {
             $unknown = array_diff(array_keys($vocabulary[$kind]), InputVocabulary::languages());
 
             $this->assertEmpty($unknown, "$kind covers languages with no weekday or month names: " . implode(', ', $unknown));
@@ -87,6 +89,66 @@ final class InputVocabularyTest extends TestCase
 
             $this->assertSame("11 $preposition April", DateExtractor::extract($title), "'$preposition' is declared but not read");
             $this->assertSame(4, (int) DateExtractor::resolveDate($title, $now)?->format('n'), "'$preposition' breaks the month");
+        }
+    }
+
+    public function testEveryPlayersPerNetWordIsRead(): void
+    {
+        foreach (InputVocabulary::slotNouns() as $slotNoun) {
+            $title = "Game 6 $slotNoun per net";
+
+            $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$slotNoun' is declared but not read");
+        }
+
+        foreach (InputVocabulary::netNouns() as $netNoun) {
+            $title = "Game 6 spots per $netNoun";
+
+            $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$netNoun' is declared but not read");
+        }
+
+        foreach (InputVocabulary::perPrepositions() as $perPreposition) {
+            $title = "Game 6 spots $perPreposition net";
+
+            $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$perPreposition' is declared but not read");
+        }
+    }
+
+    public function testNewVocabularyDoesNotCollideWithWeekdaysOrMonths(): void
+    {
+        $newWords = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions()];
+        $named = [...array_keys(InputVocabulary::weekdays()), ...array_keys(InputVocabulary::months())];
+
+        $collisions = array_intersect($newWords, $named);
+
+        $this->assertEmpty($collisions, 'Also named as a weekday or month: ' . implode(', ', $collisions));
+    }
+
+    public function testNoWordAppearsInTwoOfTheNewLists(): void
+    {
+        $lists = [
+            'SLOT_NOUNS' => InputVocabulary::slotNouns(),
+            'NET_NOUNS' => InputVocabulary::netNouns(),
+            'PER_PREPOSITIONS' => InputVocabulary::perPrepositions(),
+        ];
+
+        foreach ($lists as $kindA => $wordsA) {
+            foreach ($lists as $kindB => $wordsB) {
+                if ($kindA === $kindB) {
+                    continue;
+                }
+
+                $collisions = array_intersect($wordsA, $wordsB);
+                $this->assertEmpty($collisions, "$kindA and $kindB both declare: " . implode(', ', $collisions));
+            }
+        }
+    }
+
+    public function testNoNewWordIsMistakenForAVenue(): void
+    {
+        $words = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions()];
+
+        foreach ($words as $word) {
+            $this->assertNull(KnownVenues::findInTitle($word), "'$word' is read back as a venue");
         }
     }
 
@@ -217,7 +279,7 @@ final class InputVocabularyTest extends TestCase
     {
         $constants = new ReflectionClass(InputVocabulary::class)->getConstants();
 
-        return array_intersect_key($constants, array_flip(['WEEKDAYS', 'MONTHS', 'ORDINALS', 'PREPOSITIONS']));
+        return array_intersect_key($constants, array_flip(['WEEKDAYS', 'MONTHS', 'ORDINALS', 'PREPOSITIONS', 'SLOT_NOUNS', 'NET_NOUNS', 'PER_PREPOSITIONS']));
     }
 
     /**

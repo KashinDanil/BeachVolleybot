@@ -7,7 +7,7 @@ namespace BeachVolleybot\Localization;
 use DanilKashin\Localization\Language;
 
 /**
- * Weekday and month names the extractors read out of a game title.
+ * Vocabulary the extractors read out of a game title.
  */
 final class InputVocabulary
 {
@@ -113,6 +113,31 @@ final class InputVocabulary
         Language::ES => ['de'],
     ];
 
+    /** @var array<string, list<string>> language => nouns naming a roster slot */
+    private const array SLOT_NOUNS = [
+        Language::EN => ['spots', 'spot', 'slots', 'slot', 'places', 'place', 'spaces', 'space', 'people', 'players'],
+        Language::RU => ['мест', 'места', 'место', 'человек', 'человека', 'игроков', 'игрока'],
+        Language::ES => ['plazas', 'plaza', 'cupos', 'cupo', 'huecos', 'hueco', 'personas', 'jugadores'],
+    ];
+
+    /**
+     * @var array<string, list<string>> language => nouns naming a net; singular only, since the
+     *      count is always "per one net". The Russian forms are accusative/prepositional only —
+     *      "на" never governs nominative ("сетка") or genitive ("корта"), so those never appear.
+     */
+    private const array NET_NOUNS = [
+        Language::EN => ['net', 'court'],
+        Language::RU => ['сетку', 'сетке', 'корт', 'корте'],
+        Language::ES => ['red', 'cancha', 'pista'],
+    ];
+
+    /** @var array<string, list<string>> language => the preposition linking a slot count to a net */
+    private const array PER_PREPOSITIONS = [
+        Language::EN => ['per'],
+        Language::RU => ['на'],
+        Language::ES => ['por'],
+    ];
+
     /** @var array<string, int>|null */
     private static ?array $weekdays = null;
 
@@ -161,6 +186,24 @@ final class InputVocabulary
     public static function prepositions(): array
     {
         return self::flatten(self::PREPOSITIONS);
+    }
+
+    /** @return list<string> */
+    public static function slotNouns(): array
+    {
+        return self::flatten(self::SLOT_NOUNS);
+    }
+
+    /** @return list<string> */
+    public static function netNouns(): array
+    {
+        return self::flatten(self::NET_NOUNS);
+    }
+
+    /** @return list<string> */
+    public static function perPrepositions(): array
+    {
+        return self::flatten(self::PER_PREPOSITIONS);
     }
 
     /**

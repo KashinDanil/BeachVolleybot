@@ -25,21 +25,30 @@ final class GameRepositoryTest extends DatabaseTestCase
         $this->repository = new GameRepository($this->db);
     }
 
-    private function parsedTitle(string $title): ParsedTitle
+    /**
+     * Named, not positional: create() and updateTitleWithDependencies() both have two adjacent
+     * ?string parameters (venueName, location), so a positional spread would silently bind into
+     * the wrong one if either signature is ever reordered.
+     *
+     * @return array{kickoffAt: DateTimeImmutable, venueName: ?string}
+     */
+    private function titleFields(string $title): array
     {
-        return ParsedTitle::parse($title, new DateTimeImmutable());
+        $parsedTitle = ParsedTitle::parse($title, new DateTimeImmutable());
+
+        return ['kickoffAt' => $parsedTitle->kickoffAt, 'venueName' => $parsedTitle->venueName];
     }
 
     public function testCreateReturnsId(): void
     {
-        $id = $this->repository->create('Friday Game 18:00', 100, 'query_1', $this->parsedTitle('Friday Game 18:00'));
+        $id = $this->repository->create('Friday Game 18:00', 100, 'query_1', ...$this->titleFields('Friday Game 18:00'));
 
         $this->assertSame(1, $id);
     }
 
     public function testFindByIdReturnsGame(): void
     {
-        $id = $this->repository->create('Friday Game 18:00', 100, 'query_1', $this->parsedTitle('Friday Game 18:00'));
+        $id = $this->repository->create('Friday Game 18:00', 100, 'query_1', ...$this->titleFields('Friday Game 18:00'));
 
         $game = $this->repository->findById($id);
 
@@ -52,7 +61,7 @@ final class GameRepositoryTest extends DatabaseTestCase
     {
         $title = 'Somorrostro 31.12.2099 18:00';
 
-        $id = $this->repository->create($title, 100, 'query_1', $this->parsedTitle($title));
+        $id = $this->repository->create($title, 100, 'query_1', ...$this->titleFields($title));
 
         $game = $this->repository->findById($id);
         // The title says 18:00 in Barcelona; the column keeps the instant that stands for.
@@ -88,10 +97,17 @@ final class GameRepositoryTest extends DatabaseTestCase
     public function testUpdateTitleRewritesKickoffAndVenue(): void
     {
         $title = 'Somorrostro 31.12.2099 18:00';
-        $id = $this->repository->create($title, 100, 'query_1', $this->parsedTitle($title));
+        $id = $this->repository->create($title, 100, 'query_1', ...$this->titleFields($title));
 
         $newTitle = 'Bogatell 01.01.2020 09:30';
-        $this->repository->updateTitle($id, $newTitle, $this->parsedTitle($newTitle));
+        $newTitleFields = $this->titleFields($newTitle);
+        $this->repository->updateTitleWithDependencies(
+            $id,
+            $newTitle,
+            kickoffAt: $newTitleFields['kickoffAt'],
+            venueName: $newTitleFields['venueName'],
+            settings: new GameSettings(),
+        );
 
         $game = $this->repository->findById($id);
         $this->assertSame($newTitle, $game['title']);
@@ -102,15 +118,39 @@ final class GameRepositoryTest extends DatabaseTestCase
     public function testUpdateTitleClearsVenueWhenNewTitleNamesNone(): void
     {
         $title = 'Somorrostro 31.12.2099 18:00';
-        $id = $this->repository->create($title, 100, 'query_1', $this->parsedTitle($title));
+        $id = $this->repository->create($title, 100, 'query_1', ...$this->titleFields($title));
 
         $newTitle = 'Some other beach 31.12.2099 18:00';
-        $this->repository->updateTitle($id, $newTitle, $this->parsedTitle($newTitle));
+        $newTitleFields = $this->titleFields($newTitle);
+        $this->repository->updateTitleWithDependencies(
+            $id,
+            $newTitle,
+            kickoffAt: $newTitleFields['kickoffAt'],
+            venueName: $newTitleFields['venueName'],
+            settings: new GameSettings(),
+        );
 
         $game = $this->repository->findById($id);
         // The title says 18:00 in Barcelona; the column keeps the instant that stands for.
         $this->assertSame('2099-12-31 17:00:00', $game['kickoff_at']);
         $this->assertNull($game['venue_name']);
+    }
+
+    public function testUpdateTitleWithDependenciesWritesSettingsInTheSameQuery(): void
+    {
+        $title = 'Friday Game 18:00';
+        $id = $this->repository->create($title, 100, 'query_1', ...$this->titleFields($title));
+
+        $titleFields = $this->titleFields($title);
+        $this->repository->updateTitleWithDependencies(
+            $id,
+            $title,
+            kickoffAt: $titleFields['kickoffAt'],
+            venueName: $titleFields['venueName'],
+            settings: new GameSettings(playersPerNet: 6),
+        );
+
+        $this->assertSame('{"players_per_net":6}', $this->repository->findById($id)['settings_json']);
     }
 
     public function testFindByIdReturnsNullWhenNotFound(): void
@@ -120,7 +160,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testFindByInlineQueryId(): void
     {
-        $this->repository->create('Saturday Game 18:00', 100, 'query_42', $this->parsedTitle('Saturday Game 18:00'));
+        $this->repository->create('Saturday Game 18:00', 100, 'query_42', ...$this->titleFields('Saturday Game 18:00'));
 
         $game = $this->repository->findByGameKey('query_42');
 
@@ -134,7 +174,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testFindGameIdByInlineQueryIdReturnsId(): void
     {
-        $id = $this->repository->create('Friday Game 18:00', 100, 'query_77', $this->parsedTitle('Friday Game 18:00'));
+        $id = $this->repository->create('Friday Game 18:00', 100, 'query_77', ...$this->titleFields('Friday Game 18:00'));
 
         $this->assertSame($id, $this->repository->findGameIdByGameKey('query_77'));
     }
@@ -146,7 +186,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testDeleteRemovesGame(): void
     {
-        $id = $this->repository->create('Friday Game 18:00', 100, 'query_1', $this->parsedTitle('Friday Game 18:00'));
+        $id = $this->repository->create('Friday Game 18:00', 100, 'query_1', ...$this->titleFields('Friday Game 18:00'));
 
         $this->assertTrue($this->repository->delete($id));
         $this->assertNull($this->repository->findById($id));
@@ -159,9 +199,9 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testFindByCreatorReturnsOnlyGamesOfThatCreator(): void
     {
-        $firstUserGameId = $this->repository->create('Friday Game 18:00', 100, 'query_a', $this->parsedTitle('Friday Game 18:00'));
-        $this->repository->create('Saturday Game 18:00', 200, 'query_b', $this->parsedTitle('Saturday Game 18:00'));
-        $secondUserGameId = $this->repository->create('Sunday Game 18:00', 100, 'query_c', $this->parsedTitle('Sunday Game 18:00'));
+        $firstUserGameId = $this->repository->create('Friday Game 18:00', 100, 'query_a', ...$this->titleFields('Friday Game 18:00'));
+        $this->repository->create('Saturday Game 18:00', 200, 'query_b', ...$this->titleFields('Saturday Game 18:00'));
+        $secondUserGameId = $this->repository->create('Sunday Game 18:00', 100, 'query_c', ...$this->titleFields('Sunday Game 18:00'));
 
         $games = $this->repository->findByCreator(100, 10, 0);
 
@@ -172,7 +212,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testFindByCreatorReturnsEmptyArrayWhenCreatorHasNoGames(): void
     {
-        $this->repository->create('Friday Game 18:00', 100, 'query_a', $this->parsedTitle('Friday Game 18:00'));
+        $this->repository->create('Friday Game 18:00', 100, 'query_a', ...$this->titleFields('Friday Game 18:00'));
 
         $games = $this->repository->findByCreator(999, 10, 0);
 
@@ -181,9 +221,9 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testFindByCreatorRespectsLimitAndOffset(): void
     {
-        $firstGameId = $this->repository->create('Game 1 18:00', 100, 'query_1', $this->parsedTitle('Game 1 18:00'));
-        $secondGameId = $this->repository->create('Game 2 18:00', 100, 'query_2', $this->parsedTitle('Game 2 18:00'));
-        $thirdGameId = $this->repository->create('Game 3 18:00', 100, 'query_3', $this->parsedTitle('Game 3 18:00'));
+        $firstGameId = $this->repository->create('Game 1 18:00', 100, 'query_1', ...$this->titleFields('Game 1 18:00'));
+        $secondGameId = $this->repository->create('Game 2 18:00', 100, 'query_2', ...$this->titleFields('Game 2 18:00'));
+        $thirdGameId = $this->repository->create('Game 3 18:00', 100, 'query_3', ...$this->titleFields('Game 3 18:00'));
 
         $firstPage = $this->repository->findByCreator(100, 2, 0);
         $secondPage = $this->repository->findByCreator(100, 2, 2);
@@ -198,9 +238,9 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testCountByCreatorReturnsCountForThatCreatorOnly(): void
     {
-        $this->repository->create('Friday Game 18:00', 100, 'query_a', $this->parsedTitle('Friday Game 18:00'));
-        $this->repository->create('Saturday Game 18:00', 200, 'query_b', $this->parsedTitle('Saturday Game 18:00'));
-        $this->repository->create('Sunday Game 18:00', 100, 'query_c', $this->parsedTitle('Sunday Game 18:00'));
+        $this->repository->create('Friday Game 18:00', 100, 'query_a', ...$this->titleFields('Friday Game 18:00'));
+        $this->repository->create('Saturday Game 18:00', 200, 'query_b', ...$this->titleFields('Saturday Game 18:00'));
+        $this->repository->create('Sunday Game 18:00', 100, 'query_c', ...$this->titleFields('Sunday Game 18:00'));
 
         $this->assertSame(2, $this->repository->countByCreator(100));
         $this->assertSame(1, $this->repository->countByCreator(200));
@@ -208,7 +248,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     public function testCountByCreatorReturnsZeroWhenCreatorHasNoGames(): void
     {
-        $this->repository->create('Friday Game 18:00', 100, 'query_a', $this->parsedTitle('Friday Game 18:00'));
+        $this->repository->create('Friday Game 18:00', 100, 'query_a', ...$this->titleFields('Friday Game 18:00'));
 
         $this->assertSame(0, $this->repository->countByCreator(999));
     }
@@ -282,7 +322,7 @@ final class GameRepositoryTest extends DatabaseTestCase
             $title,
             100,
             'query_1',
-            $this->parsedTitle($title),
+            ...$this->titleFields($title),
             settings: new GameSettings(playersPerNet: 6),
         );
 
@@ -313,7 +353,7 @@ final class GameRepositoryTest extends DatabaseTestCase
 
     private function createFromTitle(string $title, string $gameKey): int
     {
-        return $this->repository->create($title, 100, $gameKey, $this->parsedTitle($title));
+        return $this->repository->create($title, 100, $gameKey, ...$this->titleFields($title));
     }
 
     private function venueWallClock(string $offset): string
