@@ -9,7 +9,7 @@ use DanilKashin\Localization\Language;
 /**
  * Weekday and month names the extractors read out of a game title.
  */
-final class CalendarVocabulary
+final class InputVocabulary
 {
     /** @var array<string, array<string, int>> language => name => ISO weekday (1=Monday, 7=Sunday) */
     private const array WEEKDAYS = [

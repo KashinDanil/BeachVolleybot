@@ -6,14 +6,14 @@ namespace BeachVolleybot\Tests\Unit\Localization;
 
 use BeachVolleybot\Common\Extractors\DateExtractor;
 use BeachVolleybot\Common\Extractors\DayOfWeekExtractor;
-use BeachVolleybot\Localization\CalendarVocabulary;
+use BeachVolleybot\Localization\InputVocabulary;
 use BeachVolleybot\Localization\Translator;
 use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-final class CalendarVocabularyTest extends TestCase
+final class InputVocabularyTest extends TestCase
 {
     private const string LOCALIZATION_DIR = __DIR__ . '/../../../localization';
 
@@ -29,7 +29,7 @@ final class CalendarVocabularyTest extends TestCase
     public function testTheBotReadsExactlyTheLanguagesItWrites(): void
     {
         $written = Translator::supportedLanguages();
-        $read = CalendarVocabulary::languages();
+        $read = InputVocabulary::languages();
 
         sort($written);
         sort($read);
@@ -52,7 +52,7 @@ final class CalendarVocabularyTest extends TestCase
         $vocabulary = self::vocabulary();
 
         foreach (['ORDINALS', 'PREPOSITIONS'] as $kind) {
-            $unknown = array_diff(array_keys($vocabulary[$kind]), CalendarVocabulary::languages());
+            $unknown = array_diff(array_keys($vocabulary[$kind]), InputVocabulary::languages());
 
             $this->assertEmpty($unknown, "$kind covers languages with no weekday or month names: " . implode(', ', $unknown));
         }
@@ -75,14 +75,14 @@ final class CalendarVocabularyTest extends TestCase
     {
         $now = new DateTimeImmutable('2026-01-15');
 
-        foreach (CalendarVocabulary::ordinals() as $ordinal) {
+        foreach (InputVocabulary::ordinals() as $ordinal) {
             $title = "Game 11$ordinal April";
 
             $this->assertSame("11$ordinal April", DateExtractor::extract($title), "'$ordinal' is declared but not read");
             $this->assertSame(4, (int) DateExtractor::resolveDate($title, $now)?->format('n'), "'$ordinal' breaks the month");
         }
 
-        foreach (CalendarVocabulary::prepositions() as $preposition) {
+        foreach (InputVocabulary::prepositions() as $preposition) {
             $title = "Game 11 $preposition April";
 
             $this->assertSame("11 $preposition April", DateExtractor::extract($title), "'$preposition' is declared but not read");
@@ -94,7 +94,7 @@ final class CalendarVocabularyTest extends TestCase
     {
         $monday = new DateTimeImmutable('2026-01-05');
 
-        foreach (CalendarVocabulary::weekdays() as $name => $isoDay) {
+        foreach (InputVocabulary::weekdays() as $name => $isoDay) {
             $title = "Game $name 18:00";
 
             $this->assertSame($name, DayOfWeekExtractor::extract($title), "'$name' is declared but not extracted");
@@ -110,7 +110,7 @@ final class CalendarVocabularyTest extends TestCase
     {
         $now = new DateTimeImmutable('2026-01-15');
 
-        foreach (CalendarVocabulary::months() as $name => $month) {
+        foreach (InputVocabulary::months() as $name => $month) {
             $title = "Game 11 $name";
 
             $this->assertSame("11 $name", DateExtractor::extract($title), "'$name' is declared but not extracted");
@@ -138,7 +138,7 @@ final class CalendarVocabularyTest extends TestCase
             }
         }
 
-        $ambiguous = array_intersect_key(CalendarVocabulary::weekdays(), CalendarVocabulary::months());
+        $ambiguous = array_intersect_key(InputVocabulary::weekdays(), InputVocabulary::months());
 
         $this->assertEmpty($ambiguous, 'Read as both a day and a month: ' . implode(', ', array_keys($ambiguous)));
     }
@@ -215,7 +215,7 @@ final class CalendarVocabularyTest extends TestCase
     /** @return array<string, array<string, array<array-key, int|string>>> kind => language => entries */
     private static function vocabulary(): array
     {
-        $constants = new ReflectionClass(CalendarVocabulary::class)->getConstants();
+        $constants = new ReflectionClass(InputVocabulary::class)->getConstants();
 
         return array_intersect_key($constants, array_flip(['WEEKDAYS', 'MONTHS', 'ORDINALS', 'PREPOSITIONS']));
     }

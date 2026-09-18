@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Common\Extractors;
 
 use BeachVolleybot\Common\ParsedDate;
-use BeachVolleybot\Localization\CalendarVocabulary;
+use BeachVolleybot\Localization\InputVocabulary;
 use DateTimeImmutable;
 
 final class DateExtractor implements ExtractorInterface
@@ -74,7 +74,7 @@ final class DateExtractor implements ExtractorInterface
 
     private static function textSubpattern(): string
     {
-        $months = '(?:' . implode('|', array_keys(CalendarVocabulary::months())) . ')';
+        $months = '(?:' . implode('|', array_keys(InputVocabulary::months())) . ')';
         $optionalOrdinal = '(?:' . self::ordinals() . ')?';
         $optionalPreposition = '(?:(?:' . self::prepositions() . ')\s+)?';
         $day = '\d{1,2}' . $optionalOrdinal;
@@ -93,12 +93,12 @@ final class DateExtractor implements ExtractorInterface
 
     private static function ordinals(): string
     {
-        return implode('|', CalendarVocabulary::ordinals());
+        return implode('|', InputVocabulary::ordinals());
     }
 
     private static function prepositions(): string
     {
-        return implode('|', CalendarVocabulary::prepositions());
+        return implode('|', InputVocabulary::prepositions());
     }
 
     private static function parseNumeric(string $dateString): ?ParsedDate
@@ -132,7 +132,7 @@ final class DateExtractor implements ExtractorInterface
         }
 
         $day = (int) $dayMatch[0];
-        $month = CalendarVocabulary::months()[self::toMonthName($dateString)] ?? null;
+        $month = InputVocabulary::months()[self::toMonthName($dateString)] ?? null;
 
         if (null === $month) {
             return null;
