@@ -87,7 +87,7 @@ final readonly class Lineup
     }
 
     /**
-     * As soon as the limit would push any net bringer out, all of them move up
+     * As soon as the limit would push any equipment carrier out, all of them move up.
      *
      * @param UserInterface[] $slots
      *
@@ -95,35 +95,108 @@ final readonly class Lineup
      */
     private function userIdsToPromote(array $slots): array
     {
-        $netBringerUserIds = $this->netBringerUserIds($slots);
-        $playingUserIds = $this->playingUserIds($slots);
-        $anyPushedOut = array_any($netBringerUserIds, static fn(int $bringerId): bool => !in_array($bringerId, $playingUserIds, true));
+        $equipmentCarrierUserIds = $this->equipmentCarrierUserIds($slots);
 
-        if (!$anyPushedOut) {
+        if ($this->allPlaying($equipmentCarrierUserIds, $slots)) {
             return [];
         }
 
-        return $netBringerUserIds;
+        return $equipmentCarrierUserIds;
+    }
+
+    /**
+     * The game cannot be played without these: every net bringer, and as many volleyball holders
+     * as it takes to put a ball behind each net, taken in sign-up order.
+     *
+     * @param UserInterface[] $slots
+     *
+     * @return list<int>
+     */
+    private function equipmentCarrierUserIds(array $slots): array
+    {
+        $netsByUserId = $this->netsByUserId($slots);
+        $netCount = array_sum($netsByUserId);
+        $netHolderUserIds = array_keys($netsByUserId);
+        $volleyballHolderUserIds = $this->holdersCovering($this->volleyballsByUserId($slots), $netCount);
+
+        return array_values(array_unique([...$netHolderUserIds, ...$volleyballHolderUserIds]));
+    }
+
+    /**
+     * @param array<int, int> $volleyballsByUserId
+     *
+     * @return list<int>
+     */
+    private function holdersCovering(array $volleyballsByUserId, int $netCount): array
+    {
+        $holderUserIds = [];
+        $volleyballCount = 0;
+
+        foreach ($volleyballsByUserId as $userId => $volleyballs) {
+            if ($netCount <= $volleyballCount) {
+                break;
+            }
+
+            $holderUserIds[] = $userId;
+            $volleyballCount += $volleyballs;
+        }
+
+        return $holderUserIds;
+    }
+
+    /**
+     * @param list<int> $userIds
+     * @param UserInterface[] $arrangement
+     */
+    private function allPlaying(array $userIds, array $arrangement): bool
+    {
+        $playingUserIds = $this->playingUserIds($arrangement);
+
+        return array_all($userIds, static fn(int $userId): bool => in_array($userId, $playingUserIds, true));
     }
 
     /**
      * @param UserInterface[] $slots
      *
-     * @return list<int>
+     * @return array<int, int> nets per user, bringers only
      */
-    private function netBringerUserIds(array $slots): array
+    private function netsByUserId(array $slots): array
     {
-        $bringerIds = [];
+        return array_filter(array_map(
+            static fn(UserInterface $slot): int => $slot->getNet(),
+            $this->firstSlotByUserId($slots),
+        ));
+    }
+
+    /**
+     * @param UserInterface[] $slots
+     *
+     * @return array<int, int> volleyballs per user, holders only
+     */
+    private function volleyballsByUserId(array $slots): array
+    {
+        return array_filter(array_map(
+            static fn(UserInterface $slot): int => $slot->getVolleyball(),
+            $this->firstSlotByUserId($slots),
+        ));
+    }
+
+    /**
+     * Equipment is repeated on every slot a user holds, so counting it means counting one slot.
+     *
+     * @param UserInterface[] $slots
+     *
+     * @return array<int, UserInterface> keyed by user id, in slot order
+     */
+    private function firstSlotByUserId(array $slots): array
+    {
+        $firstSlots = [];
 
         foreach ($slots as $slot) {
-            $userId = $slot->getTelegramUserId();
-
-            if (0 < $slot->getNet() && !in_array($userId, $bringerIds, true)) {
-                $bringerIds[] = $userId;
-            }
+            $firstSlots[$slot->getTelegramUserId()] ??= $slot;
         }
 
-        return $bringerIds;
+        return $firstSlots;
     }
 
     /**

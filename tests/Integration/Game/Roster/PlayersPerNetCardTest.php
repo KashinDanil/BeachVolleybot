@@ -89,6 +89,31 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
     {
         $gameId = $this->seedFullGame();
         $this->setGameSettings($gameId, new GameSettings(playersPerNet: 4));
+        $this->seedPlayer($gameId, 200, position: 1, firstName: 'Alice', volleyball: 0);
+        $this->seedPlayer($gameId, 201, position: 2, firstName: 'Bob', volleyball: 0);
+        $this->seedPlayer($gameId, 202, position: 3, firstName: 'Carol', volleyball: 0);
+        $this->seedPlayer($gameId, 203, position: 4, firstName: 'Dave', volleyball: 0);
+        $this->seedPlayer($gameId, 204, position: 5, firstName: 'Erin', volleyball: 0);
+        $this->seedPlayer($gameId, 205, position: 6, firstName: 'Frank', volleyball: 0);
+        $this->seedPlayer($gameId, 206, position: 7, firstName: 'Grace', net: 1);
+
+        $lines = $this->cardLines($gameId);
+
+        $this->assertStringContainsString('1\. Grace', $lines[0]);
+        $this->assertStringContainsString('2\. Alice', $lines[1]);
+        $this->assertStringContainsString('4\. Carol', $lines[3]);
+        $this->assertSame(self::DIVIDER, $lines[4]);
+        $this->assertStringContainsString('Frank', $lines[7]);
+    }
+
+    /**
+     * The same roster with everybody also holding a ball: Alice's covers Grace's net, so both are
+     * carriers and both come up — Alice keeping the place she signed up for.
+     */
+    public function testBallHolderKeepsTheirPlaceAheadOfThePromotedNetBringer(): void
+    {
+        $gameId = $this->seedFullGame();
+        $this->setGameSettings($gameId, new GameSettings(playersPerNet: 4));
         $this->seedPlayer($gameId, 200, position: 1, firstName: 'Alice');
         $this->seedPlayer($gameId, 201, position: 2, firstName: 'Bob');
         $this->seedPlayer($gameId, 202, position: 3, firstName: 'Carol');
@@ -99,9 +124,8 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
 
         $lines = $this->cardLines($gameId);
 
-        $this->assertStringContainsString('1\. Grace', $lines[0]);
-        $this->assertStringContainsString('2\. Alice', $lines[1]);
-        $this->assertStringContainsString('4\. Carol', $lines[3]);
+        $this->assertStringContainsString('1\. Alice', $lines[0]);
+        $this->assertStringContainsString('2\. Grace', $lines[1]);
         $this->assertSame(self::DIVIDER, $lines[4]);
         $this->assertStringContainsString('Frank', $lines[7]);
     }
