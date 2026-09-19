@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
-use BeachVolleybot\Localization\PlayersPerNetPhrase;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
@@ -17,7 +16,9 @@ final class NewGameConfirmMessageBuilder extends AbstractNewGameMessageBuilder
     public const string LABEL_POST     = 'Post';
     public const string LABEL_DECREASE = '←';
     public const string LABEL_INCREASE = '→';
-    public const string LABEL_REMOVE   = 'Remove the limit';
+
+    private const string PLAYERS_EMOJI = '👥';
+    private const string REMOVE_EMOJI  = '🗑';
 
     public function build(DateTimeImmutable $date, string $time, ?string $venueName, PlayersPerNetSelection $selection): TelegramMessage
     {
@@ -83,10 +84,10 @@ final class NewGameConfirmMessageBuilder extends AbstractNewGameMessageBuilder
     private function middleButtonLabel(PlayersPerNetSelection $selection): string
     {
         if ($selection->isApplied()) {
-            return $this->translator->translate(self::LABEL_REMOVE);
+            return self::REMOVE_EMOJI;
         }
 
-        return new PlayersPerNetPhrase($selection->value(), $this->translator)->text();
+        return self::PLAYERS_EMOJI . ' ' . $selection->value();
     }
 
     private function middleButtonCallbackData(PlayersPerNetSelection $selection): NewGameCallbackData

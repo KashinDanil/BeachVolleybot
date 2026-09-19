@@ -43,7 +43,7 @@ final class NewGameConfirmProcessorTest extends ProcessorTestCase
 
         $keyboard = $this->editedKeyboard();
         $this->assertNotNull($keyboard);
-        $this->assertSame('7 players per net', $keyboard[1][1]['text']);
+        $this->assertSame('👥 7', $keyboard[1][1]['text']);
     }
 
     public function testIncreaseWhileAppliedChangesTheTextRowAndStaysApplied(): void
@@ -60,7 +60,7 @@ final class NewGameConfirmProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('👥 9 players per net', $text);
 
         $keyboard = $this->editedKeyboard();
-        $this->assertSame('Remove the limit', $keyboard[1][1]['text']);
+        $this->assertSame('🗑', $keyboard[1][1]['text']);
     }
 
     // --- set / remove ---
@@ -78,7 +78,7 @@ final class NewGameConfirmProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('👥 8 players per net', $text);
 
         $keyboard = $this->editedKeyboard();
-        $this->assertSame('Remove the limit', $keyboard[1][1]['text']);
+        $this->assertSame('🗑', $keyboard[1][1]['text']);
     }
 
     public function testTappingRemoveClearsTheRowAndRestoresTheValueOnTheButton(): void
@@ -95,7 +95,7 @@ final class NewGameConfirmProcessorTest extends ProcessorTestCase
         $this->assertStringNotContainsString('👥', $text);
 
         $keyboard = $this->editedKeyboard();
-        $this->assertSame('9 players per net', $keyboard[1][1]['text']);
+        $this->assertSame('👥 9', $keyboard[1][1]['text']);
     }
 
     // --- language switch ---
@@ -160,7 +160,7 @@ final class NewGameConfirmProcessorTest extends ProcessorTestCase
 
         $keyboard = $this->editedKeyboard();
         $this->assertNotNull($keyboard);
-        $this->assertSame('10 игроков на сетку', $keyboard[1][1]['text']);
+        $this->assertSame('👥 10', $keyboard[1][1]['text']);
     }
 
     public function testSwitchingLanguageRerendersTheVenueReadBackFromTheText(): void

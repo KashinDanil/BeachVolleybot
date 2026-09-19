@@ -165,7 +165,7 @@ final class NewGameConfirmMessageBuilderTest extends TestCase
         $keyboard = $this->extractKeyboard($this->build(self::VENUE, self::unset()));
         $labels = array_column($keyboard[1], 'text');
 
-        $this->assertSame(['←', '6 players per net', '→'], $labels);
+        $this->assertSame(['←', '👥 6', '→'], $labels);
     }
 
     public function testDecreaseButtonIsOmittedAtTheFloor(): void
@@ -173,7 +173,7 @@ final class NewGameConfirmMessageBuilderTest extends TestCase
         $keyboard = $this->extractKeyboard($this->build(self::VENUE, PlayersPerNetSelection::pending(4)));
         $labels = array_column($keyboard[1], 'text');
 
-        $this->assertSame(['4 players per net', '→'], $labels);
+        $this->assertSame(['👥 4', '→'], $labels);
     }
 
     public function testIncreaseButtonIsOmittedAtTheCeiling(): void
@@ -181,7 +181,7 @@ final class NewGameConfirmMessageBuilderTest extends TestCase
         $keyboard = $this->extractKeyboard($this->build(self::VENUE, PlayersPerNetSelection::pending(12)));
         $labels = array_column($keyboard[1], 'text');
 
-        $this->assertSame(['←', '12 players per net'], $labels);
+        $this->assertSame(['←', '👥 12'], $labels);
     }
 
     public function testArrowButtonsCarryTheAlreadyAdjustedTargetValue(): void
@@ -203,7 +203,7 @@ final class NewGameConfirmMessageBuilderTest extends TestCase
         $keyboard = $this->extractKeyboard($this->build(self::VENUE, PlayersPerNetSelection::pending(8)));
         $middle = $keyboard[1][1];
 
-        $this->assertSame('8 players per net', $middle['text']);
+        $this->assertSame('👥 8', $middle['text']);
 
         $callbackData = NewGameCallbackData::fromJson($middle['callback_data']);
         $this->assertSame(NewGameCallbackAction::SetPlayersPerNet, $callbackData->getAction());
@@ -215,21 +215,11 @@ final class NewGameConfirmMessageBuilderTest extends TestCase
         $keyboard = $this->extractKeyboard($this->build(self::VENUE, PlayersPerNetSelection::applied(8)));
         $middle = $keyboard[1][1];
 
-        $this->assertSame('Remove the limit', $middle['text']);
+        $this->assertSame('🗑', $middle['text']);
 
         $callbackData = NewGameCallbackData::fromJson($middle['callback_data']);
         $this->assertSame(NewGameCallbackAction::RemovePlayersPerNet, $callbackData->getAction());
         $this->assertSame(8, $callbackData->getPlayersPerNet());
-    }
-
-    public function testNoneOfTheThreePlayersPerNetButtonsCarryAnEmoji(): void
-    {
-        $pending = $this->extractKeyboard($this->build(self::VENUE, PlayersPerNetSelection::pending(6)))[1];
-        $applied = $this->extractKeyboard($this->build(self::VENUE, PlayersPerNetSelection::applied(6)))[1];
-
-        foreach ([...$pending, ...$applied] as $button) {
-            $this->assertStringNotContainsString('👥', $button['text']);
-        }
     }
 
     public function testPlayersRowAppearsOnlyOnceTheLimitIsApplied(): void
