@@ -28,7 +28,11 @@ class NewGameTimePageProcessor extends AbstractNewGameStepProcessor
         }
 
         $picker = new NewGameTimePickerMessageBuilder($this->translator($callbackQuery))
-            ->build($this->parseDate($text), $this->callbackData->getPage());
+            ->build(
+                $this->parseDate($text),
+                $this->callbackData->getPage(),
+                $this->parsePlayersPerNet($text)
+            );
 
         $this->editWizard($callbackQuery, $picker);
         $this->answerCallbackQuery($callbackQuery, '');

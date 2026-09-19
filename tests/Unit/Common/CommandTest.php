@@ -33,4 +33,34 @@ final class CommandTest extends TestCase
     {
         $this->assertSame('/new_game@test_bot', Command::NewGame->mention());
     }
+
+    public function testHelpPrivateMatchesItsOwnBareCommand(): void
+    {
+        $this->assertTrue(Command::HelpPrivate->matches('/help_private'));
+    }
+
+    public function testHelpPrivateDoesNotMatchHelp(): void
+    {
+        $this->assertFalse(Command::HelpPrivate->matches('/help'));
+    }
+
+    public function testNewGamePrivateMatchesItsOwnBareCommand(): void
+    {
+        $this->assertTrue(Command::NewGamePrivate->matches('/new_game_private'));
+    }
+
+    public function testNewGamePrivateDoesNotMatchNewGame(): void
+    {
+        $this->assertFalse(Command::NewGamePrivate->matches('/new_game'));
+    }
+
+    public function testForChatReturnsBareCommandForPrivateChat(): void
+    {
+        $this->assertSame('/new_game', Command::NewGame->forChat(false));
+    }
+
+    public function testForChatReturnsMentionForGroupChat(): void
+    {
+        $this->assertSame('/new_game@test_bot', Command::NewGame->forChat(true));
+    }
 }

@@ -10,20 +10,20 @@ use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Location\Venue;
 use DateTimeImmutable;
 
-final class NewGameLocationPickerMessageBuilder extends AbstractNewGameMessageBuilder
+final class NewGameVenuePickerMessageBuilder extends AbstractNewGameMessageBuilder
 {
     public const string SKIP_TEXT = 'Skip location';
 
     private const int VENUES_PER_PAGE = 5;
     private const string SKIP_LABEL_WRAP = '— %s —';
 
-    public function build(DateTimeImmutable $date, string $time, int $page = 1): TelegramMessage
+    public function build(DateTimeImmutable $date, string $time, int $page = 1, ?int $playersPerNet = null): TelegramMessage
     {
         $venues = KnownVenues::all();
         $pagination = new KeyboardPagination(count($venues), self::VENUES_PER_PAGE, $page);
 
         return $this->buildMessage(
-            $this->formText->buildLocationStep($date, $time),
+            $this->formText->buildVenueStep($date, $time, $playersPerNet),
             $this->buildKeyboard($venues, $pagination),
         );
     }

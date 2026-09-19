@@ -50,6 +50,41 @@ final class ParsedTitleTest extends TestCase
         $this->resolve('Just a game');
     }
 
+    // --- playersPerNet ---
+
+    public function testResolvesKickoffVenueAndPlayersPerNetTogether(): void
+    {
+        $parsedTitle = $this->resolve('Bogatell 31.12.2099 18:00, 6 мест на сетку');
+
+        $this->assertSame('2099-12-31 18:00:00', $parsedTitle->kickoffAt->format('Y-m-d H:i:s'));
+        $this->assertSame('Bogatell', $parsedTitle->venueName);
+        $this->assertSame(6, $parsedTitle->playersPerNet);
+    }
+
+    public function testPlayersPerNetIsNullWhenTitleCarriesNoPhrase(): void
+    {
+        $this->assertNull($this->resolve('Somorrostro 31.12.2099 18:00')->playersPerNet);
+    }
+
+    public function testPlayersPerNetIsNullBelowTheMinimum(): void
+    {
+        $parsedTitle = $this->resolve('Somorrostro 31.12.2099 18:00, 2 мест на сетку');
+
+        $this->assertNull($parsedTitle->playersPerNet);
+    }
+
+    public function testPlayersPerNetAtTheMinimumResolves(): void
+    {
+        $this->assertSame(4, $this->resolve('Somorrostro 31.12.2099 18:00, 4 места на сетку')->playersPerNet);
+    }
+
+    public function testPastKickoffStillResolvesPlayersPerNet(): void
+    {
+        $parsedTitle = $this->resolve('Bogatell 01.01.2020 18:00 6 spots per net');
+
+        $this->assertSame(6, $parsedTitle->playersPerNet);
+    }
+
     private function resolve(string $title): ParsedTitle
     {
         return ParsedTitle::parse($title, new DateTimeImmutable(self::CREATED_AT, KnownVenues::defaultVenue()->timezone));

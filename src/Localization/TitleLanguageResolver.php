@@ -22,6 +22,6 @@ final class TitleLanguageResolver
             return Language::EN;
         }
 
-        return CalendarVocabulary::languageByName()[mb_strtolower($calendarName)] ?? Language::EN;
+        return InputVocabulary::languageByName()[mb_strtolower($calendarName)] ?? Language::EN;
     }
 }

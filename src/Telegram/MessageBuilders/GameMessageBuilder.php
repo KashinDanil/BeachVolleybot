@@ -6,6 +6,8 @@ namespace BeachVolleybot\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\Roster\Lineup;
+use BeachVolleybot\Game\Roster\PlayerLimit;
 use BeachVolleybot\Localization\TitleLanguageResolver;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
@@ -38,6 +40,7 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     private const string VOLLEYBALL_EMOJI        = '🏐';
     private const string NET_EMOJI               = '🕸️';
     private const int    EMOJI_COMPACT_THRESHOLD = 3;
+    private const string RESERVES_DIVIDER        = '———';
 
     public const string LABEL_JOIN  = 'Join (+1)';
     public const string LABEL_LEAVE = 'Leave (−1)';
@@ -101,9 +104,16 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     {
         $lines = [];
         $appearances = [];
+        $limit = PlayerLimit::resolveLimit($game->getUsers(), $game->getSettings());
+        $dividerEmitted = false;
 
         $gameTime = $game->getTime();
-        foreach ($game->getUsers() as $user) {
+        foreach (new Lineup($game->getUsers(), $limit)->getRowsToRender() as $user) {
+            if (!$dividerEmitted && !empty($lines) && $limit->isReserve($user)) {
+                $lines[] = $this->formatter->escape(self::RESERVES_DIVIDER);
+                $dividerEmitted = true;
+            }
+
             $key = $this->userKey($user);
             $appearances[$key] = ($appearances[$key] ?? 0) + 1;
 
@@ -116,7 +126,7 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     protected function defaultBuildUserLine(UserInterface $user, int $appearance, string $gameTime): string
     {
         $parts = [
-            $this->formatter->escape($user->getNumber() . '.'),
+            $this->formatter->escape($user->getPosition()->format() . '.'),
             $this->displayName($user, $appearance),
         ];
 

@@ -33,12 +33,12 @@ final class NewGameDatePickerMessageBuilder extends AbstractNewGameMessageBuilde
         $this->today = ($today ?? new DateTimeImmutable())->setTimezone(KnownVenues::defaultVenue()->timezone);
     }
 
-    public function build(int $page = 1): TelegramMessage
+    public function build(int $page = 1, ?int $playersPerNet = null): TelegramMessage
     {
         $pagination = new KeyboardPagination(self::TOTAL_DAYS, self::DAYS_PER_PAGE, $page);
 
         return $this->buildMessage(
-            $this->formText->buildDateStep(),
+            $this->formText->buildDateStep($playersPerNet),
             $this->buildKeyboard($pagination),
         );
     }

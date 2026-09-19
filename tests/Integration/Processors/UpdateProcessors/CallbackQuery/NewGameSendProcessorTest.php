@@ -12,6 +12,7 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameSendProcesso
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameConfirmMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\PlayersPerNetSelection;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -63,10 +64,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
     {
         // The card around it stays English; the title is the creator's own line.
         $update = $this->dmCallbackUpdate(
-            NewGameCallbackData::create(NewGameCallbackAction::Send)
-                ->withVenueName('Bogatell')
-                ->withLanguage(Language::RU)
-                ->toJson(),
+            NewGameCallbackData::create(NewGameCallbackAction::Send)->withLanguage(Language::RU)->toJson(),
             $this->wizardText('Bogatell', Language::RU),
         );
 
@@ -78,6 +76,49 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('Четверг, 31.12', $title);
         $this->assertSame('31.12', GameDateResolver::resolve($title, new DateTimeImmutable())->format('d.m'));
         $this->assertStringContainsString('Игра создана!', $this->editedText());
+    }
+
+    public function testPostedTitleCarriesThePlayersPerNetPhraseAndPersistsTheSetting(): void
+    {
+        $update = $this->dmCallbackUpdate(
+            NewGameCallbackData::create(NewGameCallbackAction::Send)->toJson(),
+            $this->wizardText('Bogatell', playersPerNet: 8),
+        );
+
+        $this->runProcessor($update);
+
+        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $title = new GameRepository($this->db)->findById($gameId)['title'];
+
+        $this->assertStringContainsString('👥 8 players per net', $title);
+        $this->assertSame(8, new GameManager()->findGameRecordById($gameId)?->settings->playersPerNet);
+    }
+
+    public function testUntouchedWizardPersistsNoPlayersPerNetSetting(): void
+    {
+        $this->runProcessor($this->dmSendUpdate('Bogatell'));
+
+        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+
+        $this->assertNull(new GameManager()->findGameRecordById($gameId)?->settings->playersPerNet);
+    }
+
+    public function testThePlayersPerNetRowDoesNotShadowTheDateOrTime(): void
+    {
+        // The 👥 row is last in the title; if DateExtractor or TimeExtractor could ever
+        // match inside "6 players per net" this would resolve the wrong kickoff.
+        $update = $this->dmCallbackUpdate(
+            NewGameCallbackData::create(NewGameCallbackAction::Send)->toJson(),
+            $this->wizardText('Bogatell', playersPerNet: 6),
+        );
+
+        $this->runProcessor($update);
+
+        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $title = new GameRepository($this->db)->findById($gameId)['title'];
+
+        $this->assertSame('31.12', GameDateResolver::resolve($title, new DateTimeImmutable())->format('d.m'));
+        $this->assertStringContainsString(self::PICKED_TIME, $title);
     }
 
     public function testSkipCreatesGameWithNoLocation(): void
@@ -138,23 +179,23 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('Step 1 of 4', $text);
     }
 
-    public function testRejectsAnUnknownVenue(): void
+    public function testDropsAnUnrecognizedVenueInsteadOfBlockingCreation(): void
     {
-        // The confirm page can sit open for a while; if the venue catalog changes before
-        // Send is tapped, the venue name round-tripped on the button must be re-validated
-        // — this must reject rather than silently posting the game with no location.
-        // The date uses an absolute year (unlike the wizard's own year-less rendering)
-        // so the kickoff can never itself be the reason this test passes or fails —
-        // only the venue check can.
+        // The venue is read back out of the text, the same way the date and time are — if a
+        // name in the 📍 row no longer matches anything in the catalog, that reads exactly
+        // like no venue was ever picked, so the game is still created, just without a location.
         $update = $this->dmCallbackUpdate(
-            NewGameCallbackData::create(NewGameCallbackAction::Send)->withVenueName('Atlantis')->toJson(),
+            NewGameCallbackData::create(NewGameCallbackAction::Send)->toJson(),
             "🏐 New game — Step 4 of 4\n\n📅 31.12.2099\n🕒 " . self::PICKED_TIME . "\n📍 Atlantis",
         );
 
         $this->runProcessor($update);
 
-        $this->assertSame(0, new GameRepository($this->db)->countAll());
-        $this->assertSame(0, $this->sendMessageCount());
+        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $this->assertNotNull($gameId, 'Expected the game to be created despite the unrecognized venue');
+
+        $title = new GameRepository($this->db)->findById($gameId)['title'];
+        $this->assertNull(KnownVenues::findInTitle($title));
     }
 
     public function testReprocessingIsANoOp(): void
@@ -206,12 +247,10 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
     private function dmSendUpdate(?string $venueName): TelegramUpdate
     {
-        $callbackData = NewGameCallbackData::create(NewGameCallbackAction::Send);
-        if (null !== $venueName) {
-            $callbackData = $callbackData->withVenueName($venueName);
-        }
-
-        return $this->dmCallbackUpdate($callbackData->toJson(), $this->wizardText($venueName));
+        return $this->dmCallbackUpdate(
+            NewGameCallbackData::create(NewGameCallbackAction::Send)->toJson(),
+            $this->wizardText($venueName),
+        );
     }
 
     private function dmCallbackUpdate(string $data, ?string $text = null): TelegramUpdate
@@ -250,17 +289,21 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
                     'date' => 1700000000,
                     'text' => $text ?? $this->wizardText($venueName),
                 ],
-                'data' => NewGameCallbackData::create(NewGameCallbackAction::Send)->withVenueName($venueName)->toJson(),
+                'data' => NewGameCallbackData::create(NewGameCallbackAction::Send)->toJson(),
             ],
         ]);
     }
 
     // The exact confirm-page text the wizard renders (weekday, dd.mm — no year), with the
     // MarkdownV2 escaping stripped, as Telegram echoes it back in the callback.
-    private function wizardText(?string $venueName, string $language = Language::EN): string
+    private function wizardText(?string $venueName, string $language = Language::EN, ?int $playersPerNet = null): string
     {
+        $selection = null !== $playersPerNet
+            ? PlayersPerNetSelection::applied($playersPerNet)
+            : PlayersPerNetSelection::pending(PlayersPerNetSelection::DEFAULT);
+
         $message = new NewGameConfirmMessageBuilder(new Translator($language, tempnam(sys_get_temp_dir(), 'bvb_missing_')))
-            ->build(new DateTimeImmutable(self::PICKED_DATE), self::PICKED_TIME, $venueName);
+            ->build(new DateTimeImmutable(self::PICKED_DATE), self::PICKED_TIME, $venueName, $selection);
 
         return str_replace('\\', '', $message->getText()->getMessageText());
     }

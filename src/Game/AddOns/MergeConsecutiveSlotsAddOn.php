@@ -7,6 +7,9 @@ namespace BeachVolleybot\Game\AddOns;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\Roster\Position;
+use BeachVolleybot\Game\Roster\PositionInterface;
+use BeachVolleybot\Game\Roster\PositionRange;
 
 /**
  * Merges consecutive slots belonging to the same user into a single entry.
@@ -24,23 +27,15 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
 
     private static function plusCount(UserInterface $user, int $appearance): int
     {
-        $number = $user->getNumber();
-
-        if (str_contains($number, '-')) {
-            $parts = explode('-', $number);
-
-            return (int)$parts[1] - (int)$parts[0] + 1;
-        }
-
-        return 1;
+        return $user->getPosition()->slotCount();
     }
 
     /**
      * @param UserInterface[] $users
      *
-     * @return UserInterface[]
+     * @return list<UserInterface>
      */
-    private function mergeConsecutive(array $users): array
+    public function mergeConsecutive(array $users): array
     {
         $groups = $this->groupConsecutive($users);
 
@@ -77,7 +72,7 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
 
         return new User(
             telegramUserId: $first->getTelegramUserId(),
-            number: $this->buildNumber($first, $last),
+            position: $this->mergePositions($first->getPosition(), $last->getPosition()),
             name: $first->getName(),
             link: $first->getLink(),
             volleyball: $first->getVolleyball(),
@@ -86,12 +81,15 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
         );
     }
 
-    private function buildNumber(UserInterface $first, UserInterface $last): string
+    private function mergePositions(PositionInterface $first, PositionInterface $last): PositionInterface
     {
-        if ($first === $last) {
-            return $first->getNumber();
+        $firstSlot = $first->first();
+        $lastSlot = $last->last();
+
+        if ($firstSlot === $lastSlot) {
+            return new Position($firstSlot);
         }
 
-        return $first->getNumber() . '-' . $last->getNumber();
+        return new PositionRange($firstSlot, $lastSlot);
     }
 }

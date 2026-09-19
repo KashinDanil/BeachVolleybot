@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Game;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\GameFactory;
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use RuntimeException;
@@ -56,6 +57,23 @@ final class GameFactoryTest extends DatabaseTestCase
         GameFactory::fromGameId(999);
     }
 
+    public function testSettingsReachTheModel(): void
+    {
+        $gameId = $this->createGame();
+        $this->setGameSettings($gameId, new GameSettings(playersPerNet: 6));
+
+        $game = GameFactory::fromGameId($gameId);
+
+        $this->assertSame(6, $game->getSettings()->playersPerNet);
+    }
+
+    public function testAGameWithoutSettingsCarriesEmptyOnes(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->assertNull(GameFactory::fromGameId($gameId)->getSettings()->playersPerNet);
+    }
+
     // --- Users ---
 
     public function testGameWithNoUsersHasEmptyArray(): void
@@ -76,7 +94,7 @@ final class GameFactoryTest extends DatabaseTestCase
 
         $user = GameFactory::fromGameId($gameId)->getUsers()[0];
 
-        $this->assertSame('1', $user->getNumber());
+        $this->assertSame('1', $user->getPosition()->format());
         $this->assertSame('Alice Smith', $user->getName());
         $this->assertSame('https://t.me/alice', $user->getLink());
         $this->assertSame('19:30', $user->getTime());

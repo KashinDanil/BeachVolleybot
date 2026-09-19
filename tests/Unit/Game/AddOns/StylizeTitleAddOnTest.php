@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Unit\Game\AddOns;
 use BeachVolleybot\Game\AddOns\StylizeTitleAddOn;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Roster\Position;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -156,7 +157,7 @@ final class StylizeTitleAddOnTest extends TestCase
     public function testUserAttributesPreserved(): void
     {
         $game = $this->game(users: [
-            $this->user(telegramUserId: 42, number: '3', name: 'Alice', link: 'https://t.me/alice', volleyball: 2, net: 1, time: '20:00'),
+            $this->user(telegramUserId: 42, number: 3, name: 'Alice', link: 'https://t.me/alice', volleyball: 2, net: 1, time: '20:00'),
         ]);
 
         $this->transform($game);
@@ -164,7 +165,7 @@ final class StylizeTitleAddOnTest extends TestCase
         $user = $game->users[0];
 
         $this->assertSame(42, $user->getTelegramUserId());
-        $this->assertSame('3', $user->getNumber());
+        $this->assertSame('3', $user->getPosition()->format());
         $this->assertSame('Alice', $user->getName());
         $this->assertSame('https://t.me/alice', $user->getLink());
         $this->assertSame(2, $user->getVolleyball());
@@ -215,7 +216,7 @@ final class StylizeTitleAddOnTest extends TestCase
 
     private function user(
         int $telegramUserId = 1,
-        string $number = '1',
+        int $number = 1,
         string $name = 'Alice',
         ?string $link = null,
         int $volleyball = 0,
@@ -224,7 +225,7 @@ final class StylizeTitleAddOnTest extends TestCase
     ): User {
         return new User(
             telegramUserId: $telegramUserId,
-            number: $number,
+            position: new Position($number),
             name: $name,
             link: $link,
             volleyball: $volleyball,

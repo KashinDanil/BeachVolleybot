@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Telegram\MessageBuilders\NewGameLocationPickerMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NewGameVenuePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Rules\ResolvableDateRule;
@@ -29,8 +29,8 @@ class NewGameVenuePageProcessor extends AbstractNewGameStepProcessor
             return;
         }
 
-        $picker = new NewGameLocationPickerMessageBuilder($this->translator($callbackQuery))
-            ->build($this->parseDate($text), $this->parseTime($text), $this->callbackData->getPage());
+        $picker = new NewGameVenuePickerMessageBuilder($this->translator($callbackQuery))
+            ->build($this->parseDate($text), $this->parseTime($text), $this->callbackData->getPage(), $this->parsePlayersPerNet($text));
 
         $this->editWizard($callbackQuery, $picker);
         $this->answerCallbackQuery($callbackQuery, '');

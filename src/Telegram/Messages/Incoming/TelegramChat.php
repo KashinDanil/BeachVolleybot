@@ -34,7 +34,12 @@ readonly class TelegramChat
 
     public function isGroupChat(): bool
     {
-        return $this->isGroup() || $this->isSupergroup();
+        return self::isGroupChatType($this->type);
+    }
+
+    public static function isGroupChatType(?string $type): bool
+    {
+        return self::TYPE_GROUP === $type || self::TYPE_SUPERGROUP === $type;
     }
 
     public static function fromArray(array $data): self

@@ -25,4 +25,9 @@ readonly class TelegramInlineQuery
             chatType: $data['chat_type'] ?? null,
         );
     }
+
+    public function isGroupChat(): bool
+    {
+        return TelegramChat::isGroupChatType($this->chatType);
+    }
 }

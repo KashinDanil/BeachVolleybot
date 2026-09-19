@@ -13,29 +13,35 @@ use DateTimeImmutable;
 
 final class NewGameConfirmMessageBuilder extends AbstractNewGameMessageBuilder
 {
-    public const string LABEL_POST = 'Post';
+    public const string LABEL_POST     = 'Post';
+    public const string LABEL_DECREASE = '←';
+    public const string LABEL_INCREASE = '→';
 
-    public function build(DateTimeImmutable $date, string $time, ?string $venueName): TelegramMessage
+    private const string PLAYERS_EMOJI = '👥';
+    private const string REMOVE_EMOJI  = '🗑';
+
+    public function build(DateTimeImmutable $date, string $time, ?string $venueName, PlayersPerNetSelection $selection): TelegramMessage
     {
         return $this->buildMessage(
-            $this->formText->buildConfirmStep($date, $time, $venueName),
-            $this->buildKeyboard($venueName),
+            $this->formText->buildConfirmStep($date, $time, $venueName, $selection->appliedValue()),
+            $this->buildKeyboard($selection),
         );
     }
 
-    private function buildKeyboard(?string $venueName): array
+    private function buildKeyboard(PlayersPerNetSelection $selection): array
     {
         $keyboard = [
             [
                 $this->buildActionButton(
                     $this->translator->translate(self::LABEL_POST),
-                    $this->venueCallbackData(NewGameCallbackAction::Send, $venueName),
+                    $this->callbackData(NewGameCallbackAction::Send),
                 InlineButtonStyle::SUCCESS,
                 )
             ],
+            $this->playersPerNetRow($selection),
         ];
 
-        $languageRow = $this->languageRow($venueName);
+        $languageRow = $this->languageRow($selection);
 
         if (null !== $languageRow) {
             $keyboard[] = $languageRow;
@@ -49,7 +55,54 @@ final class NewGameConfirmMessageBuilder extends AbstractNewGameMessageBuilder
         return $keyboard;
     }
 
-    private function languageRow(?string $venueName): ?array
+    private function playersPerNetRow(PlayersPerNetSelection $selection): array
+    {
+        $row = [];
+
+        if ($selection->canDecrease()) {
+            $row[] = $this->buildActionButton(
+                self::LABEL_DECREASE,
+                $this->playersPerNetCallbackData(NewGameCallbackAction::AdjustPlayersPerNet, $selection->decreased()->value()),
+            );
+        }
+
+        $row[] = $this->buildActionButton(
+            $this->middleButtonLabel($selection),
+            $this->middleButtonCallbackData($selection),
+        );
+
+        if ($selection->canIncrease()) {
+            $row[] = $this->buildActionButton(
+                self::LABEL_INCREASE,
+                $this->playersPerNetCallbackData(NewGameCallbackAction::AdjustPlayersPerNet, $selection->increased()->value()),
+            );
+        }
+
+        return $row;
+    }
+
+    private function middleButtonLabel(PlayersPerNetSelection $selection): string
+    {
+        if ($selection->isApplied()) {
+            return self::REMOVE_EMOJI;
+        }
+
+        return self::PLAYERS_EMOJI . ' ' . $selection->value();
+    }
+
+    private function middleButtonCallbackData(PlayersPerNetSelection $selection): NewGameCallbackData
+    {
+        $action = $selection->isApplied() ? NewGameCallbackAction::RemovePlayersPerNet : NewGameCallbackAction::SetPlayersPerNet;
+
+        return $this->playersPerNetCallbackData($action, $selection->value());
+    }
+
+    private function playersPerNetCallbackData(NewGameCallbackAction $action, int $playersPerNet): NewGameCallbackData
+    {
+        return $this->callbackData($action)->withPlayersPerNet($playersPerNet);
+    }
+
+    private function languageRow(PlayersPerNetSelection $selection): ?array
     {
         $row = [];
 
@@ -62,7 +115,9 @@ final class NewGameConfirmMessageBuilder extends AbstractNewGameMessageBuilder
 
             $row[] = $this->buildActionButton(
                 ucfirst($language),
-                $this->venueCallbackData(NewGameCallbackAction::SetLanguage, $venueName)->withLanguage($language),
+                $this->callbackData(NewGameCallbackAction::SetLanguage)
+                    ->withLanguage($language)
+                    ->withPlayersPerNet($selection->value()),
             );
         }
 
@@ -71,16 +126,5 @@ final class NewGameConfirmMessageBuilder extends AbstractNewGameMessageBuilder
         }
 
         return $row;
-    }
-
-    private function venueCallbackData(NewGameCallbackAction $action, ?string $venueName): NewGameCallbackData
-    {
-        $callbackData = $this->callbackData($action);
-
-        if (null !== $venueName) {
-            return $callbackData->withVenueName($venueName);
-        }
-
-        return $callbackData;
     }
 }

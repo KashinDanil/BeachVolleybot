@@ -16,12 +16,12 @@ final class NewGameTimePickerMessageBuilder extends AbstractNewGameMessageBuilde
     private const int HOURS_PER_PAGE = 6;
     private const array MINUTES     = [0, 15, 30, 45];
 
-    public function build(DateTimeImmutable $date, int $page): TelegramMessage
+    public function build(DateTimeImmutable $date, int $page, ?int $playersPerNet = null): TelegramMessage
     {
         $pagination = new KeyboardPagination(self::TOTAL_HOURS, self::HOURS_PER_PAGE, $page);
 
         return $this->buildMessage(
-            $this->formText->buildTimeStep($date),
+            $this->formText->buildTimeStep($date, $playersPerNet),
             $this->buildKeyboard($pagination),
         );
     }

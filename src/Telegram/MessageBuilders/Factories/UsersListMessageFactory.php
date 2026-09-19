@@ -13,6 +13,7 @@ final class UsersListMessageFactory
 {
     public static function build(int $gameId, int $page): TelegramMessage
     {
+        // addOns: [] skips merging/stylizing/weather, not promotion — that runs upstream in GameBuilder.
         $game = GameFactory::tryFromGameId($gameId, addOns: []);
 
         if (null === $game) {

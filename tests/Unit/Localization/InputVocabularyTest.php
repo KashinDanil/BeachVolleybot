@@ -6,14 +6,16 @@ namespace BeachVolleybot\Tests\Unit\Localization;
 
 use BeachVolleybot\Common\Extractors\DateExtractor;
 use BeachVolleybot\Common\Extractors\DayOfWeekExtractor;
-use BeachVolleybot\Localization\CalendarVocabulary;
+use BeachVolleybot\Common\Extractors\PlayersPerNetExtractor;
+use BeachVolleybot\Localization\InputVocabulary;
 use BeachVolleybot\Localization\Translator;
+use BeachVolleybot\Weather\Location\KnownVenues;
 use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-final class CalendarVocabularyTest extends TestCase
+final class InputVocabularyTest extends TestCase
 {
     private const string LOCALIZATION_DIR = __DIR__ . '/../../../localization';
 
@@ -29,7 +31,7 @@ final class CalendarVocabularyTest extends TestCase
     public function testTheBotReadsExactlyTheLanguagesItWrites(): void
     {
         $written = Translator::supportedLanguages();
-        $read = CalendarVocabulary::languages();
+        $read = InputVocabulary::languages();
 
         sort($written);
         sort($read);
@@ -47,12 +49,12 @@ final class CalendarVocabularyTest extends TestCase
         $this->assertEmpty(array_diff($months, $weekdays), 'Named months but no weekdays: ' . implode(', ', array_diff($months, $weekdays)));
     }
 
-    public function testOrdinalsAndPrepositionsBelongToDeclaredLanguages(): void
+    public function testWordListsBelongToDeclaredLanguages(): void
     {
         $vocabulary = self::vocabulary();
 
-        foreach (['ORDINALS', 'PREPOSITIONS'] as $kind) {
-            $unknown = array_diff(array_keys($vocabulary[$kind]), CalendarVocabulary::languages());
+        foreach (['ORDINALS', 'PREPOSITIONS', 'SLOT_NOUNS', 'NET_NOUNS', 'PER_PREPOSITIONS'] as $kind) {
+            $unknown = array_diff(array_keys($vocabulary[$kind]), InputVocabulary::languages());
 
             $this->assertEmpty($unknown, "$kind covers languages with no weekday or month names: " . implode(', ', $unknown));
         }
@@ -75,14 +77,14 @@ final class CalendarVocabularyTest extends TestCase
     {
         $now = new DateTimeImmutable('2026-01-15');
 
-        foreach (CalendarVocabulary::ordinals() as $ordinal) {
+        foreach (InputVocabulary::ordinals() as $ordinal) {
             $title = "Game 11$ordinal April";
 
             $this->assertSame("11$ordinal April", DateExtractor::extract($title), "'$ordinal' is declared but not read");
             $this->assertSame(4, (int) DateExtractor::resolveDate($title, $now)?->format('n'), "'$ordinal' breaks the month");
         }
 
-        foreach (CalendarVocabulary::prepositions() as $preposition) {
+        foreach (InputVocabulary::prepositions() as $preposition) {
             $title = "Game 11 $preposition April";
 
             $this->assertSame("11 $preposition April", DateExtractor::extract($title), "'$preposition' is declared but not read");
@@ -90,11 +92,71 @@ final class CalendarVocabularyTest extends TestCase
         }
     }
 
+    public function testEveryPlayersPerNetWordIsRead(): void
+    {
+        foreach (InputVocabulary::slotNouns() as $slotNoun) {
+            $title = "Game 6 $slotNoun per net";
+
+            $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$slotNoun' is declared but not read");
+        }
+
+        foreach (InputVocabulary::netNouns() as $netNoun) {
+            $title = "Game 6 spots per $netNoun";
+
+            $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$netNoun' is declared but not read");
+        }
+
+        foreach (InputVocabulary::perPrepositions() as $perPreposition) {
+            $title = "Game 6 spots $perPreposition net";
+
+            $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$perPreposition' is declared but not read");
+        }
+    }
+
+    public function testNewVocabularyDoesNotCollideWithWeekdaysOrMonths(): void
+    {
+        $newWords = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions()];
+        $named = [...array_keys(InputVocabulary::weekdays()), ...array_keys(InputVocabulary::months())];
+
+        $collisions = array_intersect($newWords, $named);
+
+        $this->assertEmpty($collisions, 'Also named as a weekday or month: ' . implode(', ', $collisions));
+    }
+
+    public function testNoWordAppearsInTwoOfTheNewLists(): void
+    {
+        $lists = [
+            'SLOT_NOUNS' => InputVocabulary::slotNouns(),
+            'NET_NOUNS' => InputVocabulary::netNouns(),
+            'PER_PREPOSITIONS' => InputVocabulary::perPrepositions(),
+        ];
+
+        foreach ($lists as $kindA => $wordsA) {
+            foreach ($lists as $kindB => $wordsB) {
+                if ($kindA === $kindB) {
+                    continue;
+                }
+
+                $collisions = array_intersect($wordsA, $wordsB);
+                $this->assertEmpty($collisions, "$kindA and $kindB both declare: " . implode(', ', $collisions));
+            }
+        }
+    }
+
+    public function testNoNewWordIsMistakenForAVenue(): void
+    {
+        $words = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions()];
+
+        foreach ($words as $word) {
+            $this->assertNull(KnownVenues::findInTitle($word), "'$word' is read back as a venue");
+        }
+    }
+
     public function testEveryWeekdayIsExtractedAsTheDayItDeclares(): void
     {
         $monday = new DateTimeImmutable('2026-01-05');
 
-        foreach (CalendarVocabulary::weekdays() as $name => $isoDay) {
+        foreach (InputVocabulary::weekdays() as $name => $isoDay) {
             $title = "Game $name 18:00";
 
             $this->assertSame($name, DayOfWeekExtractor::extract($title), "'$name' is declared but not extracted");
@@ -110,7 +172,7 @@ final class CalendarVocabularyTest extends TestCase
     {
         $now = new DateTimeImmutable('2026-01-15');
 
-        foreach (CalendarVocabulary::months() as $name => $month) {
+        foreach (InputVocabulary::months() as $name => $month) {
             $title = "Game 11 $name";
 
             $this->assertSame("11 $name", DateExtractor::extract($title), "'$name' is declared but not extracted");
@@ -138,7 +200,7 @@ final class CalendarVocabularyTest extends TestCase
             }
         }
 
-        $ambiguous = array_intersect_key(CalendarVocabulary::weekdays(), CalendarVocabulary::months());
+        $ambiguous = array_intersect_key(InputVocabulary::weekdays(), InputVocabulary::months());
 
         $this->assertEmpty($ambiguous, 'Read as both a day and a month: ' . implode(', ', array_keys($ambiguous)));
     }
@@ -215,9 +277,9 @@ final class CalendarVocabularyTest extends TestCase
     /** @return array<string, array<string, array<array-key, int|string>>> kind => language => entries */
     private static function vocabulary(): array
     {
-        $constants = new ReflectionClass(CalendarVocabulary::class)->getConstants();
+        $constants = new ReflectionClass(InputVocabulary::class)->getConstants();
 
-        return array_intersect_key($constants, array_flip(['WEEKDAYS', 'MONTHS', 'ORDINALS', 'PREPOSITIONS']));
+        return array_intersect_key($constants, array_flip(['WEEKDAYS', 'MONTHS', 'ORDINALS', 'PREPOSITIONS', 'SLOT_NOUNS', 'NET_NOUNS', 'PER_PREPOSITIONS']));
     }
 
     /**

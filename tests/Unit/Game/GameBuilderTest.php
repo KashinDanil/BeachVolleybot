@@ -68,7 +68,7 @@ final class GameBuilderTest extends TestCase
             userRows: [$this->userRow()],
         );
 
-        $this->assertSame('3', $game->getUsers()[0]->getNumber());
+        $this->assertSame('3', $game->getUsers()[0]->getPosition()->format());
     }
 
     public function testSingleUserVolleyballAndNet(): void
@@ -177,9 +177,9 @@ final class GameBuilderTest extends TestCase
         $users = $game->getUsers();
 
         $this->assertCount(2, $users);
-        $this->assertSame('1', $users[0]->getNumber());
+        $this->assertSame('1', $users[0]->getPosition()->format());
         $this->assertSame('Alice', $users[0]->getName());
-        $this->assertSame('2', $users[1]->getNumber());
+        $this->assertSame('2', $users[1]->getPosition()->format());
         $this->assertSame('Bob', $users[1]->getName());
     }
 
@@ -203,8 +203,8 @@ final class GameBuilderTest extends TestCase
         $users = $game->getUsers();
 
         $this->assertCount(2, $users);
-        $this->assertSame('1', $users[0]->getNumber());
-        $this->assertSame('3', $users[1]->getNumber());
+        $this->assertSame('1', $users[0]->getPosition()->format());
+        $this->assertSame('3', $users[1]->getPosition()->format());
         $this->assertSame('Alice', $users[0]->getName());
         $this->assertSame('Alice', $users[1]->getName());
     }

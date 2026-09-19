@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Common\Extractors;
 
-use BeachVolleybot\Localization\CalendarVocabulary;
+use BeachVolleybot\Localization\InputVocabulary;
 use DateTimeImmutable;
 
 final class DayOfWeekExtractor implements ExtractorInterface
@@ -13,7 +13,7 @@ final class DayOfWeekExtractor implements ExtractorInterface
 
     public static function pattern(): string
     {
-        return self::$pattern ??= '/(*UCP)\b(?:' . implode('|', array_keys(CalendarVocabulary::weekdays())) . ')\b/iu';
+        return self::$pattern ??= '/(*UCP)\b(?:' . implode('|', array_keys(InputVocabulary::weekdays())) . ')\b/iu';
     }
 
     public static function extract(string $text): ?string
@@ -47,6 +47,6 @@ final class DayOfWeekExtractor implements ExtractorInterface
 
     private static function toIsoDayNumber(string $matched): ?int
     {
-        return CalendarVocabulary::weekdays()[mb_strtolower($matched)] ?? null;
+        return InputVocabulary::weekdays()[mb_strtolower($matched)] ?? null;
     }
 }

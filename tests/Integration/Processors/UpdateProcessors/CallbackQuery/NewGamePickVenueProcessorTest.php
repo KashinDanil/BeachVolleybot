@@ -8,12 +8,10 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickVenueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameConfirmMessageBuilder;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameLocationPickerMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NewGameVenuePickerMessageBuilder;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
-use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 
 final class NewGamePickVenueProcessorTest extends ProcessorTestCase
@@ -36,7 +34,7 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->assertSame(0, $this->sendMessageCount(), 'No game message must be posted before Send is pressed');
     }
 
-    public function testShowsTheConfirmPageWithNoLocationLineWhenVenueIsSkipped(): void
+    public function testShowsTheConfirmPageWithNoVenueLineWhenVenueIsSkipped(): void
     {
         $this->runProcessor($this->dmCallbackUpdate(NewGameCallbackData::create(NewGameCallbackAction::SkipVenue)->toJson()));
 
@@ -49,7 +47,7 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
 
     public function testRestartsTheWizardWhenTheKickoffDayHasAlreadyPassed(): void
     {
-        // The wizard can sit on the location step for days; by the time the location is
+        // The wizard can sit on the venue step for days; by the time the venue is
         // picked the chosen date may be in the past, so the wizard rewinds to step 1.
         $update = $this->dmCallbackUpdate(
             NewGameCallbackData::create(NewGameCallbackAction::PickVenue)->withVenueName('Bogatell')->toJson(),
@@ -71,51 +69,28 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->assertTrue($this->calledApi('editEphemeralMessageText'), 'Expected the ephemeral wizard message to be edited to the confirm page');
     }
 
-    public function testSwitchingLanguageRedrawsTheConfirmPageInTheNewOne(): void
+    public function testRestoresAnAppliedLimitReadBackFromTheVenueStepsOwnText(): void
     {
+        // Back off the confirm page carries the limit forward into the venue step's own
+        // 👥 row (see NewGameVenuePageProcessorTest) — this reads it back from there, not
+        // from the callback, the same way it already reads the date and time.
         $update = $this->dmCallbackUpdate(
-            NewGameCallbackData::create(NewGameCallbackAction::SetLanguage)
-                ->withVenueName('Bogatell')
-                ->withLanguage(Language::RU)
-                ->toJson(),
-            $this->confirmText(Language::EN),
+            NewGameCallbackData::create(NewGameCallbackAction::PickVenue)->withVenueName('Bogatell')->toJson(),
+            $this->wizardText(8),
         );
 
         $this->runProcessor($update);
 
         $text = $this->editedText();
-        $this->assertNotNull($text);
-        $this->assertStringContainsString('шаг 4 из 4', $text);
-        $this->assertStringContainsString('Четверг, 31.12', $text);
-        $this->assertStringContainsString(self::PICKED_TIME, $text);
-        $this->assertStringContainsString('Bogatell', $text);
+        $this->assertStringContainsString('👥 8 players per net', $text);
     }
 
-    public function testSwitchingAwayFromATranslatedPageKeepsTheRunningSelection(): void
+    public function testStartsUnsetWhenNoLimitWasCarried(): void
     {
-        $update = $this->dmCallbackUpdate(
-            NewGameCallbackData::create(NewGameCallbackAction::SetLanguage)
-                ->withVenueName('Bogatell')
-                ->withLanguage(Language::EN)
-                ->toJson(),
-            $this->confirmText(Language::RU),
-        );
-
-        $this->runProcessor($update);
+        $this->runProcessor($this->dmPickVenueUpdate('Bogatell'));
 
         $text = $this->editedText();
-        $this->assertNotNull($text);
-        $this->assertStringContainsString('Step 4 of 4', $text);
-        $this->assertStringContainsString('Thursday, 31.12', $text);
-        $this->assertStringContainsString(self::PICKED_TIME, $text);
-    }
-
-    private function confirmText(string $language): string
-    {
-        $message = new NewGameConfirmMessageBuilder(new Translator($language, tempnam(sys_get_temp_dir(), 'bvb_missing_')))
-            ->build(new DateTimeImmutable(self::PICKED_DATE), self::PICKED_TIME, 'Bogatell');
-
-        return str_replace('\\', '', $message->getText()->getMessageText());
+        $this->assertStringNotContainsString('👥', $text);
     }
 
     private function runProcessor(TelegramUpdate $update): void
@@ -172,17 +147,17 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         ]);
     }
 
-    // The exact location-picker text the wizard renders (weekday, dd.mm — no year), with the
+    // The exact venue-picker text the wizard renders (weekday, dd.mm — no year), with the
     // MarkdownV2 escaping stripped, as Telegram echoes it back in the callback.
-    private function wizardText(): string
+    private function wizardText(?int $playersPerNet = null): string
     {
-        $message = new NewGameLocationPickerMessageBuilder(new Translator())
-            ->build(new DateTimeImmutable(self::PICKED_DATE), self::PICKED_TIME);
+        $message = new NewGameVenuePickerMessageBuilder(new Translator())
+            ->build(new DateTimeImmutable(self::PICKED_DATE), self::PICKED_TIME, playersPerNet: $playersPerNet);
 
         return str_replace('\\', '', $message->getText()->getMessageText());
     }
 
-    // A location-step text whose kickoff day is unambiguously in the past (absolute date,
+    // A venue-step text whose kickoff day is unambiguously in the past (absolute date,
     // per the fixture-date rule), as if the wizard had been left open past the picked day.
     private function staleWizardText(): string
     {

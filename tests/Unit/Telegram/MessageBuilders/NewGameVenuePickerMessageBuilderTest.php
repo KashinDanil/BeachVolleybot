@@ -9,7 +9,7 @@ use BeachVolleybot\Common\GameDateResolver;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameLocationPickerMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NewGameVenuePickerMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameTimePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Weather\Location\KnownVenues;
@@ -17,15 +17,15 @@ use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
-final class NewGameLocationPickerMessageBuilderTest extends TestCase
+final class NewGameVenuePickerMessageBuilderTest extends TestCase
 {
     private const string TIME = '18:30';
 
-    private NewGameLocationPickerMessageBuilder $builder;
+    private NewGameVenuePickerMessageBuilder $builder;
 
     protected function setUp(): void
     {
-        $this->builder = new NewGameLocationPickerMessageBuilder(new Translator());
+        $this->builder = new NewGameVenuePickerMessageBuilder(new Translator());
     }
 
     public function testFirstPageHasFiveVenuesThenSkipThenNextOnly(): void
@@ -136,6 +136,33 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
         $this->assertSame(self::TIME, TimeExtractor::extract($displayText));
     }
 
+    // --- carrying a previously applied players-per-net limit ---
+
+    public function testNoButtonEverCarriesTheLimit(): void
+    {
+        // A limit already applied rides in the 👥 row of this page's own text — see
+        // testCarriesForwardAnAlreadyAppliedLimit below — not on any of its buttons.
+        $keyboard = $this->extractKeyboard($this->buildWithLimit(1, 8));
+
+        foreach (array_merge(...$keyboard) as $button) {
+            $this->assertNull(NewGameCallbackData::fromJson($button['callback_data'])->getPlayersPerNet(), "'{$button['text']}' unexpectedly carries the limit");
+        }
+    }
+
+    public function testCarriesForwardAnAlreadyAppliedLimit(): void
+    {
+        $text = str_replace('\\', '', $this->buildWithLimit(1, 8)->getText()->getMessageText());
+
+        $this->assertStringContainsString('👥 8 players per net', $text);
+    }
+
+    public function testOmitsThePlayersRowWhenNoLimitWasApplied(): void
+    {
+        $text = str_replace('\\', '', $this->build(1)->getText()->getMessageText());
+
+        $this->assertStringNotContainsString('👥', $text);
+    }
+
     public function testEveryButtonCarriesTheChosenLanguage(): void
     {
         $keyboard = $this->extractKeyboard($this->russianBuilder()->build(new DateTimeImmutable('2099-12-31'), self::TIME, 1));
@@ -147,14 +174,19 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
         }
     }
 
-    private function russianBuilder(): NewGameLocationPickerMessageBuilder
+    private function russianBuilder(): NewGameVenuePickerMessageBuilder
     {
-        return new NewGameLocationPickerMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
+        return new NewGameVenuePickerMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
     }
 
     private function build(int $page): TelegramMessage
     {
         return $this->builder->build(new DateTimeImmutable('2099-12-31'), self::TIME, $page);
+    }
+
+    private function buildWithLimit(int $page, int $playersPerNet): TelegramMessage
+    {
+        return $this->builder->build(new DateTimeImmutable('2099-12-31'), self::TIME, $page, $playersPerNet);
     }
 
     private function navigationRow(array $keyboard): array

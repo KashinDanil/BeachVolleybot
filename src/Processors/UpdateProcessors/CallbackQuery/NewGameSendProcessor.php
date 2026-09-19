@@ -32,7 +32,8 @@ class NewGameSendProcessor extends AbstractVenueSelectionStepProcessor
 
         $date = $this->parseDate($text);
         $time = $this->parseTime($text);
-        $venue = $this->resolveVenue();
+        $venue = $this->parseVenue($text);
+        $playersPerNet = $this->parsePlayersPerNet($text);
 
         $chatId = $wizardMessage->chat->id;
         $gameKey = $this->resolveGameKey($wizardMessage, $chatId);
@@ -46,7 +47,7 @@ class NewGameSendProcessor extends AbstractVenueSelectionStepProcessor
 
         $translator = $this->translator($callbackQuery);
         $title = new NewGameFormText($translator, new PlainText())
-            ->buildGameTitle($date, $time, $venue?->name);
+            ->buildGameTitle($date, $time, $venue?->name, $playersPerNet);
         $newGameData = NewGameData::fromUser($callbackQuery->from, $title, $gameKey);
 
         $postedGame = new GameMessagePoster($this->telegramSender, $gameManager)

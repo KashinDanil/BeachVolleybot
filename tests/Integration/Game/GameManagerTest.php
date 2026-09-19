@@ -13,6 +13,8 @@ use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
+use BeachVolleybot\Game\GameSettings;
+use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
 use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
@@ -21,6 +23,7 @@ use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 final class GameManagerTest extends DatabaseTestCase
 {
@@ -386,6 +389,220 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('55.751244,37.618423', $game['location']);
     }
 
+    // --- settings ---
+
+    public function testSetPlayersPerNetPersistsTheLimit(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testSetPlayersPerNetReplacesAnEarlierLimit(): void
+    {
+        $gameId = $this->createGame();
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        $this->gameManager->setPlayersPerNet($gameId, 8);
+
+        $this->assertSame(8, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testSetPlayersPerNetNullClearsTheLimit(): void
+    {
+        $gameId = $this->createGame();
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        $this->gameManager->setPlayersPerNet($gameId, null);
+
+        $this->assertNull($this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testSetPlayersPerNetReadsTheStoredSettingsBeforeWriting(): void
+    {
+        $gameId = $this->createGame();
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        $selects = $this->selectsAgainstGames($this->queriesDuring(
+            fn() => $this->gameManager->setPlayersPerNet($gameId, 8),
+        ));
+
+        $this->assertNotEmpty($selects);
+    }
+
+    public function testSetPlayersPerNetRejectsAValueBelowTheMinimum(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->gameManager->setPlayersPerNet($gameId, MinimumPlayersPerNetRule::MINIMUM - 1);
+    }
+
+    public function testSetPlayersPerNetRejectsZeroWhichWouldReserveTheWholeRoster(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->gameManager->setPlayersPerNet($gameId, 0);
+    }
+
+    public function testSetPlayersPerNetRejectsANegativeLimitThatWouldNeverApply(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->gameManager->setPlayersPerNet($gameId, -4);
+    }
+
+    public function testARejectedLimitLeavesTheStoredSettingsAlone(): void
+    {
+        $gameId = $this->createGame();
+        $this->gameManager->setPlayersPerNet($gameId, 6);
+
+        try {
+            $this->gameManager->setPlayersPerNet($gameId, 1);
+        } catch (InvalidArgumentException) {
+            // Swallowed on purpose; the assertion below is the point.
+        }
+
+        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testSetPlayersPerNetAcceptsTheMinimum(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->gameManager->setPlayersPerNet($gameId, MinimumPlayersPerNetRule::MINIMUM);
+
+        $this->assertSame(
+            MinimumPlayersPerNetRule::MINIMUM,
+            $this->gameRecord($gameId)->settings->playersPerNet,
+        );
+    }
+
+    public function testSetPlayersPerNetRoundTripsThroughTheGameRecord(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->gameManager->setPlayersPerNet($gameId, 4);
+
+        $this->assertEquals(new GameSettings(playersPerNet: 4), $this->gameRecord($gameId)->settings);
+    }
+
+    public function testCreateGameStoresPlayersPerNetFromTitle(): void
+    {
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Bogatell 31.12.2099 18:00, 6 мест на сетку',
+            'query_1',
+        ));
+
+        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testCreateGameWithBelowMinimumCountStoresNullWithoutThrowing(): void
+    {
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Bogatell 31.12.2099 18:00, 2 мест на сетку',
+            'query_1',
+        ));
+
+        $this->assertNull($this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testChangeTitleIntoThePhraseSetsTheLimit(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+
+        $this->gameManager->changeTitle(
+            $this->gameRecord($gameId),
+            200,
+            'Danil',
+            null,
+            null,
+            'Beach Saturday 20:00, 6 spots per net',
+        );
+
+        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    /** The load-bearing test for "the title is the sole source of truth". */
+    public function testChangeTitleOutOfThePhraseClearsTheLimit(): void
+    {
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Beach 18:00, 6 spots per net',
+            'query_1',
+        ));
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Beach Saturday 20:00');
+
+        $this->assertNull($this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testChangeTitleReplacesAnEarlierLimitFromTheTitle(): void
+    {
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Beach 18:00, 6 spots per net',
+            'query_1',
+        ));
+
+        $this->gameManager->changeTitle(
+            $this->gameRecord($gameId),
+            200,
+            'Danil',
+            null,
+            null,
+            'Beach Saturday 20:00, 8 spots per net',
+        );
+
+        $this->assertSame(8, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    /** No proposed time means changeTitle returns before touching anything, settings included. */
+    public function testChangeTitleWithNoTimeLeavesSettingsAlone(): void
+    {
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Beach 18:00, 6 spots per net',
+            'query_1',
+        ));
+
+        $this->gameManager->changeTitle(
+            $this->gameRecord($gameId),
+            200,
+            'Danil',
+            null,
+            null,
+            'Beach Saturday, 8 spots per net',
+        );
+
+        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testRecalculateGameTimeKeepsPlayersPerNetSettingAndPhrase(): void
+    {
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Bogatell 31.12.2099 18:00, 6 мест на сетку',
+            'query_1',
+        ));
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
+
+        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
+
+        $game = new GameRepository($this->db)->findById($gameId);
+        $this->assertSame('Bogatell 31.12.2099 16:00, 6 мест на сетку', $game['title']);
+        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
     // --- joinWithTime ---
 
     public function testJoinWithTimeCreatesNewUserWithTime(): void
@@ -543,6 +760,20 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertCount(1, $this->selectsAgainstGames($queries));
     }
 
+    /** Title, kickoff, venue and settings land in one UPDATE — not a title write plus a separate settings write. */
+    public function testChangeTitleWritesTitleAndSettingsInOneUpdate(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $gameRecord = $this->gameRecord($gameId);
+
+        $queries = $this->queriesDuring(function () use ($gameRecord) {
+            $this->gameManager->changeTitle($gameRecord, 200, 'Danil', null, null, 'Beach Saturday 20:00, 6 spots per net');
+        });
+
+        $this->assertCount(1, $this->updatesAgainstGames($queries));
+        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
     public function testChangeTitleWhenCreatorIsOnlyUserUsesProposedTime(): void
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
@@ -659,6 +890,18 @@ final class GameManagerTest extends DatabaseTestCase
         return array_values(array_filter(
             $queries,
             static fn(string $query): bool => str_starts_with($query, 'SELECT') && str_contains($query, '"games"'),
+        ));
+    }
+
+    /**
+     * @param  string[] $queries
+     * @return string[]
+     */
+    private function updatesAgainstGames(array $queries): array
+    {
+        return array_values(array_filter(
+            $queries,
+            static fn(string $query): bool => str_starts_with($query, 'UPDATE') && str_contains($query, '"games"'),
         ));
     }
 

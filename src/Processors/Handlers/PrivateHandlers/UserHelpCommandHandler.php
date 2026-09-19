@@ -16,7 +16,11 @@ final readonly class UserHelpCommandHandler extends AbstractDmQueueHandler
     {
         return $update->hasMessage()
             && $update->message->chat->isPrivate()
-            && (Command::Help->matches($update->message->text) || Command::Start->matches($update->message->text));
+            && (
+                Command::Help->matches($update->message->text)
+                || Command::HelpPrivate->matches($update->message->text)
+                || Command::Start->matches($update->message->text)
+            );
     }
 
     public function createProcessor(

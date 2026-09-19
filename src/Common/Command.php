@@ -7,10 +7,12 @@ namespace BeachVolleybot\Common;
 enum Command: string
 {
     case Help = '/help';
+    case HelpPrivate = '/help_private';
     case Start = '/start';
     case Settings = '/settings';
     case Games = '/games';
     case NewGame = '/new_game';
+    case NewGamePrivate = '/new_game_private';
 
     public function matches(?string $text): bool
     {
@@ -20,5 +22,10 @@ enum Command: string
     public function mention(): string
     {
         return $this->value . '@' . BOT_USERNAME;
+    }
+
+    public function forChat(bool $isGroupChat): string
+    {
+        return $isGroupChat ? $this->mention() : $this->value;
     }
 }

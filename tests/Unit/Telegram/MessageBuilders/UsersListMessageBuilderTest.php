@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Roster\Position;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\UsersListMessageBuilder;
 use PHPUnit\Framework\TestCase;
@@ -71,7 +72,7 @@ final class UsersListMessageBuilderTest extends TestCase
     {
         return new User(
             telegramUserId: $telegramUserId,
-            number: '1',
+            position: new Position(1),
             name: $name,
             link: null,
             volleyball: 0,

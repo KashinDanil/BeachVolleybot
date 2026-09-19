@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Database;
 
+use BeachVolleybot\Common\Extractors\PlayersPerNetExtractor;
 use BeachVolleybot\Common\GameDateTimeResolver;
+use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\User\Role;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
@@ -43,6 +46,7 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('010_add_kickoff_at_and_venue_name.sql');
         $this->applyMigration('011_require_kickoff_at.sql');
         $this->applyMigration('012_add_kickoff_at_index.sql');
+        $this->applyMigration('013_add_settings_json_to_games.sql');
     }
 
     /**
@@ -72,6 +76,7 @@ abstract class DatabaseTestCase extends TestCase
             'game_key' => $gameKey,
             'kickoff_at' => $kickoffAt ?? $this->resolveKickoffAt($title),
             'venue_name' => KnownVenues::findInTitle($title)?->name,
+            'settings_json' => $this->settingsJsonFromTitle($title),
         ]);
         $gameId = (int) $this->db->id();
 
@@ -87,7 +92,21 @@ abstract class DatabaseTestCase extends TestCase
             'title' => $title,
             'kickoff_at' => $this->resolveKickoffAt($title),
             'venue_name' => KnownVenues::findInTitle($title)?->name,
+            'settings_json' => $this->settingsJsonFromTitle($title),
         ], ['game_id' => $gameId]);
+    }
+
+    private function settingsJsonFromTitle(string $title): string
+    {
+        return json_encode(
+            new GameSettings(PlayersPerNetExtractor::resolvePlayersPerNet($title)),
+            JSON_THROW_ON_ERROR,
+        );
+    }
+
+    protected function setGameSettings(int $gameId, GameSettings $settings): void
+    {
+        new GameRepository($this->db)->updateSettings($gameId, $settings);
     }
 
     protected function resolveKickoffAt(string $title): string

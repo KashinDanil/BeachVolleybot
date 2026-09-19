@@ -159,11 +159,14 @@ final class VenueTimezoneTest extends DatabaseTestCase
         static $sequence = 0;
         $sequence++;
 
+        $parsedTitle = ParsedTitle::parse($title, new DateTimeImmutable());
+
         return $this->repository->create(
             $title,
             100,
             'query_' . $sequence,
-            ParsedTitle::parse($title, new DateTimeImmutable()),
+            $parsedTitle->kickoffAt,
+            $parsedTitle->venueName,
         );
     }
 

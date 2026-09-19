@@ -40,7 +40,7 @@ final class HelpMessageBuilder extends AbstractMessageBuilder
     {
         $newLine = $this->formatter->newLine();
         $blank = $newLine . $newLine;
-        $newGameCommand = $isGroupChat ? Command::NewGame->mention() : Command::NewGame->value;
+        $newGameCommand = Command::NewGame->forChat($isGroupChat);
 
         return $this->renderParagraph(sprintf($this->translator->translate(self::CREATE_PARAGRAPH), $botUsername))
             . $blank
