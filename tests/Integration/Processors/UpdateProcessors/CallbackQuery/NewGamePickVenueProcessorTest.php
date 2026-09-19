@@ -8,7 +8,7 @@ use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickVenueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameLocationPickerMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NewGameVenuePickerMessageBuilder;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -34,7 +34,7 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->assertSame(0, $this->sendMessageCount(), 'No game message must be posted before Send is pressed');
     }
 
-    public function testShowsTheConfirmPageWithNoLocationLineWhenVenueIsSkipped(): void
+    public function testShowsTheConfirmPageWithNoVenueLineWhenVenueIsSkipped(): void
     {
         $this->runProcessor($this->dmCallbackUpdate(NewGameCallbackData::create(NewGameCallbackAction::SkipVenue)->toJson()));
 
@@ -47,7 +47,7 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
 
     public function testRestartsTheWizardWhenTheKickoffDayHasAlreadyPassed(): void
     {
-        // The wizard can sit on the location step for days; by the time the location is
+        // The wizard can sit on the venue step for days; by the time the venue is
         // picked the chosen date may be in the past, so the wizard rewinds to step 1.
         $update = $this->dmCallbackUpdate(
             NewGameCallbackData::create(NewGameCallbackAction::PickVenue)->withVenueName('Bogatell')->toJson(),
@@ -69,9 +69,9 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->assertTrue($this->calledApi('editEphemeralMessageText'), 'Expected the ephemeral wizard message to be edited to the confirm page');
     }
 
-    public function testRestoresAnAppliedLimitReadBackFromTheLocationStepsOwnText(): void
+    public function testRestoresAnAppliedLimitReadBackFromTheVenueStepsOwnText(): void
     {
-        // Back off the confirm page carries the limit forward into the location step's own
+        // Back off the confirm page carries the limit forward into the venue step's own
         // 👥 row (see NewGameVenuePageProcessorTest) — this reads it back from there, not
         // from the callback, the same way it already reads the date and time.
         $update = $this->dmCallbackUpdate(
@@ -147,17 +147,17 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         ]);
     }
 
-    // The exact location-picker text the wizard renders (weekday, dd.mm — no year), with the
+    // The exact venue-picker text the wizard renders (weekday, dd.mm — no year), with the
     // MarkdownV2 escaping stripped, as Telegram echoes it back in the callback.
     private function wizardText(?int $playersPerNet = null): string
     {
-        $message = new NewGameLocationPickerMessageBuilder(new Translator())
+        $message = new NewGameVenuePickerMessageBuilder(new Translator())
             ->build(new DateTimeImmutable(self::PICKED_DATE), self::PICKED_TIME, playersPerNet: $playersPerNet);
 
         return str_replace('\\', '', $message->getText()->getMessageText());
     }
 
-    // A location-step text whose kickoff day is unambiguously in the past (absolute date,
+    // A venue-step text whose kickoff day is unambiguously in the past (absolute date,
     // per the fixture-date rule), as if the wizard had been left open past the picked day.
     private function staleWizardText(): string
     {

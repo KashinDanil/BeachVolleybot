@@ -10,7 +10,7 @@ use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Location\Venue;
 use DateTimeImmutable;
 
-final class NewGameLocationPickerMessageBuilder extends AbstractNewGameMessageBuilder
+final class NewGameVenuePickerMessageBuilder extends AbstractNewGameMessageBuilder
 {
     public const string SKIP_TEXT = 'Skip location';
 
@@ -23,7 +23,7 @@ final class NewGameLocationPickerMessageBuilder extends AbstractNewGameMessageBu
         $pagination = new KeyboardPagination(count($venues), self::VENUES_PER_PAGE, $page);
 
         return $this->buildMessage(
-            $this->formText->buildLocationStep($date, $time, $playersPerNet),
+            $this->formText->buildVenueStep($date, $time, $playersPerNet),
             $this->buildKeyboard($venues, $pagination),
         );
     }

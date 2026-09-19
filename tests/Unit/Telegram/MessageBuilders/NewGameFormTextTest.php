@@ -69,9 +69,9 @@ final class NewGameFormTextTest extends TestCase
         $this->assertStringContainsString('👥 8 players per net', $text);
     }
 
-    public function testLocationStepShowsStepThreeWithPickedDateAndTimeAndActiveLocationField(): void
+    public function testVenueStepShowsStepThreeWithPickedDateAndTimeAndActiveVenueField(): void
     {
-        $text = $this->displayText($this->formText->buildLocationStep($this->date, self::TIME, null));
+        $text = $this->displayText($this->formText->buildVenueStep($this->date, self::TIME, null));
 
         $this->assertStringContainsString('Step 3 of 4', $text);
         $this->assertStringContainsString('📅 Thursday, 31.12', $text);
@@ -79,18 +79,18 @@ final class NewGameFormTextTest extends TestCase
         $this->assertStringContainsString('📍 *pick a location below* 👇', $text);
     }
 
-    public function testLocationStepOmitsThePlayersRowWhenNoLimitWasApplied(): void
+    public function testVenueStepOmitsThePlayersRowWhenNoLimitWasApplied(): void
     {
-        $text = $this->displayText($this->formText->buildLocationStep($this->date, self::TIME, null));
+        $text = $this->displayText($this->formText->buildVenueStep($this->date, self::TIME, null));
 
         $this->assertStringNotContainsString('👥', $text);
     }
 
-    public function testLocationStepCarriesForwardAnAlreadyAppliedLimit(): void
+    public function testVenueStepCarriesForwardAnAlreadyAppliedLimit(): void
     {
         // So Back-and-forth to fix the venue does not silently drop it, the same way the
         // date and time already survive that round trip.
-        $text = $this->displayText($this->formText->buildLocationStep($this->date, self::TIME, 8));
+        $text = $this->displayText($this->formText->buildVenueStep($this->date, self::TIME, 8));
 
         $this->assertStringContainsString('👥 8 players per net', $text);
     }
@@ -105,7 +105,7 @@ final class NewGameFormTextTest extends TestCase
         $this->assertStringContainsString('📍 ' . self::VENUE, $text);
     }
 
-    public function testConfirmStepOmitsTheLocationRowWhenNoVenueWasPicked(): void
+    public function testConfirmStepOmitsTheVenueRowWhenNoVenueWasPicked(): void
     {
         $text = $this->displayText($this->formText->buildConfirmStep($this->date, self::TIME, null, null));
 
@@ -145,7 +145,7 @@ final class NewGameFormTextTest extends TestCase
         $this->assertStringContainsString('📍 ' . self::VENUE, $text);
     }
 
-    public function testGameTitleOmitsTheLocationRowWhenNoVenueWasPicked(): void
+    public function testGameTitleOmitsTheVenueRowWhenNoVenueWasPicked(): void
     {
         $text = $this->displayText($this->formText->buildGameTitle($this->date, self::TIME, null, null));
 

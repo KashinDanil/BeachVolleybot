@@ -22,7 +22,7 @@ final class NewGameVenuePageProcessorTest extends ProcessorTestCase
     private const string PICKED_TIME = '18:30';
     private const string VENUE = 'Bogatell';
 
-    public function testShowsTheLocationStep(): void
+    public function testShowsTheVenueStep(): void
     {
         $this->runProcessor($this->dmCallbackUpdate(PlayersPerNetSelection::pending(PlayersPerNetSelection::DEFAULT)));
 
@@ -35,7 +35,7 @@ final class NewGameVenuePageProcessorTest extends ProcessorTestCase
     {
         // Tapping Back off the confirm page carries the applied limit only in the text it
         // is already showing (the 👥 row) — this must read it back from there and carry it
-        // into the location page's own text, or re-picking a venue would drop it.
+        // into the venue page's own text, or re-picking a venue would drop it.
         $this->runProcessor($this->dmCallbackUpdate(PlayersPerNetSelection::applied(8)));
 
         $text = $this->editedText();
@@ -43,7 +43,7 @@ final class NewGameVenuePageProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('👥 8 players per net', $text);
     }
 
-    public function testTheLocationPagesButtonsNeverCarryTheLimit(): void
+    public function testTheVenuePagesButtonsNeverCarryTheLimit(): void
     {
         $this->runProcessor($this->dmCallbackUpdate(PlayersPerNetSelection::applied(8)));
 

@@ -9,7 +9,7 @@ use BeachVolleybot\Common\GameDateResolver;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameLocationPickerMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NewGameVenuePickerMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\NewGameTimePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Weather\Location\KnownVenues;
@@ -17,15 +17,15 @@ use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
-final class NewGameLocationPickerMessageBuilderTest extends TestCase
+final class NewGameVenuePickerMessageBuilderTest extends TestCase
 {
     private const string TIME = '18:30';
 
-    private NewGameLocationPickerMessageBuilder $builder;
+    private NewGameVenuePickerMessageBuilder $builder;
 
     protected function setUp(): void
     {
-        $this->builder = new NewGameLocationPickerMessageBuilder(new Translator());
+        $this->builder = new NewGameVenuePickerMessageBuilder(new Translator());
     }
 
     public function testFirstPageHasFiveVenuesThenSkipThenNextOnly(): void
@@ -174,9 +174,9 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
         }
     }
 
-    private function russianBuilder(): NewGameLocationPickerMessageBuilder
+    private function russianBuilder(): NewGameVenuePickerMessageBuilder
     {
-        return new NewGameLocationPickerMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
+        return new NewGameVenuePickerMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
     }
 
     private function build(int $page): TelegramMessage
