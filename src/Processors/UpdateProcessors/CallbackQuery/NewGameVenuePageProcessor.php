@@ -30,7 +30,7 @@ class NewGameVenuePageProcessor extends AbstractNewGameStepProcessor
         }
 
         $picker = new NewGameLocationPickerMessageBuilder($this->translator($callbackQuery))
-            ->build($this->parseDate($text), $this->parseTime($text), $this->callbackData->getPage());
+            ->build($this->parseDate($text), $this->parseTime($text), $this->callbackData->getPage(), $this->parsePlayersPerNet($text));
 
         $this->editWizard($callbackQuery, $picker);
         $this->answerCallbackQuery($callbackQuery, '');

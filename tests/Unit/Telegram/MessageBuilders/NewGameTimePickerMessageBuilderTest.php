@@ -97,6 +97,24 @@ final class NewGameTimePickerMessageBuilderTest extends TestCase
         $this->assertStringContainsString('pick a time below', $text);
     }
 
+    public function testCarriesForwardAnAlreadyAppliedLimit(): void
+    {
+        // Reachable only by navigating back from the location or confirm step.
+        $message = $this->builder->build(new DateTimeImmutable('2099-12-31'), NewGameTimePickerMessageBuilder::START_PAGE, 8);
+
+        $this->assertStringContainsString('👥 8 players per net', $this->displayText($message));
+    }
+
+    public function testNoButtonEverCarriesTheLimit(): void
+    {
+        $message = $this->builder->build(new DateTimeImmutable('2099-12-31'), NewGameTimePickerMessageBuilder::START_PAGE, 8);
+        $keyboard = $this->extractKeyboard($message);
+
+        foreach (array_merge(...$keyboard) as $button) {
+            $this->assertNull(NewGameCallbackData::fromJson($button['callback_data'])->getPlayersPerNet(), "'{$button['text']}' unexpectedly carries the limit");
+        }
+    }
+
     public function testTheStepRendersInTheChosenLanguage(): void
     {
         $message = $this->russianBuilder()->build(new DateTimeImmutable('2099-12-31'), NewGameTimePickerMessageBuilder::START_PAGE);

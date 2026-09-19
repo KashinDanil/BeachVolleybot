@@ -6,7 +6,7 @@ namespace BeachVolleybot\Game\Roster;
 
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\Models\UserInterface;
-use BeachVolleybot\Validator\Rules\PlayersPerNetRule;
+use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
 
 final readonly class PlayerLimit
 {
@@ -28,7 +28,7 @@ final readonly class PlayerLimit
             return new self(null);
         }
 
-        return new self(max(PlayersPerNetRule::MINIMUM, $settings->playersPerNet) * $nets);
+        return new self(max(MinimumPlayersPerNetRule::MINIMUM, $settings->playersPerNet) * $nets);
     }
 
     /** A row plays if it starts inside the limit, so a merged range is judged by its first slot. */

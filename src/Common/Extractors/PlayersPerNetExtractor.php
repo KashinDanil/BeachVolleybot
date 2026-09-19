@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Common\Extractors;
 
 use BeachVolleybot\Localization\InputVocabulary;
-use BeachVolleybot\Validator\Rules\PlayersPerNetRule;
+use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
 
 final class PlayersPerNetExtractor implements ExtractorInterface
 {
@@ -40,7 +40,7 @@ final class PlayersPerNetExtractor implements ExtractorInterface
 
         $playersPerNet = (int) $matches[1];
 
-        return new PlayersPerNetRule($playersPerNet)->isValid() ? $playersPerNet : null;
+        return new MinimumPlayersPerNetRule($playersPerNet)->isValid() ? $playersPerNet : null;
     }
 
     /** @param list<string> $words */

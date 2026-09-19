@@ -6,7 +6,7 @@ namespace BeachVolleybot\Validator\Rules;
 
 use BeachVolleybot\Errors\ValidationError;
 
-readonly class PlayersPerNetRule implements RuleInterface
+readonly class MinimumPlayersPerNetRule implements RuleInterface
 {
     /** Below this is not a net's worth of players. */
     public const int MINIMUM = 4;

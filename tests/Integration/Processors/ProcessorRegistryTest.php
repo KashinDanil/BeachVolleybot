@@ -10,6 +10,7 @@ use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
 use BeachVolleybot\Processors\ProcessorRegistry;
 use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameConfirmProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickVenueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameSendProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
@@ -433,34 +434,44 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
-    public function testResolvesNewGameLanguageCallbackToDmQueueAndPickVenueProcessor(): void
+    public function testResolvesNewGameConfirmPageCallbacksToDmQueueAndConfirmProcessor(): void
     {
-        $update = TelegramUpdate::fromArray([
-            'update_id' => 1,
-            'callback_query' => [
-                'id' => 'cbq_ng',
-                'from' => ['id' => 555, 'first_name' => 'Danil', 'is_bot' => false],
-                'chat_instance' => '-123',
-                'message' => [
-                    'message_id' => 900,
-                    'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
-                    'chat' => ['id' => 555, 'type' => 'private'],
-                    'date' => 1700000000,
-                    'text' => 'New game — Step 4 of 4',
-                ],
-                'data' => NewGameCallbackData::create(NewGameCallbackAction::SetLanguage)
-                    ->withVenueName('Bogatell')
-                    ->withLanguage('ru')
-                    ->toJson(),
-            ],
-        ]);
+        // Every action that only ever fires while already on the confirm page — a language
+        // switch or a players-per-net change — shares one processor, since none of them need
+        // the venue on the callback: it reads back from the text already on screen.
+        $actions = [
+            NewGameCallbackAction::SetLanguage,
+            NewGameCallbackAction::AdjustPlayersPerNet,
+            NewGameCallbackAction::SetPlayersPerNet,
+            NewGameCallbackAction::RemovePlayersPerNet,
+        ];
 
-        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
-        $this->assertInstanceOf(
-            NewGamePickVenueProcessor::class,
-            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
-        );
-        $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
+        foreach ($actions as $action) {
+            $update = TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'callback_query' => [
+                    'id' => 'cbq_ng',
+                    'from' => ['id' => 555, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat_instance' => '-123',
+                    'message' => [
+                        'message_id' => 900,
+                        'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
+                        'chat' => ['id' => 555, 'type' => 'private'],
+                        'date' => 1700000000,
+                        'text' => 'New game — Step 4 of 4',
+                    ],
+                    'data' => NewGameCallbackData::create($action)->withLanguage('ru')->withPlayersPerNet(8)->toJson(),
+                ],
+            ]);
+
+            $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
+            $this->assertInstanceOf(
+                NewGameConfirmProcessor::class,
+                $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+                "Action '{$action->value}' did not resolve to NewGameConfirmProcessor",
+            );
+            $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
+        }
     }
 
     public function testResolvesNewGameConfirmCallbackToDmQueueAndSendProcessor(): void
@@ -478,7 +489,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
                     'date' => 1700000000,
                     'text' => 'New game — Step 4 of 4',
                 ],
-                'data' => NewGameCallbackData::create(NewGameCallbackAction::Send)->withVenueName('Bogatell')->toJson(),
+                'data' => NewGameCallbackData::create(NewGameCallbackAction::Send)->toJson(),
             ],
         ]);
 

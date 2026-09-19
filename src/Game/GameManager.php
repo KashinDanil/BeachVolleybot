@@ -14,7 +14,7 @@ use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
-use BeachVolleybot\Validator\Rules\PlayersPerNetRule;
+use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
 use BeachVolleybot\Validator\Validator;
 use InvalidArgumentException;
 
@@ -183,7 +183,7 @@ readonly class GameManager
     public function setPlayersPerNet(int $gameId, ?int $playersPerNet): void
     {
         $validationState = new Validator([
-            new PlayersPerNetRule($playersPerNet),
+            new MinimumPlayersPerNetRule($playersPerNet),
         ])->validate();
 
         if (!$validationState->isSuccess()) {

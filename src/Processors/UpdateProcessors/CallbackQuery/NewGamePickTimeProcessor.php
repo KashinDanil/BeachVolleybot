@@ -30,8 +30,10 @@ class NewGamePickTimeProcessor extends AbstractNewGameStepProcessor
             return;
         }
 
+        $date = $this->parseDate($text);
+        $playersPerNet = $this->parsePlayersPerNet($text);
         $picker = new NewGameLocationPickerMessageBuilder($this->translator($callbackQuery))
-            ->build($this->parseDate($text), $time);
+            ->build($date, $time, playersPerNet: $playersPerNet);
 
         $this->editWizard($callbackQuery, $picker);
         $this->answerCallbackQuery($callbackQuery, '');

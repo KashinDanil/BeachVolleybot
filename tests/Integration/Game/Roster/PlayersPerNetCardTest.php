@@ -8,8 +8,12 @@ use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\NewGameData;
+use BeachVolleybot\Localization\Translator;
+use BeachVolleybot\Telegram\MessageBuilders\NewGameFormText;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
+use BeachVolleybot\Telegram\PlainText;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use DateTimeImmutable;
 
 final class PlayersPerNetCardTest extends ProcessorTestCase
 {
@@ -230,6 +234,31 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
             'query_1',
         ));
         $this->gameManager->addInlineMessage($gameId, 'msg_1');
+
+        $this->gameManager->joinGame($gameId, 201, 'Bob', null, null);
+        $this->gameManager->joinGame($gameId, 202, 'Carol', null, null);
+        $this->gameManager->joinGame($gameId, 203, 'Dave', null, null);
+        $this->gameManager->joinGame($gameId, 204, 'Erin', null, null);
+
+        $lines = $this->cardLines($gameId);
+
+        $this->assertStringContainsString('1\. Alice', $lines[0]);
+        $this->assertSame(self::DIVIDER, $lines[4]);
+        $this->assertStringContainsString('Erin', $lines[5]);
+    }
+
+    /** Proves the wizard's own title builder feeds the same pipeline, not just a hand-typed phrase. */
+    public function testWizardBuiltTitleDrawsTheDividerAfterJoining(): void
+    {
+        $title = new NewGameFormText(new Translator(), new PlainText())
+            ->buildGameTitle(new DateTimeImmutable('2099-12-31'), '18:00', 'Beach', 4);
+
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Alice'),
+            $title,
+            'query_wizard',
+        ));
+        $this->gameManager->addInlineMessage($gameId, 'msg_wizard');
 
         $this->gameManager->joinGame($gameId, 201, 'Bob', null, null);
         $this->gameManager->joinGame($gameId, 202, 'Carol', null, null);

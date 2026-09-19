@@ -49,7 +49,17 @@ final class NewGamePickDateProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('Четверг, 31.12', $text);
     }
 
-    private function runProcessor(string $isoDate, string $language = Language::EN): void
+    public function testCarriesForwardAnAlreadyAppliedLimitIntoTheTimeStep(): void
+    {
+        // Reachable only by navigating all the way back from a later step to re-pick the date.
+        $this->runProcessor(self::FUTURE_DATE, Language::EN, "New game — Step 1 of 4\n\n👥 8 players per net");
+
+        $text = $this->editedText();
+        $this->assertNotNull($text);
+        $this->assertStringContainsString('👥 8 players per net', $text);
+    }
+
+    private function runProcessor(string $isoDate, string $language = Language::EN, ?string $text = null): void
     {
         $update = TelegramUpdate::fromArray([
             'update_id' => 1,
@@ -62,7 +72,7 @@ final class NewGamePickDateProcessorTest extends ProcessorTestCase
                     'from' => ['id' => 1, 'first_name' => 'Bot', 'is_bot' => true, 'username' => BOT_USERNAME],
                     'chat' => ['id' => self::DM_CHAT_ID, 'type' => 'private'],
                     'date' => 1700000000,
-                    'text' => 'New game — Step 1 of 4',
+                    'text' => $text ?? 'New game — Step 1 of 4',
                 ],
                 'data' => NewGameCallbackData::create(NewGameCallbackAction::PickDate)
                     ->withDate($isoDate)

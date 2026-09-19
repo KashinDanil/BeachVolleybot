@@ -108,6 +108,23 @@ final class NewGameDatePickerMessageBuilderTest extends TestCase
         $this->assertStringContainsString('—', $text); // empty time + location
     }
 
+    public function testCarriesForwardAnAlreadyAppliedLimit(): void
+    {
+        // Reachable only by navigating all the way back from a later step.
+        $text = $this->builder->build(1, 8)->getText()->getMessageText();
+
+        $this->assertStringContainsString('👥 8 players per net', $text);
+    }
+
+    public function testNoButtonEverCarriesTheLimit(): void
+    {
+        $keyboard = $this->extractKeyboard($this->builder->build(1, 8));
+
+        foreach (array_merge(...$keyboard) as $button) {
+            $this->assertNull(NewGameCallbackData::fromJson($button['callback_data'])->getPlayersPerNet(), "'{$button['text']}' unexpectedly carries the limit");
+        }
+    }
+
     public function testDateButtonsSpellTheWeekdayInTheChosenLanguage(): void
     {
         $keyboard = $this->extractKeyboard($this->russianBuilder()->build(1));

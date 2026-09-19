@@ -12,9 +12,10 @@ class NewGameDatePageProcessor extends AbstractNewGameStepProcessor
     public function process(TelegramUpdate $update): void
     {
         $callbackQuery = $update->callbackQuery;
+        $text = $callbackQuery->message->text;
 
         $picker = new NewGameDatePickerMessageBuilder($this->translator($callbackQuery))
-            ->build($this->callbackData->getPage());
+            ->build($this->callbackData->getPage(), $this->parsePlayersPerNet($text));
 
         $this->editWizard($callbackQuery, $picker);
         $this->answerCallbackQuery($callbackQuery, '');

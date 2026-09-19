@@ -116,7 +116,7 @@ final class InputVocabulary
     /** @var array<string, list<string>> language => nouns naming a roster slot */
     private const array SLOT_NOUNS = [
         Language::EN => ['spots', 'spot', 'slots', 'slot', 'places', 'place', 'spaces', 'space', 'people', 'players'],
-        Language::RU => ['мест', 'места', 'место', 'человек', 'человека', 'игроков', 'игрока'],
+        Language::RU => ['мест', 'места', 'место', 'человек', 'человека', 'игроков', 'игрока', 'игрок'],
         Language::ES => ['plazas', 'plaza', 'cupos', 'cupo', 'huecos', 'hueco', 'personas', 'jugadores'],
     ];
 

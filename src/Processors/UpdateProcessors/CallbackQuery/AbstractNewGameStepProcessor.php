@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
+use BeachVolleybot\Common\Extractors\PlayersPerNetExtractor;
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Common\GameDateResolver;
 use BeachVolleybot\Weather\Location\KnownVenues;
@@ -20,6 +21,7 @@ use BeachVolleybot\Validator\Rules\DateInTheFutureRule;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Rules\RuleInterface;
 use BeachVolleybot\Validator\Validator;
+use BeachVolleybot\Weather\Location\Venue;
 use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 
@@ -81,6 +83,16 @@ abstract class AbstractNewGameStepProcessor extends AbstractCallbackProcessor
     protected function parseTime(?string $text): ?string
     {
         return TimeExtractor::extract($text ?? '');
+    }
+
+    protected function parsePlayersPerNet(?string $text): ?int
+    {
+        return PlayersPerNetExtractor::resolvePlayersPerNet($text ?? '');
+    }
+
+    protected function parseVenue(?string $text): ?Venue
+    {
+        return KnownVenues::findInTitle($text ?? '');
     }
 
     protected function passesValidation(TelegramCallbackQuery $callbackQuery, RuleInterface ...$rules): bool

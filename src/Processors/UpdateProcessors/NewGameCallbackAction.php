@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
+use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameConfirmProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameDatePageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickDateProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickTimeProcessor;
@@ -18,15 +19,18 @@ use BeachVolleybot\Telegram\TelegramMessageSender;
 
 enum NewGameCallbackAction: string implements CallbackActionInterface
 {
-    case ShowDatePage  = 'dp';
-    case PickDate      = 'd';
-    case ShowTimePage  = 'tp';
-    case PickTime      = 't';
-    case ShowVenuePage = 'vp';
-    case PickVenue     = 'v';
-    case SkipVenue     = 'vs';
-    case SetLanguage   = 'l';
-    case Send          = 's';
+    case ShowDatePage        = 'dp';
+    case PickDate            = 'd';
+    case ShowTimePage        = 'tp';
+    case PickTime            = 't';
+    case ShowVenuePage       = 'vp';
+    case PickVenue           = 'v';
+    case SkipVenue           = 'vs';
+    case SetLanguage         = 'l';
+    case AdjustPlayersPerNet = 'pa';
+    case SetPlayersPerNet    = 'ps';
+    case RemovePlayersPerNet = 'pr';
+    case Send                = 's';
 
     /**
      * @param TelegramMessageSender $telegramSender
@@ -45,8 +49,11 @@ enum NewGameCallbackAction: string implements CallbackActionInterface
             self::PickTime      => new NewGamePickTimeProcessor($telegramSender, $callbackData),
             self::ShowVenuePage => new NewGameVenuePageProcessor($telegramSender, $callbackData),
             self::PickVenue,
-            self::SkipVenue,
-            self::SetLanguage => new NewGamePickVenueProcessor($telegramSender, $callbackData),
+            self::SkipVenue => new NewGamePickVenueProcessor($telegramSender, $callbackData),
+            self::SetLanguage,
+            self::AdjustPlayersPerNet,
+            self::SetPlayersPerNet,
+            self::RemovePlayersPerNet => new NewGameConfirmProcessor($telegramSender, $callbackData),
             self::Send => new NewGameSendProcessor($telegramSender, $callbackData),
         };
     }

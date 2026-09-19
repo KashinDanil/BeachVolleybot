@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors\CallbackQuery;
 
+use BeachVolleybot\Telegram\MessageBuilders\PlayersPerNetSelection;
 use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Rules\KnownVenueRule;
 use BeachVolleybot\Validator\Rules\ResolvableDateRule;
@@ -25,6 +26,16 @@ abstract class AbstractVenueSelectionStepProcessor extends AbstractNewGameStepPr
         }
 
         return KnownVenues::findByName($venueName);
+    }
+
+    protected function preserveCurrentState(?string $text): PlayersPerNetSelection
+    {
+        $appliedInText = $this->parsePlayersPerNet($text);
+        $value = $this->callbackData->getPlayersPerNet() ?? $appliedInText ?? PlayersPerNetSelection::DEFAULT;
+
+        return null !== $appliedInText
+            ? PlayersPerNetSelection::applied($value)
+            : PlayersPerNetSelection::pending($value);
     }
 
     /**

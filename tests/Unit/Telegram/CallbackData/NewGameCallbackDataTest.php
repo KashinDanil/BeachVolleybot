@@ -48,6 +48,13 @@ final class NewGameCallbackDataTest extends TestCase
         $this->assertSame('{"na":"v","v":"Bogatell"}', $json);
     }
 
+    public function testAdjustPlayersPerNetCarriesTheTargetCount(): void
+    {
+        $json = NewGameCallbackData::create(NewGameCallbackAction::AdjustPlayersPerNet)->withPlayersPerNet(9)->toJson();
+
+        $this->assertSame('{"na":"pa","ppn":9}', $json);
+    }
+
     public function testLanguageRidesAlongsideTheAction(): void
     {
         $json = NewGameCallbackData::create(NewGameCallbackAction::SetLanguage)
@@ -60,13 +67,26 @@ final class NewGameCallbackDataTest extends TestCase
 
     public function testTheHeaviestWizardPayloadFitsTelegramsCallbackDataLimit(): void
     {
-        // Telegram rejects callback_data over 64 bytes, and an accented venue name escapes to \uXXXX.
+        // PickVenue is the only remaining button that carries a venue name — every other
+        // confirm-page action (Send included) reads it back out of the text instead. Telegram
+        // rejects callback_data over 64 bytes, and an accented venue name escapes to \uXXXX.
         $venueNames = array_map(static fn(Venue $venue): string => $venue->name, KnownVenues::all());
         usort($venueNames, static fn(string $one, string $other): int => strlen(json_encode($other)) <=> strlen(json_encode($one)));
 
-        $json = NewGameCallbackData::create(NewGameCallbackAction::Send)
+        $json = NewGameCallbackData::create(NewGameCallbackAction::PickVenue)
             ->withVenueName($venueNames[0])
             ->withLanguage('ru')
+            ->toJson();
+
+        $this->assertLessThanOrEqual(64, strlen($json), "Payload too long: $json");
+    }
+
+    public function testTheHeaviestPlayersPerNetPayloadFitsTelegramsCallbackDataLimit(): void
+    {
+        // These buttons never carry a venue — only the action, language and count.
+        $json = NewGameCallbackData::create(NewGameCallbackAction::SetPlayersPerNet)
+            ->withLanguage('ru')
+            ->withPlayersPerNet(12)
             ->toJson();
 
         $this->assertLessThanOrEqual(64, strlen($json), "Payload too long: $json");
@@ -82,6 +102,7 @@ final class NewGameCallbackDataTest extends TestCase
             ->withVenueName('Nova Mar Bella')
             ->withPage(3)
             ->withLanguage('ru')
+            ->withPlayersPerNet(8)
             ->toJson();
 
         $parsed = NewGameCallbackData::fromJson($json);
@@ -92,6 +113,7 @@ final class NewGameCallbackDataTest extends TestCase
         $this->assertSame('Nova Mar Bella', $parsed->getVenueName());
         $this->assertSame(3, $parsed->getPage());
         $this->assertSame('ru', $parsed->getLanguage());
+        $this->assertSame(8, $parsed->getPlayersPerNet());
     }
 
     public function testEveryWitherKeepsTheLanguage(): void
@@ -101,7 +123,8 @@ final class NewGameCallbackDataTest extends TestCase
             ->withDate('2099-12-31')
             ->withTime('18:30')
             ->withVenueName('Bogatell')
-            ->withPage(2);
+            ->withPage(2)
+            ->withPlayersPerNet(6);
 
         $this->assertSame('es', $callbackData->getLanguage());
     }
@@ -109,6 +132,11 @@ final class NewGameCallbackDataTest extends TestCase
     public function testLanguageIsNullOnAButtonThatPredatesIt(): void
     {
         $this->assertNull(NewGameCallbackData::fromJson('{"na":"d","d":"2099-12-31"}')->getLanguage());
+    }
+
+    public function testPlayersPerNetIsNullOnAButtonThatPredatesIt(): void
+    {
+        $this->assertNull(NewGameCallbackData::fromJson('{"na":"d","d":"2099-12-31"}')->getPlayersPerNet());
     }
 
     public function testGetPageDefaultsToOne(): void
@@ -125,6 +153,7 @@ final class NewGameCallbackDataTest extends TestCase
         $this->assertNull($parsed->getDate());
         $this->assertNull($parsed->getTime());
         $this->assertSame('Bogatell', $parsed->getVenueName());
+        $this->assertNull($parsed->getPlayersPerNet());
     }
 
     public function testWithersReturnNewInstances(): void
@@ -155,13 +184,14 @@ final class NewGameCallbackDataTest extends TestCase
 
     public function testFromJsonNullsWrongTypeFieldsInsteadOfThrowing(): void
     {
-        $parsed = NewGameCallbackData::fromJson('{"na":"v","v":123,"d":123,"p":"x","l":7}');
+        $parsed = NewGameCallbackData::fromJson('{"na":"v","v":123,"d":123,"p":"x","l":7,"n":"x"}');
 
         $this->assertNotNull($parsed);
         $this->assertNull($parsed->getVenueName());
         $this->assertNull($parsed->getDate());
         $this->assertNull($parsed->getLanguage());
         $this->assertSame(1, $parsed->getPage());
+        $this->assertNull($parsed->getPlayersPerNet());
     }
 
     public function testNewGameNotRecognizedByOtherNamespaces(): void
@@ -199,6 +229,7 @@ final class NewGameCallbackDataTest extends TestCase
             NewGameCallbackData::create(NewGameCallbackAction::PickDate)->withDate('2099-12-31')->toJson(),
             NewGameCallbackData::create(NewGameCallbackAction::PickTime)->withTime('23:45')->toJson(),
             NewGameCallbackData::create(NewGameCallbackAction::PickVenue)->withVenueName('Nova Mar Bella')->toJson(),
+            NewGameCallbackData::create(NewGameCallbackAction::SetPlayersPerNet)->withLanguage('ru')->withPlayersPerNet(12)->toJson(),
         ];
 
         foreach ($cases as $json) {

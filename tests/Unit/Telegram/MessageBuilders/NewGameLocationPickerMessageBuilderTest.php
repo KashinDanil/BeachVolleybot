@@ -136,6 +136,33 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
         $this->assertSame(self::TIME, TimeExtractor::extract($displayText));
     }
 
+    // --- carrying a previously applied players-per-net limit ---
+
+    public function testNoButtonEverCarriesTheLimit(): void
+    {
+        // A limit already applied rides in the 👥 row of this page's own text — see
+        // testCarriesForwardAnAlreadyAppliedLimit below — not on any of its buttons.
+        $keyboard = $this->extractKeyboard($this->buildWithLimit(1, 8));
+
+        foreach (array_merge(...$keyboard) as $button) {
+            $this->assertNull(NewGameCallbackData::fromJson($button['callback_data'])->getPlayersPerNet(), "'{$button['text']}' unexpectedly carries the limit");
+        }
+    }
+
+    public function testCarriesForwardAnAlreadyAppliedLimit(): void
+    {
+        $text = str_replace('\\', '', $this->buildWithLimit(1, 8)->getText()->getMessageText());
+
+        $this->assertStringContainsString('👥 8 players per net', $text);
+    }
+
+    public function testOmitsThePlayersRowWhenNoLimitWasApplied(): void
+    {
+        $text = str_replace('\\', '', $this->build(1)->getText()->getMessageText());
+
+        $this->assertStringNotContainsString('👥', $text);
+    }
+
     public function testEveryButtonCarriesTheChosenLanguage(): void
     {
         $keyboard = $this->extractKeyboard($this->russianBuilder()->build(new DateTimeImmutable('2099-12-31'), self::TIME, 1));
@@ -155,6 +182,11 @@ final class NewGameLocationPickerMessageBuilderTest extends TestCase
     private function build(int $page): TelegramMessage
     {
         return $this->builder->build(new DateTimeImmutable('2099-12-31'), self::TIME, $page);
+    }
+
+    private function buildWithLimit(int $page, int $playersPerNet): TelegramMessage
+    {
+        return $this->builder->build(new DateTimeImmutable('2099-12-31'), self::TIME, $page, $playersPerNet);
     }
 
     private function navigationRow(array $keyboard): array

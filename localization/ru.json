@@ -67,6 +67,9 @@
     "Skip location": "Пропустить место",
     "Post": "Опубликовать",
     "The game message has been posted to this chat.": "Сообщение с игрой опубликовано в этом чате.",
+    "%d %s per net": "%d %s на сетку",
+    "players": "one:игрок;few:игрока;many:игроков",
+    "Remove the limit": "Убрать ограничение",
 
     "Your games": "Ваши игры",
     "You haven't created any games yet": "Вы ещё не создали ни одной игры",

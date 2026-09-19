@@ -14,7 +14,7 @@ use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Game\GameSettings;
-use BeachVolleybot\Validator\Rules\PlayersPerNetRule;
+use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
 use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
@@ -438,7 +438,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->expectException(InvalidArgumentException::class);
 
-        $this->gameManager->setPlayersPerNet($gameId, PlayersPerNetRule::MINIMUM - 1);
+        $this->gameManager->setPlayersPerNet($gameId, MinimumPlayersPerNetRule::MINIMUM - 1);
     }
 
     public function testSetPlayersPerNetRejectsZeroWhichWouldReserveTheWholeRoster(): void
@@ -477,10 +477,10 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->createGame();
 
-        $this->gameManager->setPlayersPerNet($gameId, PlayersPerNetRule::MINIMUM);
+        $this->gameManager->setPlayersPerNet($gameId, MinimumPlayersPerNetRule::MINIMUM);
 
         $this->assertSame(
-            PlayersPerNetRule::MINIMUM,
+            MinimumPlayersPerNetRule::MINIMUM,
             $this->gameRecord($gameId)->settings->playersPerNet,
         );
     }

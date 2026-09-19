@@ -38,6 +38,11 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertSame(21, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 21 место на сетку 18:00'));
     }
 
+    public function testResolvesTwentyOneIgrokSingularInflection(): void
+    {
+        $this->assertSame(21, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 21 игрок на сетку 18:00'));
+    }
+
     public function testResolvesWithLeadingCapacityWordIgnored(): void
     {
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра максимум 6 человек на сетку 18:00'));
