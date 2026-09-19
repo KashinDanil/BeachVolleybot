@@ -53,4 +53,14 @@ final class CommandTest extends TestCase
     {
         $this->assertFalse(Command::NewGamePrivate->matches('/new_game'));
     }
+
+    public function testForChatReturnsBareCommandForPrivateChat(): void
+    {
+        $this->assertSame('/new_game', Command::NewGame->forChat(false));
+    }
+
+    public function testForChatReturnsMentionForGroupChat(): void
+    {
+        $this->assertSame('/new_game@test_bot', Command::NewGame->forChat(true));
+    }
 }

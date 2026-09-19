@@ -23,4 +23,9 @@ enum Command: string
     {
         return $this->value . '@' . BOT_USERNAME;
     }
+
+    public function forChat(bool $isGroupChat): string
+    {
+        return $isGroupChat ? $this->mention() : $this->value;
+    }
 }

@@ -56,7 +56,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
         $gameRecord = new GameManager()->findGameRecordById($gameId);
 
         if (null === $gameRecord) {
-            return new ErrorArticleBuilder(InlineQueryError::gameNotFound(), $translator);
+            return new ErrorArticleBuilder(InlineQueryError::gameNotFound(), $translator, $inlineQuery->isGroupChat());
         }
 
         $currentUser = CurrentUser::fromTelegramId($inlineQuery->from->id);
@@ -78,6 +78,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
         return new ErrorArticleBuilder(
             InlineQueryError::fromForwardError($validationState->getError()),
             $translator,
+            $inlineQuery->isGroupChat(),
         );
     }
 
@@ -89,7 +90,7 @@ class InlineQueryProcessor extends AbstractActionProcessor
             return new NewGameArticleBuilder($inlineQuery, $translator);
         }
 
-        return new ErrorArticleBuilder(InlineQueryError::fromError($validationState->getError()), $translator);
+        return new ErrorArticleBuilder(InlineQueryError::fromError($validationState->getError()), $translator, $inlineQuery->isGroupChat());
     }
 
     /** @return list<RuleInterface> */
