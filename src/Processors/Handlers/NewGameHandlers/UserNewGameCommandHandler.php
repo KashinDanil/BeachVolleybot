@@ -17,7 +17,10 @@ final readonly class UserNewGameCommandHandler extends AbstractDmQueueHandler
     {
         return $update->hasMessage()
             && $update->message->chat->isPrivate()
-            && Command::NewGame->matches($update->message->text);
+            && (
+                Command::NewGame->matches($update->message->text)
+                || Command::NewGamePrivate->matches($update->message->text)
+            );
     }
 
     public function createProcessor(

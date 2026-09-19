@@ -153,6 +153,9 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             'private /start (help alias)' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/start', fromId: $nonAdminId),
             ),
+            'private /help_private' => TelegramUpdate::fromArray(
+                $this->privateMessagePayload('/help_private', fromId: $nonAdminId),
+            ),
             'group ephemeral /help' => TelegramUpdate::fromArray(
                 $this->ephemeralGroupMessagePayload(fromId: $nonAdminId),
             ),
@@ -243,6 +246,16 @@ final class HandlerExclusivityTest extends ProcessorTestCase
                     'chat' => ['id' => $nonAdminId, 'type' => 'private'],
                     'date' => 1700000000,
                     'text' => '/new_game',
+                ],
+            ]),
+            'private /new_game_private' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'message' => [
+                    'message_id' => 75,
+                    'from' => ['id' => $nonAdminId, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat' => ['id' => $nonAdminId, 'type' => 'private'],
+                    'date' => 1700000000,
+                    'text' => '/new_game_private',
                 ],
             ]),
             // A /new_game wizard button press: the ephemeral wizard message carries a

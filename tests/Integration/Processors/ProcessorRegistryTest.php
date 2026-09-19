@@ -221,6 +221,17 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         );
     }
 
+    public function testResolvesPrivateHelpPrivateCommandToDmQueueAndUserHelpCommandProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/help_private', fromId: 555));
+
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            UserHelpCommandProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
     public function testResolvesAdminSettingsCommandToDmQueueAndSettingsMenuCommandProcessor(): void
     {
         $this->seedAdmin();
@@ -405,6 +416,17 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/new_game', fromId: 555));
 
         $this->assertNull($this->immediateRegistry->resolveProcessor($update, $this->telegramSender));
+    }
+
+    public function testResolvesPrivateNewGamePrivateCommandToDmQueueAndUserNewGameCommandProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/new_game_private', fromId: 555));
+
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            UserNewGameCommandProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
     }
 
     public function testResolvesNewGameWizardCallbackToDmQueueAndPickVenueProcessor(): void
