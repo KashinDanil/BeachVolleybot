@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors\Handlers\PrivateHandlers;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
-use BeachVolleybot\Processors\AdminProcessors\AdminGamesListCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\RootLogsListCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Games\AdminGamesListCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\RestrictedActionCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogsListCallbackProcessor;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\AdminCallbackQueryHandler;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;

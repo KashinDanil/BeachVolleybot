@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Log\LogFileEntry;
-use BeachVolleybot\Telegram\MessageBuilders\LogFileActionsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\Log\LogFileActionsMessageBuilder;
 use PHPUnit\Framework\TestCase;
 
 final class LogFileActionsMessageBuilderTest extends TestCase

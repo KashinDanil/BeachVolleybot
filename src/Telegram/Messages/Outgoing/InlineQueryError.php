@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\Messages\Outgoing;
 
 use BeachVolleybot\Errors\ErrorInterface;
-use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
-use BeachVolleybot\Validator\Rules\GameNotFinishedRule;
-use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
+use BeachVolleybot\Validator\Rules\DateTime\DateTimeInTitleRule;
+use BeachVolleybot\Validator\Rules\DateTime\KickoffDayInTheFutureRule;
+use BeachVolleybot\Validator\Rules\Game\GameNotFinishedRule;
 
 final readonly class InlineQueryError
 {

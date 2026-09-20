@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\PostRequestRule;
+use BeachVolleybot\Validator\Rules\Request\PostRequestRule;
 use PHPUnit\Framework\TestCase;
 
 final class PostRequestRuleTest extends TestCase

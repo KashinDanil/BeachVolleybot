@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
+use BeachVolleybot\Validator\Rules\DateTime\DateTimeInTitleRule;
 use PHPUnit\Framework\TestCase;
 
 final class DateTimeInTitleRuleTest extends TestCase

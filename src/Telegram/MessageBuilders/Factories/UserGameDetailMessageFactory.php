@@ -12,8 +12,8 @@ use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\AbstractMessageBuilder;
-use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
-use BeachVolleybot\Telegram\MessageBuilders\ShareGameMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\GameMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class UserGameDetailMessageFactory

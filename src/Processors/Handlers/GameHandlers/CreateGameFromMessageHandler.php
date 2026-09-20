@@ -10,7 +10,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameFromMessageProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
+use BeachVolleybot\Validator\Rules\DateTime\DateTimeInTitleRule;
 use BeachVolleybot\Validator\Validator;
 
 /**

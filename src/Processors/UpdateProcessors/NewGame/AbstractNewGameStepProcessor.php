@@ -1,0 +1,141 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BeachVolleybot\Processors\UpdateProcessors\NewGame;
+
+use BeachVolleybot\Common\Extractors\PlayersPerNetExtractor;
+use BeachVolleybot\Common\Extractors\TimeExtractor;
+use BeachVolleybot\Common\GameDateResolver;
+use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Errors\ErrorInterface;
+use BeachVolleybot\Localization\Translator;
+use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
+use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
+use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameDatePickerMessageBuilder;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramCallbackQuery;
+use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\Validator\Rules\DateTime\DateInTheFutureRule;
+use BeachVolleybot\Validator\Rules\DateTime\KickoffDayInTheFutureRule;
+use BeachVolleybot\Validator\Rules\RuleInterface;
+use BeachVolleybot\Validator\Validator;
+use BeachVolleybot\Weather\Location\KnownVenues;
+use BeachVolleybot\Weather\Location\Venue;
+use DanilKashin\Localization\Language;
+use DateTimeImmutable;
+
+/**
+ * Shared base for the /new_game wizard step processors. Holds the decoded
+ * callback data and edits the wizard message on the correct surface — an
+ * ephemeral message in a group, a normal message in a DM — so each step
+ * processor stays surface-agnostic. The running selection is recovered by
+ * re-parsing the wizard message text (parse-from-text state).
+ */
+abstract class AbstractNewGameStepProcessor extends AbstractCallbackProcessor
+{
+    public function __construct(
+        TelegramMessageSender $telegramSender,
+        protected readonly NewGameCallbackData $callbackData,
+    ) {
+        parent::__construct($telegramSender);
+    }
+
+    protected function editWizard(TelegramCallbackQuery $callbackQuery, TelegramMessage $message): void
+    {
+        $wizardMessage = $callbackQuery->message;
+
+        if ($wizardMessage->isEphemeral()) {
+            $this->telegramSender->editEphemeralMessage(
+                $wizardMessage->chat->id,
+                $wizardMessage->ephemeralMessageId,
+                $callbackQuery->from->id,
+                $message,
+            );
+
+            return;
+        }
+
+        $this->telegramSender->editMessage($wizardMessage->chat->id, $wizardMessage->messageId, $message);
+    }
+
+    protected function translator(TelegramCallbackQuery $callbackQuery): Translator
+    {
+        $language = $this->callbackData->getLanguage();
+
+        if (null === $language) {
+            return Translator::fromUser($callbackQuery->from);
+        }
+
+        return new Translator(Language::fromCode($language));
+    }
+
+    protected function parseDate(?string $text): ?DateTimeImmutable
+    {
+        return GameDateResolver::resolve($text ?? '', self::defaultVenueNow());
+    }
+
+    protected static function defaultVenueNow(): DateTimeImmutable
+    {
+        return new DateTimeImmutable()->setTimezone(KnownVenues::defaultVenue()->timezone);
+    }
+
+    protected function parseTime(?string $text): ?string
+    {
+        return TimeExtractor::extract($text ?? '');
+    }
+
+    protected function parsePlayersPerNet(?string $text): ?int
+    {
+        return PlayersPerNetExtractor::resolvePlayersPerNet($text ?? '');
+    }
+
+    protected function parseVenue(?string $text): ?Venue
+    {
+        return KnownVenues::findInTitle($text ?? '');
+    }
+
+    protected function passesValidation(TelegramCallbackQuery $callbackQuery, RuleInterface ...$rules): bool
+    {
+        $state = new Validator($rules)->validate();
+
+        if ($state->isSuccess()) {
+            return true;
+        }
+
+        $error = $state->getError();
+
+        if ($this->isPastDateError($error)) {
+            $this->restartWizard($callbackQuery);
+
+            return false;
+        }
+
+        $this->abort($callbackQuery, 'new_game: ' . $error->getMessage());
+
+        return false;
+    }
+
+    protected function abort(TelegramCallbackQuery $callbackQuery, string $reason): void
+    {
+        Logger::logApp($reason);
+        $this->answerCallbackQuery($callbackQuery, CallbackAnswer::SOMETHING_WENT_WRONG);
+    }
+
+    /** A wizard left open for days carries a date that has since gone by, so it rewinds to a freshly dated step 1. */
+    private function restartWizard(TelegramCallbackQuery $callbackQuery): void
+    {
+        $picker = new NewGameDatePickerMessageBuilder($this->translator($callbackQuery))->build();
+
+        $this->editWizard($callbackQuery, $picker);
+        $this->answerCallbackQuery($callbackQuery, CallbackAnswer::DATE_ALREADY_PASSED);
+    }
+
+    private function isPastDateError(ErrorInterface $error): bool
+    {
+        $pastDateMessages = [DateInTheFutureRule::ERROR_MESSAGE, KickoffDayInTheFutureRule::ERROR_MESSAGE];
+
+        return in_array($error->getMessage(), $pastDateMessages, true);
+    }
+}

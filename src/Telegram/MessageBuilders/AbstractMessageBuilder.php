@@ -8,6 +8,7 @@ use BadMethodCallException;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\CallbackData\PageableCallbackDataInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;

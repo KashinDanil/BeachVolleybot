@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\GameCreatorOnlyRule;
+use BeachVolleybot\Validator\Rules\Game\GameCreatorOnlyRule;
 use PHPUnit\Framework\TestCase;
 
 final class GameCreatorOnlyRuleTest extends TestCase

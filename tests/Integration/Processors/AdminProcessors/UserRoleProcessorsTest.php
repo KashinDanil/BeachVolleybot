@@ -6,10 +6,10 @@ namespace BeachVolleybot\Tests\Integration\Processors\AdminProcessors;
 
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
-use BeachVolleybot\Processors\AdminProcessors\RootDemoteUserProcessor;
-use BeachVolleybot\Processors\AdminProcessors\RootPromoteUserProcessor;
-use BeachVolleybot\Processors\AdminProcessors\RootUserRoleDetailProcessor;
-use BeachVolleybot\Processors\AdminProcessors\RootUserRoleListProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootDemoteUserProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootPromoteUserProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleDetailProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleListProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;

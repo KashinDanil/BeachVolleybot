@@ -9,7 +9,7 @@ use BeachVolleybot\Errors\ValidationError;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\Messages\Outgoing\ErrorArticleBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
-use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
+use BeachVolleybot\Validator\Rules\DateTime\DateTimeInTitleRule;
 use DanilKashin\Localization\Language;
 use PHPUnit\Framework\TestCase;
 

@@ -7,8 +7,8 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
-use BeachVolleybot\Telegram\MessageBuilders\GameDetailMessageBuilder;
-use BeachVolleybot\Telegram\MessageBuilders\ShareGameMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\GameDetailMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use PHPUnit\Framework\TestCase;
 

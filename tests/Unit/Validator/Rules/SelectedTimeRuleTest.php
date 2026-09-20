@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\SelectedTimeRule;
+use BeachVolleybot\Validator\Rules\DateTime\SelectedTimeRule;
 use PHPUnit\Framework\TestCase;
 
 final class SelectedTimeRuleTest extends TestCase

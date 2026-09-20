@@ -7,7 +7,7 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameDatePickerMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameDatePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DanilKashin\Localization\Language;

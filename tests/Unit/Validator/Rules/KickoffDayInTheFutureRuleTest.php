@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
+use BeachVolleybot\Validator\Rules\DateTime\KickoffDayInTheFutureRule;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;

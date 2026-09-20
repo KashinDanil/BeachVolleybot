@@ -1,0 +1,51 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BeachVolleybot\Telegram\MessageBuilders\Admin;
+
+use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
+use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\Log\AbstractLogMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\GamesListMessageBuilder;
+use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\User\Role;
+
+final class SettingsMessageBuilder extends AbstractAdminMessageBuilder
+{
+    private const string HEADER_MESSAGE = 'Settings';
+
+    public function buildMainMenu(Role $role): TelegramMessage
+    {
+        $keyboard = [];
+
+        $logsAction = AdminCallbackAction::Logs;
+        if ($role->isAtLeast($logsAction->requiredRole())) {
+            $keyboard[] = [
+                $this->buildActionButton(
+                    AbstractLogMessageBuilder::HEADER_MESSAGE,
+                    AdminCallbackData::create($logsAction),
+                ),
+            ];
+        }
+
+        $usersAction = AdminCallbackAction::UsersList;
+        if ($role->isAtLeast($usersAction->requiredRole())) {
+            $keyboard[] = [
+                $this->buildActionButton(
+                    UserRoleListMessageBuilder::HEADER_MESSAGE,
+                    AdminCallbackData::create($usersAction)->withPage(1),
+                ),
+            ];
+        }
+
+        $keyboard[] = [
+            $this->buildActionButton(
+                GamesListMessageBuilder::HEADER_MESSAGE,
+                AdminCallbackData::create(AdminCallbackAction::GamesList)->withPage(1),
+            ),
+        ];
+
+        return $this->buildMessage($this->formatHeader(self::HEADER_MESSAGE), $keyboard);
+    }
+}

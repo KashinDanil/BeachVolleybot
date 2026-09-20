@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\ResolvableTimeRule;
+use BeachVolleybot\Validator\Rules\DateTime\ResolvableTimeRule;
 use PHPUnit\Framework\TestCase;
 
 final class ResolvableTimeRuleTest extends TestCase

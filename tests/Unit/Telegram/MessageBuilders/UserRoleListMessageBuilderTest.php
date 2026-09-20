@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
-use BeachVolleybot\Telegram\MessageBuilders\KeyboardPagination;
-use BeachVolleybot\Telegram\MessageBuilders\UserRoleListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\UserRoleListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\User\Role;
 use PHPUnit\Framework\TestCase;
 

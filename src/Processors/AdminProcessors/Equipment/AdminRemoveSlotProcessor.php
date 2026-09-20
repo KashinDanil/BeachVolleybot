@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BeachVolleybot\Processors\AdminProcessors\Equipment;
+
+use BeachVolleybot\Game\AdminGameManager;
+use BeachVolleybot\Game\LeaveResult;
+use BeachVolleybot\Processors\AdminProcessors\AbstractAdminMutationProcessor;
+use BeachVolleybot\Telegram\MessageBuilders\Factories\GameDetailMessageFactory;
+use BeachVolleybot\Telegram\MessageBuilders\Factories\UserSettingsMessageFactory;
+use BeachVolleybot\Telegram\MessageBuilders\Factories\UsersListMessageFactory;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+
+class AdminRemoveSlotProcessor extends AbstractAdminMutationProcessor
+{
+    public function process(TelegramUpdate $update): void
+    {
+        $gameId = $this->adminCallbackData->getGameId();
+        $telegramUserId = $this->adminCallbackData->getUserId();
+
+        $gameManager = new AdminGameManager();
+        $result = $gameManager->leaveGame($gameId, $telegramUserId);
+        $this->logAdminAction($update->callbackQuery->from, 'admin_remove_slot', "gameId=$gameId;userId=$telegramUserId");
+
+        if (LeaveResult::NotJoined === $result) {
+            $this->answerCallbackQuery($update->callbackQuery, 'No slots to remove');
+            $this->editSettingsMessage($update->callbackQuery, GameDetailMessageFactory::build($gameId));
+
+            return;
+        }
+
+        $this->refreshGameMessages($gameId);
+
+        if ($gameManager->isUserInGame($gameId, $telegramUserId)) {
+            $this->editSettingsMessage($update->callbackQuery, UserSettingsMessageFactory::build($gameId, $telegramUserId));
+        } else {
+            $this->editSettingsMessage($update->callbackQuery, UsersListMessageFactory::build($gameId, 1));
+        }
+
+        $this->answerCallbackQuery($update->callbackQuery, 'Slot removed');
+    }
+}

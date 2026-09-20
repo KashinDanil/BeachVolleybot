@@ -4,6 +4,26 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\AdminProcessors;
 
+use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminAddNetProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminAddSlotProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminAddVolleyballProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminRemoveLocationCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminRemoveNetProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminRemoveSlotProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminRemoveVolleyballProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Games\AdminGameDetailCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Games\AdminGamesListCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Games\Users\AdminUserSettingsProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Games\Users\AdminUsersListCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogClearCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogFileActionsCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogGetCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogsListCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogTailCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootDemoteUserProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootPromoteUserProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleDetailProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleListProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;

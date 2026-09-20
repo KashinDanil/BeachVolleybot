@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
-use BeachVolleybot\Telegram\MessageBuilders\UserSettingsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\UserSettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use PHPUnit\Framework\TestCase;
 

@@ -6,22 +6,22 @@ namespace BeachVolleybot\Tests\Integration\Game;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameMessageRepository;
-use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
+use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Game\GameSettings;
-use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
-use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
+use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
+use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use DateTimeImmutable;
 use InvalidArgumentException;
 

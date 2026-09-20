@@ -8,7 +8,7 @@ use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Game\Roster\Position;
 use BeachVolleybot\Telegram\MarkdownV2;
-use BeachVolleybot\Telegram\MessageBuilders\UsersListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\UsersListMessageBuilder;
 use PHPUnit\Framework\TestCase;
 
 final class UsersListMessageBuilderTest extends TestCase

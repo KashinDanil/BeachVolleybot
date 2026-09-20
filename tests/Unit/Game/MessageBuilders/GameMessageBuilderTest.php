@@ -11,7 +11,7 @@ use BeachVolleybot\Game\Roster\Position;
 use BeachVolleybot\Game\Roster\PositionInterface;
 use BeachVolleybot\Game\Roster\PositionRange;
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\GameMessageBuilder;
 use DanilKashin\Localization\Language;
 use PHPUnit\Framework\TestCase;
 

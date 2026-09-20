@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\ResolvableDateRule;
+use BeachVolleybot\Validator\Rules\DateTime\ResolvableDateRule;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 

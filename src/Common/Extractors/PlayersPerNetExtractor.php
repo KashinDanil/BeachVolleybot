@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Common\Extractors;
 
 use BeachVolleybot\Localization\InputVocabulary;
-use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
+use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 
 final class PlayersPerNetExtractor implements ExtractorInterface
 {

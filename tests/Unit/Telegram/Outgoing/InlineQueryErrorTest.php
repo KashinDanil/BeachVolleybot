@@ -7,8 +7,8 @@ namespace BeachVolleybot\Tests\Unit\Telegram\Outgoing;
 use BeachVolleybot\Errors\ValidationError;
 use BeachVolleybot\Processors\UpdateProcessors\InlineQueryProcessor;
 use BeachVolleybot\Telegram\Messages\Outgoing\InlineQueryError;
-use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
-use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
+use BeachVolleybot\Validator\Rules\DateTime\DateTimeInTitleRule;
+use BeachVolleybot\Validator\Rules\DateTime\KickoffDayInTheFutureRule;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
+use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use PHPUnit\Framework\TestCase;
 
 final class MinimumPlayersPerNetRuleTest extends TestCase

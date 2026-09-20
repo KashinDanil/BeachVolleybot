@@ -8,7 +8,7 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\UserRepository;
-use BeachVolleybot\Telegram\MessageBuilders\UserSettingsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\UserSettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class UserSettingsMessageFactory

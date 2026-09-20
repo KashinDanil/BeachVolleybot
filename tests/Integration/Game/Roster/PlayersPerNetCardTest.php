@@ -9,7 +9,7 @@ use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameFormText;
+use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameFormText;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Telegram\PlainText;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;

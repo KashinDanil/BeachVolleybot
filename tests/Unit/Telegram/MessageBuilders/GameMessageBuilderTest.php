@@ -6,8 +6,8 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameRepository;
-use BeachVolleybot\Telegram\MessageBuilders\GamesListMessageBuilder;
-use BeachVolleybot\Telegram\MessageBuilders\KeyboardPagination;
+use BeachVolleybot\Telegram\MessageBuilders\Game\GamesListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 

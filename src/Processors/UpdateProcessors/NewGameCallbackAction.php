@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameConfirmProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameDatePageProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickDateProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickTimeProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickVenueProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameSendProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameTimePageProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameVenuePageProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameConfirmProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameDatePageProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGamePickDateProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGamePickTimeProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGamePickVenueProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameSendProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameTimePageProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameVenuePageProcessor;
 use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;

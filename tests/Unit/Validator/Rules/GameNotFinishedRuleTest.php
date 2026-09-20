@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\GameNotFinishedRule;
+use BeachVolleybot\Validator\Rules\Game\GameNotFinishedRule;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 

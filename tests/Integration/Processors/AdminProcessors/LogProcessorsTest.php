@@ -6,11 +6,11 @@ namespace BeachVolleybot\Tests\Integration\Processors\AdminProcessors;
 
 use BeachVolleybot\Log\LogFileRepository;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
-use BeachVolleybot\Processors\AdminProcessors\RootLogClearCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\RootLogFileActionsCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\RootLogGetCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\RootLogsListCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\RootLogTailCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogClearCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogFileActionsCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogGetCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogsListCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogTailCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;

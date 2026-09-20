@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game;
 
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\ShareGameMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramChat;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Telegram\TelegramMessageSender;

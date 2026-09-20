@@ -6,8 +6,8 @@ namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\UserRepository;
-use BeachVolleybot\Telegram\MessageBuilders\KeyboardPagination;
-use BeachVolleybot\Telegram\MessageBuilders\UserRoleListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\UserRoleListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class UserRoleListMessageFactory

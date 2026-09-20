@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 
 use BeachVolleybot\Log\LogFileRepository;
-use BeachVolleybot\Telegram\MessageBuilders\LogFileActionsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\Log\LogFileActionsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class LogFileActionsMessageFactory

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Validator\Rules;
 
-use BeachVolleybot\Validator\Rules\KnownVenueRule;
+use BeachVolleybot\Validator\Rules\Game\KnownVenueRule;
 use PHPUnit\Framework\TestCase;
 
 final class KnownVenueRuleTest extends TestCase

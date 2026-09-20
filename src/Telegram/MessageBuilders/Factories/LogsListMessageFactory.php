@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 
 use BeachVolleybot\Log\LogFileRepository;
-use BeachVolleybot\Telegram\MessageBuilders\KeyboardPagination;
-use BeachVolleybot\Telegram\MessageBuilders\LogsListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\Log\LogsListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class LogsListMessageFactory

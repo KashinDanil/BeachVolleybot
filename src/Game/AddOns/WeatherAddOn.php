@@ -7,7 +7,7 @@ namespace BeachVolleybot\Game\AddOns;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\GameMessageBuilder;
 use BeachVolleybot\Telegram\MessageFormatterInterface;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookupResult;

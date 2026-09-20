@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BeachVolleybot\Processors\AdminProcessors\Root\Log;
+
+use BeachVolleybot\Processors\AdminProcessors\AbstractAdminMutationProcessor;
+use BeachVolleybot\Telegram\MessageBuilders\Factories\LogsListMessageFactory;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+
+class RootLogsListCallbackProcessor extends AbstractAdminMutationProcessor
+{
+    public function process(TelegramUpdate $update): void
+    {
+        $page = $this->adminCallbackData->getPage();
+
+        $this->editSettingsMessage($update->callbackQuery, LogsListMessageFactory::build($page));
+        $this->answerCallbackQuery($update->callbackQuery, '');
+    }
+}

@@ -7,8 +7,8 @@ namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\KeyboardPagination;
-use BeachVolleybot\Telegram\MessageBuilders\UserGamesListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\UserGamesListMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class UserGamesListMessageFactory

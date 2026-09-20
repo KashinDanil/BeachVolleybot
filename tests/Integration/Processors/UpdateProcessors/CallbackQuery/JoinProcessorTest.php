@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
+use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\JoinProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 

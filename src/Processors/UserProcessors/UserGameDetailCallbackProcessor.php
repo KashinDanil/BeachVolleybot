@@ -11,7 +11,7 @@ use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\Factories\UserGameDetailMessageFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\Validator\Rules\GameCreatorOnlyRule;
+use BeachVolleybot\Validator\Rules\Game\GameCreatorOnlyRule;
 
 class UserGameDetailCallbackProcessor extends AbstractCallbackProcessor
 {

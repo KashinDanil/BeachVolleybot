@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\CallbackAnswer;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGamePickDateProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGamePickDateProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;

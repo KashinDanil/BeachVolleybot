@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
-use BeachVolleybot\Telegram\MessageBuilders\UserRoleDetailMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\UserRoleDetailMessageBuilder;
 use BeachVolleybot\User\Role;
 use PHPUnit\Framework\TestCase;
 

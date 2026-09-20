@@ -13,10 +13,10 @@ use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\User\CurrentUser;
-use BeachVolleybot\Validator\Rules\DateTimeInTitleRule;
-use BeachVolleybot\Validator\Rules\GameCreatorOnlyRule;
-use BeachVolleybot\Validator\Rules\GameCreatorOrAdminRule;
-use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
+use BeachVolleybot\Validator\Rules\DateTime\DateTimeInTitleRule;
+use BeachVolleybot\Validator\Rules\DateTime\KickoffDayInTheFutureRule;
+use BeachVolleybot\Validator\Rules\Game\GameCreatorOnlyRule;
+use BeachVolleybot\Validator\Rules\Game\GameCreatorOrAdminRule;
 
 final readonly class ChangeTitleHandler extends AbstractGameReplyQueueHandler
 {

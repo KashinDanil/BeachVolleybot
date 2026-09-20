@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameCreatedMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameCreatedMessageBuilder;
 use PHPUnit\Framework\TestCase;
 
 final class NewGameCreatedMessageBuilderTest extends TestCase

@@ -13,7 +13,7 @@ use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Factories\UserGameDetailMessageFactory;
-use BeachVolleybot\Telegram\MessageBuilders\ShareGameMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 

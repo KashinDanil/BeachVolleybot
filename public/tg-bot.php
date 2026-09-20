@@ -13,9 +13,9 @@ use BeachVolleybot\Routing\IncomingMessageRouter;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\RateLimitedBotApi;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\Validator\Rules\AppSecretTokenRule;
-use BeachVolleybot\Validator\Rules\PostRequestRule;
-use BeachVolleybot\Validator\Rules\ValidPayloadRule;
+use BeachVolleybot\Validator\Rules\Request\AppSecretTokenRule;
+use BeachVolleybot\Validator\Rules\Request\PostRequestRule;
+use BeachVolleybot\Validator\Rules\Request\ValidPayloadRule;
 use BeachVolleybot\Validator\Validator;
 
 $inputStrategy = InputStrategyFactory::getStrategy();

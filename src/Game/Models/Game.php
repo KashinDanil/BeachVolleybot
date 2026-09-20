@@ -6,7 +6,7 @@ namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Game\GameSettings;
-use BeachVolleybot\Telegram\MessageBuilders\GameMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\GameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 use DateTimeImmutable;

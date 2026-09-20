@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\NewGameVenuePageProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameVenuePageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameConfirmMessageBuilder;
-use BeachVolleybot\Telegram\MessageBuilders\PlayersPerNetSelection;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\PlayersPerNetSelection;
+use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameConfirmMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use DateTimeImmutable;

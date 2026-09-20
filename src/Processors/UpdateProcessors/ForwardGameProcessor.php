@@ -8,7 +8,7 @@ use BeachVolleybot\Common\Extractors\ForwardGameQueryExtractor;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\User\CurrentUser;
-use BeachVolleybot\Validator\Rules\GameCreatorOrAdminRule;
+use BeachVolleybot\Validator\Rules\Game\GameCreatorOrAdminRule;
 use BeachVolleybot\Validator\Validator;
 
 class ForwardGameProcessor extends AbstractActionProcessor

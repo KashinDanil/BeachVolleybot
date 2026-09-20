@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UpdateProcessors;
 
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\AddNetProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\AddVolleyballProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\JoinProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\LeaveProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveNetProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\CallbackQuery\RemoveVolleyballProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\AddNetProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\AddVolleyballProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\JoinProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\LeaveProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\RemoveNetProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\GameAction\RemoveVolleyballProcessor;
 use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\TelegramMessageSender;

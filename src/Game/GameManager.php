@@ -7,14 +7,14 @@ namespace BeachVolleybot\Game;
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameMessageRepository;
-use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
+use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
-use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
+use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use BeachVolleybot\Validator\Validator;
 use InvalidArgumentException;
 

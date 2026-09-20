@@ -6,7 +6,7 @@ namespace BeachVolleybot\Game\Roster;
 
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\Models\UserInterface;
-use BeachVolleybot\Validator\Rules\MinimumPlayersPerNetRule;
+use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 
 final readonly class PlayerLimit
 {

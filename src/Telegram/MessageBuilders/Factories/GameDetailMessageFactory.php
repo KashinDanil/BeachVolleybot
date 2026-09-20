@@ -9,7 +9,7 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameManager;
-use BeachVolleybot\Telegram\MessageBuilders\GameDetailMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Game\GameDetailMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class GameDetailMessageFactory

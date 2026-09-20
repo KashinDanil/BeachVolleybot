@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameFormText;
+use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameFormText;
 use DanilKashin\Localization\Language;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;

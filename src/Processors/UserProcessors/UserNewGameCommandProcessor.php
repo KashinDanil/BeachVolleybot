@@ -6,7 +6,7 @@ namespace BeachVolleybot\Processors\UserProcessors;
 
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
-use BeachVolleybot\Telegram\MessageBuilders\NewGameDatePickerMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameDatePickerMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class UserNewGameCommandProcessor extends AbstractActionProcessor

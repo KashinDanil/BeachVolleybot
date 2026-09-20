@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BeachVolleybot\Processors\AdminProcessors\Equipment;
+
+use BeachVolleybot\Game\AdminGameManager;
+use BeachVolleybot\Processors\AdminProcessors\AbstractAdminMutationProcessor;
+use BeachVolleybot\Telegram\MessageBuilders\Factories\GameDetailMessageFactory;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+
+class AdminRemoveLocationCallbackProcessor extends AbstractAdminMutationProcessor
+{
+    public function process(TelegramUpdate $update): void
+    {
+        $gameId = $this->adminCallbackData->getGameId();
+
+        new AdminGameManager()->removeLocation($gameId);
+        $this->logAdminAction($update->callbackQuery->from, 'admin_remove_location', "gameId=$gameId");
+
+        $this->refreshGameMessages($gameId);
+
+        $this->editSettingsMessage($update->callbackQuery, GameDetailMessageFactory::build($gameId));
+        $this->answerCallbackQuery($update->callbackQuery, 'Location removed');
+    }
+}

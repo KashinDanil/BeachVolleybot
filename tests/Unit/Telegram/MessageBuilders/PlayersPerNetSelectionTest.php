@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
-use BeachVolleybot\Telegram\MessageBuilders\PlayersPerNetSelection;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\PlayersPerNetSelection;
 use PHPUnit\Framework\TestCase;
 
 final class PlayersPerNetSelectionTest extends TestCase

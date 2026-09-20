@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\AdminProcessors;
 
-use BeachVolleybot\Telegram\MessageBuilders\SettingsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\SettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\User\CurrentUser;
 

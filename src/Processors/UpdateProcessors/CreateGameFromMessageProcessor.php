@@ -12,7 +12,7 @@ use BeachVolleybot\Game\GameMessagePoster;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Game\ShareGameReplySender;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\Validator\Rules\KickoffDayInTheFutureRule;
+use BeachVolleybot\Validator\Rules\DateTime\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Validator;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 use DateTimeImmutable;
