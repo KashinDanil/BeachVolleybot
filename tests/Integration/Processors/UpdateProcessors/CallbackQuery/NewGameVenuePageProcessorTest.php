@@ -40,7 +40,7 @@ final class NewGameVenuePageProcessorTest extends ProcessorTestCase
 
         $text = $this->editedText();
         $this->assertNotNull($text);
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     public function testTheVenuePagesButtonsNeverCarryTheLimit(): void

@@ -27,11 +27,11 @@ final class NewGamePickTimeProcessorTest extends ProcessorTestCase
     public function testCarriesForwardAnAlreadyAppliedLimitIntoTheLocationStep(): void
     {
         // Reachable only by navigating back to the time step to re-pick it.
-        $this->runProcessor("🏐 New game — Step 2 of 4\n\n📅 31.12.2099\n🕒 pick a time below 👇\n📍 —\n👥 8 players per net");
+        $this->runProcessor("🏐 New game — Step 2 of 4\n\n📅 31.12.2099\n🕒 pick a time below 👇\n📍 —\n👥 8 spots per net");
 
         $text = $this->editedText();
         $this->assertNotNull($text);
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     public function testCarriesNoLimitWhenNoneWasApplied(): void

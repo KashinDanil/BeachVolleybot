@@ -113,7 +113,7 @@ final class NewGameDatePickerMessageBuilderTest extends TestCase
         // Reachable only by navigating all the way back from a later step.
         $text = $this->builder->build(1, 8)->getText()->getMessageText();
 
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     public function testNoButtonEverCarriesTheLimit(): void

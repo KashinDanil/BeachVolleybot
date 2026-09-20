@@ -49,7 +49,7 @@ final class NewGameFormTextTest extends TestCase
         // all the way to the very first page of the wizard, not just the confirm/location hop.
         $text = $this->displayText($this->formText->buildDateStep(8));
 
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     public function testTimeStepShowsStepTwoWithPickedDateAndActiveTimeField(): void
@@ -66,7 +66,7 @@ final class NewGameFormTextTest extends TestCase
     {
         $text = $this->displayText($this->formText->buildTimeStep($this->date, 8));
 
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     public function testVenueStepShowsStepThreeWithPickedDateAndTimeAndActiveVenueField(): void
@@ -92,7 +92,7 @@ final class NewGameFormTextTest extends TestCase
         // date and time already survive that round trip.
         $text = $this->displayText($this->formText->buildVenueStep($this->date, self::TIME, 8));
 
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     public function testConfirmStepShowsStepFourWithAllThreePickedValues(): void
@@ -123,7 +123,7 @@ final class NewGameFormTextTest extends TestCase
     {
         $text = $this->displayText($this->formText->buildConfirmStep($this->date, self::TIME, self::VENUE, 6));
 
-        $this->assertStringContainsString('📍 ' . self::VENUE . "\n👥 6 players per net", $text);
+        $this->assertStringContainsString('📍 ' . self::VENUE . "\n👥 6 spots per net", $text);
     }
 
     public function testSuccessShowsSuccessEmojiHeaderAndPostedMessage(): void
@@ -163,7 +163,7 @@ final class NewGameFormTextTest extends TestCase
     {
         $text = $this->displayText($this->formText->buildGameTitle($this->date, self::TIME, self::VENUE, 6));
 
-        $this->assertStringContainsString('👥 6 players per net', $text);
+        $this->assertStringContainsString('👥 6 spots per net', $text);
     }
 
     public function testValuesAreEscapedForMarkdownV2(): void
@@ -192,7 +192,7 @@ final class NewGameFormTextTest extends TestCase
         $formText = new NewGameFormText(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
 
         $this->assertStringContainsString(
-            '👥 6 игроков на сетку',
+            '👥 6 человек на сетку',
             $this->displayText($formText->buildConfirmStep($this->date, self::TIME, self::VENUE, 6)),
         );
     }

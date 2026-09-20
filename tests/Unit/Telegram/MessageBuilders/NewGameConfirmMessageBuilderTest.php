@@ -228,7 +228,7 @@ final class NewGameConfirmMessageBuilderTest extends TestCase
         $appliedText = $this->displayText($this->build(self::VENUE, PlayersPerNetSelection::applied(8)));
 
         $this->assertStringNotContainsString('👥', $pendingText);
-        $this->assertStringContainsString('👥 8 players per net', $appliedText);
+        $this->assertStringContainsString('👥 8 spots per net', $appliedText);
     }
 
     public function testPlayersPerNetButtonsCarryNoVenueButKeepTheLanguage(): void

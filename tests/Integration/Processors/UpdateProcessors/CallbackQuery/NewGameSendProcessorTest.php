@@ -90,7 +90,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
         $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
         $title = new GameRepository($this->db)->findById($gameId)['title'];
 
-        $this->assertStringContainsString('👥 8 players per net', $title);
+        $this->assertStringContainsString('👥 8 spots per net', $title);
         $this->assertSame(8, new GameManager()->findGameRecordById($gameId)?->settings->playersPerNet);
     }
 
@@ -106,7 +106,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
     public function testThePlayersPerNetRowDoesNotShadowTheDateOrTime(): void
     {
         // The 👥 row is last in the title; if DateExtractor or TimeExtractor could ever
-        // match inside "6 players per net" this would resolve the wrong kickoff.
+        // match inside "6 spots per net" this would resolve the wrong kickoff.
         $update = $this->dmCallbackUpdate(
             NewGameCallbackData::create(NewGameCallbackAction::Send)->toJson(),
             $this->wizardText('Bogatell', playersPerNet: 6),

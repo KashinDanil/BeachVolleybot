@@ -153,7 +153,7 @@ final class NewGameVenuePickerMessageBuilderTest extends TestCase
     {
         $text = str_replace('\\', '', $this->buildWithLimit(1, 8)->getText()->getMessageText());
 
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     public function testOmitsThePlayersRowWhenNoLimitWasApplied(): void

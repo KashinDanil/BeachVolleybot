@@ -82,7 +82,7 @@ final class NewGamePickVenueProcessorTest extends ProcessorTestCase
         $this->runProcessor($update);
 
         $text = $this->editedText();
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     public function testStartsUnsetWhenNoLimitWasCarried(): void

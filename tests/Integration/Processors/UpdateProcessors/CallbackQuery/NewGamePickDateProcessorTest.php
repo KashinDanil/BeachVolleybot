@@ -52,11 +52,11 @@ final class NewGamePickDateProcessorTest extends ProcessorTestCase
     public function testCarriesForwardAnAlreadyAppliedLimitIntoTheTimeStep(): void
     {
         // Reachable only by navigating all the way back from a later step to re-pick the date.
-        $this->runProcessor(self::FUTURE_DATE, Language::EN, "New game — Step 1 of 4\n\n👥 8 players per net");
+        $this->runProcessor(self::FUTURE_DATE, Language::EN, "New game — Step 1 of 4\n\n👥 8 spots per net");
 
         $text = $this->editedText();
         $this->assertNotNull($text);
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     private function runProcessor(string $isoDate, string $language = Language::EN, ?string $text = null): void

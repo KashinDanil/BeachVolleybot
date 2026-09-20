@@ -102,7 +102,7 @@ final class NewGameTimePickerMessageBuilderTest extends TestCase
         // Reachable only by navigating back from the location or confirm step.
         $message = $this->builder->build(new DateTimeImmutable('2099-12-31'), NewGameTimePickerMessageBuilder::START_PAGE, 8);
 
-        $this->assertStringContainsString('👥 8 players per net', $this->displayText($message));
+        $this->assertStringContainsString('👥 8 spots per net', $this->displayText($message));
     }
 
     public function testNoButtonEverCarriesTheLimit(): void

@@ -7,7 +7,7 @@ namespace BeachVolleybot\Localization;
 final readonly class PlayersPerNetPhrase
 {
     private const string PHRASE_KEY = '%d %s per net';
-    private const string NOUN_KEY = 'players';
+    private const string NOUN_KEY = 'spots';
 
     public function __construct(
         private int $count,

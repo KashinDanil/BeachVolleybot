@@ -57,7 +57,7 @@ final class NewGameConfirmProcessorTest extends ProcessorTestCase
 
         $text = $this->editedText();
         $this->assertNotNull($text);
-        $this->assertStringContainsString('👥 9 players per net', $text);
+        $this->assertStringContainsString('👥 9 spots per net', $text);
 
         $keyboard = $this->editedKeyboard();
         $this->assertSame('🗑', $keyboard[1][1]['text']);
@@ -75,7 +75,7 @@ final class NewGameConfirmProcessorTest extends ProcessorTestCase
         $this->runProcessor($update);
 
         $text = $this->editedText();
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
 
         $keyboard = $this->editedKeyboard();
         $this->assertSame('🗑', $keyboard[1][1]['text']);
@@ -144,7 +144,7 @@ final class NewGameConfirmProcessorTest extends ProcessorTestCase
 
         $text = $this->editedText();
         $this->assertNotNull($text);
-        $this->assertStringContainsString('👥 8 игроков на сетку', $text);
+        $this->assertStringContainsString('👥 8 человек на сетку', $text);
     }
 
     public function testSwitchingLanguageKeepsAPendingWorkingValueInsteadOfResettingToTheDefault(): void

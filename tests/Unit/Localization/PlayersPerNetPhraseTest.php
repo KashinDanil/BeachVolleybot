@@ -20,26 +20,26 @@ final class PlayersPerNetPhraseTest extends TestCase
     {
         $translator = new Translator();
 
-        $this->assertSame('4 players per net', new PlayersPerNetPhrase(4, $translator)->text());
-        $this->assertSame('6 players per net', new PlayersPerNetPhrase(6, $translator)->text());
-        $this->assertSame('12 players per net', new PlayersPerNetPhrase(12, $translator)->text());
+        $this->assertSame('4 spots per net', new PlayersPerNetPhrase(4, $translator)->text());
+        $this->assertSame('6 spots per net', new PlayersPerNetPhrase(6, $translator)->text());
+        $this->assertSame('12 spots per net', new PlayersPerNetPhrase(12, $translator)->text());
     }
 
     public function testSpanishUsesOnePluralFormForEveryCount(): void
     {
         $translator = self::translator(Language::ES);
 
-        $this->assertSame('4 jugadores por red', new PlayersPerNetPhrase(4, $translator)->text());
-        $this->assertSame('6 jugadores por red', new PlayersPerNetPhrase(6, $translator)->text());
-        $this->assertSame('12 jugadores por red', new PlayersPerNetPhrase(12, $translator)->text());
+        $this->assertSame('4 plazas por red', new PlayersPerNetPhrase(4, $translator)->text());
+        $this->assertSame('6 plazas por red', new PlayersPerNetPhrase(6, $translator)->text());
+        $this->assertSame('12 plazas por red', new PlayersPerNetPhrase(12, $translator)->text());
     }
 
     public function testRussianSwitchesNounFormByLastDigit(): void
     {
         $translator = self::translator(Language::RU);
 
-        $this->assertSame('4 игрока на сетку', new PlayersPerNetPhrase(4, $translator)->text());
-        $this->assertSame('5 игроков на сетку', new PlayersPerNetPhrase(5, $translator)->text());
+        $this->assertSame('4 человека на сетку', new PlayersPerNetPhrase(4, $translator)->text());
+        $this->assertSame('5 человек на сетку', new PlayersPerNetPhrase(5, $translator)->text());
     }
 
     public function testRussianTeensStayInTheManyFormEvenThoughTheLastDigitLooksLikeFew(): void
@@ -47,7 +47,7 @@ final class PlayersPerNetPhraseTest extends TestCase
         $translator = self::translator(Language::RU);
 
         // 12, 13, 14 end in 2/3/4 but are "-надцать" teens, which always take the "many" form.
-        $this->assertSame('12 игроков на сетку', new PlayersPerNetPhrase(12, $translator)->text());
+        $this->assertSame('12 человек на сетку', new PlayersPerNetPhrase(12, $translator)->text());
     }
 
     /**
@@ -58,16 +58,16 @@ final class PlayersPerNetPhraseTest extends TestCase
     {
         $translator = self::translator(Language::RU);
 
-        $this->assertSame('21 игрок на сетку', new PlayersPerNetPhrase(21, $translator)->text());
-        $this->assertSame('101 игрок на сетку', new PlayersPerNetPhrase(101, $translator)->text());
+        $this->assertSame('21 человек на сетку', new PlayersPerNetPhrase(21, $translator)->text());
+        $this->assertSame('101 человек на сетку', new PlayersPerNetPhrase(101, $translator)->text());
     }
 
     public function testRussianElevenStaysInTheManyFormDespiteEndingInOne(): void
     {
         $translator = self::translator(Language::RU);
 
-        $this->assertSame('11 игроков на сетку', new PlayersPerNetPhrase(11, $translator)->text());
-        $this->assertSame('111 игроков на сетку', new PlayersPerNetPhrase(111, $translator)->text());
+        $this->assertSame('11 человек на сетку', new PlayersPerNetPhrase(11, $translator)->text());
+        $this->assertSame('111 человек на сетку', new PlayersPerNetPhrase(111, $translator)->text());
     }
 
     /**
@@ -101,7 +101,7 @@ final class PlayersPerNetPhraseTest extends TestCase
         $cases = [];
 
         foreach ([...range(self::MINIMUM, self::MAXIMUM), 20, 21, 22, 24, 25] as $count) {
-            $cases["$count players per net"] = [$count];
+            $cases["$count spots per net"] = [$count];
         }
 
         return $cases;

@@ -28,11 +28,11 @@ final class NewGameTimePageProcessorTest extends ProcessorTestCase
     {
         // Reached either from the location step's Back button or the time step's own
         // pagination — both must read the limit back from whatever text they were tapped from.
-        $this->runProcessor("🏐 New game — Step 3 of 4\n\n📅 31.12.2099\n🕒 18:30\n📍 pick a location below 👇\n👥 8 players per net");
+        $this->runProcessor("🏐 New game — Step 3 of 4\n\n📅 31.12.2099\n🕒 18:30\n📍 pick a location below 👇\n👥 8 spots per net");
 
         $text = $this->editedText();
         $this->assertNotNull($text);
-        $this->assertStringContainsString('👥 8 players per net', $text);
+        $this->assertStringContainsString('👥 8 spots per net', $text);
     }
 
     public function testCarriesNoLimitWhenNoneWasApplied(): void
