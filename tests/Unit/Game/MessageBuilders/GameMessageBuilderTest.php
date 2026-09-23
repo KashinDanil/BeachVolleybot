@@ -344,9 +344,9 @@ final class GameMessageBuilderTest extends TestCase
     public function testTwoDigitNumbersAndRangeSurviveTheDivider(): void
     {
         $game = $this->game('Game 18:00', [
-            $this->user(new Position(1), 'Alice', net: 1, telegramUserId: 1),
-            $this->user(new Position(2), 'Bob', net: 1, telegramUserId: 2),
-            $this->user(new Position(3), 'Carol', net: 1, telegramUserId: 3),
+            $this->user(new Position(1), 'Alice', volleyball: 1, net: 1, telegramUserId: 1),
+            $this->user(new Position(2), 'Bob', volleyball: 1, net: 1, telegramUserId: 2),
+            $this->user(new Position(3), 'Carol', volleyball: 1, net: 1, telegramUserId: 3),
             $this->user(new PositionRange(4, 11), 'Dave', telegramUserId: 4),
             $this->user(new Position(12), 'Liam', telegramUserId: 5),
             $this->user(new PositionRange(13, 15), 'Mia', telegramUserId: 6),

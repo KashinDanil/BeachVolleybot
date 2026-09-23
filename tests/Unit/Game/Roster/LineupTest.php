@@ -106,7 +106,7 @@ final class LineupTest extends TestCase
     {
         $users = [
             $this->user(1, new PositionRange(1, 6), name: 'Alice'),
-            $this->user(2, new Position(7), name: 'Grace', net: 1),
+            $this->user(2, new Position(7), name: 'Grace', volleyball: 1, net: 1),
         ];
 
         $arranged = new Lineup($users, new PlayerLimit(4))->getRowsToRender();
@@ -126,7 +126,7 @@ final class LineupTest extends TestCase
             $this->user(4, new Position(4), name: 'Dave'),
             $this->user(5, new Position(5), name: 'Erin'),
             $this->user(6, new Position(6), name: 'Frank'),
-            $this->user(7, new Position(7), name: 'Grace', net: 1),
+            $this->user(7, new Position(7), name: 'Grace', volleyball: 1, net: 1),
         ];
 
         $arranged = new Lineup($users, new PlayerLimit(4))->getRowsToRender();
@@ -142,7 +142,7 @@ final class LineupTest extends TestCase
             $this->user(2, new Position(2), name: 'Bob'),
             $this->user(3, new Position(3), name: 'Carol'),
             $this->user(4, new Position(4), name: 'Dave'),
-            $this->user(5, new PositionRange(5, 6), name: 'Zoe', net: 1),
+            $this->user(5, new PositionRange(5, 6), name: 'Zoe', volleyball: 1, net: 1),
         ];
 
         $arranged = new Lineup($users, new PlayerLimit(4))->getRowsToRender();
@@ -162,8 +162,8 @@ final class LineupTest extends TestCase
             $this->user(5, new Position(5), name: 'P5'),
             $this->user(6, new Position(6), name: 'P6'),
             $this->user(7, new Position(7), name: 'P7'),
-            $this->user(8, new Position(8), name: 'Alice', net: 1),
-            $this->user(9, new Position(9), name: 'Bob', net: 1),
+            $this->user(8, new Position(8), name: 'Alice', volleyball: 1, net: 1),
+            $this->user(9, new Position(9), name: 'Bob', volleyball: 1, net: 1),
         ];
 
         $arranged = new Lineup($users, new PlayerLimit(8))->getRowsToRender();
@@ -190,7 +190,8 @@ final class LineupTest extends TestCase
 
     // --- A ball behind every net ---
 
-    public function testNoVolleyballInTheGameLeavesPromotionToTheNets(): void
+    /** A net with no ball to match it equips no court, so its bringer is never pulled up. */
+    public function testANetWithNoBallInTheGameIsNotPromoted(): void
     {
         $users = [
             $this->user(1, new Position(1), name: 'Alice'),
@@ -202,7 +203,7 @@ final class LineupTest extends TestCase
 
         $arranged = new Lineup($users, new PlayerLimit(4))->getRowsToRender();
 
-        $this->assertSame(['Xena', 'Alice', 'Bob', 'Carol', 'Dave'], $this->names($arranged));
+        $this->assertSame(['Alice', 'Bob', 'Carol', 'Dave', 'Xena'], $this->names($arranged));
     }
 
     public function testNobodyMovesWhenTheCourtAlreadyHasABallForEveryNet(): void
@@ -332,6 +333,30 @@ final class LineupTest extends TestCase
         $arranged = new Lineup($users, new PlayerLimit(4))->getRowsToRender();
 
         $this->assertSame(['Xena', 'Ivan', 'Bob', 'Carol', 'Dave'], $this->names($arranged));
+    }
+
+    /**
+     * Two nets held by two people but only one ball make one court: only the first net and the
+     * ball are essential, so those two come up in sign-up order and the second net is left below.
+     */
+    public function testASecondNetWithNoBallToMatchItStaysBelowTheLine(): void
+    {
+        $users = [
+            $this->user(1, new Position(1), name: 'player1'),
+            $this->user(2, new Position(2), name: 'player2', volleyball: 1),
+            $this->user(3, new Position(3), name: 'player3'),
+            $this->user(4, new Position(4), name: 'player4'),
+            $this->user(5, new Position(5), name: 'player5', net: 1),
+            $this->user(6, new Position(6), name: 'player6', net: 1),
+        ];
+
+        $arranged = new Lineup($users, new PlayerLimit(4))->getRowsToRender();
+
+        $this->assertSame(
+            ['player2', 'player5', 'player1', 'player3', 'player4', 'player6'],
+            $this->names($arranged),
+        );
+        $this->assertSame(['1', '2', '3', '4', '5', '6'], $this->numbers($arranged));
     }
 
     /** One pair of hands holding both keeps one row, not one per piece of equipment. */
@@ -545,7 +570,7 @@ final class LineupTest extends TestCase
             $this->user(2, new Position(2), name: 'Erin'),
             $this->user(3, new Position(3), name: 'Frank'),
             $this->user(4, new Position(4), name: 'Bob'),
-            $this->user(5, new Position(5), name: 'Carol', net: 1),
+            $this->user(5, new Position(5), name: 'Carol', volleyball: 1, net: 1),
             $this->user(4, new Position(6), name: 'Bob'),
         ];
 
@@ -563,7 +588,7 @@ final class LineupTest extends TestCase
             $this->user(2, new Position(2), name: 'Erin'),
             $this->user(3, new Position(3), name: 'Frank'),
             $this->user(4, new Position(4), name: 'Bob'),
-            $this->user(5, new Position(5), name: 'Carol', net: 1),
+            $this->user(5, new Position(5), name: 'Carol', volleyball: 1, net: 1),
             $this->user(4, new Position(6), name: 'Bob'),
         ];
 

@@ -105,8 +105,9 @@ final readonly class Lineup
     }
 
     /**
-     * The game cannot be played without these: every net bringer, and as many volleyball holders
-     * as it takes to put a ball behind each net, taken in sign-up order.
+     * The game cannot be played without these: enough net bringers and ball holders — taken in
+     * sign-up order, whichever the type — to equip every court that can be run, which is as many
+     * courts as the scarcer of nets and balls allows.
      *
      * @param UserInterface[] $slots
      *
@@ -115,30 +116,32 @@ final readonly class Lineup
     private function equipmentCarrierUserIds(array $slots): array
     {
         $netsByUserId = $this->netsByUserId($slots);
-        $netCount = array_sum($netsByUserId);
-        $netHolderUserIds = array_keys($netsByUserId);
-        $volleyballHolderUserIds = $this->holdersCovering($this->volleyballsByUserId($slots), $netCount);
+        $volleyballsByUserId = $this->volleyballsByUserId($slots);
+        $courts = min(array_sum($netsByUserId), array_sum($volleyballsByUserId));
 
-        return array_values(array_unique([...$netHolderUserIds, ...$volleyballHolderUserIds]));
+        return array_values(array_unique([
+            ...$this->holdersCovering($netsByUserId, $courts),
+            ...$this->holdersCovering($volleyballsByUserId, $courts),
+        ]));
     }
 
     /**
-     * @param array<int, int> $volleyballsByUserId
+     * @param array<int, int> $equipmentByUserId
      *
      * @return list<int>
      */
-    private function holdersCovering(array $volleyballsByUserId, int $netCount): array
+    private function holdersCovering(array $equipmentByUserId, int $required): array
     {
         $holderUserIds = [];
-        $volleyballCount = 0;
+        $carried = 0;
 
-        foreach ($volleyballsByUserId as $userId => $volleyballs) {
-            if ($netCount <= $volleyballCount) {
+        foreach ($equipmentByUserId as $userId => $count) {
+            if ($required <= $carried) {
                 break;
             }
 
             $holderUserIds[] = $userId;
-            $volleyballCount += $volleyballs;
+            $carried += $count;
         }
 
         return $holderUserIds;

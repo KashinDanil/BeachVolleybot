@@ -25,7 +25,14 @@ final class PlayerLimitTest extends TestCase
 
     public function testNullWhenNoNets(): void
     {
-        $limit = PlayerLimit::resolveLimit([$this->user(net: 0)], new GameSettings(playersPerNet: 6));
+        $limit = PlayerLimit::resolveLimit([$this->user(net: 0, volleyball: 1)], new GameSettings(playersPerNet: 6));
+
+        $this->assertNull($limit->threshold);
+    }
+
+    public function testNullWhenNoVolleyballs(): void
+    {
+        $limit = PlayerLimit::resolveLimit([$this->user(net: 1, volleyball: 0)], new GameSettings(playersPerNet: 6));
 
         $this->assertNull($limit->threshold);
     }
@@ -37,20 +44,20 @@ final class PlayerLimitTest extends TestCase
         $this->assertNull($limit->threshold);
     }
 
-    // --- resolveLimit(): counting nets ---
+    // --- resolveLimit(): counting equipment ---
 
-    public function testOneNet(): void
+    public function testOneCourt(): void
     {
-        $limit = PlayerLimit::resolveLimit([$this->user(net: 1)], new GameSettings(playersPerNet: 6));
+        $limit = PlayerLimit::resolveLimit([$this->user(net: 1, volleyball: 1)], new GameSettings(playersPerNet: 6));
 
         $this->assertSame(6, $limit->threshold);
     }
 
-    public function testTwoNetsFromTwoUsers(): void
+    public function testTwoCourtsFromTwoUsers(): void
     {
         $users = [
-            $this->user(telegramUserId: 1, net: 1),
-            $this->user(telegramUserId: 2, net: 1),
+            $this->user(telegramUserId: 1, net: 1, volleyball: 1),
+            $this->user(telegramUserId: 2, net: 1, volleyball: 1),
         ];
 
         $limit = PlayerLimit::resolveLimit($users, new GameSettings(playersPerNet: 6));
@@ -60,17 +67,17 @@ final class PlayerLimitTest extends TestCase
 
     public function testTwoNetsFromOneUserAreSummedNotCollapsed(): void
     {
-        $limit = PlayerLimit::resolveLimit([$this->user(net: 2)], new GameSettings(playersPerNet: 6));
+        $limit = PlayerLimit::resolveLimit([$this->user(net: 2, volleyball: 2)], new GameSettings(playersPerNet: 6));
 
         $this->assertSame(12, $limit->threshold);
     }
 
-    public function testUserHoldingMultipleSlotsCountsNetOnce(): void
+    public function testUserHoldingMultipleSlotsCountsEquipmentOnce(): void
     {
         $users = [
-            $this->user(telegramUserId: 1, position: new Position(1), net: 1),
-            $this->user(telegramUserId: 1, position: new Position(2), net: 1),
-            $this->user(telegramUserId: 1, position: new Position(3), net: 1),
+            $this->user(telegramUserId: 1, position: new Position(1), net: 1, volleyball: 1),
+            $this->user(telegramUserId: 1, position: new Position(2), net: 1, volleyball: 1),
+            $this->user(telegramUserId: 1, position: new Position(3), net: 1, volleyball: 1),
         ];
 
         $limit = PlayerLimit::resolveLimit($users, new GameSettings(playersPerNet: 6));
@@ -80,9 +87,35 @@ final class PlayerLimitTest extends TestCase
 
     public function testStoredZeroFallsBackToMinimum(): void
     {
-        $limit = PlayerLimit::resolveLimit([$this->user(net: 1)], new GameSettings(playersPerNet: 0));
+        $limit = PlayerLimit::resolveLimit([$this->user(net: 1, volleyball: 1)], new GameSettings(playersPerNet: 0));
 
         $this->assertSame(4, $limit->threshold);
+    }
+
+    // --- resolveLimit(): the scarcer equipment caps the courts ---
+
+    public function testFewerVolleyballsThanNetsCapTheCourts(): void
+    {
+        $users = [
+            $this->user(telegramUserId: 1, net: 1, volleyball: 1),
+            $this->user(telegramUserId: 2, net: 1, volleyball: 0),
+        ];
+
+        $limit = PlayerLimit::resolveLimit($users, new GameSettings(playersPerNet: 6));
+
+        $this->assertSame(6, $limit->threshold);
+    }
+
+    public function testFewerNetsThanVolleyballsCapTheCourts(): void
+    {
+        $users = [
+            $this->user(telegramUserId: 1, net: 1, volleyball: 1),
+            $this->user(telegramUserId: 2, net: 0, volleyball: 1),
+        ];
+
+        $limit = PlayerLimit::resolveLimit($users, new GameSettings(playersPerNet: 6));
+
+        $this->assertSame(6, $limit->threshold);
     }
 
     // --- isReserve() ---
@@ -114,13 +147,14 @@ final class PlayerLimitTest extends TestCase
         int $telegramUserId = 1,
         PositionInterface $position = new Position(1),
         int $net = 0,
+        int $volleyball = 0,
     ): User {
         return new User(
             telegramUserId: $telegramUserId,
             position: $position,
             name: 'Alice',
             link: null,
-            volleyball: 0,
+            volleyball: $volleyball,
             net: $net,
             time: '18:00',
         );

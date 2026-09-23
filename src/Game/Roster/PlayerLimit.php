@@ -22,13 +22,13 @@ final readonly class PlayerLimit
             return new self(null);
         }
 
-        $nets = self::countNets($users);
+        $courts = min(self::countNets($users), self::countVolleyballs($users));
 
-        if (0 === $nets) {
+        if (0 === $courts) {
             return new self(null);
         }
 
-        return new self(max(MinimumPlayersPerNetRule::MINIMUM, $settings->playersPerNet) * $nets);
+        return new self(max(MinimumPlayersPerNetRule::MINIMUM, $settings->playersPerNet) * $courts);
     }
 
     /** A row plays if it starts inside the limit, so a merged range is judged by its first slot. */
@@ -37,17 +37,39 @@ final readonly class PlayerLimit
         return null !== $this->threshold && $this->threshold < $user->getPosition()->first();
     }
 
-    /**
-     * @param UserInterface[] $users
-     */
+    /** @param UserInterface[] $users */
     private static function countNets(array $users): int
     {
-        $netsByUser = [];
+        return array_sum(array_map(
+            static fn(UserInterface $user): int => $user->getNet(),
+            self::firstEntryByUserId($users),
+        ));
+    }
+
+    /** @param UserInterface[] $users */
+    private static function countVolleyballs(array $users): int
+    {
+        return array_sum(array_map(
+            static fn(UserInterface $user): int => $user->getVolleyball(),
+            self::firstEntryByUserId($users),
+        ));
+    }
+
+    /**
+     * Equipment is repeated on every slot a user holds, so it is counted from one entry per user.
+     *
+     * @param UserInterface[] $users
+     *
+     * @return array<int, UserInterface>
+     */
+    private static function firstEntryByUserId(array $users): array
+    {
+        $firstEntries = [];
 
         foreach ($users as $user) {
-            $netsByUser[$user->getTelegramUserId()] ??= $user->getNet();
+            $firstEntries[$user->getTelegramUserId()] ??= $user;
         }
 
-        return array_sum($netsByUser);
+        return $firstEntries;
     }
 }
