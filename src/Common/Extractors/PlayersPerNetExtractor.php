@@ -19,6 +19,7 @@ final class PlayersPerNetExtractor implements ExtractorInterface
             . '\b(\d{1,2})\s*'
             . '(?:' . self::words(InputVocabulary::slotNouns()) . ')\s+'
             . '(?:' . self::words(InputVocabulary::perPrepositions()) . ')\s+'
+            . '(?:(?:' . self::words(InputVocabulary::netQuantifiers()) . ')\s+)?'
             . '(?:' . self::words(InputVocabulary::netNouns()) . ')\b/iu';
     }
 

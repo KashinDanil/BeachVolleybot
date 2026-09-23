@@ -21,6 +21,11 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Beach limit 6 slots per court 18:00'));
     }
 
+    public function testResolvesWithEachBetweenPrepositionAndCourt(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Beach 6 spots per each court 18:00'));
+    }
+
     // --- Russian ---
 
     public function testResolvesSixMestNaSetku(): void
@@ -73,6 +78,21 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 игроков на корт 18:00'));
     }
 
+    public function testResolvesWithOneBetweenPrepositionAndNet(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Максимум 6 человек на одну сетку 18:00'));
+    }
+
+    public function testResolvesWithOneBetweenPrepositionAndCourt(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 мест на один корт 18:00'));
+    }
+
+    public function testResolvesWithEachBetweenPrepositionAndNet(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 человек на каждую сетку 18:00'));
+    }
+
     // --- Spanish ---
 
     public function testResolvesSixPlazasPorRed(): void
@@ -83,6 +103,16 @@ final class PlayersPerNetExtractorTest extends TestCase
     public function testResolvesSixHuecosPorPista(): void
     {
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 6 huecos por pista 18:00'));
+    }
+
+    public function testResolvesWithUnaBetweenPrepositionAndNet(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 6 plazas por una cancha 18:00'));
+    }
+
+    public function testResolvesWithCadaBetweenPrepositionAndNet(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 6 plazas por cada pista 18:00'));
     }
 
     // --- not a limit ---

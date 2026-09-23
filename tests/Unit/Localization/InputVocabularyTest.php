@@ -53,7 +53,7 @@ final class InputVocabularyTest extends TestCase
     {
         $vocabulary = self::vocabulary();
 
-        foreach (['ORDINALS', 'PREPOSITIONS', 'SLOT_NOUNS', 'NET_NOUNS', 'PER_PREPOSITIONS'] as $kind) {
+        foreach (['ORDINALS', 'PREPOSITIONS', 'SLOT_NOUNS', 'NET_NOUNS', 'PER_PREPOSITIONS', 'NET_QUANTIFIERS'] as $kind) {
             $unknown = array_diff(array_keys($vocabulary[$kind]), InputVocabulary::languages());
 
             $this->assertEmpty($unknown, "$kind covers languages with no weekday or month names: " . implode(', ', $unknown));
@@ -111,11 +111,17 @@ final class InputVocabularyTest extends TestCase
 
             $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$perPreposition' is declared but not read");
         }
+
+        foreach (InputVocabulary::netQuantifiers() as $quantifier) {
+            $title = "Game 6 spots per $quantifier net";
+
+            $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$quantifier' is declared but not read");
+        }
     }
 
     public function testNewVocabularyDoesNotCollideWithWeekdaysOrMonths(): void
     {
-        $newWords = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions()];
+        $newWords = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions(), ...InputVocabulary::netQuantifiers()];
         $named = [...array_keys(InputVocabulary::weekdays()), ...array_keys(InputVocabulary::months())];
 
         $collisions = array_intersect($newWords, $named);
@@ -129,6 +135,7 @@ final class InputVocabularyTest extends TestCase
             'SLOT_NOUNS' => InputVocabulary::slotNouns(),
             'NET_NOUNS' => InputVocabulary::netNouns(),
             'PER_PREPOSITIONS' => InputVocabulary::perPrepositions(),
+            'NET_QUANTIFIERS' => InputVocabulary::netQuantifiers(),
         ];
 
         foreach ($lists as $kindA => $wordsA) {
@@ -145,7 +152,7 @@ final class InputVocabularyTest extends TestCase
 
     public function testNoNewWordIsMistakenForAVenue(): void
     {
-        $words = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions()];
+        $words = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions(), ...InputVocabulary::netQuantifiers()];
 
         foreach ($words as $word) {
             $this->assertNull(KnownVenues::findInTitle($word), "'$word' is read back as a venue");
@@ -279,7 +286,7 @@ final class InputVocabularyTest extends TestCase
     {
         $constants = new ReflectionClass(InputVocabulary::class)->getConstants();
 
-        return array_intersect_key($constants, array_flip(['WEEKDAYS', 'MONTHS', 'ORDINALS', 'PREPOSITIONS', 'SLOT_NOUNS', 'NET_NOUNS', 'PER_PREPOSITIONS']));
+        return array_intersect_key($constants, array_flip(['WEEKDAYS', 'MONTHS', 'ORDINALS', 'PREPOSITIONS', 'SLOT_NOUNS', 'NET_NOUNS', 'PER_PREPOSITIONS', 'NET_QUANTIFIERS']));
     }
 
     /**

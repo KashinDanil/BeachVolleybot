@@ -138,6 +138,17 @@ final class InputVocabulary
         Language::ES => ['por'],
     ];
 
+    /**
+     * @var array<string, list<string>> language => optional "one"/"each" word that may sit between
+     *      the preposition and the net noun ("per one net", "на одну сетку", "por cada cancha").
+     *      Listed leniently across gender and case, since the extractor never checks agreement.
+     */
+    private const array NET_QUANTIFIERS = [
+        Language::EN => ['one', 'each', 'single'],
+        Language::RU => ['одну', 'один', 'одном', 'одной', 'каждую', 'каждый', 'каждом', 'каждой'],
+        Language::ES => ['una', 'cada'],
+    ];
+
     /** @var array<string, int>|null */
     private static ?array $weekdays = null;
 
@@ -204,6 +215,12 @@ final class InputVocabulary
     public static function perPrepositions(): array
     {
         return self::flatten(self::PER_PREPOSITIONS);
+    }
+
+    /** @return list<string> */
+    public static function netQuantifiers(): array
+    {
+        return self::flatten(self::NET_QUANTIFIERS);
     }
 
     /**
