@@ -26,7 +26,7 @@ final readonly class ForwardGameArticleBuilder implements ArticleBuilderInterfac
     public function build(): Article
     {
         $game = GameFactory::fromRecord($this->gameRecord);
-        $message = $game->buildTelegramMessage();
+        $message = $game->buildTelegramMessage($this->inlineQuery->id);
 
         return new Article(
             id: $this->inlineQuery->id,

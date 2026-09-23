@@ -27,7 +27,7 @@ final readonly class GameCallbackQueryHandler extends AbstractGameQueueHandler
 
     protected function resolveGameId(TelegramUpdate $update): ?int
     {
-        $gameId = new GameManager()->resolveGameIdByTarget($update->callbackQuery->toGameMessageTarget());
+        $gameId = new GameManager()->resolveGameIdByGameMessage($update->callbackQuery->toGameMessage());
 
         if (null === $gameId) {
             Logger::logVerbose('Game not found for callback target' . PHP_EOL);

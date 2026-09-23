@@ -233,7 +233,7 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
             'Beach 18:00, 4 spots per net',
             'query_1',
         ));
-        $this->gameManager->addInlineMessage($gameId, 'msg_1');
+        $this->gameManager->addInlineMessage($gameId, 'msg_1', 'query_1');
 
         $this->gameManager->joinGame($gameId, 201, 'Bob', null, null);
         $this->gameManager->joinGame($gameId, 202, 'Carol', null, null);
@@ -258,7 +258,7 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
             $title,
             'query_wizard',
         ));
-        $this->gameManager->addInlineMessage($gameId, 'msg_wizard');
+        $this->gameManager->addInlineMessage($gameId, 'msg_wizard', 'query_wizard');
 
         $this->gameManager->joinGame($gameId, 201, 'Bob', null, null);
         $this->gameManager->joinGame($gameId, 202, 'Carol', null, null);

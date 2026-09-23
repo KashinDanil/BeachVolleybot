@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Game\GameSettings;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
-use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 use DateTimeImmutable;
 
 interface GameInterface
@@ -15,8 +15,8 @@ interface GameInterface
 
     public function getGameKey(): string;
 
-    /** @return list<GameMessageTarget> */
-    public function getMessageTargets(): array;
+    /** @return list<GameMessage> */
+    public function getMessages(): array;
 
     public function getTitle(): string;
 
@@ -35,6 +35,6 @@ interface GameInterface
     /** @return UserInterface[] */
     public function getUsers(): array;
 
-    public function buildTelegramMessage(): TelegramMessage;
+    public function buildTelegramMessage(?string $inlineQueryId = null): TelegramMessage;
 
 }

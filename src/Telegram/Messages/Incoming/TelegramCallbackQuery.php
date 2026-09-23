@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\Messages\Incoming;
 
-use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
-use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
-use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 
 readonly class TelegramCallbackQuery
 {
@@ -30,13 +28,13 @@ readonly class TelegramCallbackQuery
         return null !== $this->message;
     }
 
-    public function toGameMessageTarget(): GameMessageTarget
+    public function toGameMessage(): GameMessage
     {
         if (null !== $this->inlineMessageId) {
-            return new InlineGameMessageTarget($this->inlineMessageId);
+            return new GameMessage(inlineMessageId: $this->inlineMessageId);
         }
 
-        return new ChatGameMessageTarget($this->message->chat->id, $this->message->messageId);
+        return new GameMessage(chatId: $this->message->chat->id, messageId: $this->message->messageId);
     }
 
     public static function fromArray(array $data): self

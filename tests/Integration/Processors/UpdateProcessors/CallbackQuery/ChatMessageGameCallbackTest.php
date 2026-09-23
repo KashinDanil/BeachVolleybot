@@ -39,7 +39,7 @@ final class ChatMessageGameCallbackTest extends ProcessorTestCase
             'venue_name' => 'Bogatell',
         ]);
         $gameId = (int) $this->db->id();
-        $this->db->insert('game_chat_messages', ['game_id' => $gameId, 'chat_id' => $chatId, 'message_id' => $messageId]);
+        $this->db->insert('game_messages', ['game_id' => $gameId, 'chat_id' => $chatId, 'message_id' => $messageId]);
         $this->createGameUser($gameId, 200, '18:00');
         $this->createSlot($gameId, 200, 1);
 

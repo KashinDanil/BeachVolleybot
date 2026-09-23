@@ -34,6 +34,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/004_split_game_inline_messages.sql'));
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/008_rename_inline_query_id_to_game_key.sql'));
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/009_add_game_chat_messages.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/014_merge_game_message_tables.sql'));
         Connection::set($this->db);
 
         SpyQueue::reset();
@@ -425,7 +426,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
     private function attachInlineMessage(int $gameId, string $inlineMessageId): void
     {
-        $this->db->insert('game_inline_messages', [
+        $this->db->insert('game_messages', [
             'game_id' => $gameId,
             'inline_message_id' => $inlineMessageId,
         ]);

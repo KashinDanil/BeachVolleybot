@@ -9,20 +9,20 @@ use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramCallbackQuery;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
 
 abstract class AbstractGameCallbackProcessor extends AbstractCallbackProcessor
 {
     final public function process(TelegramUpdate $update): void
     {
         $callbackQuery = $update->callbackQuery;
-        $target = $callbackQuery->toGameMessageTarget();
-        $game = $this->resolveGame($target);
+        $gameMessage = $callbackQuery->toGameMessage();
+        $game = $this->resolveGame($gameMessage);
 
         if (null === $game) {
-            $this->respondGameNotFound($callbackQuery, $target);
+            $this->respondGameNotFound($callbackQuery, $gameMessage);
 
             return;
         }
@@ -38,9 +38,9 @@ abstract class AbstractGameCallbackProcessor extends AbstractCallbackProcessor
 
     abstract protected function handle(TelegramUpdate $update, GameInterface $game): void;
 
-    private function resolveGame(GameMessageTarget $target): ?GameInterface
+    private function resolveGame(GameMessage $gameMessage): ?GameInterface
     {
-        $gameId = new GameManager()->resolveGameIdByTarget($target);
+        $gameId = new GameManager()->resolveGameIdByGameMessage($gameMessage);
 
         if (null === $gameId) {
             return null;
@@ -54,9 +54,9 @@ abstract class AbstractGameCallbackProcessor extends AbstractCallbackProcessor
         return GameDateTimeResolver::isKickoffDayPast($game->getKickoffAt());
     }
 
-    private function respondGameNotFound(TelegramCallbackQuery $callbackQuery, GameMessageTarget $target): void
+    private function respondGameNotFound(TelegramCallbackQuery $callbackQuery, GameMessage $gameMessage): void
     {
-        $this->telegramSender->removeGameMessageKeyboard($target);
+        $this->telegramSender->removeGameMessageKeyboard($gameMessage);
         $this->answerCallbackQuery($callbackQuery, CallbackAnswer::GAME_NOT_FOUND);
     }
 
@@ -68,8 +68,8 @@ abstract class AbstractGameCallbackProcessor extends AbstractCallbackProcessor
 
     private function removeAllKeyboards(GameInterface $game): void
     {
-        foreach ($game->getMessageTargets() as $target) {
-            $this->telegramSender->removeGameMessageKeyboard($target);
+        foreach ($game->getMessages() as $gameMessage) {
+            $this->telegramSender->removeGameMessageKeyboard($gameMessage);
         }
     }
 }

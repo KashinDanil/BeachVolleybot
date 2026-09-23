@@ -10,12 +10,12 @@ use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Game\Roster\Position;
-use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 
 readonly class GameBuilder
 {
     /**
-     * @param list<GameMessageTarget> $messageTargets
+     * @param list<GameMessage> $messages
      * @param list<array<string, mixed>> $slotRows
      * @param list<array<string, mixed>> $gameUserRows
      * @param list<array<string, mixed>> $userRows
@@ -23,7 +23,7 @@ readonly class GameBuilder
      */
     public function __construct(
         private GameRecord $gameRecord,
-        private array $messageTargets,
+        private array $messages,
         private array $slotRows,
         private array $gameUserRows,
         private array $userRows,
@@ -36,7 +36,7 @@ readonly class GameBuilder
         $game = new Game(
             gameId: $this->gameRecord->gameId,
             gameKey: $this->gameRecord->gameKey,
-            messageTargets: $this->messageTargets,
+            messages: $this->messages,
             title: $this->gameRecord->title,
             users: $this->buildUsersFromRows(),
             createdAt: $this->gameRecord->createdAt,

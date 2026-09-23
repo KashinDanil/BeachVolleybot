@@ -25,7 +25,7 @@ final readonly class NewGameArticleBuilder implements ArticleBuilderInterface
     public function build(): Article
     {
         $game = $this->buildGame();
-        $message = $game->buildTelegramMessage();
+        $message = $game->buildTelegramMessage($this->inlineQuery->id);
 
         return new Article(
             id: $this->inlineQuery->id, //Important: must be the same as the inline query id to identify replies by this id

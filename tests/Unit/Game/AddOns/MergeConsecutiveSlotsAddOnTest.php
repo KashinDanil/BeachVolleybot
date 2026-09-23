@@ -199,7 +199,7 @@ final class MergeConsecutiveSlotsAddOnTest extends TestCase
         return new Game(
             gameId: $gameId,
             gameKey: 'query_1',
-            messageTargets: [],
+            messages: [],
             title: $title,
             users: $users,
             createdAt: new DateTimeImmutable(),

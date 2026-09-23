@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Database;
 
-use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
-use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
-use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use Medoo\Medoo;
 
 /**
- * A game's posted messages live in two concrete tables — game_inline_messages
- * (inline messages) and game_chat_messages (normal chat messages) — so every row
- * is fully populated. This repository is the single seam that reads and writes
- * both, exposing them to the domain as a uniform list of GameMessageTarget.
+ * The single seam over game_messages: one row is either an inline message
+ * (inline_message_id) or a chat message (chat_id + message_id). Exposes them to the
+ * domain as a uniform list of GameMessage.
  */
 readonly class GameMessageRepository
 {
@@ -22,71 +19,53 @@ readonly class GameMessageRepository
     ) {
     }
 
-    public function addInlineMessage(int $gameId, string $inlineMessageId): void
+    public function addInlineMessage(int $gameId, string $inlineMessageId, string $inlineQueryId): void
     {
-        $this->db->insert('game_inline_messages', [
+        $this->db->insert('game_messages', [
             'game_id' => $gameId,
             'inline_message_id' => $inlineMessageId,
+            'inline_query_id' => $inlineQueryId,
         ]);
     }
 
     public function addChatMessage(int $gameId, int $chatId, int $messageId): void
     {
-        $this->db->insert('game_chat_messages', [
+        $this->db->insert('game_messages', [
             'game_id' => $gameId,
             'chat_id' => $chatId,
             'message_id' => $messageId,
         ]);
     }
 
-    /** @return list<GameMessageTarget> */
-    public function findTargetsByGameId(int $gameId): array
+    /** @return list<GameMessage> */
+    public function findByGameId(int $gameId): array
     {
-        return [
-            ...$this->findChatTargets($gameId),
-            ...$this->findInlineTargets($gameId),
-        ];
+        $rows = $this->db->select('game_messages', ['chat_id', 'message_id', 'inline_message_id', 'inline_query_id'], [
+            'game_id' => $gameId,
+            'ORDER' => ['created_at' => 'ASC'],
+        ]);
+
+        return array_map(GameMessage::fromArray(...), $rows);
     }
 
     public function findGameIdByInlineMessageId(string $inlineMessageId): ?int
     {
-        $gameId = $this->db->get('game_inline_messages', 'game_id', ['inline_message_id' => $inlineMessageId]);
+        $gameId = $this->db->get('game_messages', 'game_id', ['inline_message_id' => $inlineMessageId]);
 
         return $gameId ? (int)$gameId : null;
     }
 
     public function findGameIdByChatMessage(int $chatId, int $messageId): ?int
     {
-        $gameId = $this->db->get('game_chat_messages', 'game_id', ['chat_id' => $chatId, 'message_id' => $messageId]);
+        $gameId = $this->db->get('game_messages', 'game_id', ['chat_id' => $chatId, 'message_id' => $messageId]);
 
         return $gameId ? (int)$gameId : null;
     }
 
-    /** @return list<InlineGameMessageTarget> */
-    private function findInlineTargets(int $gameId): array
+    public function findGameIdByInlineQueryId(string $inlineQueryId): ?int
     {
-        $inlineMessageIds = $this->db->select('game_inline_messages', 'inline_message_id', [
-            'game_id' => $gameId,
-            'ORDER' => ['created_at' => 'ASC'],
-        ]);
+        $gameId = $this->db->get('game_messages', 'game_id', ['inline_query_id' => $inlineQueryId]);
 
-        return array_map(
-            static fn(string $inlineMessageId): InlineGameMessageTarget => new InlineGameMessageTarget($inlineMessageId),
-            $inlineMessageIds,
-        );
-    }
-
-    /** @return list<ChatGameMessageTarget> */
-    private function findChatTargets(int $gameId): array
-    {
-        $rows = $this->db->select('game_chat_messages', ['chat_id', 'message_id'], [
-            'game_id' => $gameId,
-            'ORDER' => ['created_at' => 'ASC'],
-        ]);
-
-        return array_map(
-            static fn(array $row): ChatGameMessageTarget => new ChatGameMessageTarget((int)$row['chat_id'], (int)$row['message_id']),
-            $rows,
-        );
+        return $gameId ? (int)$gameId : null;
     }
 }

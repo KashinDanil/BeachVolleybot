@@ -87,7 +87,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
     {
         $this->db->insert('games', ['title' => 'Test', 'created_by' => 1, 'game_key' => 'query_dm']);
         $gameId = (int) $this->db->id();
-        $this->db->insert('game_inline_messages', ['game_id' => $gameId, 'inline_message_id' => 'msg_dm']);
+        $this->db->insert('game_messages', ['game_id' => $gameId, 'inline_message_id' => 'msg_dm']);
 
         $update = TelegramUpdate::fromArray([
             'update_id' => 100,
@@ -124,7 +124,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
     {
         $this->db->insert('games', ['title' => 'Test', 'created_by' => 1, 'game_key' => 'q1']);
         $gameId = (int) $this->db->id();
-        $this->db->insert('game_inline_messages', ['game_id' => $gameId, 'inline_message_id' => 'inline_msg_abc']);
+        $this->db->insert('game_messages', ['game_id' => $gameId, 'inline_message_id' => 'inline_msg_abc']);
 
         $update = TelegramUpdate::fromArray([
             'update_id' => 100,
@@ -157,6 +157,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/007_add_role_to_users.sql'));
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/008_rename_inline_query_id_to_game_key.sql'));
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/009_add_game_chat_messages.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/014_merge_game_message_tables.sql'));
         Connection::set($this->db);
 
         // Admin routing reads the role from the DB; seed the admin sender used

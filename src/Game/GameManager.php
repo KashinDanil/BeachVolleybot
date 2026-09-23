@@ -11,9 +11,7 @@ use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\UserRepository;
-use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
-use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
-use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use BeachVolleybot\Validator\Validator;
 use InvalidArgumentException;
@@ -241,9 +239,9 @@ readonly class GameManager
         return $this->gameUserRepository->exists($gameId, $telegramUserId);
     }
 
-    public function addInlineMessage(int $gameId, string $inlineMessageId): void
+    public function addInlineMessage(int $gameId, string $inlineMessageId, string $inlineQueryId): void
     {
-        $this->gameMessageRepository->addInlineMessage($gameId, $inlineMessageId);
+        $this->gameMessageRepository->addInlineMessage($gameId, $inlineMessageId, $inlineQueryId);
     }
 
     public function addChatMessage(int $gameId, int $chatId, int $messageId): void
@@ -266,12 +264,13 @@ readonly class GameManager
         return $this->gameMessageRepository->findGameIdByChatMessage($chatId, $messageId);
     }
 
-    public function resolveGameIdByTarget(GameMessageTarget $target): ?int
+    public function resolveGameIdByGameMessage(GameMessage $gameMessage): ?int
     {
-        return match (true) {
-            $target instanceof InlineGameMessageTarget => $this->resolveGameIdByInlineMessageId($target->inlineMessageId),
-            $target instanceof ChatGameMessageTarget => $this->resolveGameIdByChatMessage($target->chatId, $target->messageId),
-        };
+        if ($gameMessage->isInline()) {
+            return $this->resolveGameIdByInlineMessageId($gameMessage->inlineMessageId);
+        }
+
+        return $this->resolveGameIdByChatMessage($gameMessage->chatId, $gameMessage->messageId);
     }
 
     public function findGameRecordByGameKey(string $gameKey): ?GameRecord
