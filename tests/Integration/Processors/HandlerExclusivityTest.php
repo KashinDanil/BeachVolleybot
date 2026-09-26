@@ -147,6 +147,12 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             'private /games' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/games', fromId: $nonAdminId),
             ),
+            'private /notifications' => TelegramUpdate::fromArray(
+                $this->privateMessagePayload('/notifications', fromId: $nonAdminId),
+            ),
+            'private notification callback' => TelegramUpdate::fromArray(
+                $this->adminCallbackQueryPayload('{"ua":"und","n":1}', fromId: $nonAdminId, chatId: $nonAdminId),
+            ),
             'private /help' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/help', fromId: $nonAdminId),
             ),

@@ -13,6 +13,7 @@ enum Command: string
     case Games = '/games';
     case NewGame = '/new_game';
     case NewGamePrivate = '/new_game_private';
+    case Notifications = '/notifications';
 
     public function matches(?string $text): bool
     {

@@ -109,5 +109,21 @@
     "Sep": "сен",
     "Oct": "окт",
     "Nov": "ноя",
-    "Dec": "дек"
+  "Dec": "дек",
+  "Notifications": "Уведомления",
+  "Choose a notification to set it up.": "Выберите уведомление, чтобы его настроить.",
+  "🔔 You'll get a notification when %s.": "🔔 Вы получите уведомление, когда %s.",
+  "🔕 You won't get a notification when %s.": "🔕 Вы не получите уведомление, когда %s.",
+  "Enable": "Включить",
+  "Disable": "Выключить",
+  "Notification enabled": "Уведомление включено",
+  "Notification disabled": "Уведомление выключено",
+  "✅ Game is on": "✅ Игра состоится",
+  "a game you've joined gets enough players to take place": "в игре, на которую вы записались, наберётся достаточно игроков",
+  "⚠️ Short of players": "⚠️ Не хватает игроков",
+  "kickoff is near and a game you've joined still doesn't have enough players": "игра, на которую вы записались, скоро начнётся, а игроков всё ещё не хватает",
+  "⬆️ You're in": "⬆️ Вы в игре",
+  "a spot opens up and you move from the reserve to playing": "освободится место и вы перейдёте из запаса в игру",
+  "⬇️ You're out": "⬇️ Вы не играете",
+  "you move from playing to the reserve, for example after a net or volleyball is removed": "вы перейдёте из игры в запас — например, если уберут сетку или мяч"
 }

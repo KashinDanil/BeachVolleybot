@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\User;
 
 use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\User\NotificationType;
 use BeachVolleybot\User\UserManager;
@@ -91,6 +92,50 @@ final class UserManagerTest extends DatabaseTestCase
 
         $record = $this->userManager->findUserRecordById(200);
         $this->assertFalse($record?->notifications->isEnabled(NotificationType::PromotedIntoGame));
+        $this->assertTrue($record->notifications->isEnabled(NotificationType::BumpedFromGame));
+    }
+
+    public function testEnableNotificationReturnsTheStoredSettings(): void
+    {
+        $this->createUser(telegramUserId: 200);
+
+        $notifications = $this->userManager->enableNotification($this->currentUser(200), NotificationType::PromotedIntoGame);
+
+        $this->assertSame($this->currentUser(200)->notifications->toInt(), $notifications->toInt());
+        $this->assertTrue($notifications->isEnabled(NotificationType::PromotedIntoGame));
+    }
+
+    public function testDisableNotificationReturnsTheStoredSettings(): void
+    {
+        $this->createUser(telegramUserId: 200);
+        $this->userManager->enableNotification($this->currentUser(200), NotificationType::PromotedIntoGame);
+
+        $notifications = $this->userManager->disableNotification($this->currentUser(200), NotificationType::PromotedIntoGame);
+
+        $this->assertSame(0, $notifications->toInt());
+        $this->assertSame(0, $this->currentUser(200)->notifications->toInt());
+    }
+
+    public function testEnsureUserRecordCreatesAMissingUserWithNotificationsOff(): void
+    {
+        $record = $this->userManager->ensureUserRecord(new TelegramUser(id: 200, firstName: 'Danil', username: 'danil'));
+
+        $this->assertSame(200, $record->telegramUserId);
+        $this->assertSame('Danil', $record->firstName);
+        $this->assertSame('danil', $record->username);
+        $this->assertSame(0, $record->notifications->toInt());
+        $this->assertNotNull($this->userManager->findUserRecordById(200));
+    }
+
+    public function testEnsureUserRecordRefreshesTheNameAndKeepsNotifications(): void
+    {
+        $this->createUser(telegramUserId: 200, firstName: 'Old');
+        $this->userManager->enableNotification($this->currentUser(200), NotificationType::BumpedFromGame);
+
+        $record = $this->userManager->ensureUserRecord(new TelegramUser(id: 200, firstName: 'New', lastName: 'Name'));
+
+        $this->assertSame('New', $record->firstName);
+        $this->assertSame('Name', $record->lastName);
         $this->assertTrue($record->notifications->isEnabled(NotificationType::BumpedFromGame));
     }
 

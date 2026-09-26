@@ -10,6 +10,7 @@ use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
+use BeachVolleybot\User\NotificationType;
 use PHPUnit\Framework\TestCase;
 
 final class UserCallbackDataTest extends TestCase
@@ -40,6 +41,15 @@ final class UserCallbackDataTest extends TestCase
             ->toJson();
 
         $this->assertSame('{"ua":"ugd","g":42,"p":3}', $json);
+    }
+
+    public function testCreateWithNotificationType(): void
+    {
+        $json = UserCallbackData::create(UserCallbackAction::EnableNotification)
+            ->withNotificationType(NotificationType::PromotedIntoGame)
+            ->toJson();
+
+        $this->assertSame('{"ua":"une","n":3}', $json);
     }
 
     // --- fromJson recognizes user vs other namespaces ---
@@ -130,6 +140,47 @@ final class UserCallbackDataTest extends TestCase
         $this->assertSame(4, $withGameId->getPage());
         $this->assertSame(99, $withGameId->getGameId());
         $this->assertSame(UserCallbackAction::GameDetail, $withGameId->getAction());
+    }
+
+    public function testWithPageAndGameIdPreserveNotificationType(): void
+    {
+        $callbackData = UserCallbackData::create(UserCallbackAction::NotificationDetail)
+            ->withNotificationType(NotificationType::BumpedFromGame)
+            ->withPage(2)
+            ->withGameId(7);
+
+        $this->assertSame(NotificationType::BumpedFromGame, $callbackData->getNotificationType());
+    }
+
+    // --- notification type ---
+
+    public function testGetNotificationTypeReturnsNullWhenAbsent(): void
+    {
+        $callbackData = UserCallbackData::fromJson('{"ua":"und"}');
+
+        $this->assertNull($callbackData->getNotificationType());
+    }
+
+    public function testFromJsonParsesNotificationType(): void
+    {
+        $callbackData = UserCallbackData::fromJson('{"ua":"und","n":2}');
+
+        $this->assertSame(NotificationType::GameShortBeforeKickoff, $callbackData->getNotificationType());
+    }
+
+    public function testFromJsonTurnsUnknownNotificationTypeIntoNull(): void
+    {
+        $callbackData = UserCallbackData::fromJson('{"ua":"und","n":99}');
+
+        $this->assertNotNull($callbackData);
+        $this->assertNull($callbackData->getNotificationType());
+    }
+
+    public function testFromJsonTurnsNonIntegerNotificationTypeIntoNull(): void
+    {
+        $callbackData = UserCallbackData::fromJson('{"ua":"und","n":"1"}');
+
+        $this->assertNull($callbackData->getNotificationType());
     }
 
     // --- roundtrip ---

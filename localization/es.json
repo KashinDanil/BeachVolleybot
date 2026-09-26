@@ -109,5 +109,21 @@
     "Sep": "sep",
     "Oct": "oct",
     "Nov": "nov",
-    "Dec": "dic"
+  "Dec": "dic",
+  "Notifications": "Notificaciones",
+  "Choose a notification to set it up.": "Elige una notificación para configurarla.",
+  "🔔 You'll get a notification when %s.": "🔔 Recibirás una notificación cuando %s.",
+  "🔕 You won't get a notification when %s.": "🔕 No recibirás una notificación cuando %s.",
+  "Enable": "Activar",
+  "Disable": "Desactivar",
+  "Notification enabled": "Notificación activada",
+  "Notification disabled": "Notificación desactivada",
+  "✅ Game is on": "✅ Partido confirmado",
+  "a game you've joined gets enough players to take place": "un partido al que te has unido reúna suficientes jugadores para jugarse",
+  "⚠️ Short of players": "⚠️ Faltan jugadores",
+  "kickoff is near and a game you've joined still doesn't have enough players": "se acerque el inicio y a un partido al que te has unido todavía le falten jugadores",
+  "⬆️ You're in": "⬆️ Entras a jugar",
+  "a spot opens up and you move from the reserve to playing": "se libere un lugar y pases de la reserva a jugar",
+  "⬇️ You're out": "⬇️ Te quedas fuera",
+  "you move from playing to the reserve, for example after a net or volleyball is removed": "pases de jugar a la reserva, por ejemplo, si se quita una red o una pelota"
 }

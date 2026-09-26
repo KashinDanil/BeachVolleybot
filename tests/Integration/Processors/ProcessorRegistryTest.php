@@ -29,7 +29,10 @@ use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserHelpCommandProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserDisableNotificationCallbackProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserEnableNotificationCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserNewGameCommandProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserNotificationsCommandProcessor;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
@@ -195,6 +198,39 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             UserGamesListCommandProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testResolvesPrivateNotificationsCommandToDmQueueAndUserNotificationsCommandProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/notifications', fromId: 555));
+
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            UserNotificationsCommandProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testResolvesEnableNotificationCallbackToDmQueueAndUserEnableNotificationCallbackProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload('{"ua":"une","n":1}', fromId: 555, chatId: 555));
+
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            UserEnableNotificationCallbackProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testResolvesDisableNotificationCallbackToDmQueueAndUserDisableNotificationCallbackProcessor(): void
+    {
+        $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload('{"ua":"undi","n":1}', fromId: 555, chatId: 555));
+
+        $this->assertSame('dm_555', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            UserDisableNotificationCallbackProcessor::class,
             $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }

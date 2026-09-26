@@ -6,6 +6,7 @@ namespace BeachVolleybot\User;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\UserRepository;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 
 readonly class UserManager
 {
@@ -23,13 +24,31 @@ readonly class UserManager
         return null !== $row ? UserRecord::fromRow($row) : null;
     }
 
-    public function enableNotification(UserRecord $user, NotificationType $type): void
+    public function ensureUserRecord(TelegramUser $telegramUser): UserRecord
     {
-        $this->userRepository->updateNotifications($user->telegramUserId, $user->notifications->enable($type));
+        $this->userRepository->upsert(
+            $telegramUser->id,
+            $telegramUser->firstName,
+            $telegramUser->lastName,
+            $telegramUser->username,
+        );
+
+        return UserRecord::fromRow($this->userRepository->findById($telegramUser->id));
     }
 
-    public function disableNotification(UserRecord $user, NotificationType $type): void
+    public function enableNotification(UserRecord $user, NotificationType $type): NotificationSettings
     {
-        $this->userRepository->updateNotifications($user->telegramUserId, $user->notifications->disable($type));
+        $notifications = $user->notifications->enable($type);
+        $this->userRepository->updateNotifications($user->telegramUserId, $notifications);
+
+        return $notifications;
+    }
+
+    public function disableNotification(UserRecord $user, NotificationType $type): NotificationSettings
+    {
+        $notifications = $user->notifications->disable($type);
+        $this->userRepository->updateNotifications($user->telegramUserId, $notifications);
+
+        return $notifications;
     }
 }

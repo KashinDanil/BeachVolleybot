@@ -18,6 +18,8 @@ This project was created to address a common frustration: _manually copying part
 - **Game sharing** — one game can be reposted into multiple chats. Creating a game in a private DM yields a `Share` button to forward it to a chat; the same game keeps its participant list synchronized across every chat it appears in
 - **Title editing** — the game creator can rename a game by replying to its message; in the bot's DM, admins can rename any game the same way (kickoff day must remain in the future)
 - **My games** — the `/games` command in DM lists the games a user has created, with pagination and a per-game detail view from which the game can be shared again
+- **Notification settings** — the `/notifications` command in DM lists every notification type; tapping one shows what it does and whether it is on,
+  with a button to enable or disable it
 - **Welcome flow** — the `/start` command (also triggered by `/help`) shows a welcome message
 - **Group help** — `/help` in a group sends the same help text as an ephemeral message, visible only to the person who asked; answered inside the webhook request, since Telegram expires an ephemeral reply 15 seconds after the command
 - **Weather forecasts** — hourly forecast for the game window, attached to the message and refreshed whenever the game changes; powered by Open-Meteo, resolved per known venue, cached in SQLite, and computed off the request path by a dedicated worker
@@ -88,7 +90,7 @@ Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `
 │   ├── Log/             # Log file management
 │   ├── Processors/
 │   │   ├── AdminProcessors/    # Admin panel callbacks (game / user / equipment / logs / settings)
-│   │   ├── UserProcessors/     # /help (also /start), /games command and pagination/detail callbacks
+│   │   ├── UserProcessors/     # /help (also /start), /games and /notifications commands with their callbacks
 │   │   ├── UpdateProcessors/   # Game lifecycle: create, forward, join-with-time, change-title, set-location, pin-message, group help…
 │   │   │   └── CallbackQuery/  # Per-game callbacks (join, leave, add/remove volleyball/net)
 │   │   ├── Handlers/           # Per-update handlers (matches / createProcessor [/ routeToQueue])
@@ -173,7 +175,8 @@ Point Telegram to `public/tg-bot.php` on your server. The endpoint must be acces
 Register the commands through BotFather or `setMyCommands`:
 
 - `/help` and `/new_game` — for the **DM scope**, and for the **group scope with `is_ephemeral: true`**. Without the flag, clients send them as ordinary visible messages in groups, which the bot deliberately ignores — so group help and the group wizard silently never appear.
-- `/games` — for the **DM scope only**. It has no group handler, so registering it for groups only advertises a command that does nothing there.
+- `/games` and `/notifications` — for the **DM scope only**. They have no group handler, so registering them for groups only advertises commands that
+  do nothing there.
 
 #### 5. Grant admin access
 

@@ -9,9 +9,9 @@ use BeachVolleybot\Common\BitFlag;
 enum NotificationType: int implements BitFlag
 {
     case GameReachedMinimumPlayers = 1;
-    case PromotedIntoGame          = 2;
-    case BumpedFromGame            = 3;
-    case GameShortBeforeKickoff    = 4;
+    case GameShortBeforeKickoff = 2;
+    case PromotedIntoGame = 3;
+    case BumpedFromGame = 4;
 
     public function bit(): int
     {
