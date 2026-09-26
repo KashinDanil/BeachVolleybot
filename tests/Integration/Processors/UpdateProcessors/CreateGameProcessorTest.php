@@ -10,8 +10,8 @@ use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
@@ -35,8 +35,8 @@ final class CreateGameProcessorTest extends ProcessorTestCase
         new CreateGameProcessor($this->telegramSender)->process($update);
 
         $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
-        $targets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
-        $this->assertEquals([new InlineGameMessageTarget('msg_1')], $targets);
+        $messages = new GameMessageRepository($this->db)->findByGameId($gameId);
+        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_1', inlineQueryId: 'query_1')], $messages);
     }
 
     public function testUpsertsUser(): void

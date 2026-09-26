@@ -6,8 +6,8 @@ namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
 use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Processors\UpdateProcessors\ForwardGameProcessor;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 
 final class ForwardGameProcessorTest extends ProcessorTestCase
@@ -19,9 +19,9 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
-        $attachedTargets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
+        $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
         $this->assertEqualsCanonicalizing(
-            [new InlineGameMessageTarget('msg_original'), new InlineGameMessageTarget('msg_forwarded')],
+            [new GameMessage(inlineMessageId: 'msg_original'), new GameMessage(inlineMessageId: 'msg_forwarded', inlineQueryId: 'query_1')],
             $attachedTargets,
         );
     }
@@ -43,8 +43,8 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
-        $attachedTargets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
-        $this->assertEquals([new InlineGameMessageTarget('msg_original')], $attachedTargets);
+        $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
+        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_original')], $attachedTargets);
     }
 
     public function testAttachesNewInlineMessageIdWhenCallerIsAdminButNotCreator(): void
@@ -55,9 +55,9 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
-        $attachedTargets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
+        $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
         $this->assertEqualsCanonicalizing(
-            [new InlineGameMessageTarget('msg_original'), new InlineGameMessageTarget('msg_forwarded')],
+            [new GameMessage(inlineMessageId: 'msg_original'), new GameMessage(inlineMessageId: 'msg_forwarded', inlineQueryId: 'query_1')],
             $attachedTargets,
         );
     }
@@ -69,8 +69,8 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
-        $attachedTargets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
-        $this->assertEquals([new InlineGameMessageTarget('msg_original')], $attachedTargets);
+        $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
+        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_original')], $attachedTargets);
     }
 
     private function buildUpdate(

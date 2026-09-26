@@ -32,7 +32,7 @@ final class NewGameFactory
         $game = new Game(
             gameId: self::UNPERSISTED_GAME_ID,
             gameKey: $data->gameKey,
-            messageTargets: [],
+            messages: [],
             title: $data->title,
             users: [$user],
             createdAt: $data->createdAt,

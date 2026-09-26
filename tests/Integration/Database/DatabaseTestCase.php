@@ -47,6 +47,7 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('011_require_kickoff_at.sql');
         $this->applyMigration('012_add_kickoff_at_index.sql');
         $this->applyMigration('013_add_settings_json_to_games.sql');
+        $this->applyMigration('014_merge_game_message_tables.sql');
     }
 
     /**
@@ -119,7 +120,7 @@ abstract class DatabaseTestCase extends TestCase
 
     protected function attachInlineMessage(int $gameId, string $inlineMessageId): void
     {
-        $this->db->insert('game_inline_messages', [
+        $this->db->insert('game_messages', [
             'game_id' => $gameId,
             'inline_message_id' => $inlineMessageId,
         ]);

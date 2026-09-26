@@ -44,7 +44,7 @@ class ForwardGameProcessor extends AbstractActionProcessor
             return;
         }
 
-        $gameManager->addInlineMessage($gameId, $result->inlineMessageId);
+        $gameManager->addInlineMessage($gameId, $result->inlineMessageId, $result->resultId);
         $this->logUserAction($result->from, 'forward_game', "gameId=$gameId");
     }
 }

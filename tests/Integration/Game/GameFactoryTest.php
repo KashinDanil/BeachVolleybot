@@ -7,7 +7,7 @@ namespace BeachVolleybot\Tests\Integration\Game;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameSettings;
-use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use RuntimeException;
 
@@ -33,7 +33,7 @@ final class GameFactoryTest extends DatabaseTestCase
         $game = GameFactory::fromGameId($gameId);
 
         $this->assertSame($gameId, $game->getGameId());
-        $this->assertEquals([new InlineGameMessageTarget('msg_1')], $game->getMessageTargets());
+        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_1')], $game->getMessages());
         $this->assertSame('Sunday Game 18:00', $game->getTitle());
     }
 
@@ -45,8 +45,8 @@ final class GameFactoryTest extends DatabaseTestCase
         $game = GameFactory::fromGameId($gameId);
 
         $this->assertEquals(
-            [new InlineGameMessageTarget('msg_first'), new InlineGameMessageTarget('msg_second')],
-            $game->getMessageTargets(),
+            [new GameMessage(inlineMessageId: 'msg_first'), new GameMessage(inlineMessageId: 'msg_second')],
+            $game->getMessages(),
         );
     }
 

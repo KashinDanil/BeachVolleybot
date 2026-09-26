@@ -79,7 +79,7 @@ final class GameAddOnTest extends TestCase
         return new Game(
             gameId: $gameId,
             gameKey: 'query_1',
-            messageTargets: [],
+            messages: [],
             title: $title,
             users: [],
             createdAt: new DateTimeImmutable(),

@@ -34,7 +34,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
  * @method string|null buildWarning(GameInterface $game, Translator $translator)
  * @method string  userKey(UserInterface $user)
  * @method string  formatEmoji(int $count, string $emoji)
- * @method array   buildKeyboard(GameInterface $game, Translator $translator)
+ * @method array   buildKeyboard(GameInterface $game, Translator $translator, ?string $inlineQueryId = null)
  */
 final class GameMessageBuilder extends AbstractMessageBuilder
 {
@@ -55,11 +55,11 @@ final class GameMessageBuilder extends AbstractMessageBuilder
         parent::__construct($formatter);
     }
 
-    public function build(GameInterface $game): TelegramMessage
+    public function build(GameInterface $game, ?string $inlineQueryId = null): TelegramMessage
     {
         $translator = new Translator(TitleLanguageResolver::resolve($game->getTitle()));
 
-        return $this->buildMessage($this->buildText($game, $translator), $this->buildKeyboard($game, $translator));
+        return $this->buildMessage($this->buildText($game, $translator), $this->buildKeyboard($game, $translator, $inlineQueryId));
     }
 
     protected function defaultSeparator(): string
@@ -192,12 +192,22 @@ final class GameMessageBuilder extends AbstractMessageBuilder
         };
     }
 
-    protected function defaultBuildKeyboard(GameInterface $game, Translator $translator): array
+    protected function defaultBuildKeyboard(GameInterface $game, Translator $translator, ?string $inlineQueryId = null): array
     {
         return [
-            [ // The first button is the meta-button — it carries the game key
-                $this->buildActionButton($translator->translate(self::LABEL_LEAVE), GameCallbackData::create(GameCallbackAction::Leave)->withGameKey($game->getGameKey()), InlineButtonStyle::DANGER),
-                $this->buildActionButton($translator->translate(self::LABEL_JOIN), GameCallbackData::create(GameCallbackAction::Join), InlineButtonStyle::SUCCESS),
+            [ // The Leave button carries the game key; the Join button carries this message's inline query id
+                $this->buildActionButton(
+                    $translator->translate(self::LABEL_LEAVE),
+                    GameCallbackData::create(GameCallbackAction::Leave)
+                        ->withGameKey($game->getGameKey()),
+                    InlineButtonStyle::DANGER
+                ),
+                $this->buildActionButton(
+                    $translator->translate(self::LABEL_JOIN),
+                    GameCallbackData::create(GameCallbackAction::Join)
+                        ->withInlineQueryId($inlineQueryId),
+                    InlineButtonStyle::SUCCESS
+                ),
             ],
             [
                 $this->buildActionButton('-' . self::VOLLEYBALL_EMOJI, GameCallbackData::create(GameCallbackAction::RemoveVolleyball)),

@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram;
 
 use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
-use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
-use BeachVolleybot\Telegram\Messages\Targets\GameMessageTarget;
-use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
 use CURLFile;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\HttpException;
@@ -20,20 +18,26 @@ readonly class TelegramMessageSender
     ) {
     }
 
-    public function editGameMessage(GameMessageTarget $target, TelegramMessage $message): void
+    public function editGameMessage(GameMessage $gameMessage, TelegramMessage $message): void
     {
-        match (true) {
-            $target instanceof InlineGameMessageTarget => $this->editInlineMessage($target->inlineMessageId, $message),
-            $target instanceof ChatGameMessageTarget => $this->editMessage($target->chatId, $target->messageId, $message),
-        };
+        if ($gameMessage->isInline()) {
+            $this->editInlineMessage($gameMessage->inlineMessageId, $message);
+
+            return;
+        }
+
+        $this->editMessage($gameMessage->chatId, $gameMessage->messageId, $message);
     }
 
-    public function removeGameMessageKeyboard(GameMessageTarget $target): void
+    public function removeGameMessageKeyboard(GameMessage $gameMessage): void
     {
-        match (true) {
-            $target instanceof InlineGameMessageTarget => $this->removeInlineKeyboard($target->inlineMessageId),
-            $target instanceof ChatGameMessageTarget => $this->removeChatKeyboard($target->chatId, $target->messageId),
-        };
+        if ($gameMessage->isInline()) {
+            $this->removeInlineKeyboard($gameMessage->inlineMessageId);
+
+            return;
+        }
+
+        $this->removeChatKeyboard($gameMessage->chatId, $gameMessage->messageId);
     }
 
     private function editInlineMessage(string $inlineMessageId, TelegramMessage $message): void

@@ -18,8 +18,7 @@ use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
-use BeachVolleybot\Telegram\Messages\Targets\ChatGameMessageTarget;
-use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use DateTimeImmutable;
@@ -91,10 +90,10 @@ final class GameManagerTest extends DatabaseTestCase
     public function testAddInlineMessageAttachesToJunctionTable(): void
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
-        $this->gameManager->addInlineMessage($gameId, 'msg_1');
+        $this->gameManager->addInlineMessage($gameId, 'msg_1', 'query_1');
 
-        $targets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
-        $this->assertEquals([new InlineGameMessageTarget('msg_1')], $targets);
+        $messages = new GameMessageRepository($this->db)->findByGameId($gameId);
+        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_1', inlineQueryId: 'query_1')], $messages);
     }
 
     public function testAddChatMessageAttachesToJunctionTable(): void
@@ -102,8 +101,8 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->gameManager->createGame($this->newGameData());
         $this->gameManager->addChatMessage($gameId, -100, 77);
 
-        $targets = new GameMessageRepository($this->db)->findTargetsByGameId($gameId);
-        $this->assertEquals([new ChatGameMessageTarget(-100, 77)], $targets);
+        $messages = new GameMessageRepository($this->db)->findByGameId($gameId);
+        $this->assertEquals([new GameMessage(chatId: -100, messageId: 77)], $messages);
     }
 
     public function testCreateGameUpsertsUser(): void

@@ -212,7 +212,7 @@ final class WeatherAddOnTest extends DatabaseTestCase
         $game = new Game(
             gameId: 1,
             gameKey: 'iq',
-            messageTargets: [],
+            messages: [],
             title: $title,
             users: [],
             createdAt: new DateTimeImmutable(),

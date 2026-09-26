@@ -38,6 +38,24 @@ final class CallbackDataTest extends TestCase
         $this->assertArrayNotHasKey('q', $decoded);
     }
 
+    public function testToJsonWithInlineQueryIdOnJoinButton(): void
+    {
+        $json = GameCallbackData::create(GameCallbackAction::Join)->withInlineQueryId('iq_42')->toJson();
+
+        $this->assertSame('{"a":"j","i":"iq_42"}', $json);
+    }
+
+    public function testWithGameKeyPreservesInlineQueryId(): void
+    {
+        $decoded = json_decode(
+            GameCallbackData::create(GameCallbackAction::Leave)->withInlineQueryId('iq_42')->withGameKey('q_7')->toJson(),
+            true,
+        );
+
+        $this->assertSame('q_7', $decoded['q']);
+        $this->assertSame('iq_42', $decoded['i']);
+    }
+
     // --- fromJson ---
 
     public function testFromJsonRestoresAction(): void
@@ -73,6 +91,13 @@ final class CallbackDataTest extends TestCase
         $json = GameCallbackData::create(GameCallbackAction::Leave)->withGameKey('q_99')->toJson();
 
         $this->assertSame('q_99', GameCallbackData::fromJson($json)?->getGameKey());
+    }
+
+    public function testFromJsonRestoresInlineQueryIdValue(): void
+    {
+        $json = GameCallbackData::create(GameCallbackAction::Join)->withInlineQueryId('iq_9')->toJson();
+
+        $this->assertSame('iq_9', GameCallbackData::fromJson($json)?->getInlineQueryId());
     }
 
     // --- roundtrip ---
@@ -149,5 +174,52 @@ final class CallbackDataTest extends TestCase
         $message = $this->messageWithMetaButton('vote_yes');
 
         $this->assertNull(GameCallbackData::extractGameKey($message));
+    }
+
+    // --- extractInlineQueryId ---
+
+    public function testExtractInlineQueryIdFromJoinButton(): void
+    {
+        $message = $this->messageWithGameButtons(
+            GameCallbackData::create(GameCallbackAction::Leave)->withGameKey('q_1')->toJson(),
+            GameCallbackData::create(GameCallbackAction::Join)->withInlineQueryId('iq_7')->toJson(),
+        );
+
+        $this->assertSame('iq_7', GameCallbackData::extractInlineQueryId($message));
+    }
+
+    public function testExtractInlineQueryIdReturnsNullWhenNoJoinButton(): void
+    {
+        $message = $this->messageWithMetaButton(
+            GameCallbackData::create(GameCallbackAction::Leave)->withGameKey('q_1')->toJson(),
+        );
+
+        $this->assertNull(GameCallbackData::extractInlineQueryId($message));
+    }
+
+    public function testExtractInlineQueryIdReturnsNullWhenJoinButtonHasNoInlineQueryId(): void
+    {
+        $message = $this->messageWithGameButtons(
+            GameCallbackData::create(GameCallbackAction::Leave)->withGameKey('q_1')->toJson(),
+            GameCallbackData::create(GameCallbackAction::Join)->toJson(),
+        );
+
+        $this->assertNull(GameCallbackData::extractInlineQueryId($message));
+    }
+
+    private function messageWithGameButtons(?string $leaveCallbackData, ?string $joinCallbackData): TelegramMessage
+    {
+        return new TelegramMessage(
+            messageId: 1,
+            from: new TelegramUser(id: 1, firstName: 'Test'),
+            chat: new TelegramChat(id: 1, type: 'private'),
+            date: time(),
+            replyMarkup: new TelegramInlineKeyboardMarkup([
+                [
+                    new TelegramInlineKeyboardButton(text: 'Leave', callbackData: $leaveCallbackData),
+                    new TelegramInlineKeyboardButton(text: 'Join', callbackData: $joinCallbackData),
+                ],
+            ]),
+        );
     }
 }

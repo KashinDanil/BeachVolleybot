@@ -8,7 +8,7 @@ use BeachVolleybot\Game\GameBuilder;
 use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
-use BeachVolleybot\Telegram\Messages\Targets\InlineGameMessageTarget;
+use BeachVolleybot\Telegram\Messages\GameMessage;
 use PHPUnit\Framework\TestCase;
 
 final class GameBuilderTest extends TestCase
@@ -24,11 +24,11 @@ final class GameBuilderTest extends TestCase
 
     public function testMessageTargets(): void
     {
-        $targets = [new InlineGameMessageTarget('msg_abc'), new InlineGameMessageTarget('msg_xyz')];
+        $targets = [new GameMessage(inlineMessageId: 'msg_abc'), new GameMessage(inlineMessageId: 'msg_xyz')];
 
-        $game = $this->buildGame(messageTargets: $targets);
+        $game = $this->buildGame(messages: $targets);
 
-        $this->assertEquals($targets, $game->getMessageTargets());
+        $this->assertEquals($targets, $game->getMessages());
     }
 
     public function testTitle(): void
@@ -268,14 +268,14 @@ final class GameBuilderTest extends TestCase
 
     private function buildGame(
         ?GameRecord $game = null,
-        array $messageTargets = [new InlineGameMessageTarget('msg_1')],
+        array $messages = [new GameMessage(inlineMessageId: 'msg_1')],
         array $slotRows = [],
         array $gameUserRows = [],
         array $userRows = [],
     ): GameInterface {
         return new GameBuilder(
             gameRecord: $game ?? $this->gameRecord(),
-            messageTargets: $messageTargets,
+            messages: $messages,
             slotRows: $slotRows,
             gameUserRows: $gameUserRows,
             userRows: $userRows,

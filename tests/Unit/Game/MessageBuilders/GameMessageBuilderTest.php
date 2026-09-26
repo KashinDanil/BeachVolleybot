@@ -565,6 +565,26 @@ final class GameMessageBuilderTest extends TestCase
         }
     }
 
+    public function testJoinButtonCarriesInlineQueryIdWhenProvided(): void
+    {
+        $game = $this->game('Game 18:00', []);
+        $keyboard = $this->builder->build($game, 'iq_99')->getKeyboard()->getInlineKeyboard();
+
+        $data = json_decode($keyboard[0][1]['callback_data'], true, flags: JSON_THROW_ON_ERROR);
+
+        $this->assertSame('iq_99', $data['i']);
+    }
+
+    public function testJoinButtonOmitsInlineQueryIdWhenAbsent(): void
+    {
+        $game = $this->game('Game 18:00', []);
+        $keyboard = $this->builder->build($game)->getKeyboard()->getInlineKeyboard();
+
+        $data = json_decode($keyboard[0][1]['callback_data'], true, flags: JSON_THROW_ON_ERROR);
+
+        $this->assertArrayNotHasKey('i', $data);
+    }
+
     // --- Helpers ---
 
     private function user(
