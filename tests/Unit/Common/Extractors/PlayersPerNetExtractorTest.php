@@ -26,6 +26,11 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Beach 6 spots per each court 18:00'));
     }
 
+    public function testResolvesWithDigitOneBetweenPrepositionAndNetEnglish(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Beach 6 people per 1 net 18:00'));
+    }
+
     // --- Russian ---
 
     public function testResolvesSixMestNaSetku(): void
@@ -93,6 +98,11 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 человек на каждую сетку 18:00'));
     }
 
+    public function testResolvesWithDigitOneBetweenPrepositionAndNetRussian(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 человек на 1 сетку 18:00'));
+    }
+
     // --- Spanish ---
 
     public function testResolvesSixPlazasPorRed(): void
@@ -113,6 +123,11 @@ final class PlayersPerNetExtractorTest extends TestCase
     public function testResolvesWithCadaBetweenPrepositionAndNet(): void
     {
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 6 plazas por cada pista 18:00'));
+    }
+
+    public function testResolvesWithDigitOneBetweenPrepositionAndNetSpanish(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 6 personas por 1 red 18:00'));
     }
 
     // --- not a limit ---
