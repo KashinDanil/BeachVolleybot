@@ -36,7 +36,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
         $messages = new GameMessageRepository($this->db)->findByGameId($gameId);
-        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_1', inlineQueryId: 'query_1')], $messages);
+        $this->assertEquals([new GameMessage(gameId: $gameId, inlineMessageId: 'msg_1', inlineQueryId: 'query_1')], $messages);
     }
 
     public function testUpsertsUser(): void

@@ -12,10 +12,10 @@ use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\JoinProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\ViaBotMessageProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGameDetailCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
@@ -121,11 +121,11 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([null], $this->recorder->selections);
     }
 
-    public function testRoutesViaBotMessageWithKeyboardToPinMessageProcessor(): void
+    public function testRoutesViaBotMessageWithKeyboardToViaBotMessageProcessor(): void
     {
         $this->processor->process(new QueueMessage($this->viaBotKeyboardMessagePayload()));
 
-        $this->assertSame([PinMessageProcessor::class], $this->recorder->selections);
+        $this->assertSame([ViaBotMessageProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesAdminPrivateSettingsCommandToSettingsMenuProcessor(): void

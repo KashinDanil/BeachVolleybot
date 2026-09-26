@@ -21,7 +21,7 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
         $this->assertEqualsCanonicalizing(
-            [new GameMessage(inlineMessageId: 'msg_original'), new GameMessage(inlineMessageId: 'msg_forwarded', inlineQueryId: 'query_1')],
+            [new GameMessage(gameId: $gameId, inlineMessageId: 'msg_original'), new GameMessage(gameId: $gameId, inlineMessageId: 'msg_forwarded', inlineQueryId: 'query_1')],
             $attachedTargets,
         );
     }
@@ -44,7 +44,7 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
         $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
-        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_original')], $attachedTargets);
+        $this->assertEquals([new GameMessage(gameId: $gameId, inlineMessageId: 'msg_original')], $attachedTargets);
     }
 
     public function testAttachesNewInlineMessageIdWhenCallerIsAdminButNotCreator(): void
@@ -57,7 +57,7 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
         $this->assertEqualsCanonicalizing(
-            [new GameMessage(inlineMessageId: 'msg_original'), new GameMessage(inlineMessageId: 'msg_forwarded', inlineQueryId: 'query_1')],
+            [new GameMessage(gameId: $gameId, inlineMessageId: 'msg_original'), new GameMessage(gameId: $gameId, inlineMessageId: 'msg_forwarded', inlineQueryId: 'query_1')],
             $attachedTargets,
         );
     }
@@ -70,7 +70,7 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
         $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
-        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_original')], $attachedTargets);
+        $this->assertEquals([new GameMessage(gameId: $gameId, inlineMessageId: 'msg_original')], $attachedTargets);
     }
 
     private function buildUpdate(

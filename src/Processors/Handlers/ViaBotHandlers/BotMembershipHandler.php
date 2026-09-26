@@ -2,27 +2,25 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Processors\Handlers\PinHandlers;
+namespace BeachVolleybot\Processors\Handlers\ViaBotHandlers;
 
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\BotMembershipProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 
-final readonly class PinMessageHandler extends AbstractPinQueueHandler
+final readonly class BotMembershipHandler extends AbstractGroupChatQueueHandler
 {
     public function matches(TelegramUpdate $update): bool
     {
-        return $update->hasMessage()
-            && $update->message->chat->isGroupChat()
-            && $update->message->isViaThisBot()
-            && $update->message->hasInlineKeyboard();
+        return $update->hasMyChatMember()
+            && $update->myChatMember->chat->isGroupChat();
     }
 
     public function createProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
     ): AbstractActionProcessor {
-        return new PinMessageProcessor($telegramSender);
+        return new BotMembershipProcessor($telegramSender);
     }
 }

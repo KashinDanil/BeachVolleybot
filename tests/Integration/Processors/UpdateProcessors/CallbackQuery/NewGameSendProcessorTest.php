@@ -168,6 +168,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
     // cannot be reached today; it is kept for if that changes.
     public function testRestartsTheEphemeralWizardWhenTheKickoffDayHasAlreadyPassed(): void
     {
+        $this->authorizeChat(self::GROUP_CHAT_ID);
         $update = $this->groupEphemeralSendUpdate('Bogatell', $this->staleWizardText());
 
         $this->runProcessor($update);
@@ -212,11 +213,24 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
     public function testGroupCreatesGamePinsTheMessageAndEnqueuesWeather(): void
     {
+        $this->authorizeChat(self::GROUP_CHAT_ID);
+
         $this->runProcessor($this->groupEphemeralSendUpdate('Bogatell'));
 
         $this->assertNotNull(new GameManager()->resolveGameIdByChatMessage(self::GROUP_CHAT_ID, self::SENT_MESSAGE_ID));
         $this->assertTrue($this->calledApi('pinChatMessage'), 'Expected the posted message to be pinned in a group');
         $this->assertTrue($this->editedEphemeralMessage(), 'Expected the ephemeral wizard message to be edited to the success view');
+    }
+
+    public function testDoesNotPostWhenGroupIsNotAuthorized(): void
+    {
+        $this->runProcessor($this->groupEphemeralSendUpdate('Bogatell'));
+
+        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertFalse($this->calledApi('pinChatMessage'));
+        $this->assertAnsweredWith('🚫 The bot is not authorized in this group.');
+        // Only the toast responds — the wizard message is left as-is.
+        $this->assertNull($this->editedText());
     }
 
     public function testFollowsTheGameWithAShareReplyInDirectMessages(): void
@@ -234,6 +248,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
     public function testDoesNotSendAShareReplyInGroups(): void
     {
+        $this->authorizeChat(self::GROUP_CHAT_ID);
         $this->runProcessor($this->groupEphemeralSendUpdate('Bogatell'));
 
         $this->assertNull($this->shareReplyTo(self::GROUP_CHAT_ID, self::SENT_MESSAGE_ID));

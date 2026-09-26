@@ -262,7 +262,7 @@ final class IncomingMessageQueueRouterTest extends TestCase
 
         $this->router->route($update);
 
-        $this->assertEnqueuedOnce('pin_-1003759398496');
+        $this->assertEnqueuedOnce('group_chat_-1003759398496');
     }
 
     public function testPinServiceMessageFromOtherBotIsSkipped(): void

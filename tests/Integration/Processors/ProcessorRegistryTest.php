@@ -12,6 +12,7 @@ use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\EditedViaBotMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ForwardGameProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\JoinProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GroupHelpCommandProcessor;
@@ -22,10 +23,10 @@ use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameConfirmProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGamePickVenueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameSendProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
-use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\ViaBotMessageProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserHelpCommandProcessor;
@@ -164,26 +165,40 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $this->assertNull($this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
-    public function testResolvesPinNotificationToPinQueueAndDeletePinNotificationProcessor(): void
+    public function testResolvesPinNotificationToViaBotQueueAndDeletePinNotificationProcessor(): void
     {
         $update = TelegramUpdate::fromArray(
             $this->pinNotificationPayload(chatId: -100, messageId: 11, pinnedMessageId: 10),
         );
 
-        $this->assertSame('pin_-100', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertSame('group_chat_-100', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
             DeletePinNotificationProcessor::class,
             $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }
 
-    public function testResolvesViaBotKeyboardMessageToPinQueueAndPinMessageProcessor(): void
+    public function testResolvesViaBotKeyboardMessageToViaBotQueueAndViaBotMessageProcessor(): void
     {
         $update = TelegramUpdate::fromArray($this->viaBotKeyboardMessagePayload(chatId: -200));
 
-        $this->assertSame('pin_-200', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertSame('group_chat_-200', $this->queuedRegistry->resolveQueueName($update));
         $this->assertInstanceOf(
-            PinMessageProcessor::class,
+            ViaBotMessageProcessor::class,
+            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        );
+    }
+
+    public function testResolvesEditedViaBotMessageToGroupChatQueueAndEditedViaBotMessageProcessor(): void
+    {
+        $payload = $this->viaBotKeyboardMessagePayload(chatId: -300);
+        $payload['edited_message'] = $payload['message'];
+        unset($payload['message']);
+        $update = TelegramUpdate::fromArray($payload);
+
+        $this->assertSame('group_chat_-300', $this->queuedRegistry->resolveQueueName($update));
+        $this->assertInstanceOf(
+            EditedViaBotMessageProcessor::class,
             $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
     }

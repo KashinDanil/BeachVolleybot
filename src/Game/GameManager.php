@@ -249,6 +249,16 @@ readonly class GameManager
         $this->gameMessageRepository->addChatMessage($gameId, $chatId, $messageId);
     }
 
+    public function findGameMessageByInlineQueryId(string $inlineQueryId): ?GameMessage
+    {
+        return $this->gameMessageRepository->findByInlineQueryId($inlineQueryId);
+    }
+
+    public function recordGameMessageAuthorizationByInlineQueryId(string $inlineQueryId, bool $authorized): void
+    {
+        $this->gameMessageRepository->setAuthorizedByInlineQueryId($inlineQueryId, $authorized);
+    }
+
     public function resolveGameIdByGameKey(string $gameKey): ?int
     {
         return $this->gameRepository->findGameIdByGameKey($gameKey);

@@ -18,15 +18,13 @@ readonly class TelegramMessageSender
     ) {
     }
 
-    public function editGameMessage(GameMessage $gameMessage, TelegramMessage $message): void
+    public function editGameMessage(GameMessage $gameMessage, TelegramMessage $message): bool
     {
         if ($gameMessage->isInline()) {
-            $this->editInlineMessage($gameMessage->inlineMessageId, $message);
-
-            return;
+            return $this->editInlineMessage($gameMessage->inlineMessageId, $message);
         }
 
-        $this->editMessage($gameMessage->chatId, $gameMessage->messageId, $message);
+        return $this->editMessage($gameMessage->chatId, $gameMessage->messageId, $message);
     }
 
     public function removeGameMessageKeyboard(GameMessage $gameMessage): void
@@ -40,7 +38,7 @@ readonly class TelegramMessageSender
         $this->removeChatKeyboard($gameMessage->chatId, $gameMessage->messageId);
     }
 
-    private function editInlineMessage(string $inlineMessageId, TelegramMessage $message): void
+    private function editInlineMessage(string $inlineMessageId, TelegramMessage $message): bool
     {
         try {
             // Inline message: chat/message id null, identified by inline_message_id
@@ -54,8 +52,12 @@ readonly class TelegramMessageSender
                 $message->getKeyboard(),
                 $inlineMessageId,
             );
+
+            return true;
         } catch (HttpException $exception) {
             Logger::logApp('editInlineMessage failed: ' . $exception->getMessage());
+
+            return false;
         }
     }
 
@@ -230,7 +232,7 @@ readonly class TelegramMessageSender
         }
     }
 
-    public function editMessage(int $chatId, int $messageId, TelegramMessage $message): void
+    public function editMessage(int $chatId, int $messageId, TelegramMessage $message): bool
     {
         try {
             $this->bot->editMessageText(
@@ -241,8 +243,12 @@ readonly class TelegramMessageSender
                 $message->getText()->isDisableWebPagePreview(),
                 $message->getKeyboard(),
             );
+
+            return true;
         } catch (HttpException $exception) {
             Logger::logApp('editMessage failed: ' . $exception->getMessage());
+
+            return false;
         }
     }
 

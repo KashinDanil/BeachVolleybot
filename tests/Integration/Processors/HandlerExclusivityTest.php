@@ -144,6 +144,42 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             'group via-bot message with keyboard' => TelegramUpdate::fromArray(
                 $this->viaBotKeyboardMessagePayload(),
             ),
+            'group edited via-bot game message' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'edited_message' => [
+                    'message_id' => 745,
+                    'from' => ['id' => self::REPLY_SENDER_ID, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat' => ['id' => -100, 'type' => 'supergroup'],
+                    'date' => 1700000000,
+                    'edit_date' => 1700000100,
+                    'text' => 'Game body',
+                    'via_bot' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot', 'username' => BOT_USERNAME],
+                    'reply_markup' => ['inline_keyboard' => [[
+                        ['text' => 'Leave (−1)', 'callback_data' => json_encode(['a' => 'l', 'q' => 'iq1'])],
+                        ['text' => 'Join (+1)', 'callback_data' => json_encode(['a' => 'j', 'i' => 'iq1'])],
+                    ]]],
+                ],
+            ]),
+            'group my_chat_member (bot added by root)' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'my_chat_member' => [
+                    'chat' => ['id' => -100, 'type' => 'supergroup'],
+                    'from' => ['id' => self::REPLY_SENDER_ID, 'first_name' => 'Danil', 'is_bot' => false],
+                    'date' => 1700000000,
+                    'old_chat_member' => ['user' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'], 'status' => 'left'],
+                    'new_chat_member' => ['user' => ['id' => 1, 'is_bot' => true, 'first_name' => 'Bot'], 'status' => 'member'],
+                ],
+            ]),
+            'group migrated to supergroup' => TelegramUpdate::fromArray([
+                'update_id' => 1,
+                'message' => [
+                    'message_id' => 91,
+                    'from' => ['id' => self::REPLY_SENDER_ID, 'first_name' => 'Danil', 'is_bot' => false],
+                    'chat' => ['id' => -100, 'type' => 'group'],
+                    'date' => 1700000000,
+                    'migrate_to_chat_id' => -1001234567890,
+                ],
+            ]),
             'private /games' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/games', fromId: $nonAdminId),
             ),

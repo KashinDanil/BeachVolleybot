@@ -24,6 +24,7 @@ readonly class TelegramMessage implements JsonSerializable
         public ?TelegramUser $receiverUser = null,
         public ?int $messageThreadId = null,
         public ?array $forumTopicCreated = null,
+        public ?int $migrateToChatId = null,
         private array $rawPayload = [],
     ) {
     }
@@ -116,6 +117,7 @@ readonly class TelegramMessage implements JsonSerializable
             receiverUser: isset($data['receiver_user']) ? TelegramUser::fromArray($data['receiver_user']) : null,
             messageThreadId: $data['message_thread_id'] ?? null,
             forumTopicCreated: $data['forum_topic_created'] ?? null,
+            migrateToChatId: $data['migrate_to_chat_id'] ?? null,
             rawPayload: $data,
         );
     }

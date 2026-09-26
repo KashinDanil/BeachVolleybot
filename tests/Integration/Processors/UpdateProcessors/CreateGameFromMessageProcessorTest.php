@@ -19,8 +19,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Pinning writes to pinned_messages, which lives in a migration the base case skips.
-        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../../migrations/002_create_pinned_messages.sql'));
+        $this->authorizeChat(self::CHAT_ID);
     }
 
     public function testCreatesGamePostsItAndDeletesTheUserMessage(): void
@@ -142,6 +141,20 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
         new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
 
         $this->assertNull($this->shareReplyTo(self::CHAT_ID, self::SENT_MESSAGE_ID));
+    }
+
+    public function testRepliesWithANoticeAndCreatesNothingWhenChatIsNotAuthorized(): void
+    {
+        $this->db->delete('authorized_chats', ['chat_id' => self::CHAT_ID]);
+        $update = $this->groupMentionUpdate("@test_bot\n📅 31.12.2099\n🏖️ Bogatell\n🕙 10:00");
+
+        new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
+
+        $reply = $this->shareReplyTo(self::CHAT_ID, self::USER_MESSAGE_ID);
+        $this->assertNotNull($reply);
+        $this->assertStringContainsString('not authorized in this group', $reply['args'][1]);
+        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertNull($this->deletedMessage());
     }
 
     private function privateMentionUpdate(string $text, int $chatId): TelegramUpdate

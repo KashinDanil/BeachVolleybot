@@ -109,5 +109,10 @@
     "Sep": "sep",
     "Oct": "oct",
     "Nov": "nov",
-    "Dec": "dic"
+    "Dec": "dic",
+
+    "This game has turned into a pumpkin 🎃 because this is an": "Este partido se ha convertido en una calabaza 🎃 porque esto es un",
+    "unauthorized use": "uso no autorizado",
+    "of the bot": "del bot",
+    "🚫 The bot is not authorized in this group.": "🚫 El bot no está autorizado en este grupo."
 }

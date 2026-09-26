@@ -93,7 +93,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->gameManager->addInlineMessage($gameId, 'msg_1', 'query_1');
 
         $messages = new GameMessageRepository($this->db)->findByGameId($gameId);
-        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_1', inlineQueryId: 'query_1')], $messages);
+        $this->assertEquals([new GameMessage(gameId: $gameId, inlineMessageId: 'msg_1', inlineQueryId: 'query_1')], $messages);
     }
 
     public function testAddChatMessageAttachesToJunctionTable(): void
@@ -102,7 +102,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->gameManager->addChatMessage($gameId, -100, 77);
 
         $messages = new GameMessageRepository($this->db)->findByGameId($gameId);
-        $this->assertEquals([new GameMessage(chatId: -100, messageId: 77)], $messages);
+        $this->assertEquals([new GameMessage(gameId: $gameId, chatId: -100, messageId: 77)], $messages);
     }
 
     public function testCreateGameUpsertsUser(): void

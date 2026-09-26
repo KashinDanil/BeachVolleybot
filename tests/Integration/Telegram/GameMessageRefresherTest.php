@@ -99,6 +99,18 @@ final class GameMessageRefresherTest extends ProcessorTestCase
         $this->assertSame([], array_values($gameReads));
     }
 
+    public function testSkipsMessagesFlaggedUnauthorized(): void
+    {
+        $gameId = $this->seedFullGame(inlineMessageId: 'msg_ok', gameKey: 'query_ok', title: 'Game 18:00');
+        $gameManager = new GameManager();
+        $gameManager->addInlineMessage($gameId, 'msg_blocked', 'iq_blocked');
+        $gameManager->recordGameMessageAuthorizationByInlineQueryId('iq_blocked', false);
+
+        new GameMessageRefresher($this->telegramSender)->refresh($gameId);
+
+        $this->assertSame(['msg_ok'], $this->editedInlineMessageIds());
+    }
+
     private function seedRecord(string $inlineMessageId, string $gameKey): GameRecord
     {
         $gameId = $this->seedFullGame(inlineMessageId: $inlineMessageId, gameKey: $gameKey, title: 'Game 18:00');

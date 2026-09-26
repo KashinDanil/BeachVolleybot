@@ -15,6 +15,7 @@ readonly class TelegramUpdate implements JsonSerializable
         public ?TelegramCallbackQuery $callbackQuery = null,
         public ?TelegramInlineQuery $inlineQuery = null,
         public ?TelegramChosenInlineResult $chosenInlineResult = null,
+        public ?TelegramChatMemberUpdated $myChatMember = null,
         private array $rawPayload = [],
     ) {
     }
@@ -44,6 +45,11 @@ readonly class TelegramUpdate implements JsonSerializable
         return null !== $this->chosenInlineResult;
     }
 
+    public function hasMyChatMember(): bool
+    {
+        return null !== $this->myChatMember;
+    }
+
     public function jsonSerialize(): array
     {
         return $this->rawPayload;
@@ -67,6 +73,9 @@ readonly class TelegramUpdate implements JsonSerializable
                 : null,
             chosenInlineResult: isset($payload['chosen_inline_result'])
                 ? TelegramChosenInlineResult::fromArray($payload['chosen_inline_result'])
+                : null,
+            myChatMember: isset($payload['my_chat_member'])
+                ? TelegramChatMemberUpdated::fromArray($payload['my_chat_member'])
                 : null,
             rawPayload: $payload,
         );

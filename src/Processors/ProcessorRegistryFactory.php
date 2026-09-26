@@ -16,8 +16,6 @@ use BeachVolleybot\Processors\Handlers\InlineHandlers\InlineQueryHandler;
 use BeachVolleybot\Processors\Handlers\NewGameHandlers\GroupNewGameCommandHandler;
 use BeachVolleybot\Processors\Handlers\NewGameHandlers\NewGameCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\NewGameHandlers\UserNewGameCommandHandler;
-use BeachVolleybot\Processors\Handlers\PinHandlers\DeletePinNotificationHandler;
-use BeachVolleybot\Processors\Handlers\PinHandlers\PinMessageHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\AdminCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\GroupHelpCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\SendShareButtonHandler;
@@ -25,6 +23,11 @@ use BeachVolleybot\Processors\Handlers\PrivateHandlers\SettingsMenuCommandHandle
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserGamesListCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserHelpCommandHandler;
+use BeachVolleybot\Processors\Handlers\ViaBotHandlers\BotMembershipHandler;
+use BeachVolleybot\Processors\Handlers\ViaBotHandlers\ChatMigrationHandler;
+use BeachVolleybot\Processors\Handlers\ViaBotHandlers\DeletePinNotificationHandler;
+use BeachVolleybot\Processors\Handlers\ViaBotHandlers\EditedViaBotMessageHandler;
+use BeachVolleybot\Processors\Handlers\ViaBotHandlers\ViaBotMessageHandler;
 
 /**
  * Owns the routing table. Handler match patterns must be mutually exclusive across both
@@ -69,7 +72,10 @@ final readonly class ProcessorRegistryFactory
     {
         return [
             new DeletePinNotificationHandler(),
-            new PinMessageHandler(),
+            new ViaBotMessageHandler(),
+            new EditedViaBotMessageHandler(),
+            new BotMembershipHandler(),
+            new ChatMigrationHandler(),
             new GameCallbackQueryHandler(),
             new AdminCallbackQueryHandler(),
             new UserCallbackQueryHandler(),
