@@ -41,4 +41,9 @@ readonly class MessagePinManager
     {
         $this->pinnedMessageRepository->deleteMany($chatId, $messageIds);
     }
+
+    public function delete(int $chatId, int $messageId): void
+    {
+        $this->pinnedMessageRepository->delete($chatId, $messageId);
+    }
 }

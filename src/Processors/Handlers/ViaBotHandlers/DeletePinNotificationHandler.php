@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace BeachVolleybot\Processors\Handlers\PinHandlers;
+namespace BeachVolleybot\Processors\Handlers\ViaBotHandlers;
 
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\DeletePinNotificationProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 
-final readonly class DeletePinNotificationHandler extends AbstractPinQueueHandler
+final readonly class DeletePinNotificationHandler extends AbstractGroupChatQueueHandler
 {
     public function matches(TelegramUpdate $update): bool
     {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors\Stub;
 
 use TelegramBot\Api\BotApi;
+use TelegramBot\Api\HttpException;
 use TelegramBot\Api\Types\Message;
 
 class BotApiStub extends BotApi
@@ -15,6 +16,9 @@ class BotApiStub extends BotApi
     // When true, sendMessage reports a failed post (message id 0), mirroring how
     // TelegramMessageSender::sendMessage returns 0 after catching an HttpException.
     public bool $failSend = false;
+
+    // When true, editMessageText throws like a 429/timeout, so the sender's edit reports failure.
+    public bool $failEdit = false;
 
     /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct()
@@ -91,6 +95,10 @@ class BotApiStub extends BotApi
     public function editMessageText($chatId, $messageId, $text, $parseMode = null, $disablePreview = false, $replyMarkup = null, $inlineMessageId = null): true
     {
         $this->calls[] = ['method' => 'editMessageText', 'args' => func_get_args()];
+
+        if ($this->failEdit) {
+            throw new HttpException('simulated edit failure');
+        }
 
         return true;
     }

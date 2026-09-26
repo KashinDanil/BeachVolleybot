@@ -33,7 +33,7 @@ final class GameFactoryTest extends DatabaseTestCase
         $game = GameFactory::fromGameId($gameId);
 
         $this->assertSame($gameId, $game->getGameId());
-        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_1')], $game->getMessages());
+        $this->assertEquals([new GameMessage(gameId: $gameId, inlineMessageId: 'msg_1')], $game->getMessages());
         $this->assertSame('Sunday Game 18:00', $game->getTitle());
     }
 
@@ -45,7 +45,7 @@ final class GameFactoryTest extends DatabaseTestCase
         $game = GameFactory::fromGameId($gameId);
 
         $this->assertEquals(
-            [new GameMessage(inlineMessageId: 'msg_first'), new GameMessage(inlineMessageId: 'msg_second')],
+            [new GameMessage(gameId: $gameId, inlineMessageId: 'msg_first'), new GameMessage(gameId: $gameId, inlineMessageId: 'msg_second')],
             $game->getMessages(),
         );
     }

@@ -40,12 +40,19 @@ readonly class GameMessageRepository
     /** @return list<GameMessage> */
     public function findByGameId(int $gameId): array
     {
-        $rows = $this->db->select('game_messages', ['chat_id', 'message_id', 'inline_message_id', 'inline_query_id'], [
+        $rows = $this->db->select('game_messages', '*', [
             'game_id' => $gameId,
             'ORDER' => ['created_at' => 'ASC'],
         ]);
 
         return array_map(GameMessage::fromArray(...), $rows);
+    }
+
+    public function findByInlineQueryId(string $inlineQueryId): ?GameMessage
+    {
+        $row = $this->db->get('game_messages', '*', ['inline_query_id' => $inlineQueryId]);
+
+        return null === $row ? null : GameMessage::fromArray($row);
     }
 
     public function findGameIdByInlineMessageId(string $inlineMessageId): ?int
@@ -67,5 +74,10 @@ readonly class GameMessageRepository
         $gameId = $this->db->get('game_messages', 'game_id', ['inline_query_id' => $inlineQueryId]);
 
         return $gameId ? (int)$gameId : null;
+    }
+
+    public function setAuthorizedByInlineQueryId(string $inlineQueryId, bool $authorized): void
+    {
+        $this->db->update('game_messages', ['authorized' => (int)$authorized], ['inline_query_id' => $inlineQueryId]);
     }
 }

@@ -6,7 +6,11 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameDatePickerMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\UnauthorizedGroupMessageBuilder;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage as OutgoingTelegramMessage;
+use BeachVolleybot\Validator\Rules\Game\AuthorizedChatRule;
 
 class GroupNewGameCommandProcessor extends AbstractActionProcessor
 {
@@ -14,16 +18,25 @@ class GroupNewGameCommandProcessor extends AbstractActionProcessor
     {
         $message = $update->message;
 
-        $picker = new NewGameDatePickerMessageBuilder(Translator::fromUser($message->from))->build();
+        if (!AuthorizedChatRule::isSatisfiedBy($message->chat)) {
+            $this->sendEphemeral($message, new UnauthorizedGroupMessageBuilder(Translator::fromUser($message->from))->build());
 
+            return;
+        }
+
+        $this->sendEphemeral($message, new NewGameDatePickerMessageBuilder(Translator::fromUser($message->from))->build());
+
+        $this->logUserAction($message->from, 'new_game_start', 'chat=group');
+    }
+
+    private function sendEphemeral(TelegramMessage $message, OutgoingTelegramMessage $ephemeral): void
+    {
         $this->telegramSender->sendEphemeralMessage(
             $message->chat->id,
             $message->from->id,
             $message->ephemeralMessageId,
-            $picker,
+            $ephemeral,
             $message->resolveMessageThreadId(),
         );
-
-        $this->logUserAction($message->from, 'new_game_start', 'chat=group');
     }
 }

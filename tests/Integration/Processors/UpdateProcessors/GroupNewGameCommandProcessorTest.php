@@ -10,11 +10,13 @@ use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 
 final class GroupNewGameCommandProcessorTest extends ProcessorTestCase
 {
-    private const int EPHEMERAL_SENDER_ID = 311830743; // ephemeralGroupMessagePayload default
+    private const int CHAT_ID = -1003759398496; // ephemeralGroupMessagePayload default
+    private const int EPHEMERAL_SENDER_ID = 311830743;
     private const int FORUM_THREAD_ID = 328;
 
-    public function testSendsTheDatePickerEphemerallyIntoTheTopic(): void
+    public function testSendsTheDatePickerEphemerallyWhenChatIsAuthorized(): void
     {
+        $this->authorizeChat(self::CHAT_ID);
         $update = TelegramUpdate::fromArray(
             $this->ephemeralGroupMessagePayload(text: '/new_game@' . BOT_USERNAME),
         );
@@ -25,5 +27,18 @@ final class GroupNewGameCommandProcessorTest extends ProcessorTestCase
         $this->assertNotNull($params);
         $this->assertSame(self::EPHEMERAL_SENDER_ID, $params['receiver_user_id']);
         $this->assertSame(self::FORUM_THREAD_ID, $params['message_thread_id']);
+    }
+
+    public function testSendsAnUnauthorizedNoticeWhenChatIsNotAuthorized(): void
+    {
+        $update = TelegramUpdate::fromArray(
+            $this->ephemeralGroupMessagePayload(text: '/new_game@' . BOT_USERNAME),
+        );
+
+        new GroupNewGameCommandProcessor($this->telegramSender)->process($update);
+
+        $params = $this->lastEphemeralSendParams();
+        $this->assertNotNull($params);
+        $this->assertStringContainsString('not authorized in this group', $params['text']);
     }
 }

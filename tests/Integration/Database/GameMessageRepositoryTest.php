@@ -25,8 +25,8 @@ final class GameMessageRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(
             [
-                new GameMessage(inlineMessageId: 'msg_first'),
-                new GameMessage(inlineMessageId: 'msg_second', inlineQueryId: 'query_second'),
+                new GameMessage(gameId: $gameId, inlineMessageId: 'msg_first'),
+                new GameMessage(gameId: $gameId, inlineMessageId: 'msg_second', inlineQueryId: 'query_second'),
             ],
             $this->repository->findByGameId($gameId),
         );
@@ -39,8 +39,8 @@ final class GameMessageRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(
             [
-                new GameMessage(inlineMessageId: 'msg_first'),
-                new GameMessage(chatId: -100, messageId: 55),
+                new GameMessage(gameId: $gameId, inlineMessageId: 'msg_first'),
+                new GameMessage(gameId: $gameId, chatId: -100, messageId: 55),
             ],
             $this->repository->findByGameId($gameId),
         );
@@ -112,6 +112,50 @@ final class GameMessageRepositoryTest extends DatabaseTestCase
 
         $this->expectException(PDOException::class);
         $this->db->insert('game_messages', ['game_id' => $gameId]);
+    }
+
+    public function testSetAuthorizedByInlineQueryIdStoresTrue(): void
+    {
+        $gameId = $this->createGame(inlineMessageId: 'msg_one', gameKey: 'query_1');
+        $this->repository->addInlineMessage($gameId, 'msg_two', 'iq_9');
+
+        $this->repository->setAuthorizedByInlineQueryId('iq_9', true);
+
+        $this->assertSame(1, (int)$this->db->get('game_messages', 'authorized', ['inline_query_id' => 'iq_9']));
+    }
+
+    public function testSetAuthorizedByInlineQueryIdStoresFalse(): void
+    {
+        $gameId = $this->createGame(inlineMessageId: 'msg_one', gameKey: 'query_1');
+        $this->repository->addInlineMessage($gameId, 'msg_two', 'iq_9');
+
+        $this->repository->setAuthorizedByInlineQueryId('iq_9', false);
+
+        $this->assertSame(0, (int)$this->db->get('game_messages', 'authorized', ['inline_query_id' => 'iq_9']));
+    }
+
+    public function testSetAuthorizedByInlineQueryIdIgnoresUnknownId(): void
+    {
+        $this->repository->setAuthorizedByInlineQueryId('nonexistent', true);
+
+        $this->assertNull($this->db->get('game_messages', 'authorized', ['inline_query_id' => 'nonexistent']));
+    }
+
+    public function testFindByInlineQueryIdReturnsTheMessageWithAuthorization(): void
+    {
+        $gameId = $this->createGame(inlineMessageId: 'msg_one', gameKey: 'query_1');
+        $this->repository->addInlineMessage($gameId, 'msg_two', 'iq_5');
+        $this->repository->setAuthorizedByInlineQueryId('iq_5', false);
+
+        $message = $this->repository->findByInlineQueryId('iq_5');
+
+        $this->assertSame('msg_two', $message->inlineMessageId);
+        $this->assertFalse($message->authorized);
+    }
+
+    public function testFindByInlineQueryIdReturnsNullWhenUnknown(): void
+    {
+        $this->assertNull($this->repository->findByInlineQueryId('nonexistent'));
     }
 
     public function testForeignKeyCascadeDeletesRowsWhenGameIsDeleted(): void

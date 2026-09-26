@@ -37,6 +37,7 @@ abstract class DatabaseTestCase extends TestCase
         ]);
 
         $this->applyMigration('001_create_games_and_participants.sql');
+        $this->applyMigration('002_create_pinned_messages.sql');
         $this->applyMigration('004_split_game_inline_messages.sql');
         $this->applyMigration('005_require_game_player_time.sql');
         $this->applyMigration('006_rename_players_to_users.sql');
@@ -48,6 +49,8 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('012_add_kickoff_at_index.sql');
         $this->applyMigration('013_add_settings_json_to_games.sql');
         $this->applyMigration('014_merge_game_message_tables.sql');
+        $this->applyMigration('015_add_authorized_to_game_messages.sql');
+        $this->applyMigration('016_create_authorized_chats.sql');
     }
 
     /**
@@ -157,6 +160,11 @@ abstract class DatabaseTestCase extends TestCase
             'telegram_user_id' => $telegramUserId,
             'time' => $time,
         ]);
+    }
+
+    protected function authorizeChat(int $chatId, ?int $addedBy = null): void
+    {
+        $this->db->insert('authorized_chats', ['chat_id' => $chatId, 'added_by' => $addedBy]);
     }
 
     private function applyMigration(string $filename): void

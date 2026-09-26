@@ -32,6 +32,12 @@ final readonly class GameMessagePinner
         $this->unpinExpired($chatId, keepPinnedMessageId: $messageId);
     }
 
+    public function unpin(int $chatId, int $messageId): void
+    {
+        $this->sender->unpinChatMessage($chatId, $messageId);
+        $this->manager->delete($chatId, $messageId);
+    }
+
     public function pinGameMessageIfGroup(TelegramChat $chat, PostedGame $game, string $title, int $messageDate): void
     {
         if (!$chat->isGroupChat()) {

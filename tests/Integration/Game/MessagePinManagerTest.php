@@ -43,6 +43,19 @@ final class MessagePinManagerTest extends DatabaseTestCase
         $this->assertNull($rows[0]['unpin_after']);
     }
 
+    // --- delete ---
+
+    public function testDeleteRemovesOnlyTheGivenPin(): void
+    {
+        $this->manager->register(1, 42, '{}', null);
+        $this->manager->register(1, 43, '{}', null);
+
+        $this->manager->delete(1, 42);
+
+        $remaining = $this->db->select('pinned_messages', 'message_id', ['chat_id' => 1]);
+        $this->assertSame([43], array_map('intval', $remaining));
+    }
+
     protected function setUp(): void
     {
         parent::setUp();

@@ -13,9 +13,11 @@ use BeachVolleybot\Game\ShareGameReplySender;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameCreatedMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\NewGame\NewGameFormText;
+use BeachVolleybot\Telegram\MessageBuilders\UnauthorizedGroupMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\PlainText;
+use BeachVolleybot\Validator\Rules\Game\AuthorizedChatRule;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
 class NewGameSendProcessor extends AbstractVenueSelectionStepProcessor
@@ -24,6 +26,15 @@ class NewGameSendProcessor extends AbstractVenueSelectionStepProcessor
     {
         $callbackQuery = $update->callbackQuery;
         $wizardMessage = $callbackQuery->message;
+
+        if (!AuthorizedChatRule::isSatisfiedBy($wizardMessage->chat)) {
+            $this->answerCallbackQuery(
+                $callbackQuery,
+                $this->translator($callbackQuery)->translate(UnauthorizedGroupMessageBuilder::NOTICE),
+            );
+
+            return;
+        }
 
         $text = $wizardMessage->text;
 

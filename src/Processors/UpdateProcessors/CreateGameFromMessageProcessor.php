@@ -11,8 +11,11 @@ use BeachVolleybot\Game\GameMessagePinner;
 use BeachVolleybot\Game\GameMessagePoster;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Game\ShareGameReplySender;
+use BeachVolleybot\Localization\Translator;
+use BeachVolleybot\Telegram\MessageBuilders\UnauthorizedGroupMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Validator\Rules\DateTime\KickoffDayInTheFutureRule;
+use BeachVolleybot\Validator\Rules\Game\AuthorizedChatRule;
 use BeachVolleybot\Validator\Validator;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 use DateTimeImmutable;
@@ -33,7 +36,18 @@ class CreateGameFromMessageProcessor extends AbstractActionProcessor
         $gameKey = GameKey::fromMessage($chatId, $message->messageId);
         $gameManager = new GameManager();
 
+        // Telegram may redeliver an update; skip if this game already exists.
         if (null !== $gameManager->resolveGameIdByGameKey($gameKey)) {
+            return;
+        }
+
+        if (!AuthorizedChatRule::isSatisfiedBy($message->chat)) {
+            $this->telegramSender->sendReply(
+                $chatId,
+                $message->messageId,
+                new UnauthorizedGroupMessageBuilder(Translator::fromUser($message->from))->build(),
+            );
+
             return;
         }
 

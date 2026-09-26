@@ -109,5 +109,10 @@
     "Sep": "сен",
     "Oct": "окт",
     "Nov": "ноя",
-    "Dec": "дек"
+    "Dec": "дек",
+
+    "This game has turned into a pumpkin 🎃 because this is an": "Эта игра превратилась в тыкву 🎃, ввиду",
+    "unauthorized use": "несанкционированного использования",
+    "of the bot": "бота.",
+    "🚫 The bot is not authorized in this group.": "🚫 Бот не авторизован в этой группе."
 }
