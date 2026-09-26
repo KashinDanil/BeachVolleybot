@@ -139,6 +139,34 @@ final class UserManagerTest extends DatabaseTestCase
         $this->assertTrue($record->notifications->isEnabled(NotificationType::BumpedFromGame));
     }
 
+    public function testEveryTypeSurvivesAStorageRoundTrip(): void
+    {
+        $this->createUser(telegramUserId: 200);
+
+        foreach (NotificationType::cases() as $type) {
+            $this->userManager->enableNotification($this->currentUser(200), $type);
+        }
+
+        $notifications = $this->currentUser(200)->notifications;
+
+        foreach (NotificationType::cases() as $type) {
+            $this->assertTrue(
+                $notifications->isEnabled($type),
+                "Enabling NotificationType::$type->name did not survive a write and re-read of users.notifications.",
+            );
+        }
+
+        foreach (NotificationType::cases() as $type) {
+            $this->userManager->disableNotification($this->currentUser(200), $type);
+        }
+
+        $this->assertSame(
+            0,
+            $this->currentUser(200)->notifications->toInt(),
+            'Disabling every NotificationType left bits set in users.notifications.',
+        );
+    }
+
     private function currentUser(int $telegramUserId): UserRecord
     {
         return $this->userManager->findUserRecordById($telegramUserId)

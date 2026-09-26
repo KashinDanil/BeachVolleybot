@@ -252,4 +252,33 @@ final class UserCallbackDataTest extends TestCase
             $this->assertLessThanOrEqual(64, strlen($json), "Callback data exceeds 64 bytes: $json");
         }
     }
+
+    public function testEveryNotificationTypeRoundTripsWithinTheByteLimit(): void
+    {
+        $notificationActions = [
+            UserCallbackAction::NotificationDetail,
+            UserCallbackAction::EnableNotification,
+            UserCallbackAction::DisableNotification,
+        ];
+
+        foreach ($notificationActions as $action) {
+            foreach (NotificationType::cases() as $type) {
+                $json = UserCallbackData::create($action)->withNotificationType($type)->toJson();
+                $parsed = UserCallbackData::fromJson($json);
+
+                $this->assertLessThanOrEqual(
+                    64,
+                    strlen($json),
+                    "The $action->name button for NotificationType::$type->name exceeds Telegram's 64-byte callback data limit: $json",
+                );
+                $this->assertSame($action, $parsed?->getAction(), "Callback data did not parse back: $json");
+                $this->assertSame(
+                    $type,
+                    $parsed->getNotificationType(),
+                    "NotificationType::$type->name was lost in the $action->name callback data $json. "
+                    . 'Check UserCallbackData::parseNotificationType().',
+                );
+            }
+        }
+    }
 }
