@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\UserRepository;
+use BeachVolleybot\User\NotificationSettings;
+use BeachVolleybot\User\NotificationType;
 
 final class UserRepositoryTest extends DatabaseTestCase
 {
@@ -61,5 +63,26 @@ final class UserRepositoryTest extends DatabaseTestCase
     public function testDeleteReturnsFalseWhenNotFound(): void
     {
         $this->assertFalse($this->repository->delete(999));
+    }
+
+    public function testUpdateNotificationsSetsTheStoredInt(): void
+    {
+        $this->repository->upsert(200, 'Danil');
+
+        $this->repository->updateNotifications(200, new NotificationSettings()->enable(NotificationType::PromotedIntoGame));
+
+        $user = $this->repository->findById(200);
+        $this->assertSame(NotificationType::PromotedIntoGame->bit(), (int)$user['notifications']);
+    }
+
+    public function testUpdateNotificationsOverwritesThePreviousValue(): void
+    {
+        $this->repository->upsert(200, 'Danil');
+        $this->repository->updateNotifications(200, new NotificationSettings()->enable(NotificationType::PromotedIntoGame));
+
+        $this->repository->updateNotifications(200, new NotificationSettings());
+
+        $user = $this->repository->findById(200);
+        $this->assertSame(0, (int)$user['notifications']);
     }
 }

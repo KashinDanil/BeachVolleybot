@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Database;
 
+use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\Role;
 
 readonly class UserRepository extends AbstractRepository
@@ -69,5 +70,14 @@ readonly class UserRepository extends AbstractRepository
     public function updateRole(int $telegramUserId, Role $role): void
     {
         $this->db->update($this->table(), ['role' => $role->value], [$this->primaryKeyColumn() => $telegramUserId]);
+    }
+
+    public function updateNotifications(int $telegramUserId, NotificationSettings $notifications): void
+    {
+        $this->db->update(
+            $this->table(),
+            ['notifications' => $notifications->toInt()],
+            [$this->primaryKeyColumn() => $telegramUserId],
+        );
     }
 }
