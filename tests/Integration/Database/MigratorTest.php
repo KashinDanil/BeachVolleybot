@@ -424,6 +424,43 @@ final class MigratorTest extends TestCase
         $this->assertSame('0', $notificationsColumn['dflt_value']);
     }
 
+    public function testLanguageCodeMigrationAddsANullableColumnAndKeepsExistingUsers(): void
+    {
+        foreach ([
+            '001_create_games_and_participants.sql',
+            '004_split_game_inline_messages.sql',
+            '005_require_game_player_time.sql',
+            '006_rename_players_to_users.sql',
+            '007_add_role_to_users.sql',
+        ] as $filename) {
+            $this->copyRealMigration($filename);
+        }
+
+        $migrator = new Migrator($this->migrationsDir, $this->db);
+        $migrator->run();
+
+        $this->db->insert('users', [
+            'telegram_user_id' => 200,
+            'first_name' => 'Danil',
+        ]);
+
+        $this->copyRealMigration('016_add_language_code_to_users.sql');
+        $this->assertSame(1, $migrator->run());
+
+        $user = (array) $this->db->get('users', '*', ['telegram_user_id' => 200]);
+        $this->assertSame('Danil', $user['first_name']);
+        $this->assertNull($user['language_code']);
+
+        $columns = $this->db->pdo->query('PRAGMA table_info(users)')->fetchAll(PDO::FETCH_ASSOC);
+        $languageCodeColumn = array_values(array_filter(
+            $columns,
+            fn (array $column) => 'language_code' === $column['name'],
+        ))[0] ?? null;
+        $this->assertNotNull($languageCodeColumn);
+        $this->assertSame('VARCHAR', $languageCodeColumn['type']);
+        $this->assertSame(0, (int)$languageCodeColumn['notnull']);
+    }
+
     private function copyRealMigration(string $filename): void
     {
         copy(self::REAL_MIGRATIONS_DIR . '/' . $filename, $this->migrationsDir . '/' . $filename);

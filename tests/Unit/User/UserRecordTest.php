@@ -22,6 +22,7 @@ final class UserRecordTest extends TestCase
             'first_name' => 'Danil',
             'last_name' => 'Kashin',
             'username' => 'kashindanil',
+            'language_code' => 'ru',
             'role' => (string)Role::Admin->value,
             'notifications' => (string)$notificationsMask,
             'created_at' => '2026-01-01 10:00:00',
@@ -32,6 +33,7 @@ final class UserRecordTest extends TestCase
         $this->assertSame('Danil', $record->firstName);
         $this->assertSame('Kashin', $record->lastName);
         $this->assertSame('kashindanil', $record->username);
+        $this->assertSame('ru', $record->languageCode);
         $this->assertSame(Role::Admin, $record->role);
         $this->assertTrue($record->notifications->isEnabled(NotificationType::GameReachedMinimumPlayers));
         $this->assertTrue($record->notifications->isEnabled(NotificationType::GameShortBeforeKickoff));
@@ -40,13 +42,14 @@ final class UserRecordTest extends TestCase
         $this->assertEquals(new DateTimeImmutable('2026-01-02 11:00:00'), $record->updatedAt);
     }
 
-    public function testFromRowKeepsLastNameAndUsernameNullWhenAbsent(): void
+    public function testFromRowKeepsLastNameUsernameAndLanguageCodeNullWhenAbsent(): void
     {
         $record = UserRecord::fromRow([
             'telegram_user_id' => 200,
             'first_name' => 'Danil',
             'last_name' => null,
             'username' => null,
+            'language_code' => null,
             'role' => Role::Player->value,
             'notifications' => 0,
             'created_at' => '2026-01-01 10:00:00',
@@ -55,5 +58,6 @@ final class UserRecordTest extends TestCase
 
         $this->assertNull($record->lastName);
         $this->assertNull($record->username);
+        $this->assertNull($record->languageCode);
     }
 }

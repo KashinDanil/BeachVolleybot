@@ -12,6 +12,7 @@ use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Telegram\Messages\GameMessage;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use BeachVolleybot\Validator\Validator;
 use InvalidArgumentException;
@@ -45,6 +46,7 @@ readonly class GameManager
             $data->firstName,
             $data->lastName,
             $data->username,
+            $data->languageCode,
         );
 
         $parsedTitle = ParsedTitle::parse($data->title, $data->createdAt);
@@ -72,16 +74,11 @@ readonly class GameManager
         return $gameId;
     }
 
-    public function joinGame(
-        int $gameId,
-        int $telegramUserId,
-        string $firstName,
-        ?string $lastName,
-        ?string $username,
-    ): void {
-        $this->userRepository->upsert($telegramUserId, $firstName, $lastName, $username);
-        $this->ensureGameUser($gameId, $telegramUserId);
-        $this->addSlot($gameId, $telegramUserId);
+    public function joinGame(int $gameId, TelegramUser $user): void
+    {
+        $this->upsertUser($user);
+        $this->ensureGameUser($gameId, $user->id);
+        $this->addSlot($gameId, $user->id);
     }
 
     public function leaveGame(int $gameId, int $telegramUserId): LeaveResult
@@ -101,16 +98,11 @@ readonly class GameManager
         return LeaveResult::Left;
     }
 
-    public function addNet(
-        int $gameId,
-        int $telegramUserId,
-        string $firstName,
-        ?string $lastName,
-        ?string $username,
-    ): EquipmentResult {
-        $this->ensureUserInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
+    public function addNet(int $gameId, TelegramUser $user): EquipmentResult
+    {
+        $this->ensureUserInGame($gameId, $user);
 
-        return $this->incrementNet($gameId, $telegramUserId);
+        return $this->incrementNet($gameId, $user->id);
     }
 
     public function removeNet(int $gameId, int $telegramUserId): EquipmentResult
@@ -134,16 +126,11 @@ readonly class GameManager
         return EquipmentResult::Removed;
     }
 
-    public function addVolleyball(
-        int $gameId,
-        int $telegramUserId,
-        string $firstName,
-        ?string $lastName,
-        ?string $username,
-    ): EquipmentResult {
-        $this->ensureUserInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
+    public function addVolleyball(int $gameId, TelegramUser $user): EquipmentResult
+    {
+        $this->ensureUserInGame($gameId, $user);
 
-        return $this->incrementVolleyball($gameId, $telegramUserId);
+        return $this->incrementVolleyball($gameId, $user->id);
     }
 
     public function removeVolleyball(int $gameId, int $telegramUserId): EquipmentResult
@@ -193,29 +180,17 @@ readonly class GameManager
         $this->gameRepository->updateSettings($gameId, $stored->withPlayersPerNet($playersPerNet));
     }
 
-    public function setUserTime(
-        int $gameId,
-        int $telegramUserId,
-        string $firstName,
-        ?string $lastName,
-        ?string $username,
-        string $time,
-    ): void {
-        $this->ensureUserInGame($gameId, $telegramUserId, $firstName, $lastName, $username);
+    public function setUserTime(int $gameId, TelegramUser $user, string $time): void
+    {
+        $this->ensureUserInGame($gameId, $user);
 
-        $this->gameUserRepository->updateTime($gameId, $telegramUserId, $time);
+        $this->gameUserRepository->updateTime($gameId, $user->id, $time);
 
         $this->recalculateGameTime($gameId);
     }
 
-    public function changeTitle(
-        GameRecord $game,
-        int $telegramUserId,
-        string $firstName,
-        ?string $lastName,
-        ?string $username,
-        string $newTitle,
-    ): void {
+    public function changeTitle(GameRecord $game, TelegramUser $user, string $newTitle): void
+    {
         $normalizedTitle = TimeExtractor::normalize($newTitle);
         $proposedTime = TimeExtractor::extract($normalizedTitle);
         if (null === $proposedTime) {
@@ -231,7 +206,7 @@ readonly class GameManager
             $parsedTitle->venueName,
             $game->settings->withPlayersPerNet($parsedTitle->playersPerNet),
         );
-        $this->setUserTime($game->gameId, $telegramUserId, $firstName, $lastName, $username, $proposedTime);
+        $this->setUserTime($game->gameId, $user, $proposedTime);
     }
 
     public function isUserInGame(int $gameId, int $telegramUserId): bool
@@ -322,16 +297,16 @@ readonly class GameManager
         }
     }
 
-    private function ensureUserInGame(
-        int $gameId,
-        int $telegramUserId,
-        string $firstName,
-        ?string $lastName,
-        ?string $username,
-    ): void {
-        $this->userRepository->upsert($telegramUserId, $firstName, $lastName, $username);
-        $this->ensureGameUser($gameId, $telegramUserId);
-        $this->ensureGameUserSlot($gameId, $telegramUserId);
+    private function ensureUserInGame(int $gameId, TelegramUser $user): void
+    {
+        $this->upsertUser($user);
+        $this->ensureGameUser($gameId, $user->id);
+        $this->ensureGameUserSlot($gameId, $user->id);
+    }
+
+    private function upsertUser(TelegramUser $user): void
+    {
+        $this->userRepository->upsert($user->id, $user->firstName, $user->lastName, $user->username, $user->languageCode);
     }
 
     private function addSlot(int $gameId, int $telegramUserId): void

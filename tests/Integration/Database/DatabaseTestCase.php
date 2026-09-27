@@ -49,6 +49,7 @@ abstract class DatabaseTestCase extends TestCase
         $this->applyMigration('013_add_settings_json_to_games.sql');
         $this->applyMigration('014_merge_game_message_tables.sql');
         $this->applyMigration('015_add_notifications_to_users.sql');
+        $this->applyMigration('016_add_language_code_to_users.sql');
     }
 
     /**
@@ -133,10 +134,11 @@ abstract class DatabaseTestCase extends TestCase
         ?string $lastName = null,
         ?string $username = null,
         int $role = Role::Player->value,
+        ?string $languageCode = null,
     ): void {
         $this->db->pdo->prepare(
-            'INSERT INTO users (telegram_user_id, first_name, last_name, username, role)
-             VALUES (:telegram_user_id, :first_name, :last_name, :username, :role)
+            'INSERT INTO users (telegram_user_id, first_name, last_name, username, role, language_code)
+             VALUES (:telegram_user_id, :first_name, :last_name, :username, :role, :language_code)
              ON CONFLICT (telegram_user_id) DO NOTHING'
         )->execute([
             ':telegram_user_id' => $telegramUserId,
@@ -144,6 +146,7 @@ abstract class DatabaseTestCase extends TestCase
             ':last_name' => $lastName,
             ':username' => $username,
             ':role' => $role,
+            ':language_code' => $languageCode,
         ]);
     }
 

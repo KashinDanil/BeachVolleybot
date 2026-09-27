@@ -52,6 +52,17 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Game 18:00', $game['title']);
     }
 
+    public function testCreateGameStoresTheCreatorsLanguageCode(): void
+    {
+        $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil', languageCode: 'es'),
+            'Game 18:00',
+            'query_1',
+        ));
+
+        $this->assertSame('es', new UserRepository($this->db)->findById(200)['language_code']);
+    }
+
     public function testCreateGameStoresKickoffAndVenueFromTitle(): void
     {
         $data = NewGameData::fromUser(
@@ -158,7 +169,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->createGame();
 
-        $this->gameManager->joinGame($gameId, 200, 'Danil', null, null);
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
 
         $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
         $this->assertNotNull($gameUser);
@@ -172,7 +183,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->createGame();
 
-        $this->gameManager->joinGame($gameId, 200, 'Danil', 'Kashin', 'danil');
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 200, firstName: 'Danil', lastName: 'Kashin', username: 'danil'));
 
         $users = new UserRepository($this->db)->findAll();
         $this->assertCount(1, $users);
@@ -180,12 +191,21 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Kashin', $users[0]['last_name']);
     }
 
+    public function testJoinGameStoresTheLanguageCode(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 200, firstName: 'Danil', languageCode: 'ru'));
+
+        $this->assertSame('ru', new UserRepository($this->db)->findById(200)['language_code']);
+    }
+
     public function testSecondJoinAddsExtraSlotWithoutDuplicatingGameUser(): void
     {
         $gameId = $this->createGame();
 
-        $this->gameManager->joinGame($gameId, 200, 'Danil', null, null);
-        $this->gameManager->joinGame($gameId, 200, 'Danil', null, null);
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
 
         $gameUsers = new GameUserRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $gameUsers);
@@ -241,7 +261,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame();
         $this->seedUser($gameId, 200, position: 1);
 
-        $result = $this->gameManager->addNet($gameId, 200, 'Danil', null, null);
+        $result = $this->gameManager->addNet($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
 
         $this->assertSame(EquipmentResult::Added, $result);
         $this->assertSame(1, new GameUserRepository($this->db)->findNetCount($gameId, 200));
@@ -251,7 +271,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->createGame();
 
-        $result = $this->gameManager->addNet($gameId, 200, 'Danil', null, null);
+        $result = $this->gameManager->addNet($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
 
         $this->assertSame(EquipmentResult::Added, $result);
         $this->assertNotNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
@@ -267,7 +287,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame();
         $this->seedUser($gameId, 200, position: 1);
 
-        $this->gameManager->addNet($gameId, 200, 'Danil', null, null);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
@@ -312,7 +332,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame();
         $this->seedUser($gameId, 200, position: 1);
 
-        $result = $this->gameManager->addVolleyball($gameId, 200, 'Danil', null, null);
+        $result = $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
 
         $this->assertSame(EquipmentResult::Added, $result);
         $this->assertSame(1, new GameUserRepository($this->db)->findVolleyballCount($gameId, 200));
@@ -322,7 +342,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->createGame();
 
-        $result = $this->gameManager->addVolleyball($gameId, 200, 'Danil', null, null);
+        $result = $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
 
         $this->assertSame(EquipmentResult::Added, $result);
         $this->assertNotNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
@@ -338,7 +358,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame();
         $this->seedUser($gameId, 200, position: 1);
 
-        $this->gameManager->addVolleyball($gameId, 200, 'Danil', null, null);
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
 
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
         $this->assertCount(1, $slots);
@@ -521,10 +541,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->changeTitle(
             $this->gameRecord($gameId),
-            200,
-            'Danil',
-            null,
-            null,
+            new TelegramUser(id: 200, firstName: 'Danil'),
             'Beach Saturday 20:00, 6 spots per net',
         );
 
@@ -540,7 +557,7 @@ final class GameManagerTest extends DatabaseTestCase
             'query_1',
         ));
 
-        $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Beach Saturday 20:00');
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Saturday 20:00');
 
         $this->assertNull($this->gameRecord($gameId)->settings->playersPerNet);
     }
@@ -555,10 +572,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->changeTitle(
             $this->gameRecord($gameId),
-            200,
-            'Danil',
-            null,
-            null,
+            new TelegramUser(id: 200, firstName: 'Danil'),
             'Beach Saturday 20:00, 8 spots per net',
         );
 
@@ -576,10 +590,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->changeTitle(
             $this->gameRecord($gameId),
-            200,
-            'Danil',
-            null,
-            null,
+            new TelegramUser(id: 200, firstName: 'Danil'),
             'Beach Saturday, 8 spots per net',
         );
 
@@ -595,7 +606,7 @@ final class GameManagerTest extends DatabaseTestCase
         ));
         $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
 
-        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertSame('Bogatell 31.12.2099 16:00, 6 мест на сетку', $game['title']);
@@ -608,7 +619,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->createGame();
 
-        $this->gameManager->setUserTime($gameId, 200, 'Danil', null, null, '19:30');
+        $this->gameManager->setUserTime($gameId, new TelegramUser(id: 200, firstName: 'Danil'), '19:30');
 
         $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
         $this->assertNotNull($gameUser);
@@ -623,7 +634,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame();
         $this->seedUser($gameId, 200, position: 1);
 
-        $this->gameManager->setUserTime($gameId, 200, 'Danil', null, null, '20:00');
+        $this->gameManager->setUserTime($gameId, new TelegramUser(id: 200, firstName: 'Danil'), '20:00');
 
         $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
         $this->assertSame('20:00', $gameUser['time']);
@@ -654,7 +665,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
         $this->seedUser($gameId, 201, position: 2, net: 0, time: '16:00');
 
-        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 16:00', $title);
@@ -666,7 +677,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
         $this->seedUser($gameId, 201, position: 2, net: 0, time: '16:00');
 
-        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertSame('Beach 31.12.2099 16:00', $game['title']);
@@ -690,7 +701,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame(title: 'Beach 18:00');
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
 
-        $this->gameManager->setUserTime($gameId, 200, 'Danil', null, null, '15:30');
+        $this->gameManager->setUserTime($gameId, new TelegramUser(id: 200, firstName: 'Danil'), '15:30');
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 15:30', $title);
@@ -702,7 +713,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
         $this->seedUser($gameId, 201, position: 2, net: 0, time: '15:00');
 
-        $this->gameManager->addVolleyball($gameId, 201, 'Alice', null, null);
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 18:00', $title);
@@ -714,7 +725,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '08:00');
         $this->seedUser($gameId, 201, position: 2, net: 0, time: '07:30');
 
-        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 07:30', $title);
@@ -738,7 +749,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
         $this->seedUser($gameId, 201, position: 2, net: 0, time: '18:00');
 
-        $this->gameManager->addNet($gameId, 201, 'Alice', null, null);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach 18:00', $title);
@@ -753,7 +764,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameRecord = $this->gameRecord($gameId);
 
         $queries = $this->queriesDuring(function () use ($gameRecord) {
-            $this->gameManager->changeTitle($gameRecord, 200, 'Danil', null, null, 'Beach Saturday 20:00');
+            $this->gameManager->changeTitle($gameRecord, new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Saturday 20:00');
         });
 
         $this->assertCount(1, $this->selectsAgainstGames($queries));
@@ -766,7 +777,7 @@ final class GameManagerTest extends DatabaseTestCase
         $gameRecord = $this->gameRecord($gameId);
 
         $queries = $this->queriesDuring(function () use ($gameRecord) {
-            $this->gameManager->changeTitle($gameRecord, 200, 'Danil', null, null, 'Beach Saturday 20:00, 6 spots per net');
+            $this->gameManager->changeTitle($gameRecord, new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Saturday 20:00, 6 spots per net');
         });
 
         $this->assertCount(1, $this->updatesAgainstGames($queries));
@@ -777,7 +788,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
 
-        $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Beach Saturday 20:00');
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Saturday 20:00');
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach Saturday 20:00', $title);
@@ -787,7 +798,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
 
-        $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Bogatell 31.12.2099 20:00');
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Bogatell 31.12.2099 20:00');
 
         $game = new GameRepository($this->db)->findById($gameId);
         $this->assertSame('2099-12-31 19:00:00', $game['kickoff_at']);
@@ -798,7 +809,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
 
-        $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Beach Saturday 20:00');
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Saturday 20:00');
 
         $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
         $this->assertSame('20:00', $gameUser['time']);
@@ -810,7 +821,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
         $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
 
-        $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Picnic Sunday 20:00');
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Picnic Sunday 20:00');
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Picnic Sunday 16:00', $title);
@@ -822,7 +833,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
         $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
 
-        $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Picnic Sunday 20:00');
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Picnic Sunday 20:00');
 
         $creatorTime = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
         $otherTime = new GameUserRepository($this->db)->findByGameUser($gameId, 201);
@@ -834,7 +845,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
 
-        $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Beach Saturday 9:00');
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Saturday 9:00');
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Beach Saturday 09:00', $title);
@@ -844,7 +855,7 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
 
-        $this->gameManager->changeTitle($this->gameRecord($gameId), 200, 'Danil', null, null, 'Picnic Sunday 18:00');
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Picnic Sunday 18:00');
 
         $title = new GameRepository($this->db)->findTitleByGameId($gameId);
         $this->assertSame('Picnic Sunday 18:00', $title);

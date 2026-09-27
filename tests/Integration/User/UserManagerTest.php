@@ -139,6 +139,22 @@ final class UserManagerTest extends DatabaseTestCase
         $this->assertTrue($record->notifications->isEnabled(NotificationType::BumpedFromGame));
     }
 
+    public function testEnsureUserRecordStoresTheLanguageCode(): void
+    {
+        $record = $this->userManager->ensureUserRecord(new TelegramUser(id: 200, firstName: 'Danil', languageCode: 'es'));
+
+        $this->assertSame('es', $record->languageCode);
+    }
+
+    public function testEnsureUserRecordWithoutALanguageCodeKeepsTheStoredOne(): void
+    {
+        $this->createUser(telegramUserId: 200, languageCode: 'ru');
+
+        $record = $this->userManager->ensureUserRecord(new TelegramUser(id: 200, firstName: 'Danil'));
+
+        $this->assertSame('ru', $record->languageCode);
+    }
+
     public function testEveryTypeSurvivesAStorageRoundTrip(): void
     {
         $this->createUser(telegramUserId: 200);

@@ -24,20 +24,23 @@ readonly class UserRepository extends AbstractRepository
         string $firstName,
         ?string $lastName = null,
         ?string $username = null,
+        ?string $languageCode = null,
     ): void {
         $this->db->pdo->prepare(
-            'INSERT INTO users (telegram_user_id, first_name, last_name, username)
-             VALUES (:telegram_user_id, :first_name, :last_name, :username)
+            'INSERT INTO users (telegram_user_id, first_name, last_name, username, language_code)
+             VALUES (:telegram_user_id, :first_name, :last_name, :username, :language_code)
              ON CONFLICT (telegram_user_id) DO UPDATE SET
                 first_name = excluded.first_name,
                 last_name = excluded.last_name,
                 username = excluded.username,
+                language_code = COALESCE(excluded.language_code, users.language_code),
                 updated_at = CURRENT_TIMESTAMP'
         )->execute([
             ':telegram_user_id' => $telegramUserId,
             ':first_name' => $firstName,
             ':last_name' => $lastName,
             ':username' => $username,
+            ':language_code' => $languageCode,
         ]);
     }
 

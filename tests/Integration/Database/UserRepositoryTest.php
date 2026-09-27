@@ -39,6 +39,29 @@ final class UserRepositoryTest extends DatabaseTestCase
         $this->assertSame('new_username', $user['username']);
     }
 
+    public function testUpsertStoresTheLanguageCode(): void
+    {
+        $this->repository->upsert(200, 'Danil', languageCode: 'ru');
+
+        $this->assertSame('ru', $this->repository->findById(200)['language_code']);
+    }
+
+    public function testUpsertReplacesTheLanguageCodeWithANewOne(): void
+    {
+        $this->repository->upsert(200, 'Danil', languageCode: 'ru');
+        $this->repository->upsert(200, 'Danil', languageCode: 'es');
+
+        $this->assertSame('es', $this->repository->findById(200)['language_code']);
+    }
+
+    public function testUpsertWithoutALanguageCodeKeepsTheKnownOne(): void
+    {
+        $this->repository->upsert(200, 'Danil', languageCode: 'ru');
+        $this->repository->upsert(200, 'Danil');
+
+        $this->assertSame('ru', $this->repository->findById(200)['language_code']);
+    }
+
     public function testUpsertDoesNotCreateDuplicate(): void
     {
         $this->repository->upsert(200, 'Danil');

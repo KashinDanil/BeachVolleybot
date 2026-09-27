@@ -31,6 +31,7 @@ readonly class UserManager
             $telegramUser->firstName,
             $telegramUser->lastName,
             $telegramUser->username,
+            $telegramUser->languageCode,
         );
 
         return UserRecord::fromRow($this->userRepository->findById($telegramUser->id));
