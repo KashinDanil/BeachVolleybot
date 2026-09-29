@@ -31,7 +31,7 @@ readonly class UserRecord
             $row['last_name'] ?? null,
             $row['username'] ?? null,
             $row['language_code'] ?? null,
-            Role::from((int)$row['role']),
+            Role::tryFrom((int)$row['role']) ?? Role::Player,
             NotificationSettings::fromInt((int)$row['notifications']),
             Timestamp::parse((string)$row['created_at']),
             Timestamp::parse((string)$row['updated_at']),

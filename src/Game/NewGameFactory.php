@@ -20,10 +20,10 @@ final class NewGameFactory
         $parsedTitle = ParsedTitle::parse($data->title, $data->createdAt);
 
         $user = new User(
-            telegramUserId: $data->telegramUserId,
+            telegramUserId: $data->creator->id,
             position: new Position(NewGameData::INITIAL_POSITION),
-            name: User::buildName($data->firstName, $data->lastName),
-            link: User::buildLink($data->username),
+            name: User::buildName($data->creator->firstName, $data->creator->lastName),
+            link: User::buildLink($data->creator->username),
             volleyball: NewGameData::INITIAL_VOLLEYBALL,
             net: NewGameData::INITIAL_NET,
             time: TimeExtractor::extract($data->title),

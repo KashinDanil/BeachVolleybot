@@ -9,8 +9,8 @@ use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Game\Models\GameInterface;
+use BeachVolleybot\User\UserManager;
 use RuntimeException;
 
 final class GameFactory
@@ -38,8 +38,8 @@ final class GameFactory
         $messages = new GameMessageRepository($db)->findByGameId($game->gameId);
         $slotRows = new GameSlotRepository($db)->findByGameId($game->gameId);
         $gameUserRows = new GameUserRepository($db)->findByGameId($game->gameId);
-        $userRows = new UserRepository($db)->findByIds(array_column($gameUserRows, 'telegram_user_id'));
+        $users = new UserManager()->findUserRecordsByIds(array_column($gameUserRows, 'telegram_user_id'));
 
-        return new GameBuilder($game, $messages, $slotRows, $gameUserRows, $userRows, $addOns)->build();
+        return new GameBuilder($game, $messages, $slotRows, $gameUserRows, $users, $addOns)->build();
     }
 }

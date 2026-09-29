@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\AdminProcessors\Root\UserRole;
 
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Processors\AdminProcessors\AbstractAdminMutationProcessor;
 use BeachVolleybot\Telegram\MessageBuilders\Factories\UserRoleDetailMessageFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\User\Role;
+use BeachVolleybot\User\UserManager;
 
 abstract class AbstractRootUserRoleMutationProcessor extends AbstractAdminMutationProcessor
 {
@@ -24,30 +23,28 @@ abstract class AbstractRootUserRoleMutationProcessor extends AbstractAdminMutati
     public function process(TelegramUpdate $update): void
     {
         $telegramUserId = $this->adminCallbackData->getUserId();
-        $userRepository = new UserRepository(Connection::get());
-        $roleId = $userRepository->findRoleById($telegramUserId);
+        $userManager = new UserManager();
+        $user = $userManager->findUserRecordById($telegramUserId);
 
-        if (null === $roleId) {
+        if (null === $user) {
             $this->refreshDetail($update, $telegramUserId, 'User not found');
 
             return;
         }
 
-        $currentRole = Role::tryFrom($roleId) ?? Role::Player;
-
-        if ($currentRole->isRoot()) {
+        if ($user->role->isRoot()) {
             $this->refreshDetail($update, $telegramUserId, 'Cannot change Root');
 
             return;
         }
 
-        if ($this->sourceRole() !== $currentRole) {
+        if ($this->sourceRole() !== $user->role) {
             $this->refreshDetail($update, $telegramUserId, '');
 
             return;
         }
 
-        $userRepository->updateRole($telegramUserId, $this->targetRole());
+        $userManager->changeRole($user, $this->targetRole());
         $this->logAdminAction($update->callbackQuery->from, $this->logAction(), "userId=$telegramUserId");
         $this->refreshDetail($update, $telegramUserId, $this->successToast());
     }

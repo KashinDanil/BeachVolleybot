@@ -146,6 +146,20 @@ final class UserManagerTest extends DatabaseTestCase
         $this->assertSame('es', $record->languageCode);
     }
 
+    public function testEnsureUserRecordNormalizesARegionalLanguageCode(): void
+    {
+        $record = $this->userManager->ensureUserRecord(new TelegramUser(id: 200, firstName: 'Danil', languageCode: 'pt-BR'));
+
+        $this->assertSame('pt', $record->languageCode);
+    }
+
+    public function testEnsureUserRecordStoresEnglishForAMalformedLanguageCode(): void
+    {
+        $record = $this->userManager->ensureUserRecord(new TelegramUser(id: 200, firstName: 'Danil', languageCode: '1x'));
+
+        $this->assertSame('en', $record->languageCode);
+    }
+
     public function testEnsureUserRecordWithoutALanguageCodeKeepsTheStoredOne(): void
     {
         $this->createUser(telegramUserId: 200, languageCode: 'ru');

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Database;
 
+use BeachVolleybot\Database\ConcurrentSqliteMedoo;
 use BeachVolleybot\Database\Migrator;
-use Medoo\Medoo;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -15,14 +15,14 @@ final class MigratorTest extends TestCase
     private const string REAL_MIGRATIONS_DIR = __DIR__ . '/../../../migrations';
 
     private string $migrationsDir;
-    private Medoo $db;
+    private ConcurrentSqliteMedoo $db;
 
     protected function setUp(): void
     {
         $this->migrationsDir = sys_get_temp_dir() . '/bvb_test_migrations_' . uniqid('', true);
         mkdir($this->migrationsDir, 0777, true);
 
-        $this->db = new Medoo([
+        $this->db = new ConcurrentSqliteMedoo([
             'type' => 'sqlite',
             'database' => ':memory:',
             'error' => PDO::ERRMODE_EXCEPTION,

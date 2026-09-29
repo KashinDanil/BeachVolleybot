@@ -10,6 +10,7 @@ use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\AbstractAdminMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\User\UserRecord;
 
 final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
 {
@@ -24,15 +25,15 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
         ]);
     }
 
-    public function buildGameDetail(GameInterface $game, ?array $creatorRow, bool $sharingEnabled = true): TelegramMessage
+    public function buildGameDetail(GameInterface $game, ?UserRecord $creator, bool $sharingEnabled = true): TelegramMessage
     {
         return $this->buildMessage(
-            $this->buildGameDetailText($game, $creatorRow, $sharingEnabled),
+            $this->buildGameDetailText($game, $creator, $sharingEnabled),
             $this->buildGameDetailKeyboard($game, $sharingEnabled),
         );
     }
 
-    private function buildGameDetailText(GameInterface $game, ?array $creatorRow, bool $sharingEnabled): string
+    private function buildGameDetailText(GameInterface $game, ?UserRecord $creator, bool $sharingEnabled): string
     {
         $lines = [$this->formatHeader("Game #{$game->getGameId()}")];
 
@@ -45,7 +46,7 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
 
         $lines[] = $this->formatter->blockquote($this->formatter->escape($game->getTitle()));
 
-        $creatorLine = $this->buildCreatorLine($creatorRow);
+        $creatorLine = $this->buildCreatorLine($creator);
 
         if (null !== $creatorLine) {
             $lines[] = $creatorLine;
@@ -66,14 +67,14 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
         return implode($this->formatter->newLine(), $lines);
     }
 
-    private function buildCreatorLine(?array $creatorRow): ?string
+    private function buildCreatorLine(?UserRecord $creator): ?string
     {
-        if (null === $creatorRow) {
+        if (null === $creator) {
             return null;
         }
 
-        $name = User::buildName($creatorRow['first_name'], $creatorRow['last_name'] ?? null);
-        $link = User::buildLink($creatorRow['username'] ?? null);
+        $name = User::buildName($creator->firstName, $creator->lastName);
+        $link = User::buildLink($creator->username);
 
         $namePart = null !== $link
             ? $this->formatter->link($name, $link)

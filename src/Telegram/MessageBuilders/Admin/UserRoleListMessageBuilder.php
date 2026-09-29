@@ -11,6 +11,7 @@ use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\User\Role;
+use BeachVolleybot\User\UserRecord;
 
 final class UserRoleListMessageBuilder extends AbstractAdminMessageBuilder
 {
@@ -18,24 +19,24 @@ final class UserRoleListMessageBuilder extends AbstractAdminMessageBuilder
     private const string NO_USERS_FOUND = 'No users found';
 
     /**
-     * @param list<array<string, mixed>> $userRows
+     * @param list<UserRecord> $users
      */
-    public function build(array $userRows, KeyboardPagination $pagination): TelegramMessage
+    public function build(array $users, KeyboardPagination $pagination): TelegramMessage
     {
         return $this->buildMessage(
-            $this->buildUsersListText($userRows, $pagination),
-            $this->buildUsersListKeyboard($userRows, $pagination),
+            $this->buildUsersListText($users, $pagination),
+            $this->buildUsersListKeyboard($users, $pagination),
         );
     }
 
     /**
-     * @param list<array<string, mixed>> $userRows
+     * @param list<UserRecord> $users
      */
-    private function buildUsersListText(array $userRows, KeyboardPagination $pagination): string
+    private function buildUsersListText(array $users, KeyboardPagination $pagination): string
     {
         $header = $this->formatHeader(self::HEADER_MESSAGE);
 
-        if (empty($userRows)) {
+        if (empty($users)) {
             return $header . $this->formatter->newLine() . $this->formatter->escape(self::NO_USERS_FOUND);
         }
 
@@ -43,14 +44,14 @@ final class UserRoleListMessageBuilder extends AbstractAdminMessageBuilder
     }
 
     /**
-     * @param list<array<string, mixed>> $userRows
+     * @param list<UserRecord> $users
      */
-    private function buildUsersListKeyboard(array $userRows, KeyboardPagination $pagination): array
+    private function buildUsersListKeyboard(array $users, KeyboardPagination $pagination): array
     {
         $keyboard = [];
 
-        foreach ($userRows as $userRow) {
-            $keyboard[] = [$this->buildUserButton($userRow)];
+        foreach ($users as $user) {
+            $keyboard[] = [$this->buildUserButton($user)];
         }
 
         $paginationRow = $this->paginationRow($pagination, AdminCallbackData::create(AdminCallbackAction::UsersList));
@@ -63,19 +64,14 @@ final class UserRoleListMessageBuilder extends AbstractAdminMessageBuilder
         return $keyboard;
     }
 
-    /**
-     * @param array<string, mixed> $userRow
-     */
-    private function buildUserButton(array $userRow): array
+    private function buildUserButton(UserRecord $user): array
     {
-        $telegramUserId = (int)$userRow['telegram_user_id'];
-        $name = User::buildName($userRow['first_name'], $userRow['last_name'] ?? null);
-        $role = Role::tryFrom((int)$userRow['role']) ?? Role::Player;
+        $name = User::buildName($user->firstName, $user->lastName);
 
         return $this->buildActionButton(
-            "$name — {$role->name}",
-            AdminCallbackData::create(AdminCallbackAction::UserDetail)->withUserId($telegramUserId),
-            $this->styleForRole($role),
+            "$name — {$user->role->name}",
+            AdminCallbackData::create(AdminCallbackAction::UserDetail)->withUserId($user->telegramUserId),
+            $this->styleForRole($user->role),
         );
     }
 

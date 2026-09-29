@@ -87,10 +87,10 @@ readonly class GameUserRepository
 
     public function decrementVolleyball(int $gameId, int $telegramUserId): bool
     {
-        $statement = $this->db->pdo->prepare(
-            'UPDATE game_users SET volleyball = MAX(0, volleyball - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id'
+        $statement = $this->db->query(
+            'UPDATE game_users SET volleyball = MAX(0, volleyball - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id',
+            [':game_id' => $gameId, ':telegram_user_id' => $telegramUserId],
         );
-        $statement->execute([':game_id' => $gameId, ':telegram_user_id' => $telegramUserId]);
 
         return 0 < $statement->rowCount();
     }
@@ -107,32 +107,22 @@ readonly class GameUserRepository
 
     public function decrementNet(int $gameId, int $telegramUserId): bool
     {
-        $statement = $this->db->pdo->prepare(
-            'UPDATE game_users SET net = MAX(0, net - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id'
+        $statement = $this->db->query(
+            'UPDATE game_users SET net = MAX(0, net - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id',
+            [':game_id' => $gameId, ':telegram_user_id' => $telegramUserId],
         );
-        $statement->execute([':game_id' => $gameId, ':telegram_user_id' => $telegramUserId]);
 
         return 0 < $statement->rowCount();
     }
 
     public function findEarliestTimeWithNet(int $gameId): ?string
     {
-        $statement = $this->db->pdo->prepare(
-            'SELECT MIN(time) FROM game_users WHERE game_id = :game_id AND net > 0 AND time IS NOT NULL'
-        );
-        $statement->execute([':game_id' => $gameId]);
-
-        return $statement->fetchColumn() ?: null;
+        return $this->db->min('game_users', 'time', ['game_id' => $gameId, 'net[>]' => 0, 'time[!]' => null]) ?: null;
     }
 
     public function findEarliestTime(int $gameId): ?string
     {
-        $statement = $this->db->pdo->prepare(
-            'SELECT MIN(time) FROM game_users WHERE game_id = :game_id AND time IS NOT NULL'
-        );
-        $statement->execute([':game_id' => $gameId]);
-
-        return $statement->fetchColumn() ?: null;
+        return $this->db->min('game_users', 'time', ['game_id' => $gameId, 'time[!]' => null]) ?: null;
     }
 
     public function updateTime(int $gameId, int $telegramUserId, string $time): bool

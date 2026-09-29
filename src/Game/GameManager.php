@@ -10,9 +10,9 @@ use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\GameUserRepository;
-use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
+use BeachVolleybot\User\UserManager;
 use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use BeachVolleybot\Validator\Validator;
 use InvalidArgumentException;
@@ -27,7 +27,7 @@ readonly class GameManager
 
     protected GameSlotRepository $gameSlotRepository;
 
-    protected UserRepository $userRepository;
+    protected UserManager $userManager;
 
     public function __construct()
     {
@@ -36,25 +36,19 @@ readonly class GameManager
         $this->gameMessageRepository = new GameMessageRepository($db);
         $this->gameUserRepository = new GameUserRepository($db);
         $this->gameSlotRepository = new GameSlotRepository($db);
-        $this->userRepository = new UserRepository($db);
+        $this->userManager = new UserManager();
     }
 
     public function createGame(NewGameData $data): int
     {
-        $this->userRepository->upsert(
-            $data->telegramUserId,
-            $data->firstName,
-            $data->lastName,
-            $data->username,
-            $data->languageCode,
-        );
+        $this->userManager->upsertUser($data->creator);
 
         $parsedTitle = ParsedTitle::parse($data->title, $data->createdAt);
         $settings = new GameSettings($parsedTitle->playersPerNet);
 
         $gameId = $this->gameRepository->create(
             $data->title,
-            $data->telegramUserId,
+            $data->creator->id,
             $data->gameKey,
             $parsedTitle->kickoffAt,
             $parsedTitle->venueName,
@@ -63,20 +57,20 @@ readonly class GameManager
 
         $this->gameUserRepository->create(
             $gameId,
-            $data->telegramUserId,
+            $data->creator->id,
             TimeExtractor::extract($data->title),
             NewGameData::INITIAL_VOLLEYBALL,
             NewGameData::INITIAL_NET,
         );
 
-        $this->gameSlotRepository->create($gameId, $data->telegramUserId, NewGameData::INITIAL_POSITION);
+        $this->gameSlotRepository->create($gameId, $data->creator->id, NewGameData::INITIAL_POSITION);
 
         return $gameId;
     }
 
     public function joinGame(int $gameId, TelegramUser $user): void
     {
-        $this->upsertUser($user);
+        $this->userManager->upsertUser($user);
         $this->ensureGameUser($gameId, $user->id);
         $this->addSlot($gameId, $user->id);
     }
@@ -299,14 +293,9 @@ readonly class GameManager
 
     private function ensureUserInGame(int $gameId, TelegramUser $user): void
     {
-        $this->upsertUser($user);
+        $this->userManager->upsertUser($user);
         $this->ensureGameUser($gameId, $user->id);
         $this->ensureGameUserSlot($gameId, $user->id);
-    }
-
-    private function upsertUser(TelegramUser $user): void
-    {
-        $this->userRepository->upsert($user->id, $user->firstName, $user->lastName, $user->username, $user->languageCode);
     }
 
     private function addSlot(int $gameId, int $telegramUserId): void

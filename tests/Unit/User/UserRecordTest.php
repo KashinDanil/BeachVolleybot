@@ -60,4 +60,18 @@ final class UserRecordTest extends TestCase
         $this->assertNull($record->username);
         $this->assertNull($record->languageCode);
     }
+
+    public function testFromRowFallsBackToPlayerForAnUnknownRole(): void
+    {
+        $record = UserRecord::fromRow([
+            'telegram_user_id' => 200,
+            'first_name' => 'Danil',
+            'role' => 3,
+            'notifications' => 0,
+            'created_at' => '2026-01-01 10:00:00',
+            'updated_at' => '2026-01-01 10:00:00',
+        ]);
+
+        $this->assertSame(Role::Player, $record->role);
+    }
 }

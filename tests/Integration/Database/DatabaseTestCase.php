@@ -6,13 +6,13 @@ namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Common\Extractors\PlayersPerNetExtractor;
 use BeachVolleybot\Common\GameDateTimeResolver;
+use BeachVolleybot\Database\ConcurrentSqliteMedoo;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\User\Role;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 use DateTimeZone;
-use Medoo\Medoo;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -21,11 +21,11 @@ abstract class DatabaseTestCase extends TestCase
     /** Stands in for titles with no resolvable kickoff. UTC, like the column: 18:00 in Barcelona. */
     private const string FALLBACK_KICKOFF_AT = '2099-12-31 17:00:00';
 
-    protected Medoo $db;
+    protected ConcurrentSqliteMedoo $db;
 
     protected function setUp(): void
     {
-        $this->db = new Medoo([
+        $this->db = new ConcurrentSqliteMedoo([
             'type' => 'sqlite',
             'database' => ':memory:',
             'error' => PDO::ERRMODE_EXCEPTION,

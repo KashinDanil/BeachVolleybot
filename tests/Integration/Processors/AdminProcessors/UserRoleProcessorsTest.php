@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\AdminProcessors;
 
-use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootDemoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootPromoteUserProcessor;
@@ -14,6 +13,7 @@ use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\User\Role;
+use BeachVolleybot\User\UserManager;
 
 final class UserRoleProcessorsTest extends ProcessorTestCase
 {
@@ -67,7 +67,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
 
         new RootPromoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $this->assertSame(Role::Admin->value, new UserRepository($this->db)->findRoleById(300));
+        $this->assertSame(Role::Admin, new UserManager()->findUserRecordById(300)?->role);
         $this->assertMessageEdited();
         $this->assertAnsweredWith('Promoted to Admin');
     }
@@ -81,7 +81,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
 
         new RootPromoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $this->assertSame(Role::Root->value, new UserRepository($this->db)->findRoleById(300));
+        $this->assertSame(Role::Root, new UserManager()->findUserRecordById(300)?->role);
         $this->assertAnsweredWith('Cannot change Root');
     }
 
@@ -92,7 +92,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
 
         new RootPromoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $this->assertNull(new UserRepository($this->db)->findRoleById(99999));
+        $this->assertNull(new UserManager()->findUserRecordById(99999));
         $this->assertAnsweredWith('User not found');
     }
 
@@ -107,7 +107,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
 
         new RootDemoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $this->assertSame(Role::Player->value, new UserRepository($this->db)->findRoleById(300));
+        $this->assertSame(Role::Player, new UserManager()->findUserRecordById(300)?->role);
         $this->assertMessageEdited();
         $this->assertAnsweredWith('Demoted to Player');
     }
@@ -121,7 +121,7 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
 
         new RootDemoteUserProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $this->assertSame(Role::Root->value, new UserRepository($this->db)->findRoleById(300));
+        $this->assertSame(Role::Root, new UserManager()->findUserRecordById(300)?->role);
         $this->assertAnsweredWith('Cannot change Root');
     }
 }

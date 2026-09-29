@@ -18,14 +18,11 @@ final class NewGameDataTest extends TestCase
         $this->creator = new TelegramUser(id: 200, firstName: 'Alice', lastName: 'Smith', username: 'alice');
     }
 
-    public function testFromUserMapsCreatorFields(): void
+    public function testFromUserKeepsTheCreator(): void
     {
         $data = NewGameData::fromUser($this->creator, 'Game 18:00', 'query_1');
 
-        $this->assertSame(200, $data->telegramUserId);
-        $this->assertSame('Alice', $data->firstName);
-        $this->assertSame('Smith', $data->lastName);
-        $this->assertSame('alice', $data->username);
+        $this->assertSame($this->creator, $data->creator);
     }
 
     public function testFromUserMapsGameFields(): void

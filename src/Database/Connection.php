@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Database;
 
-use Medoo\Medoo;
 use RuntimeException;
 
 final class Connection
 {
-    private static ?Medoo $instance = null;
+    private static ?ConcurrentSqliteMedoo $instance = null;
 
     private function __construct()
     {
     }
 
-    public static function get(): Medoo
+    public static function get(): ConcurrentSqliteMedoo
     {
         if (null === self::$instance) {
             self::$instance = self::create();
@@ -24,7 +23,7 @@ final class Connection
         return self::$instance;
     }
 
-    public static function set(Medoo $medoo): void
+    public static function set(ConcurrentSqliteMedoo $medoo): void
     {
         self::$instance = $medoo;
     }
@@ -34,7 +33,7 @@ final class Connection
         self::$instance = null;
     }
 
-    private static function create(): Medoo
+    private static function create(): ConcurrentSqliteMedoo
     {
         $config = DB_CONNECTION;
         $dbDir = dirname($config['database']);
@@ -43,6 +42,6 @@ final class Connection
             throw new RuntimeException("Cannot create database directory: $dbDir");
         }
 
-        return new Medoo($config);
+        return new ConcurrentSqliteMedoo($config);
     }
 }

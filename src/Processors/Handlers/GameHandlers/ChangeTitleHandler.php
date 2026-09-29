@@ -12,7 +12,7 @@ use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\User\CurrentUser;
+use BeachVolleybot\User\UserManager;
 use BeachVolleybot\Validator\Rules\DateTime\DateTimeInTitleRule;
 use BeachVolleybot\Validator\Rules\DateTime\KickoffDayInTheFutureRule;
 use BeachVolleybot\Validator\Rules\Game\GameCreatorOnlyRule;
@@ -71,7 +71,7 @@ final readonly class ChangeTitleHandler extends AbstractGameReplyQueueHandler
             return new GameCreatorOnlyRule($from->id, $gameRecord->createdBy)->isValid();
         }
 
-        $isAdmin = CurrentUser::fromTelegramId($from->id)->isAdmin();
+        $isAdmin = new UserManager()->ensureUserRecord($from)->role->isAdmin();
 
         return new GameCreatorOrAdminRule($from->id, $gameRecord->createdBy, $isAdmin)->isValid();
     }

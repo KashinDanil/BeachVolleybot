@@ -79,9 +79,9 @@ readonly class GameSlotRepository
 
     private function decrementPositionsAbove(int $gameId, int $deletedPosition): void
     {
-        $statement = $this->db->pdo->prepare( //Because commands are processed sequentially, we can do that safely without worrying about concurrency issues.
-            'UPDATE game_slots SET position = position - 1 WHERE game_id = :game_id AND position > :deleted_position'
+        $this->db->query( //Because commands are processed sequentially, we can do that safely without worrying about concurrency issues.
+            'UPDATE game_slots SET position = position - 1 WHERE game_id = :game_id AND position > :deleted_position',
+            [':game_id' => $gameId, ':deleted_position' => $deletedPosition],
         );
-        $statement->execute([':game_id' => $gameId, ':deleted_position' => $deletedPosition]);
     }
 }

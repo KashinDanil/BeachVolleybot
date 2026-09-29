@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\UserRoleListMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\User\UserManager;
 
 final class UserRoleListMessageFactory
 {
@@ -16,10 +15,10 @@ final class UserRoleListMessageFactory
 
     public static function build(int $page): TelegramMessage
     {
-        $userRepository = new UserRepository(Connection::get());
-        $pagination = new KeyboardPagination($userRepository->countAll(), self::USERS_PER_PAGE, $page);
-        $userRows = $userRepository->findAllPaginated(self::USERS_PER_PAGE, $pagination->getOffset());
+        $userManager = new UserManager();
+        $pagination = new KeyboardPagination($userManager->countUsers(), self::USERS_PER_PAGE, $page);
+        $users = $userManager->findUserRecordsPage(self::USERS_PER_PAGE, $pagination->getOffset());
 
-        return new UserRoleListMessageBuilder()->build($userRows, $pagination);
+        return new UserRoleListMessageBuilder()->build($users, $pagination);
     }
 }

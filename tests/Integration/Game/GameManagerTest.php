@@ -9,7 +9,6 @@ use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\GameUserRepository;
-use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
@@ -20,6 +19,7 @@ use BeachVolleybot\Game\NewGameFactory;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
+use BeachVolleybot\User\UserManager;
 use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use DateTimeImmutable;
 use InvalidArgumentException;
@@ -60,7 +60,7 @@ final class GameManagerTest extends DatabaseTestCase
             'query_1',
         ));
 
-        $this->assertSame('es', new UserRepository($this->db)->findById(200)['language_code']);
+        $this->assertSame('es', new UserManager()->findUserRecordById(200)?->languageCode);
     }
 
     public function testCreateGameStoresKickoffAndVenueFromTitle(): void
@@ -120,10 +120,9 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $this->gameManager->createGame($this->newGameData());
 
-        $users = new UserRepository($this->db)->findAll();
-        $this->assertCount(1, $users);
-        $this->assertSame(200, $users[0]['telegram_user_id']);
-        $this->assertSame('Danil', $users[0]['first_name']);
+        $userManager = new UserManager();
+        $this->assertSame(1, $userManager->countUsers());
+        $this->assertSame('Danil', $userManager->findUserRecordById(200)?->firstName);
     }
 
     public function testCreateGamePersistsGameUserWithInitialEquipmentAndTime(): void
@@ -185,10 +184,11 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->joinGame($gameId, new TelegramUser(id: 200, firstName: 'Danil', lastName: 'Kashin', username: 'danil'));
 
-        $users = new UserRepository($this->db)->findAll();
-        $this->assertCount(1, $users);
-        $this->assertSame('Danil', $users[0]['first_name']);
-        $this->assertSame('Kashin', $users[0]['last_name']);
+        $userManager = new UserManager();
+        $user = $userManager->findUserRecordById(200);
+        $this->assertSame(1, $userManager->countUsers());
+        $this->assertSame('Danil', $user?->firstName);
+        $this->assertSame('Kashin', $user?->lastName);
     }
 
     public function testJoinGameStoresTheLanguageCode(): void
@@ -197,7 +197,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->joinGame($gameId, new TelegramUser(id: 200, firstName: 'Danil', languageCode: 'ru'));
 
-        $this->assertSame('ru', new UserRepository($this->db)->findById(200)['language_code']);
+        $this->assertSame('ru', new UserManager()->findUserRecordById(200)?->languageCode);
     }
 
     public function testSecondJoinAddsExtraSlotWithoutDuplicatingGameUser(): void

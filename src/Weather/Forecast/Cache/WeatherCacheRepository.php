@@ -23,18 +23,19 @@ final readonly class WeatherCacheRepository
 
     public function upsert(float $latitude, float $longitude, string $forecastTs, string $dataJson): void
     {
-        $this->db->pdo->prepare(
+        $this->db->query(
             'INSERT INTO ' . self::TABLE . ' (latitude, longitude, forecast_ts, data_json)
              VALUES (:latitude, :longitude, :forecast_ts, :data_json)
              ON CONFLICT (latitude, longitude, forecast_ts) DO UPDATE SET
                 data_json = excluded.data_json,
-                fetched_at = CURRENT_TIMESTAMP'
-        )->execute([
-            ':latitude' => $latitude,
-            ':longitude' => $longitude,
-            ':forecast_ts' => $forecastTs,
-            ':data_json' => $dataJson,
-        ]);
+                fetched_at = CURRENT_TIMESTAMP',
+            [
+                ':latitude' => $latitude,
+                ':longitude' => $longitude,
+                ':forecast_ts' => $forecastTs,
+                ':data_json' => $dataJson,
+            ],
+        );
     }
 
     /** @return array<string, float|string> */

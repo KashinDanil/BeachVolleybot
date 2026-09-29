@@ -10,10 +10,14 @@ use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Game\GameDetailMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Game\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
+use BeachVolleybot\User\UserRecord;
 use PHPUnit\Framework\TestCase;
 
 final class GameDetailMessageBuilderTest extends TestCase
 {
+    use CreatesUserRecords;
+
     private GameDetailMessageBuilder $builder;
 
     public function testGameNotFoundContainsGameNotFoundText(): void
@@ -189,11 +193,11 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     // --- creator line ---
 
-    public function testGameDetailOmitsCreatorLineWhenCreatorRowMissing(): void
+    public function testGameDetailOmitsCreatorLineWhenCreatorMissing(): void
     {
         $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
 
-        $message = $this->buildDetail($game, creatorRow: null);
+        $message = $this->buildDetail($game, creator: null);
 
         $this->assertStringNotContainsString('Creator', $message->getText()->getMessageText());
     }
@@ -201,9 +205,9 @@ final class GameDetailMessageBuilderTest extends TestCase
     public function testGameDetailShowsCreatorNameWithoutLinkWhenNoUsername(): void
     {
         $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
-        $creatorRow = ['first_name' => 'Danil', 'last_name' => 'Kashin', 'username' => null];
+        $creator = $this->userRecord(200, 'Danil', lastName: 'Kashin');
 
-        $message = $this->buildDetail($game, creatorRow: $creatorRow);
+        $message = $this->buildDetail($game, creator: $creator);
 
         $text = $message->getText()->getMessageText();
         $this->assertStringContainsString('Danil Kashin', $text);
@@ -213,18 +217,18 @@ final class GameDetailMessageBuilderTest extends TestCase
     public function testGameDetailShowsCreatorLinkWhenUsernamePresent(): void
     {
         $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
-        $creatorRow = ['first_name' => 'Danil', 'last_name' => null, 'username' => 'danil_kashin'];
+        $creator = $this->userRecord(200, 'Danil', username: 'danil_kashin');
 
-        $message = $this->buildDetail($game, creatorRow: $creatorRow);
+        $message = $this->buildDetail($game, creator: $creator);
 
         $text = $message->getText()->getMessageText();
         $this->assertStringContainsString('Danil', $text);
         $this->assertStringContainsString('https://t.me/danil_kashin', $text);
     }
 
-    private function buildDetail(GameInterface $game, ?array $creatorRow = null, bool $sharingEnabled = true): TelegramMessage
+    private function buildDetail(GameInterface $game, ?UserRecord $creator = null, bool $sharingEnabled = true): TelegramMessage
     {
-        return $this->builder->buildGameDetail($game, $creatorRow, $sharingEnabled);
+        return $this->builder->buildGameDetail($game, $creator, $sharingEnabled);
     }
 
     // --- past-kickoff behavior ---

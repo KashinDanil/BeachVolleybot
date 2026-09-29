@@ -9,10 +9,13 @@ use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\GameMessage;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use PHPUnit\Framework\TestCase;
 
 final class GameBuilderTest extends TestCase
 {
+    use CreatesUserRecords;
+
     // --- Game-level mapping ---
 
     public function testGameId(): void
@@ -43,7 +46,7 @@ final class GameBuilderTest extends TestCase
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
             gameUserRows: [$this->gameUserRow()],
-            userRows: [$this->userRow()],
+            users: [$this->userRecord()],
         );
 
         $this->assertInstanceOf(TelegramMessage::class, $game->buildTelegramMessage());
@@ -65,7 +68,7 @@ final class GameBuilderTest extends TestCase
         $game = $this->buildGame(
             slotRows: [$this->slotRow(position: 3)],
             gameUserRows: [$this->gameUserRow()],
-            userRows: [$this->userRow()],
+            users: [$this->userRecord()],
         );
 
         $this->assertSame('3', $game->getUsers()[0]->getPosition()->format());
@@ -76,7 +79,7 @@ final class GameBuilderTest extends TestCase
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
             gameUserRows: [$this->gameUserRow(volleyball: 5, net: 2)],
-            userRows: [$this->userRow()],
+            users: [$this->userRecord()],
         );
 
         $user = $game->getUsers()[0];
@@ -90,7 +93,7 @@ final class GameBuilderTest extends TestCase
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
             gameUserRows: [$this->gameUserRow(time: '19:30')],
-            userRows: [$this->userRow()],
+            users: [$this->userRecord()],
         );
 
         $this->assertSame('19:30', $game->getUsers()[0]->getTime());
@@ -101,7 +104,7 @@ final class GameBuilderTest extends TestCase
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
             gameUserRows: [$this->gameUserRow()],
-            userRows: [$this->userRow()],
+            users: [$this->userRecord()],
         );
 
         $this->assertSame('18:00', $game->getUsers()[0]->getTime());
@@ -114,7 +117,7 @@ final class GameBuilderTest extends TestCase
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
             gameUserRows: [$this->gameUserRow()],
-            userRows: [$this->userRow(lastName: 'Smith')],
+            users: [$this->userRecord(lastName: 'Smith')],
         );
 
         $this->assertSame('Alice Smith', $game->getUsers()[0]->getName());
@@ -125,7 +128,7 @@ final class GameBuilderTest extends TestCase
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
             gameUserRows: [$this->gameUserRow()],
-            userRows: [$this->userRow()],
+            users: [$this->userRecord()],
         );
 
         $this->assertSame('Alice', $game->getUsers()[0]->getName());
@@ -138,7 +141,7 @@ final class GameBuilderTest extends TestCase
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
             gameUserRows: [$this->gameUserRow()],
-            userRows: [$this->userRow(username: 'alice')],
+            users: [$this->userRecord(username: 'alice')],
         );
 
         $this->assertSame('https://t.me/alice', $game->getUsers()[0]->getLink());
@@ -149,7 +152,7 @@ final class GameBuilderTest extends TestCase
         $game = $this->buildGame(
             slotRows: [$this->slotRow()],
             gameUserRows: [$this->gameUserRow()],
-            userRows: [$this->userRow()],
+            users: [$this->userRecord()],
         );
 
         $this->assertNull($game->getUsers()[0]->getLink());
@@ -168,9 +171,9 @@ final class GameBuilderTest extends TestCase
                 $this->gameUserRow(),
                 $this->gameUserRow(userId: 200),
             ],
-            userRows: [
-                $this->userRow(),
-                $this->userRow(userId: 200, firstName: 'Bob'),
+            users: [
+                $this->userRecord(),
+                $this->userRecord(telegramUserId: 200, firstName: 'Bob'),
             ],
         );
 
@@ -195,8 +198,8 @@ final class GameBuilderTest extends TestCase
             gameUserRows: [
                 $this->gameUserRow(),
             ],
-            userRows: [
-                $this->userRow(),
+            users: [
+                $this->userRecord(),
             ],
         );
 
@@ -252,33 +255,19 @@ final class GameBuilderTest extends TestCase
         ];
     }
 
-    private function userRow(
-        int $userId = 100,
-        string $firstName = 'Alice',
-        ?string $lastName = null,
-        ?string $username = null,
-    ): array {
-        return [
-            'telegram_user_id' => $userId,
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'username' => $username,
-        ];
-    }
-
     private function buildGame(
         ?GameRecord $game = null,
         array $messages = [new GameMessage(inlineMessageId: 'msg_1')],
         array $slotRows = [],
         array $gameUserRows = [],
-        array $userRows = [],
+        array $users = [],
     ): GameInterface {
         return new GameBuilder(
             gameRecord: $game ?? $this->gameRecord(),
             messages: $messages,
             slotRows: $slotRows,
             gameUserRows: $gameUserRows,
-            userRows: $userRows,
+            users: $users,
             addOns: [],
         )->build();
     }

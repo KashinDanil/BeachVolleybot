@@ -11,6 +11,7 @@ use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Game\Roster\Position;
 use BeachVolleybot\Telegram\Messages\GameMessage;
+use BeachVolleybot\User\UserRecord;
 
 readonly class GameBuilder
 {
@@ -18,7 +19,7 @@ readonly class GameBuilder
      * @param list<GameMessage> $messages
      * @param list<array<string, mixed>> $slotRows
      * @param list<array<string, mixed>> $gameUserRows
-     * @param list<array<string, mixed>> $userRows
+     * @param list<UserRecord> $users
      * @param list<class-string<GameAddOnInterface>> $addOns
      */
     public function __construct(
@@ -26,7 +27,7 @@ readonly class GameBuilder
         private array $messages,
         private array $slotRows,
         private array $gameUserRows,
-        private array $userRows,
+        private array $users,
         private array $addOns = GAME_ADD_ONS,
     ) {
     }
@@ -38,7 +39,7 @@ readonly class GameBuilder
             gameKey: $this->gameRecord->gameKey,
             messages: $this->messages,
             title: $this->gameRecord->title,
-            users: $this->buildUsersFromRows(),
+            users: $this->buildUsers(),
             createdAt: $this->gameRecord->createdAt,
             kickoffAt: $this->gameRecord->kickoffAt,
             venueName: $this->gameRecord->venueName,
@@ -50,28 +51,28 @@ readonly class GameBuilder
     }
 
     /** @return User[] */
-    private function buildUsersFromRows(): array
+    private function buildUsers(): array
     {
         $gameUsersIndex = array_column($this->gameUserRows, null, 'telegram_user_id');
-        $usersIndex = array_column($this->userRows, null, 'telegram_user_id');
+        $usersIndex = array_column($this->users, null, 'telegramUserId');
 
         $users = [];
 
         foreach ($this->slotRows as $slot) {
             $telegramUserId = $slot['telegram_user_id'];
-            $users[] = $this->buildUserFromRow($slot, $gameUsersIndex[$telegramUserId], $usersIndex[$telegramUserId]);
+            $users[] = $this->buildUser($slot, $gameUsersIndex[$telegramUserId], $usersIndex[$telegramUserId]);
         }
 
         return $users;
     }
 
-    private function buildUserFromRow(array $slot, array $gameUserRow, array $userRow): User
+    private function buildUser(array $slot, array $gameUserRow, UserRecord $userRecord): User
     {
         return new User(
             telegramUserId: (int)$slot['telegram_user_id'],
             position: new Position((int)$slot['position']),
-            name: User::buildName($userRow['first_name'], $userRow['last_name'] ?? null),
-            link: User::buildLink($userRow['username'] ?? null),
+            name: User::buildName($userRecord->firstName, $userRecord->lastName),
+            link: User::buildLink($userRecord->username),
             volleyball: (int)$gameUserRow['volleyball'],
             net: (int)$gameUserRow['net'],
             time: $gameUserRow['time'],

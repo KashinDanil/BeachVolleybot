@@ -187,15 +187,16 @@ final class ChangeTitleHandlerTest extends ProcessorTestCase
         $this->assertStringContainsString('games', $queries[0]);
     }
 
-    public function testTitleShapedReplyInPrivateChatReadsTheGameAndTheRole(): void
+    public function testTitleShapedReplyInPrivateChatReadsTheGameAndEnsuresTheAuthor(): void
     {
         $this->seedGameOwnedByCreator();
 
         $queries = $this->queriesWhileMatchingInPrivateChat('Bogatell 31.12.2099 20:00', self::NON_CREATOR_ID);
 
-        $this->assertCount(2, $queries);
+        $this->assertCount(3, $queries);
         $this->assertStringContainsString('games', $queries[0]);
-        $this->assertStringContainsString('users', $queries[1]);
+        $this->assertStringContainsString('INSERT INTO users', $queries[1]);
+        $this->assertStringContainsString('users', $queries[2]);
     }
 
     public function testChatterInPrivateChatCostsNoQuery(): void

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Queue;
 
+use BeachVolleybot\Database\ConcurrentSqliteMedoo;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
 use BeachVolleybot\User\Role;
-use Medoo\Medoo;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -19,7 +19,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
     private const string BASE_DIR = '/tmp/test_queues';
 
     private IncomingMessageQueueRouter $router;
-    private Medoo $db;
+    private ConcurrentSqliteMedoo $db;
 
     public function testPrivateMessageRoutesToDmQueue(): void
     {
@@ -144,7 +144,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->db = new Medoo([
+        $this->db = new ConcurrentSqliteMedoo([
             'type' => 'sqlite',
             'database' => ':memory:',
             'error' => PDO::ERRMODE_EXCEPTION,
@@ -158,6 +158,8 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/008_rename_inline_query_id_to_game_key.sql'));
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/009_add_game_chat_messages.sql'));
         $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/014_merge_game_message_tables.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/015_add_notifications_to_users.sql'));
+        $this->db->pdo->exec(file_get_contents(__DIR__ . '/../../../migrations/016_add_language_code_to_users.sql'));
         Connection::set($this->db);
 
         // Admin routing reads the role from the DB; seed the admin sender used

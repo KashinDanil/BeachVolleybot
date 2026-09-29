@@ -8,11 +8,11 @@ use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\UserRepository;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\UserManager;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
 final class CreateGameProcessorTest extends ProcessorTestCase
@@ -45,10 +45,9 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $users = new UserRepository($this->db)->findAll();
-        $this->assertCount(1, $users);
-        $this->assertSame(300, $users[0]['telegram_user_id']);
-        $this->assertSame('Alice', $users[0]['first_name']);
+        $userManager = new UserManager();
+        $this->assertSame(1, $userManager->countUsers());
+        $this->assertSame('Alice', $userManager->findUserRecordById(300)?->firstName);
     }
 
     public function testCreatesGameUserWithVolleyballAndNet(): void

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\UserRepository;
-use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
 
 final class UserRepositoryTest extends DatabaseTestCase
@@ -67,7 +66,7 @@ final class UserRepositoryTest extends DatabaseTestCase
         $this->repository->upsert(200, 'Danil');
         $this->repository->upsert(200, 'Danil');
 
-        $this->assertCount(1, $this->repository->findAll());
+        $this->assertSame(1, $this->repository->countAll());
     }
 
     public function testFindByIdReturnsNullWhenNotFound(): void
@@ -92,7 +91,7 @@ final class UserRepositoryTest extends DatabaseTestCase
     {
         $this->repository->upsert(200, 'Danil');
 
-        $this->repository->updateNotifications(200, new NotificationSettings()->enable(NotificationType::PromotedIntoGame));
+        $this->repository->updateNotifications(200, NotificationType::PromotedIntoGame->bit());
 
         $user = $this->repository->findById(200);
         $this->assertSame(NotificationType::PromotedIntoGame->bit(), (int)$user['notifications']);
@@ -101,9 +100,9 @@ final class UserRepositoryTest extends DatabaseTestCase
     public function testUpdateNotificationsOverwritesThePreviousValue(): void
     {
         $this->repository->upsert(200, 'Danil');
-        $this->repository->updateNotifications(200, new NotificationSettings()->enable(NotificationType::PromotedIntoGame));
+        $this->repository->updateNotifications(200, NotificationType::PromotedIntoGame->bit());
 
-        $this->repository->updateNotifications(200, new NotificationSettings());
+        $this->repository->updateNotifications(200, 0);
 
         $user = $this->repository->findById(200);
         $this->assertSame(0, (int)$user['notifications']);
