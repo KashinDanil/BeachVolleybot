@@ -10,6 +10,7 @@ use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Notifications\MinimumPlayersNotifier;
 use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\User\UserManager;
@@ -29,8 +30,9 @@ readonly class GameManager
 
     protected UserManager $userManager;
 
-    public function __construct()
-    {
+    public function __construct(
+        protected MinimumPlayersNotifier $minimumPlayersNotifier = new MinimumPlayersNotifier(),
+    ) {
         $db = Connection::get();
         $this->gameRepository = new GameRepository($db);
         $this->gameMessageRepository = new GameMessageRepository($db);
@@ -63,7 +65,7 @@ readonly class GameManager
             NewGameData::INITIAL_NET,
         );
 
-        $this->gameSlotRepository->create($gameId, $data->creator->id, NewGameData::INITIAL_POSITION);
+        $this->addSlot($gameId, $data->creator->id);
 
         return $gameId;
     }
@@ -305,6 +307,8 @@ readonly class GameManager
             $telegramUserId,
             $this->gameSlotRepository->getNextPosition($gameId),
         );
+
+        $this->minimumPlayersNotifier->notifyIfReached($gameId, $telegramUserId);
     }
 
     private function resolveGameTime(int $gameId): ?string

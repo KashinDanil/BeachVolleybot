@@ -17,6 +17,8 @@ readonly class AdminGameManager extends GameManager
             $telegramUserId,
             $this->gameSlotRepository->getNextPosition($gameId),
         );
+
+        $this->minimumPlayersNotifier->notifyIfReached($gameId, $telegramUserId);
     }
 
     public function adminAddNet(int $gameId, int $telegramUserId): EquipmentResult

@@ -38,6 +38,8 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         // on-disk queue directories persist across tests — drain them so
         // enqueues from prior tests don't leak into assertions.
         foreach ([WeatherEnqueuer::QUEUE_DIR, NotificationEnqueuer::QUEUE_DIR] as $queueDir) {
+            @mkdir($queueDir, 0777, true);
+
             foreach (glob($queueDir . '/*') ?: [] as $path) {
                 @unlink($path);
             }

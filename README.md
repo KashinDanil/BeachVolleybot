@@ -20,6 +20,8 @@ This project was created to address a common frustration: _manually copying part
 - **My games** — the `/games` command in DM lists the games a user has created, with pagination and a per-game detail view from which the game can be shared again
 - **Notification settings** — the `/notifications` command in DM lists every notification type; tapping one shows what it does and whether it is on,
   with a button to enable or disable it
+- **Game-is-on notification** — when a game reaches 4 players (+1s included), everyone else in it who opted in gets a DM;
+  it fires each time the count climbs back to 4
 - **Welcome flow** — the `/start` command (also triggered by `/help`) shows a welcome message
 - **Group help** — `/help` in a group sends the same help text as an ephemeral message, visible only to the person who asked; answered inside the webhook request, since Telegram expires an ephemeral reply 15 seconds after the command
 - **Weather forecasts** — hourly forecast for the game window, attached to the message and refreshed whenever the game changes; powered by Open-Meteo, resolved per known venue, cached in SQLite, and computed off the request path by a dedicated worker
@@ -96,7 +98,7 @@ Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `
 │   ├── Game/            # Core game logic, models, add-ons (registry + WeatherAddOn, MergeConsecutiveSlotsAddOn, StylizeTitleAddOn)
 │   ├── Localization/    # Translator (what the bot writes), CalendarVocabulary (what it reads)
 │   ├── Log/             # Log file management
-│   ├── Notifications/   # NotificationQueuePayload (one recipient each), NotificationEnqueuer, NotificationSender
+│   ├── Notifications/   # NotificationQueuePayload (one recipient each), NotificationEnqueuer, NotificationSender, MinimumPlayersNotifier
 │   ├── Processors/
 │   │   ├── AdminProcessors/    # Admin panel callbacks (game / user / equipment / logs / settings)
 │   │   ├── UserProcessors/     # /help (also /start), /games and /notifications commands with their callbacks

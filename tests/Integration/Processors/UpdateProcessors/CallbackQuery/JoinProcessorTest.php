@@ -6,10 +6,12 @@ namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQ
 
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\JoinProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use DanilKashin\FileQueue\Queue\FileQueue;
 
 final class JoinProcessorTest extends ProcessorTestCase
 {
@@ -113,6 +115,41 @@ final class JoinProcessorTest extends ProcessorTestCase
 
         $this->assertAnsweredWith(CallbackAnswer::JOINED);
         $this->assertNotNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
+    }
+
+    public function testFourthPlayerJoiningEnqueuesAMinimumPlayersNotificationForTheOthers(): void
+    {
+        $gameId = $this->seedGameWithPlayers(201, 202, 203);
+
+        new JoinProcessor($this->telegramSender)->process($this->buildUpdate('msg_1'));
+
+        $this->assertSame(3, $this->notificationQueueSize($gameId));
+    }
+
+    public function testThirdPlayerJoiningEnqueuesNoNotification(): void
+    {
+        $gameId = $this->seedGameWithPlayers(201, 202);
+
+        new JoinProcessor($this->telegramSender)->process($this->buildUpdate('msg_1'));
+
+        $this->assertSame(0, $this->notificationQueueSize($gameId));
+    }
+
+    private function seedGameWithPlayers(int ...$telegramUserIds): int
+    {
+        $gameId = $this->seedFullGame();
+
+        foreach ($telegramUserIds as $index => $telegramUserId) {
+            $this->createGameUser($gameId, $telegramUserId);
+            $this->createSlot($gameId, $telegramUserId, $index + 1);
+        }
+
+        return $gameId;
+    }
+
+    private function notificationQueueSize(int $gameId): int
+    {
+        return new FileQueue('notification_' . $gameId, NotificationEnqueuer::QUEUE_DIR)->size();
     }
 
     private function buildUpdate(string $inlineMessageId, int $fromId = 200, string $gameKey = 'query_1'): TelegramUpdate

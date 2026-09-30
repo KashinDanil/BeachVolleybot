@@ -30,6 +30,11 @@ readonly class GameSlotRepository
         ]);
     }
 
+    public function countByGameId(int $gameId): int
+    {
+        return (int)$this->db->count('game_slots', ['game_id' => $gameId]);
+    }
+
     public function findByUser(int $gameId, int $telegramUserId): array
     {
         return $this->db->select('game_slots', '*', [

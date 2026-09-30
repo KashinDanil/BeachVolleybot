@@ -9,7 +9,11 @@ use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Game\AdminGameManager;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Notifications\MinimumPlayersNotifier;
+use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
+use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
+use BeachVolleybot\User\NotificationType;
 
 final class GameManagerAdminTest extends DatabaseTestCase
 {
@@ -152,6 +156,42 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->assertSame('55.7,37.6', $game['location']);
     }
 
+    // --- adminAddSlot: GameReachedMinimumPlayers ---
+
+    public function testAdminAddSlotReachingTheMinimumNotifiesEveryoneExceptTheSlotOwner(): void
+    {
+        $gameId = $this->createGameWithUserSlot(200, 1);
+        $this->addSlot($gameId, 200, 2);
+        $this->seedGameUser($gameId, 201, 3);
+
+        $this->adminGameManager->adminAddSlot($gameId, 200);
+
+        $this->assertSame(
+            [['type' => NotificationType::GameReachedMinimumPlayers->value, 'game_id' => $gameId, 'user_id' => 201]],
+            array_map(static fn(SpyQueue $queue): ?array => $queue->lastPayload, SpyQueue::$instances),
+        );
+    }
+
+    public function testAdminAddSlotBelowTheMinimumEnqueuesNothing(): void
+    {
+        $gameId = $this->createGameWithUserSlot(200, 1);
+
+        $this->adminGameManager->adminAddSlot($gameId, 200);
+
+        $this->assertSame([], SpyQueue::$instances);
+    }
+
+    private function seedGameUser(int $gameId, int $telegramUserId, int $position): void
+    {
+        $this->createUser($telegramUserId);
+        $this->db->insert('game_users', [
+            'game_id' => $gameId,
+            'telegram_user_id' => $telegramUserId,
+            'time' => '18:00',
+        ]);
+        $this->addSlot($gameId, $telegramUserId, $position);
+    }
+
     // --- helpers ---
 
     protected function setUp(): void
@@ -159,7 +199,8 @@ final class GameManagerAdminTest extends DatabaseTestCase
         parent::setUp();
         Connection::set($this->db);
         $this->gameManager = new GameManager();
-        $this->adminGameManager = new AdminGameManager();
+        SpyQueue::reset();
+        $this->adminGameManager = new AdminGameManager(new MinimumPlayersNotifier(new NotificationEnqueuer(SpyQueue::class, sys_get_temp_dir())));
     }
 
     protected function tearDown(): void

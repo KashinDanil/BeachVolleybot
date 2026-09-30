@@ -16,9 +16,13 @@ use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Game\NewGameFactory;
-use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
+use BeachVolleybot\Notifications\MinimumPlayersNotifier;
+use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Telegram\Messages\GameMessage;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
+use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
+use BeachVolleybot\User\NotificationType;
 use BeachVolleybot\User\UserManager;
 use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use DateTimeImmutable;
@@ -32,7 +36,8 @@ final class GameManagerTest extends DatabaseTestCase
     {
         parent::setUp();
         Connection::set($this->db);
-        $this->gameManager = new GameManager();
+        SpyQueue::reset();
+        $this->gameManager = new GameManager(new MinimumPlayersNotifier(new NotificationEnqueuer(SpyQueue::class, sys_get_temp_dir())));
     }
 
     protected function tearDown(): void
@@ -861,7 +866,124 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Picnic Sunday 18:00', $title);
     }
 
+    // --- GameReachedMinimumPlayers ---
+
+    public function testCreateGameEnqueuesNoNotification(): void
+    {
+        $this->gameManager->createGame($this->newGameData());
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
+    public function testThreeSlotsEnqueueNoNotification(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+
+        $this->joinAs($gameId, 201, 202);
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
+    public function testFourthSlotNotifiesEveryoneExceptTheJoiner(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+
+        $this->joinAs($gameId, 201, 202, 203);
+
+        $this->assertSame(
+            [
+                $this->minimumPlayersPayload($gameId, 200),
+                $this->minimumPlayersPayload($gameId, 201),
+                $this->minimumPlayersPayload($gameId, 202),
+            ],
+            $this->enqueuedNotifications(),
+        );
+    }
+
+    public function testFifthSlotEnqueuesNothingMore(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $this->joinAs($gameId, 201, 202, 203);
+        SpyQueue::reset();
+
+        $this->joinAs($gameId, 204);
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
+    public function testReachingTheMinimumAgainAfterDroppingBelowNotifiesAgain(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $this->joinAs($gameId, 201, 202, 203);
+        $this->gameManager->leaveGame($gameId, 203);
+        SpyQueue::reset();
+
+        $this->joinAs($gameId, 204);
+
+        $this->assertSame(
+            [
+                $this->minimumPlayersPayload($gameId, 200),
+                $this->minimumPlayersPayload($gameId, 201),
+                $this->minimumPlayersPayload($gameId, 202),
+            ],
+            $this->enqueuedNotifications(),
+        );
+    }
+
+    public function testPlusOneReachingTheMinimumNotifiesEachOtherUserOnce(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+
+        $this->joinAs($gameId, 201, 201, 201);
+
+        $this->assertSame([$this->minimumPlayersPayload($gameId, 200)], $this->enqueuedNotifications());
+    }
+
+    public function testAddNetThatJoinsTheFourthPlayerNotifies(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $this->joinAs($gameId, 201, 202);
+
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 203, firstName: 'Player'));
+
+        $this->assertCount(3, $this->enqueuedNotifications());
+    }
+
+    public function testAddNetByAPlayerAlreadyInAFourSlotGameEnqueuesNothing(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $this->joinAs($gameId, 201, 202, 203);
+        SpyQueue::reset();
+
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 203, firstName: 'Player'));
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
     // --- Helpers ---
+
+    private function joinAs(int $gameId, int ...$telegramUserIds): void
+    {
+        foreach ($telegramUserIds as $telegramUserId) {
+            $this->gameManager->joinGame($gameId, new TelegramUser(id: $telegramUserId, firstName: 'Player'));
+        }
+    }
+
+    /** @return list<?array> */
+    private function enqueuedNotifications(): array
+    {
+        return array_map(static fn(SpyQueue $queue): ?array => $queue->lastPayload, SpyQueue::$instances);
+    }
+
+    /** @return array{type: int, game_id: int, user_id: int} */
+    private function minimumPlayersPayload(int $gameId, int $telegramUserId): array
+    {
+        return [
+            'type' => NotificationType::GameReachedMinimumPlayers->value,
+            'game_id' => $gameId,
+            'user_id' => $telegramUserId,
+        ];
+    }
 
     private function newGameData(): NewGameData
     {
