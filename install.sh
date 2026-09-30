@@ -64,6 +64,7 @@ create_runtime_directories() {
     ensure_directory "$LOGS_DIR" "Logs"
     ensure_directory "$QUEUES_DIR" "Queues"
     ensure_directory "$QUEUES_DIR/weather" "Weather queue"
+    ensure_directory "$QUEUES_DIR/notifications" "Notifications queue"
 }
 
 set_bin_permissions() {

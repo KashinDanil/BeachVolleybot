@@ -25,15 +25,6 @@ final class NotificationsMessageBuilder extends AbstractMessageBuilder
     public const string ENABLED_TOAST     = 'Notification enabled';
     public const string DISABLED_TOAST    = 'Notification disabled';
 
-    public const string GAME_REACHED_MINIMUM_PLAYERS_LABEL   = '✅ Game is on';
-    public const string GAME_REACHED_MINIMUM_PLAYERS_TRIGGER = "a game you've joined gets enough players to take place";
-    public const string GAME_SHORT_BEFORE_KICKOFF_LABEL      = '⚠️ Short of players';
-    public const string GAME_SHORT_BEFORE_KICKOFF_TRIGGER    = "kickoff is near and a game you've joined still doesn't have enough players";
-    public const string PROMOTED_INTO_GAME_LABEL             = "⬆️ You're in";
-    public const string PROMOTED_INTO_GAME_TRIGGER           = 'a spot opens up and you move from the reserve to playing';
-    public const string BUMPED_FROM_GAME_LABEL               = "⬇️ You're out";
-    public const string BUMPED_FROM_GAME_TRIGGER             = 'you move from playing to the reserve, for example after a net or volleyball is removed';
-
     public function __construct(
         private readonly Translator $translator,
         MessageFormatterInterface $formatter = new MarkdownV2(),
@@ -57,7 +48,7 @@ final class NotificationsMessageBuilder extends AbstractMessageBuilder
         foreach (NotificationType::cases() as $type) {
             $keyboard[] = [
                 $this->buildActionButton(
-                    $this->translator->translate($this->label($type)),
+                    $this->translator->translate(NotificationTypeTexts::forType($type)->label),
                     UserCallbackData::create(UserCallbackAction::NotificationDetail)->withNotificationType($type),
                     $settings->isEnabled($type) ? InlineButtonStyle::SUCCESS : null,
                 ),
@@ -67,22 +58,12 @@ final class NotificationsMessageBuilder extends AbstractMessageBuilder
         return $keyboard;
     }
 
-    private function label(NotificationType $type): string
-    {
-        return match ($type) {
-            NotificationType::GameReachedMinimumPlayers => self::GAME_REACHED_MINIMUM_PLAYERS_LABEL,
-            NotificationType::GameShortBeforeKickoff => self::GAME_SHORT_BEFORE_KICKOFF_LABEL,
-            NotificationType::PromotedIntoGame => self::PROMOTED_INTO_GAME_LABEL,
-            NotificationType::BumpedFromGame => self::BUMPED_FROM_GAME_LABEL,
-        };
-    }
-
     public function buildDetail(NotificationType $type, NotificationSettings $settings): TelegramMessage
     {
         $enabled = $settings->isEnabled($type);
         $newLine = $this->formatter->newLine();
 
-        $text = $this->formatter->bold($this->translator->translate($this->label($type)))
+        $text = $this->formatter->bold($this->translator->translate(NotificationTypeTexts::forType($type)->label))
             . $newLine
             . $newLine
             . $this->formatter->escape($this->buildStatusSentence($type, $enabled));
@@ -102,18 +83,8 @@ final class NotificationsMessageBuilder extends AbstractMessageBuilder
 
         return sprintf(
             $this->translator->translate($sentence),
-            $this->translator->translate($this->trigger($type)),
+            $this->translator->translate(NotificationTypeTexts::forType($type)->trigger),
         );
-    }
-
-    private function trigger(NotificationType $type): string
-    {
-        return match ($type) {
-            NotificationType::GameReachedMinimumPlayers => self::GAME_REACHED_MINIMUM_PLAYERS_TRIGGER,
-            NotificationType::GameShortBeforeKickoff => self::GAME_SHORT_BEFORE_KICKOFF_TRIGGER,
-            NotificationType::PromotedIntoGame => self::PROMOTED_INTO_GAME_TRIGGER,
-            NotificationType::BumpedFromGame => self::BUMPED_FROM_GAME_TRIGGER,
-        };
     }
 
     private function buildSwitchButton(NotificationType $type, bool $enabled): array

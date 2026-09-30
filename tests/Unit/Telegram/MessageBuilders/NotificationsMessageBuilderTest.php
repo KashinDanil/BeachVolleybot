@@ -60,9 +60,10 @@ final class NotificationsMessageBuilderTest extends TestCase
             return $build();
         } catch (UnhandledMatchError $error) {
             $this->fail(sprintf(
-                "%s.\nAdd an arm for it to the match in NotificationsMessageBuilder::%s(), backed by a new constant, "
-                . "and translate that constant's text in every localization/<lang>.json.",
+                "%s.\nAdd an arm for it to the match in %s::%s(), "
+                . "and translate its text in every localization/<lang>.json.",
                 $error->getMessage(),
+                $error->getTrace()[0]['class'],
                 $error->getTrace()[0]['function'],
             ));
         }
@@ -180,6 +181,28 @@ final class NotificationsMessageBuilderTest extends TestCase
         $this->assertSame('Выключить', $this->extractKeyboard($message)[0][0]['text']);
     }
 
+    public function testListLabelsAreTranslated(): void
+    {
+        $builder = new NotificationsMessageBuilder(new Translator(Language::RU, $this->missingTranslationsFile));
+
+        $this->assertSame(
+            ['✅ Игра состоится', '⚠️ Не хватает игроков', '⬆️ Вы в игре', '⬇️ Вы не играете'],
+            array_map(
+                static fn(array $row): string => $row[0]['text'],
+                $this->extractKeyboard($builder->buildList(new NotificationSettings())),
+            ),
+        );
+    }
+
+    public function testDetailHeadlineIsTheTranslatedLabel(): void
+    {
+        $builder = new NotificationsMessageBuilder(new Translator(Language::RU, $this->missingTranslationsFile));
+
+        $text = $builder->buildDetail(NotificationType::PromotedIntoGame, new NotificationSettings())->getText()->getMessageText();
+
+        $this->assertStringStartsWith('*⬆️ Вы в игре*', $text);
+    }
+
     // --- every type ---
 
     public function testEveryTypeHasItsOwnListLabel(): void
@@ -191,7 +214,7 @@ final class NotificationsMessageBuilderTest extends TestCase
             $labelsByTypeName[$type->name] = $keyboard[$index][0]['text'];
         }
 
-        $this->assertEachTypeRendersDifferently($labelsByTypeName, 'NotificationsMessageBuilder::label()');
+        $this->assertEachTypeRendersDifferently($labelsByTypeName, 'NotificationTypeTexts::forType()->label');
     }
 
     /** @param array<string, string> $textsByTypeName */
@@ -205,7 +228,7 @@ final class NotificationsMessageBuilderTest extends TestCase
 
         foreach ($typeNamesByText as $text => $typeNames) {
             $this->assertCount(1, $typeNames, sprintf(
-                "%s render the same text in %s:\n%s\nGive each type its own constant there.",
+                "%s render the same text in %s:\n%s\nGive each type its own text there.",
                 implode(' and ', $typeNames),
                 $source,
                 $text,
@@ -223,7 +246,7 @@ final class NotificationsMessageBuilderTest extends TestCase
             $enabledTextsByTypeName[$type->name] = $this->detailText($type, new NotificationSettings()->enable($type));
         }
 
-        $source = 'NotificationsMessageBuilder::label() or ::trigger()';
+        $source = 'NotificationTypeTexts::forType()';
         $this->assertEachTypeRendersDifferently($disabledTextsByTypeName, $source);
         $this->assertEachTypeRendersDifferently($enabledTextsByTypeName, $source);
     }

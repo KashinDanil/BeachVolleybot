@@ -125,5 +125,16 @@
   "⬆️ You're in": "⬆️ Entras a jugar",
   "a spot opens up and you move from the reserve to playing": "se libere un lugar y pases de la reserva a jugar",
   "⬇️ You're out": "⬇️ Te quedas fuera",
-  "you move from playing to the reserve, for example after a net or volleyball is removed": "pases de jugar a la reserva, por ejemplo, si se quita una red o una pelota"
+  "you move from playing to the reserve, for example after a net or volleyball is removed": "pases de jugar a la reserva, por ejemplo, si se quita una red o una pelota",
+  "on Monday": "el lunes",
+  "on Tuesday": "el martes",
+  "on Wednesday": "el miércoles",
+  "on Thursday": "el jueves",
+  "on Friday": "el viernes",
+  "on Saturday": "el sábado",
+  "on Sunday": "el domingo",
+  "Enough players have joined, so the game %s at %s will take place:": "Ya hay suficientes jugadores y el partido se jugará %s a las %s:",
+  "The game %s at %s starts soon, but there still aren't enough players:": "Pronto empieza el partido %s a las %s, pero aún faltan jugadores:",
+  "A spot opened up, and you're now playing %s at %s:": "Se liberó un lugar y ahora juegas %s a las %s:",
+  "You've moved to the reserve and are no longer playing %s at %s:": "Pasaste a la reserva y ya no juegas %s a las %s:"
 }

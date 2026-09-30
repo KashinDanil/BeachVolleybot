@@ -26,21 +26,13 @@ final class GameLabel
         return "#$gameId" . self::SEPARATOR . $kickoff;
     }
 
-    /** "Fri, 14 Aug 18:00" — the year only earns its place once the game is not from this one. */
+    /** "Fri, 14 Aug 18:00" */
     private static function formatKickoff(DateTimeImmutable $kickoffAt, Translator $translator, DateTimeImmutable $now): string
     {
-        $parts = [
-            $translator->translate($kickoffAt->format('D')) . ',',
-            $kickoffAt->format('j'),
-            $translator->translate($kickoffAt->format('M')),
-        ];
+        $kickoffFormatter = new KickoffFormatter($kickoffAt, $translator, $now);
 
-        if ($kickoffAt->format('Y') !== $now->format('Y')) {
-            $parts[] = $kickoffAt->format('Y');
-        }
-
-        $parts[] = $kickoffAt->format('H:i');
-
-        return implode(' ', $parts);
+        return $kickoffFormatter->formatShortWeekday()
+            . ', ' . $kickoffFormatter->formatDayAndMonth()
+            . ' ' . $kickoffFormatter->formatTime();
     }
 }

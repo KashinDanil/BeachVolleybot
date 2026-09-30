@@ -125,5 +125,16 @@
   "⬆️ You're in": "⬆️ Вы в игре",
   "a spot opens up and you move from the reserve to playing": "освободится место и вы перейдёте из запаса в игру",
   "⬇️ You're out": "⬇️ Вы не играете",
-  "you move from playing to the reserve, for example after a net or volleyball is removed": "вы перейдёте из игры в запас — например, если уберут сетку или мяч"
+  "you move from playing to the reserve, for example after a net or volleyball is removed": "вы перейдёте из игры в запас — например, если уберут сетку или мяч",
+  "on Monday": "в понедельник",
+  "on Tuesday": "во вторник",
+  "on Wednesday": "в среду",
+  "on Thursday": "в четверг",
+  "on Friday": "в пятницу",
+  "on Saturday": "в субботу",
+  "on Sunday": "в воскресенье",
+  "Enough players have joined, so the game %s at %s will take place:": "Набралось достаточно игроков — игра %s в %s состоится:",
+  "The game %s at %s starts soon, but there still aren't enough players:": "Игра %s в %s скоро начнётся, но игроков всё ещё не хватает:",
+  "A spot opened up, and you're now playing %s at %s:": "Освободилось место, и теперь вы играете %s в %s:",
+  "You've moved to the reserve and are no longer playing %s at %s:": "Вы перешли в запас и больше не играете %s в %s:"
 }
