@@ -12,7 +12,7 @@ final class NotificationTypeTest extends TestCase
     public function testBitsStayWhereUsersNotificationsStoresThem(): void
     {
         $this->assertSame(
-            ['GameReachedMinimumPlayers' => 2, 'GameShortBeforeKickoff' => 4, 'PromotedIntoGame' => 8, 'BumpedFromGame' => 16],
+            ['GameReachedMinimumPlayers' => 2, 'GameShortBeforeKickoff' => 4, 'PromotedIntoGame' => 8, 'BumpedFromGame' => 16, 'KickoffTimeChanged' => 32],
             array_combine(
                 array_map(static fn(NotificationType $type): string => $type->name, NotificationType::cases()),
                 array_map(static fn(NotificationType $type): int => $type->bit(), NotificationType::cases()),

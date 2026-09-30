@@ -126,6 +126,8 @@
   "a spot opens up and you move from the reserve to playing": "se libere un lugar y pases de la reserva a jugar",
   "⬇️ You're out": "⬇️ Te quedas fuera",
   "you move from playing to the reserve, for example after a net or volleyball is removed": "pases de jugar a la reserva, por ejemplo, si se quita una red o una pelota",
+  "🕒 Game time changed": "🕒 Cambio de hora del partido",
+  "the day or time of a game you've joined changes": "cambie el día o la hora de un partido al que te has unido",
   "on Monday": "el lunes",
   "on Tuesday": "el martes",
   "on Wednesday": "el miércoles",
@@ -136,5 +138,7 @@
   "Enough players have joined, so the game %s at %s will take place:": "Ya hay suficientes jugadores y el partido se jugará %s a las %s:",
   "The game %s at %s starts soon, but there still aren't enough players:": "Pronto empieza el partido %s a las %s, pero aún faltan jugadores:",
   "A spot opened up, and you're now playing %s at %s:": "Se liberó un lugar y ahora juegas %s a las %s:",
-  "You've moved to the reserve and are no longer playing %s at %s:": "Pasaste a la reserva y ya no juegas %s a las %s:"
+  "You've moved to the reserve and are no longer playing %s at %s:": "Pasaste a la reserva y ya no juegas %s a las %s:",
+  "The game time has changed, and it now takes place %s at %s:": "El partido cambió de hora y ahora se juega %s a las %s:",
+  "To change your own time in the game, reply to the game message in the chat with the time you'll arrive, like 19:30.": "Para cambiar tu propia hora en el partido, responde al mensaje del partido en el chat indicando la hora a la que llegarás, como 19:30."
 }

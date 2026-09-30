@@ -12,6 +12,7 @@ final readonly class NotificationTypeTexts
         public string $label,
         public string $trigger,
         public string $descriptionFormat,
+        public ?string $hint = null,
     ) {
     }
 
@@ -37,6 +38,12 @@ final readonly class NotificationTypeTexts
                 label: "⬇️ You're out",
                 trigger: 'you move from playing to the reserve, for example after a net or volleyball is removed',
                 descriptionFormat: "You've moved to the reserve and are no longer playing %s at %s:",
+            ),
+            NotificationType::KickoffTimeChanged => new self(
+                label: '🕒 Game time changed',
+                trigger: "the day or time of a game you've joined changes",
+                descriptionFormat: 'The game time has changed, and it now takes place %s at %s:',
+                hint: "To change your own time in the game, reply to the game message in the chat with the time you'll arrive, like 19:30.",
             ),
         };
     }

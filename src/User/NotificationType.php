@@ -12,6 +12,7 @@ enum NotificationType: int implements BitFlag
     case GameShortBeforeKickoff = 2;
     case PromotedIntoGame = 3;
     case BumpedFromGame = 4;
+    case KickoffTimeChanged = 5;
 
     public function bit(): int
     {

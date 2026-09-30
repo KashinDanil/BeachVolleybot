@@ -37,7 +37,7 @@ final class NotificationsMessageBuilderTest extends TestCase
 
         $this->assertCount(count(NotificationType::cases()), $keyboard);
         $this->assertSame(
-            ['✅ Game is on', '⚠️ Short of players', "⬆️ You're in", "⬇️ You're out"],
+            ['✅ Game is on', '⚠️ Short of players', "⬆️ You're in", "⬇️ You're out", '🕒 Game time changed'],
             array_map(static fn(array $row): string => $row[0]['text'], $keyboard),
             'The list changed. If you added a NotificationType, append its English label to the expected list here.',
         );
@@ -186,7 +186,7 @@ final class NotificationsMessageBuilderTest extends TestCase
         $builder = new NotificationsMessageBuilder(new Translator(Language::RU, $this->missingTranslationsFile));
 
         $this->assertSame(
-            ['✅ Игра состоится', '⚠️ Не хватает игроков', '⬆️ Вы в игре', '⬇️ Вы не играете'],
+            ['✅ Игра состоится', '⚠️ Не хватает игроков', '⬆️ Вы в игре', '⬇️ Вы не играете', '🕒 Время игры изменилось'],
             array_map(
                 static fn(array $row): string => $row[0]['text'],
                 $this->extractKeyboard($builder->buildList(new NotificationSettings())),

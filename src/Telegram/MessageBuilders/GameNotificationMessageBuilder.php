@@ -32,7 +32,8 @@ final class GameNotificationMessageBuilder extends AbstractMessageBuilder
             . $newLine
             . $this->buildDescription($type, $game)
             . $newLine
-            . $this->buildQuotedTitle($game);
+            . $this->buildQuotedTitle($game)
+            . $this->buildHint($type);
 
         return $this->buildMessage($text, []);
     }
@@ -59,5 +60,18 @@ final class GameNotificationMessageBuilder extends AbstractMessageBuilder
     private function buildQuotedTitle(GameRecord $game): string
     {
         return $this->formatter->blockquote($this->formatter->escape($game->title));
+    }
+
+    private function buildHint(NotificationType $type): string
+    {
+        $hint = NotificationTypeTexts::forType($type)->hint;
+
+        if (null === $hint) {
+            return '';
+        }
+
+        $newLine = $this->formatter->newLine();
+
+        return $newLine . $newLine . $this->formatter->escape($this->translator->translate($hint));
     }
 }

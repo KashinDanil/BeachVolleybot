@@ -54,6 +54,17 @@ final class GameNotificationMessageBuilderTest extends TestCase
         );
     }
 
+    public function testRendersTheKickoffTimeChangedHintBelowTheQuotedTitle(): void
+    {
+        $message = new GameNotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
+            ->build(NotificationType::KickoffTimeChanged, $this->game('Friday 18:00 Barceloneta'));
+
+        $this->assertStringEndsWith(
+            ">Friday 18:00 Barceloneta\n\nTo change your own time in the game, reply to the game message in the chat with the time you'll arrive, like 19:30\\.",
+            $message->getText()->getMessageText(),
+        );
+    }
+
     public function testEscapesMarkdownCharactersInTheTitle(): void
     {
         $text = new GameNotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
@@ -101,6 +112,11 @@ final class GameNotificationMessageBuilderTest extends TestCase
             "⬇️ You're out\n\nYou've moved to the reserve and are no longer playing on Friday, 14 Aug at 18:00:\nFriday 18:00 Barceloneta",
             $this->plainText(NotificationType::BumpedFromGame, Language::EN),
         );
+        $this->assertSame(
+            "🕒 Game time changed\n\nThe game time has changed, and it now takes place on Friday, 14 Aug at 18:00:\nFriday 18:00 Barceloneta\n\n"
+            . "To change your own time in the game, reply to the game message in the chat with the time you'll arrive, like 19:30.",
+            $this->plainText(NotificationType::KickoffTimeChanged, Language::EN),
+        );
     }
 
     public function testRendersEveryTypeInRussian(): void
@@ -121,6 +137,11 @@ final class GameNotificationMessageBuilderTest extends TestCase
             "⬇️ Вы не играете\n\nВы перешли в запас и больше не играете в пятницу, 14 авг в 18:00:\nFriday 18:00 Barceloneta",
             $this->plainText(NotificationType::BumpedFromGame, Language::RU),
         );
+        $this->assertSame(
+            "🕒 Время игры изменилось\n\nВремя игры изменилось — теперь она пройдёт в пятницу, 14 авг в 18:00:\nFriday 18:00 Barceloneta\n\n"
+            . "Чтобы изменить своё время в игре, ответьте на сообщение с игрой в чате, указав время, когда придёте, например 19:30.",
+            $this->plainText(NotificationType::KickoffTimeChanged, Language::RU),
+        );
     }
 
     public function testRendersEveryTypeInSpanish(): void
@@ -140,6 +161,11 @@ final class GameNotificationMessageBuilderTest extends TestCase
         $this->assertStringEndsWith(
             "Pasaste a la reserva y ya no juegas el viernes, 14 ago a las 18:00:\nFriday 18:00 Barceloneta",
             $this->plainText(NotificationType::BumpedFromGame, Language::ES),
+        );
+        $this->assertStringEndsWith(
+            "El partido cambió de hora y ahora se juega el viernes, 14 ago a las 18:00:\nFriday 18:00 Barceloneta\n\n"
+            . "Para cambiar tu propia hora en el partido, responde al mensaje del partido en el chat indicando la hora a la que llegarás, como 19:30.",
+            $this->plainText(NotificationType::KickoffTimeChanged, Language::ES),
         );
     }
 

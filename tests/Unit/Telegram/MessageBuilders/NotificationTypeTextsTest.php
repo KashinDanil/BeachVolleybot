@@ -13,7 +13,7 @@ final class NotificationTypeTextsTest extends TestCase
     public function testLabelsReadAsInTheNotificationsMenu(): void
     {
         $this->assertSame(
-            ['✅ Game is on', '⚠️ Short of players', "⬆️ You're in", "⬇️ You're out"],
+            ['✅ Game is on', '⚠️ Short of players', "⬆️ You're in", "⬇️ You're out", '🕒 Game time changed'],
             array_map(
                 static fn(NotificationType $type): string => NotificationTypeTexts::forType($type)->label,
                 NotificationType::cases(),
