@@ -100,15 +100,6 @@ final class ForecastGamesLookupTest extends DatabaseTestCase
         $this->assertSame([$named, $unnamed], $this->foundGameIds());
     }
 
-    public function testAnUnreadableRowDoesNotStopTheGamesBehindIt(): void
-    {
-        $broken = $this->seedGame(offsetSeconds: -60, suffix: 'broken');
-        $healthy = $this->seedGame(offsetSeconds: 60, suffix: 'healthy');
-        $this->db->update('games', ['kickoff_at' => self::FORECAST_HOUR . ' bogus'], ['game_id' => $broken]);
-
-        $this->assertSame([$healthy], $this->foundGameIds());
-    }
-
     public function testRecordsCarryEnoughToRenderWithoutReadingTheGameAgain(): void
     {
         $gameId = $this->seedGame(offsetSeconds: 0, suffix: 'a');

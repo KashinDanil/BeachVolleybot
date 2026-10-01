@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -18,8 +18,8 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
 
         new SetLiveLocationProcessor($this->telegramSender)->process($update);
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('41.413023,2.194859', $game['location']);
+        $game = new GameManager()->findGameRecordById($gameId);
+        $this->assertSame('41.413023,2.194859', $game->location);
     }
 
     private function buildUpdate(float $latitude, float $longitude, string $gameKey): TelegramUpdate
@@ -49,8 +49,8 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
         $processor->process($firstUpdate);
         $processor->process($secondUpdate);
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('41.413023,2.194859', $game['location']);
+        $game = new GameManager()->findGameRecordById($gameId);
+        $this->assertSame('41.413023,2.194859', $game->location);
     }
 
     public function testDoesNotReact(): void
@@ -71,8 +71,8 @@ final class SetLiveLocationProcessorTest extends ProcessorTestCase
 
         new SetLiveLocationProcessor($this->telegramSender)->process($update);
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertNull($game['location']);
+        $game = new GameManager()->findGameRecordById($gameId);
+        $this->assertNull($game->location);
     }
 
     public function testLogsUserAction(): void

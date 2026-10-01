@@ -6,9 +6,9 @@ namespace BeachVolleybot\Tests\Integration\Game;
 
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameMessageRepository;
-use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
 use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Database\Timestamp;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
@@ -51,10 +51,9 @@ final class GameManagerTest extends DatabaseTestCase
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertNotNull($game);
-        $this->assertSame('query_1', $game['game_key']);
-        $this->assertSame('Game 18:00', $game['title']);
+        $game = $this->gameRecord($gameId);
+        $this->assertSame('query_1', $game->gameKey);
+        $this->assertSame('Game 18:00', $game->title);
     }
 
     public function testCreateGameStoresTheCreatorsLanguageCode(): void
@@ -78,9 +77,9 @@ final class GameManagerTest extends DatabaseTestCase
 
         $gameId = $this->gameManager->createGame($data);
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('2099-12-31 17:00:00', $game['kickoff_at']);
-        $this->assertSame('Somorrostro', $game['venue_name']);
+        $game = $this->gameRecord($gameId);
+        $this->assertSame('2099-12-31 17:00:00', Timestamp::format($game->kickoffAt));
+        $this->assertSame('Somorrostro', $game->venueName);
     }
 
     public function testPostedCardAndStoredRowShareOneKickoff(): void
@@ -97,9 +96,9 @@ final class GameManagerTest extends DatabaseTestCase
         $card = NewGameFactory::create($data);
         $gameId = $this->gameManager->createGame($data);
 
-        $game = new GameRepository($this->db)->findById($gameId);
+        $game = $this->gameRecord($gameId);
         // One kickoff, two readings: 16:00Z in the column, 18:00 on the card's Barcelona clock.
-        $this->assertSame('2026-08-15 16:00:00', $game['kickoff_at']);
+        $this->assertSame('2026-08-15 16:00:00', Timestamp::format($game->kickoffAt));
         $this->assertSame('2026-08-15 18:00:00', $card->getKickoffAt()->format('Y-m-d H:i:s'));
     }
 
@@ -151,8 +150,8 @@ final class GameManagerTest extends DatabaseTestCase
             ),
         );
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('Beach 08:00', $game['title']);
+        $game = $this->gameRecord($gameId);
+        $this->assertSame('Beach 08:00', $game->title);
 
         $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
         $this->assertSame('08:00', $gameUser['time']);
@@ -409,8 +408,8 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->setLocation($gameId, 55.751244, 37.618423);
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('55.751244,37.618423', $game['location']);
+        $game = $this->gameRecord($gameId);
+        $this->assertSame('55.751244,37.618423', $game->location);
     }
 
     // --- settings ---
@@ -613,9 +612,9 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('Bogatell 31.12.2099 16:00, 6 мест на сетку', $game['title']);
-        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+        $game = $this->gameRecord($gameId);
+        $this->assertSame('Bogatell 31.12.2099 16:00, 6 мест на сетку', $game->title);
+        $this->assertSame(6, $game->settings->playersPerNet);
     }
 
     // --- joinWithTime ---
@@ -672,7 +671,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach 16:00', $title);
     }
 
@@ -684,9 +683,9 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('Beach 31.12.2099 16:00', $game['title']);
-        $this->assertSame('2099-12-31 15:00:00', $game['kickoff_at']);
+        $game = $this->gameRecord($gameId);
+        $this->assertSame('Beach 31.12.2099 16:00', $game->title);
+        $this->assertSame('2099-12-31 15:00:00', Timestamp::format($game->kickoffAt));
     }
 
     public function testRemoveNetRecalculatesGameTimeToNextNetHolder(): void
@@ -697,7 +696,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->removeNet($gameId, 201);
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach 18:00', $title);
     }
 
@@ -708,7 +707,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->setUserTime($gameId, new TelegramUser(id: 200, firstName: 'Danil'), '15:30');
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach 15:30', $title);
     }
 
@@ -720,7 +719,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach 18:00', $title);
     }
 
@@ -732,7 +731,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach 07:30', $title);
     }
 
@@ -744,7 +743,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->removeNet($gameId, 200);
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach 16:00', $title);
     }
 
@@ -756,7 +755,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach 18:00', $title);
     }
 
@@ -795,7 +794,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Saturday 20:00');
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach Saturday 20:00', $title);
     }
 
@@ -805,9 +804,9 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Bogatell 31.12.2099 20:00');
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('2099-12-31 19:00:00', $game['kickoff_at']);
-        $this->assertSame('Bogatell', $game['venue_name']);
+        $game = $this->gameRecord($gameId);
+        $this->assertSame('2099-12-31 19:00:00', Timestamp::format($game->kickoffAt));
+        $this->assertSame('Bogatell', $game->venueName);
     }
 
     public function testChangeTitleUpdatesCreatorUserTime(): void
@@ -828,7 +827,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Picnic Sunday 20:00');
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Picnic Sunday 16:00', $title);
     }
 
@@ -852,7 +851,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Saturday 9:00');
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach Saturday 09:00', $title);
     }
 
@@ -862,7 +861,7 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Picnic Sunday 18:00');
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Picnic Sunday 18:00', $title);
     }
 

@@ -6,8 +6,8 @@ namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
 use BeachVolleybot\Database\GameMessageRepository;
 use BeachVolleybot\Database\GameUserRepository;
-use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Database\GameSlotRepository;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
 use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -23,9 +23,9 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $game = new GameRepository($this->db)->findByGameKey('query_1');
+        $game = new GameManager()->findGameRecordByGameKey('query_1');
         $this->assertNotNull($game);
-        $this->assertSame('Friday Game 18:00', $game['title']);
+        $this->assertSame('Friday Game 18:00', $game->title);
     }
 
     public function testAttachesInlineMessageIdToJunctionTable(): void
@@ -34,7 +34,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
+        $gameId = new GameManager()->resolveGameIdByGameKey('query_1');
         $messages = new GameMessageRepository($this->db)->findByGameId($gameId);
         $this->assertEquals([new GameMessage(inlineMessageId: 'msg_1', inlineQueryId: 'query_1')], $messages);
     }
@@ -56,7 +56,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
+        $gameId = new GameManager()->resolveGameIdByGameKey('query_1');
         $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
 
         $this->assertNotNull($gameUser);
@@ -70,7 +70,7 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
+        $gameId = new GameManager()->resolveGameIdByGameKey('query_1');
         $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
 
         $this->assertCount(1, $slots);

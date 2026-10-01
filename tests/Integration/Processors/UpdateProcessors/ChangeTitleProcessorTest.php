@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
 use BeachVolleybot\Database\GameUserRepository;
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -27,7 +27,7 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         new ChangeTitleProcessor($this->telegramSender)
             ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = new GameManager()->findGameRecordById($gameId)?->title;
         $this->assertSame('Picnic 31.12.2099 20:00', $title);
     }
 
@@ -74,7 +74,7 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         new ChangeTitleProcessor($this->telegramSender)
             ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = new GameManager()->findGameRecordById($gameId)?->title;
         $this->assertSame('Old Game 01.01.2020 18:00', $title);
         $this->assertMessageNotEdited();
     }
@@ -89,7 +89,7 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         new ChangeTitleProcessor($this->telegramSender)
             ->process(TelegramUpdate::fromArray($payload));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = new GameManager()->findGameRecordById($gameId)?->title;
         $this->assertSame('Bogatell 31.12.2099 18:00', $title);
         $this->assertMessageNotEdited();
     }

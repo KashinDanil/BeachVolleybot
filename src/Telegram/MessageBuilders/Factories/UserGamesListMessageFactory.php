@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Factories;
 
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\Game\UserGamesListMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
@@ -17,10 +16,10 @@ final class UserGamesListMessageFactory
 
     public static function build(int $createdBy, int $page, Translator $translator): TelegramMessage
     {
-        $repository = new GameRepository(Connection::get());
-        $totalGames = $repository->countByCreator($createdBy);
+        $gameManager = new GameManager();
+        $totalGames = $gameManager->countGamesByCreator($createdBy);
         $pagination = new KeyboardPagination($totalGames, self::GAMES_PER_PAGE, $page);
-        $games = $repository->findByCreator($createdBy, self::GAMES_PER_PAGE, $pagination->getOffset());
+        $games = $gameManager->findGameRecordsPageByCreator($createdBy, self::GAMES_PER_PAGE, $pagination->getOffset());
 
         return new UserGamesListMessageBuilder($translator)->buildGamesList($games, $pagination);
     }

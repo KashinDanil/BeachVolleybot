@@ -16,6 +16,7 @@ use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\User\UserManager;
 use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use BeachVolleybot\Validator\Validator;
+use DateTimeImmutable;
 use InvalidArgumentException;
 
 readonly class GameManager
@@ -254,9 +255,53 @@ readonly class GameManager
         return $this->buildGameRecord($this->gameRepository->findById($gameId));
     }
 
+    /** @return list<GameRecord> */
+    public function findGameRecordsPage(int $limit, int $offset): array
+    {
+        return $this->toGameRecords($this->gameRepository->findAllDescending($limit, $offset));
+    }
+
+    public function countGames(): int
+    {
+        return $this->gameRepository->countAll();
+    }
+
+    /** @return list<GameRecord> */
+    public function findGameRecordsPageByCreator(int $createdBy, int $limit, int $offset): array
+    {
+        return $this->toGameRecords($this->gameRepository->findByCreator($createdBy, $limit, $offset));
+    }
+
+    public function countGamesByCreator(int $createdBy): int
+    {
+        return $this->gameRepository->countByCreator($createdBy);
+    }
+
+    /** @return list<GameRecord> */
+    public function findUpcomingGameRecords(DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        return $this->toGameRecords($this->gameRepository->findUpcoming($from, $to));
+    }
+
+    /** @return list<GameRecord> */
+    public function findGameRecordsByKickoffBetween(DateTimeImmutable $from, DateTimeImmutable $until): array
+    {
+        return $this->toGameRecords($this->gameRepository->findByKickoffBetween($from, $until));
+    }
+
     private function buildGameRecord(?array $row): ?GameRecord
     {
         return null !== $row ? GameRecord::fromRow($row) : null;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     *
+     * @return list<GameRecord>
+     */
+    private function toGameRecords(array $rows): array
+    {
+        return array_map(GameRecord::fromRow(...), $rows);
     }
 
     protected function incrementNet(int $gameId, int $telegramUserId): EquipmentResult

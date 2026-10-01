@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameFromMessageProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -33,9 +32,9 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
         $gameId = new GameManager()->resolveGameIdByChatMessage(self::CHAT_ID, self::SENT_MESSAGE_ID);
         $this->assertNotNull($gameId);
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertNotEmpty($game['game_key']);
-        $this->assertStringContainsString('Bogatell', $game['title']);
+        $game = new GameManager()->findGameRecordById($gameId);
+        $this->assertNotEmpty($game->gameKey);
+        $this->assertStringContainsString('Bogatell', $game->title);
     }
 
     public function testPostsTheGameMessageIntoTheChat(): void
@@ -71,7 +70,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
 
         new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
 
-        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertSame(0, new GameManager()->countGames());
         $this->assertNull($this->deletedMessage());
         $this->assertFalse($this->sentMessageToChat(self::CHAT_ID));
     }
@@ -83,7 +82,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
 
         new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
 
-        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertSame(0, new GameManager()->countGames());
         $this->assertNull($this->deletedMessage());
     }
 
@@ -96,7 +95,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
 
         // The key is derived from the message, so the second run resolves the
         // existing game and bails before creating or posting anything again.
-        $this->assertSame(1, new GameRepository($this->db)->countAll());
+        $this->assertSame(1, new GameManager()->countGames());
         $this->assertSame(1, $this->sendMessageCount());
     }
 
