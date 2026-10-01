@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\JoinProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -25,7 +25,7 @@ final class ChatMessageGameCallbackTest extends ProcessorTestCase
 
         new JoinProcessor($this->telegramSender)->process($this->chatCallbackUpdate(fromId: 300));
 
-        $this->assertTrue(new GameUserRepository($this->db)->exists($gameId, 300));
+        $this->assertTrue(new GameUserManager()->isUserInGame($gameId, 300));
         $this->assertTrue($this->chatMessageEdited(self::CHAT_ID, self::MESSAGE_ID));
     }
 

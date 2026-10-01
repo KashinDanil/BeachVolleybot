@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Game\GameSlotManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\LeaveProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -21,9 +21,9 @@ final class LeaveProcessorTest extends ProcessorTestCase
 
         new LeaveProcessor($this->telegramSender)->process($update);
 
-        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(1, $slots);
-        $this->assertSame(1, (int) $slots[0]['position']);
+        $this->assertSame(1, $slots[0]->position);
     }
 
     public function testDeletesGameUserWhenLastSlotRemoved(): void
@@ -33,8 +33,8 @@ final class LeaveProcessorTest extends ProcessorTestCase
 
         new LeaveProcessor($this->telegramSender)->process($update);
 
-        $this->assertNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
-        $this->assertSame([], new GameSlotRepository($this->db)->findByGameId($gameId));
+        $this->assertNull(new GameUserManager()->findGameUserRecord($gameId, 200));
+        $this->assertSame([], new GameSlotManager()->findGameSlotRecordsByGameId($gameId));
     }
 
     public function testKeepsGameUserWhenMultipleSlots(): void
@@ -45,7 +45,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
 
         new LeaveProcessor($this->telegramSender)->process($update);
 
-        $this->assertNotNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
+        $this->assertNotNull(new GameUserManager()->findGameUserRecord($gameId, 200));
     }
 
     public function testAnswersLeft(): void
@@ -101,8 +101,8 @@ final class LeaveProcessorTest extends ProcessorTestCase
         $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
         $this->assertMessageNotEdited();
-        $this->assertNotNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
-        $this->assertCount(1, new GameSlotRepository($this->db)->findByGameId($gameId));
+        $this->assertNotNull(new GameUserManager()->findGameUserRecord($gameId, 200));
+        $this->assertCount(1, new GameSlotManager()->findGameSlotRecordsByGameId($gameId));
     }
 
     public function testTodayPastHourStillLeavesBecauseDayHasNotEnded(): void
@@ -115,7 +115,7 @@ final class LeaveProcessorTest extends ProcessorTestCase
         new LeaveProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::LEFT);
-        $this->assertNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
+        $this->assertNull(new GameUserManager()->findGameUserRecord($gameId, 200));
     }
 
     private function buildUpdate(string $inlineMessageId, string $gameKey = 'query_1'): TelegramUpdate

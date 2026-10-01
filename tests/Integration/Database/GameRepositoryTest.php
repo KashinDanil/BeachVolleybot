@@ -91,7 +91,7 @@ final class GameRepositoryTest extends DatabaseTestCase
             new DateTimeImmutable('+7 days', $venue),
         );
 
-        $this->assertSame([$aheadId], array_map(static fn(array $row): int => (int)$row['game_id'], $rows));
+        $this->assertSame([$aheadId], array_column($rows, 'game_id'));
     }
 
     public function testUpdateTitleRewritesKickoffAndVenue(): void
@@ -206,7 +206,7 @@ final class GameRepositoryTest extends DatabaseTestCase
         $games = $this->repository->findByCreator(100, 10, 0);
 
         $this->assertCount(2, $games);
-        $gameIds = array_map(static fn (array $game): int => (int)$game['game_id'], $games);
+        $gameIds = array_column($games, 'game_id');
         $this->assertSame([$secondUserGameId, $firstUserGameId], $gameIds);
     }
 
@@ -273,10 +273,7 @@ final class GameRepositoryTest extends DatabaseTestCase
         $gameId = $this->createGame(title: 'Bogatell 31.12.2099 18:00', kickoffAt: Timestamp::format($kickoffAt));
 
         $range = $resolver->rangeRoundingTo($forecastHour);
-        $found = array_map(intval(...), array_column(
-            $this->repository->findByKickoffBetween($range->from, $range->until),
-            'game_id',
-        ));
+        $found = array_column($this->repository->findByKickoffBetween($range->from, $range->until), 'game_id');
 
         $roundsOntoTheHour = $resolver->roundToNearestHour($kickoffAt)->getTimestamp() === $forecastHour->getTimestamp();
         $this->assertSame($roundsOntoTheHour, [$gameId] === $found);
@@ -289,10 +286,7 @@ final class GameRepositoryTest extends DatabaseTestCase
         $sooner = $this->seedAtOffset($forecastHour, -900, 'sooner');
 
         $range = new WeatherWindowResolver()->rangeRoundingTo($forecastHour);
-        $found = array_map(intval(...), array_column(
-            $this->repository->findByKickoffBetween($range->from, $range->until),
-            'game_id',
-        ));
+        $found = array_column($this->repository->findByKickoffBetween($range->from, $range->until), 'game_id');
 
         $this->assertSame([$sooner, $later], $found);
     }

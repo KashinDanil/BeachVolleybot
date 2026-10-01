@@ -6,6 +6,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class SetLocationProcessor extends AbstractGameReplyProcessor
@@ -14,13 +15,11 @@ class SetLocationProcessor extends AbstractGameReplyProcessor
     {
         $message = $update->message;
 
-        $gameManager = new GameManager();
-
-        if (!$gameManager->isUserInGame($gameRecord->gameId, $message->from->id)) {
+        if (!new GameUserManager()->isUserInGame($gameRecord->gameId, $message->from->id)) {
             return;
         }
 
-        $location = $gameManager->setLocation($gameRecord->gameId, $message->location->latitude, $message->location->longitude);
+        $location = new GameManager()->setLocation($gameRecord->gameId, $message->location->latitude, $message->location->longitude);
         $this->logUserAction($message->from, 'set_location', "gameId=$gameRecord->gameId;location=$location");
 
         $this->reactWithCheckmark($message);

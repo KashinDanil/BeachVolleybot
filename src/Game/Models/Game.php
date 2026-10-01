@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Common\Extractors\TimeExtractor;
+use BeachVolleybot\Game\GameMessageRecord;
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Telegram\MessageBuilders\Game\GameMessageBuilder;
-use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use DateTimeImmutable;
 use RuntimeException;
@@ -18,7 +18,7 @@ final class Game implements GameInterface
 
     /**
      * @param UserInterface[] $users
-     * @param list<GameMessage> $messages
+     * @param list<GameMessageRecord> $messages
      */
     public function __construct(
         private readonly int $gameId,
@@ -50,7 +50,7 @@ final class Game implements GameInterface
         return $this->gameKey;
     }
 
-    /** @return list<GameMessage> */
+    /** @return list<GameMessageRecord> */
     public function getMessages(): array
     {
         return $this->messages;

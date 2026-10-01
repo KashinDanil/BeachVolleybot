@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Notifications;
 
 use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\GameNotificationMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
@@ -20,7 +20,7 @@ final readonly class NotificationSender
     public function __construct(
         private TelegramMessageSender $telegramSender,
         private UserManager $userManager = new UserManager(),
-        private GameManager $gameManager = new GameManager(),
+        private GameUserManager $gameUserManager = new GameUserManager(),
     ) {
     }
 
@@ -39,7 +39,7 @@ final readonly class NotificationSender
     /** The payload's user, as long as they are still in the game and opted in to this type. */
     private function findRecipient(NotificationQueuePayload $notificationPayload): ?UserRecord
     {
-        if (!$this->gameManager->isUserInGame($notificationPayload->gameId, $notificationPayload->userId)) {
+        if (!$this->gameUserManager->isUserInGame($notificationPayload->gameId, $notificationPayload->userId)) {
             return null;
         }
 

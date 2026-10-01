@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Game;
 
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Game\AdminGameManager;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Notifications\MinimumPlayersNotifier;
 use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
@@ -28,8 +28,8 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $result = $this->adminGameManager->adminAddNet($gameId, 200);
 
         $this->assertSame(EquipmentResult::Added, $result);
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, (int)$gameUser['net']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->net);
     }
 
     private function createGameWithUserSlot(int $telegramUserId, int $position): int
@@ -75,8 +75,8 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $result = $this->adminGameManager->adminAddVolleyball($gameId, 200);
 
         $this->assertSame(EquipmentResult::Added, $result);
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, (int)$gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->volleyball);
     }
 
     public function testIncrementVolleyballReturnsNotJoinedWhenUserNotInGame(): void
@@ -101,22 +101,6 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->assertNull($game['location']);
     }
 
-    // --- isUserInGame ---
-
-    public function testIsUserInGameReturnsTrueWhenUserExists(): void
-    {
-        $gameId = $this->createGameWithUserSlot(200, 1);
-
-        $this->assertTrue($this->gameManager->isUserInGame($gameId, 200));
-    }
-
-    public function testIsUserInGameReturnsFalseWhenUserDoesNotExist(): void
-    {
-        $gameId = $this->createGame();
-
-        $this->assertFalse($this->gameManager->isUserInGame($gameId, 999));
-    }
-
     // --- incrementNet: multiple increments ---
 
     public function testIncrementNetMultipleTimesAccumulates(): void
@@ -126,8 +110,8 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->adminGameManager->adminAddNet($gameId, 200);
         $this->adminGameManager->adminAddNet($gameId, 200);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(2, (int)$gameUser['net']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(2, $gameUser->net);
     }
 
     // --- incrementVolleyball: multiple increments ---
@@ -140,8 +124,8 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->adminGameManager->adminAddVolleyball($gameId, 200);
         $this->adminGameManager->adminAddVolleyball($gameId, 200);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(3, (int)$gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(3, $gameUser->volleyball);
     }
 
     // --- setLocation: from coordinates ---

@@ -61,10 +61,10 @@ readonly class GameSlotRepository
 
     public function findPositionsByUser(int $gameId, int $telegramUserId): array
     {
-        return array_map('intval', $this->db->select('game_slots', 'position', [
+        return $this->db->select('game_slots', 'position', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
-        ]));
+        ]);
     }
 
     public function deleteByUser(int $gameId, int $telegramUserId): int

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameUserRepository;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -38,8 +38,8 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         new ChangeTitleProcessor($this->telegramSender)
             ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, self::CREATOR_ID);
-        $this->assertSame('20:00', $gameUser['time']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, self::CREATOR_ID);
+        $this->assertSame('20:00', $gameUser->time);
     }
 
     public function testRefreshesInlineMessageOnSuccess(): void

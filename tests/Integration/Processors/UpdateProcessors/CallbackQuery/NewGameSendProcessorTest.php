@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQ
 
 use BeachVolleybot\Common\GameDateResolver;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameMessageManager;
 use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
@@ -200,7 +201,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
     {
         $this->runProcessor($this->groupEphemeralSendUpdate('Bogatell'));
 
-        $this->assertNotNull(new GameManager()->resolveGameIdByChatMessage(self::GROUP_CHAT_ID, self::SENT_MESSAGE_ID));
+        $this->assertNotNull(new GameMessageManager()->resolveGameIdByChatMessage(self::GROUP_CHAT_ID, self::SENT_MESSAGE_ID));
         $this->assertTrue($this->calledApi('pinChatMessage'), 'Expected the posted message to be pinned in a group');
         $this->assertTrue($this->editedEphemeralMessage(), 'Expected the ephemeral wizard message to be edited to the success view');
     }
@@ -209,7 +210,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
     {
         $this->runProcessor($this->dmSendUpdate('Bogatell'));
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $gameId = new GameMessageManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
         $shareReply = $this->shareReplyTo(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
         $this->assertNotNull($shareReply, 'Expected a share reply to follow the posted game in a DM');
 
@@ -345,7 +346,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
     private function createdGame(): GameRecord
     {
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $gameId = new GameMessageManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
         $this->assertNotNull($gameId, 'Expected the game to be created');
 
         $game = new GameManager()->findGameRecordById($gameId);

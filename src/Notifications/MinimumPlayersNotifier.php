@@ -4,29 +4,27 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Notifications;
 
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Game\GameSlotManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\User\NotificationType;
 use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 
 final readonly class MinimumPlayersNotifier
 {
-    private GameSlotRepository $gameSlotRepository;
+    private GameSlotManager $gameSlotManager;
 
-    private GameUserRepository $gameUserRepository;
+    private GameUserManager $gameUserManager;
 
     public function __construct(
         private NotificationEnqueuer $notificationEnqueuer = new NotificationEnqueuer(),
     ) {
-        $db = Connection::get();
-        $this->gameSlotRepository = new GameSlotRepository($db);
-        $this->gameUserRepository = new GameUserRepository($db);
+        $this->gameSlotManager = new GameSlotManager();
+        $this->gameUserManager = new GameUserManager();
     }
 
     public function notifyIfReached(int $gameId, int $slotOwnerId): void
     {
-        if (MinimumPlayersPerNetRule::MINIMUM !== $this->gameSlotRepository->countByGameId($gameId)) {
+        if (MinimumPlayersPerNetRule::MINIMUM !== $this->gameSlotManager->countSlots($gameId)) {
             return;
         }
 
@@ -40,10 +38,7 @@ final readonly class MinimumPlayersNotifier
     /** @return list<int> */
     private function findRecipientIds(int $gameId, int $slotOwnerId): array
     {
-        $userIds = array_map(
-            static fn(array $gameUser): int => (int)$gameUser['telegram_user_id'],
-            $this->gameUserRepository->findByGameId($gameId),
-        );
+        $userIds = array_column($this->gameUserManager->findGameUserRecordsByGameId($gameId), 'telegramUserId');
 
         return array_values(array_filter($userIds, static fn(int $userId): bool => $slotOwnerId !== $userId));
     }

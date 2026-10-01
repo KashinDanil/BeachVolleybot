@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Notifications\NotificationQueuePayload;
 use BeachVolleybot\Notifications\NotificationSender;
 use BeachVolleybot\Processors\NotificationQueueProcessor;
@@ -53,7 +54,7 @@ final class NotificationQueueProcessorTest extends ProcessorTestCase
         new GameManager()->leaveGame($this->gameId, 200);
         $this->createProcessor()->process($queuedMessage);
 
-        $this->assertFalse(new GameManager()->isUserInGame($this->gameId, 200));
+        $this->assertFalse(new GameUserManager()->isUserInGame($this->gameId, 200));
         $this->assertSame([], $this->getSentChatIds());
     }
 

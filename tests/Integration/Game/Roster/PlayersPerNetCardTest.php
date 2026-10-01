@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Game\Roster;
 
 use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameMessageManager;
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Localization\Translator;
@@ -233,7 +234,7 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
             'Beach 18:00, 4 spots per net',
             'query_1',
         ));
-        $this->gameManager->addInlineMessage($gameId, 'msg_1', 'query_1');
+        new GameMessageManager()->addInlineMessage($gameId, 'msg_1', 'query_1');
 
         $this->gameManager->joinGame($gameId, new TelegramUser(id: 201, firstName: 'Bob'));
         $this->gameManager->joinGame($gameId, new TelegramUser(id: 202, firstName: 'Carol'));
@@ -258,7 +259,7 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
             $title,
             'query_wizard',
         ));
-        $this->gameManager->addInlineMessage($gameId, 'msg_wizard', 'query_wizard');
+        new GameMessageManager()->addInlineMessage($gameId, 'msg_wizard', 'query_wizard');
 
         $this->gameManager->joinGame($gameId, new TelegramUser(id: 201, firstName: 'Bob'));
         $this->gameManager->joinGame($gameId, new TelegramUser(id: 202, firstName: 'Carol'));

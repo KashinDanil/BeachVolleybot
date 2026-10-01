@@ -65,10 +65,7 @@ final class PinnedMessageRepositoryTest extends DatabaseTestCase
 
         $this->repository->deleteMany(1, [100, 102]);
 
-        $remaining = array_map(
-            static fn(array $row): int => (int)$row['message_id'],
-            $this->db->select('pinned_messages', ['message_id'], ['chat_id' => 1]),
-        );
+        $remaining = $this->db->select('pinned_messages', 'message_id', ['chat_id' => 1]);
         $this->assertSame([101], $remaining);
     }
 

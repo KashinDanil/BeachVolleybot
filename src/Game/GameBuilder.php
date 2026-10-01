@@ -10,23 +10,22 @@ use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Game\Roster\Position;
-use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\User\UserRecord;
 
 readonly class GameBuilder
 {
     /**
-     * @param list<GameMessage> $messages
-     * @param list<array<string, mixed>> $slotRows
-     * @param list<array<string, mixed>> $gameUserRows
+     * @param list<GameMessageRecord> $messages
+     * @param list<GameSlotRecord> $slots
+     * @param list<GameUserRecord> $gameUsers
      * @param list<UserRecord> $users
      * @param list<class-string<GameAddOnInterface>> $addOns
      */
     public function __construct(
         private GameRecord $gameRecord,
         private array $messages,
-        private array $slotRows,
-        private array $gameUserRows,
+        private array $slots,
+        private array $gameUsers,
         private array $users,
         private array $addOns = GAME_ADD_ONS,
     ) {
@@ -53,29 +52,29 @@ readonly class GameBuilder
     /** @return User[] */
     private function buildUsers(): array
     {
-        $gameUsersIndex = array_column($this->gameUserRows, null, 'telegram_user_id');
+        $gameUsersIndex = array_column($this->gameUsers, null, 'telegramUserId');
         $usersIndex = array_column($this->users, null, 'telegramUserId');
 
         $users = [];
 
-        foreach ($this->slotRows as $slot) {
-            $telegramUserId = $slot['telegram_user_id'];
+        foreach ($this->slots as $slot) {
+            $telegramUserId = $slot->telegramUserId;
             $users[] = $this->buildUser($slot, $gameUsersIndex[$telegramUserId], $usersIndex[$telegramUserId]);
         }
 
         return $users;
     }
 
-    private function buildUser(array $slot, array $gameUserRow, UserRecord $userRecord): User
+    private function buildUser(GameSlotRecord $slot, GameUserRecord $gameUser, UserRecord $userRecord): User
     {
         return new User(
-            telegramUserId: (int)$slot['telegram_user_id'],
-            position: new Position((int)$slot['position']),
+            telegramUserId: $slot->telegramUserId,
+            position: new Position($slot->position),
             name: User::buildName($userRecord->firstName, $userRecord->lastName),
             link: User::buildLink($userRecord->username),
-            volleyball: (int)$gameUserRow['volleyball'],
-            net: (int)$gameUserRow['net'],
-            time: $gameUserRow['time'],
+            volleyball: $gameUser->volleyball,
+            net: $gameUser->net,
+            time: $gameUser->time,
         );
     }
 }

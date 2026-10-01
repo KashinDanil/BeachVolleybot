@@ -41,7 +41,7 @@ readonly class GameMessageRefresher
     public function refreshGame(GameInterface $game): void
     {
         foreach ($game->getMessages() as $gameMessage) {
-            $this->sender->editGameMessage($gameMessage, $game->buildTelegramMessage($gameMessage->inlineQueryId));
+            $this->sender->editGameMessage($gameMessage->address(), $game->buildTelegramMessage($gameMessage->inlineQueryId));
         }
     }
 }

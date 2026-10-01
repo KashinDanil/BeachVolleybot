@@ -40,26 +40,6 @@ readonly class GameUserRepository
         ]) ?: null;
     }
 
-    public function findVolleyballCount(int $gameId, int $telegramUserId): ?int
-    {
-        $value = $this->db->get('game_users', 'volleyball', [
-            'game_id' => $gameId,
-            'telegram_user_id' => $telegramUserId,
-        ]);
-
-        return false === $value || null === $value ? null : (int) $value;
-    }
-
-    public function findNetCount(int $gameId, int $telegramUserId): ?int
-    {
-        $value = $this->db->get('game_users', 'net', [
-            'game_id' => $gameId,
-            'telegram_user_id' => $telegramUserId,
-        ]);
-
-        return false === $value || null === $value ? null : (int) $value;
-    }
-
     public function findByGameId(int $gameId): array
     {
         return $this->db->select('game_users', '*', ['game_id' => $gameId]);

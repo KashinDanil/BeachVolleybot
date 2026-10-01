@@ -6,14 +6,18 @@ namespace BeachVolleybot\Tests\Unit\Game;
 
 use BeachVolleybot\Game\GameBuilder;
 use BeachVolleybot\Game\GameRecord;
+use BeachVolleybot\Game\GameSlotRecord;
+use BeachVolleybot\Game\GameUserRecord;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
-use BeachVolleybot\Telegram\Messages\GameMessage;
+use BeachVolleybot\Tests\Fixtures\CreatesGameMessageRecords;
 use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class GameBuilderTest extends TestCase
 {
+    use CreatesGameMessageRecords;
     use CreatesUserRecords;
 
     // --- Game-level mapping ---
@@ -27,7 +31,7 @@ final class GameBuilderTest extends TestCase
 
     public function testMessageTargets(): void
     {
-        $targets = [new GameMessage(inlineMessageId: 'msg_abc'), new GameMessage(inlineMessageId: 'msg_xyz')];
+        $targets = [$this->inlineGameMessageRecord('msg_abc'), $this->inlineGameMessageRecord('msg_xyz')];
 
         $game = $this->buildGame(messages: $targets);
 
@@ -44,8 +48,8 @@ final class GameBuilderTest extends TestCase
     public function testBuildTelegramMessageReturnsTelegramMessage(): void
     {
         $game = $this->buildGame(
-            slotRows: [$this->slotRow()],
-            gameUserRows: [$this->gameUserRow()],
+            slots: [$this->gameSlotRecord()],
+            gameUsers: [$this->gameUserRecord()],
             users: [$this->userRecord()],
         );
 
@@ -66,8 +70,8 @@ final class GameBuilderTest extends TestCase
     public function testSingleUserNumber(): void
     {
         $game = $this->buildGame(
-            slotRows: [$this->slotRow(position: 3)],
-            gameUserRows: [$this->gameUserRow()],
+            slots: [$this->gameSlotRecord(position: 3)],
+            gameUsers: [$this->gameUserRecord()],
             users: [$this->userRecord()],
         );
 
@@ -77,8 +81,8 @@ final class GameBuilderTest extends TestCase
     public function testSingleUserVolleyballAndNet(): void
     {
         $game = $this->buildGame(
-            slotRows: [$this->slotRow()],
-            gameUserRows: [$this->gameUserRow(volleyball: 5, net: 2)],
+            slots: [$this->gameSlotRecord()],
+            gameUsers: [$this->gameUserRecord(volleyball: 5, net: 2)],
             users: [$this->userRecord()],
         );
 
@@ -91,8 +95,8 @@ final class GameBuilderTest extends TestCase
     public function testSingleUserTime(): void
     {
         $game = $this->buildGame(
-            slotRows: [$this->slotRow()],
-            gameUserRows: [$this->gameUserRow(time: '19:30')],
+            slots: [$this->gameSlotRecord()],
+            gameUsers: [$this->gameUserRecord(time: '19:30')],
             users: [$this->userRecord()],
         );
 
@@ -102,8 +106,8 @@ final class GameBuilderTest extends TestCase
     public function testUserTimeMapsDefaultRowTime(): void
     {
         $game = $this->buildGame(
-            slotRows: [$this->slotRow()],
-            gameUserRows: [$this->gameUserRow()],
+            slots: [$this->gameSlotRecord()],
+            gameUsers: [$this->gameUserRecord()],
             users: [$this->userRecord()],
         );
 
@@ -115,8 +119,8 @@ final class GameBuilderTest extends TestCase
     public function testNameWithFirstAndLastName(): void
     {
         $game = $this->buildGame(
-            slotRows: [$this->slotRow()],
-            gameUserRows: [$this->gameUserRow()],
+            slots: [$this->gameSlotRecord()],
+            gameUsers: [$this->gameUserRecord()],
             users: [$this->userRecord(lastName: 'Smith')],
         );
 
@@ -126,8 +130,8 @@ final class GameBuilderTest extends TestCase
     public function testNameWithFirstNameOnly(): void
     {
         $game = $this->buildGame(
-            slotRows: [$this->slotRow()],
-            gameUserRows: [$this->gameUserRow()],
+            slots: [$this->gameSlotRecord()],
+            gameUsers: [$this->gameUserRecord()],
             users: [$this->userRecord()],
         );
 
@@ -139,8 +143,8 @@ final class GameBuilderTest extends TestCase
     public function testLinkBuiltFromUsername(): void
     {
         $game = $this->buildGame(
-            slotRows: [$this->slotRow()],
-            gameUserRows: [$this->gameUserRow()],
+            slots: [$this->gameSlotRecord()],
+            gameUsers: [$this->gameUserRecord()],
             users: [$this->userRecord(username: 'alice')],
         );
 
@@ -150,8 +154,8 @@ final class GameBuilderTest extends TestCase
     public function testLinkNullWhenUsernameNull(): void
     {
         $game = $this->buildGame(
-            slotRows: [$this->slotRow()],
-            gameUserRows: [$this->gameUserRow()],
+            slots: [$this->gameSlotRecord()],
+            gameUsers: [$this->gameUserRecord()],
             users: [$this->userRecord()],
         );
 
@@ -163,13 +167,13 @@ final class GameBuilderTest extends TestCase
     public function testMultipleUsersOrderedBySlotPosition(): void
     {
         $game = $this->buildGame(
-            slotRows: [
-                $this->slotRow(),
-                $this->slotRow(userId: 200, position: 2),
+            slots: [
+                $this->gameSlotRecord(),
+                $this->gameSlotRecord(userId: 200, position: 2),
             ],
-            gameUserRows: [
-                $this->gameUserRow(),
-                $this->gameUserRow(userId: 200),
+            gameUsers: [
+                $this->gameUserRecord(),
+                $this->gameUserRecord(userId: 200),
             ],
             users: [
                 $this->userRecord(),
@@ -191,12 +195,12 @@ final class GameBuilderTest extends TestCase
     public function testUserWithMultipleSlotsCreatesSeparateUsers(): void
     {
         $game = $this->buildGame(
-            slotRows: [
-                $this->slotRow(),
-                $this->slotRow(position: 3),
+            slots: [
+                $this->gameSlotRecord(),
+                $this->gameSlotRecord(position: 3),
             ],
-            gameUserRows: [
-                $this->gameUserRow(),
+            gameUsers: [
+                $this->gameUserRecord(),
             ],
             users: [
                 $this->userRecord(),
@@ -231,42 +235,45 @@ final class GameBuilderTest extends TestCase
         ]);
     }
 
-    private function slotRow(int $userId = 100, int $position = 1): array
+    private function gameSlotRecord(int $userId = 100, int $position = 1): GameSlotRecord
     {
-        return [
-            'game_id' => 1,
-            'telegram_user_id' => $userId,
-            'position' => $position,
-        ];
+        return new GameSlotRecord(
+            gameId: 1,
+            telegramUserId: $userId,
+            position: $position,
+            createdAt: new DateTimeImmutable('2026-01-01 10:00:00'),
+        );
     }
 
-    private function gameUserRow(
+    private function gameUserRecord(
         int $userId = 100,
         int $volleyball = 0,
         int $net = 0,
         string $time = '18:00',
-    ): array {
-        return [
-            'game_id' => 1,
-            'telegram_user_id' => $userId,
-            'volleyball' => $volleyball,
-            'net' => $net,
-            'time' => $time,
-        ];
+    ): GameUserRecord {
+        return new GameUserRecord(
+            gameId: 1,
+            telegramUserId: $userId,
+            time: $time,
+            volleyball: $volleyball,
+            net: $net,
+            createdAt: new DateTimeImmutable('2026-01-01 10:00:00'),
+            updatedAt: new DateTimeImmutable('2026-01-01 10:00:00'),
+        );
     }
 
     private function buildGame(
         ?GameRecord $game = null,
-        array $messages = [new GameMessage(inlineMessageId: 'msg_1')],
-        array $slotRows = [],
-        array $gameUserRows = [],
+        ?array $messages = null,
+        array $slots = [],
+        array $gameUsers = [],
         array $users = [],
     ): GameInterface {
         return new GameBuilder(
             gameRecord: $game ?? $this->gameRecord(),
-            messages: $messages,
-            slotRows: $slotRows,
-            gameUserRows: $gameUserRows,
+            messages: $messages ?? [$this->inlineGameMessageRecord()],
+            slots: $slots,
+            gameUsers: $gameUsers,
             users: $users,
             addOns: [],
         )->build();

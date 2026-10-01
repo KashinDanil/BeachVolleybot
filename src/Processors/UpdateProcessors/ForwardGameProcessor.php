@@ -6,6 +6,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 
 use BeachVolleybot\Common\Extractors\ForwardGameQueryExtractor;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameMessageManager;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\User\UserManager;
 use BeachVolleybot\Validator\Rules\Game\GameCreatorOrAdminRule;
@@ -22,8 +23,7 @@ class ForwardGameProcessor extends AbstractActionProcessor
             return;
         }
 
-        $gameManager = new GameManager();
-        $gameRecord = $gameManager->findGameRecordById($gameId);
+        $gameRecord = new GameManager()->findGameRecordById($gameId);
 
         if (null === $gameRecord) {
             return;
@@ -44,7 +44,7 @@ class ForwardGameProcessor extends AbstractActionProcessor
             return;
         }
 
-        $gameManager->addInlineMessage($gameId, $result->inlineMessageId, $result->resultId);
+        new GameMessageManager()->addInlineMessage($gameId, $result->inlineMessageId, $result->resultId);
         $this->logUserAction($result->from, 'forward_game', "gameId=$gameId");
     }
 }
