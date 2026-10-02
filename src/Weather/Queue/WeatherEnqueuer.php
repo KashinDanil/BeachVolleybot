@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Weather\Queue;
 
 use BeachVolleybot\Common\Logger;
+use BeachVolleybot\Common\QueueName;
 use BeachVolleybot\Game\AddOns\GameAddOnRegistry;
 use BeachVolleybot\Game\AddOns\WeatherAddOn;
 use BeachVolleybot\Game\GameManager;
@@ -14,8 +15,6 @@ use DanilKashin\FileQueue\Queue\QueueMessage;
 final readonly class WeatherEnqueuer
 {
     public const string QUEUE_DIR = BASE_QUEUE_DIR . '/weather';
-
-    private const string QUEUE_PREFIX = 'weather_';
 
     /**
      * @param class-string<QueueInterface> $queueClass
@@ -33,7 +32,7 @@ final readonly class WeatherEnqueuer
             return;
         }
 
-        $queue = new ($this->queueClass)(self::QUEUE_PREFIX . $payload->id(), $this->baseDir);
+        $queue = new ($this->queueClass)(QueueName::Weather->forId($payload->id()), $this->baseDir);
 
         $queue->enqueue(new QueueMessage($payload->jsonSerialize()));
     }

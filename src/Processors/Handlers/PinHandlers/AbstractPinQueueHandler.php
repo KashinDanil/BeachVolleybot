@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\Handlers\PinHandlers;
 
+use BeachVolleybot\Common\QueueName;
 use BeachVolleybot\Processors\AbstractQueuedProcessorHandler;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
@@ -11,6 +12,6 @@ abstract readonly class AbstractPinQueueHandler extends AbstractQueuedProcessorH
 {
     public function routeToQueue(TelegramUpdate $update): string
     {
-        return 'pin_' . $update->message->chat->id;
+        return QueueName::Pin->forId($update->message->chat->id);
     }
 }

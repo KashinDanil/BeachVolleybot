@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\Handlers\GameHandlers;
 
 use BeachVolleybot\Common\BotMention;
+use BeachVolleybot\Common\QueueName;
 use BeachVolleybot\Processors\AbstractQueuedProcessorHandler;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameFromMessageProcessor;
@@ -39,7 +40,7 @@ final readonly class CreateGameFromMessageHandler extends AbstractQueuedProcesso
 
     public function routeToQueue(TelegramUpdate $update): ?string
     {
-        return 'game_new_' . $update->message->chat->id;
+        return QueueName::NewGame->forId($update->message->chat->id);
     }
 
     public function createProcessor(
