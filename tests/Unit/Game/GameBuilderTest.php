@@ -58,16 +58,16 @@ final class GameBuilderTest extends TestCase
 
     // --- No slots ---
 
-    public function testGameWithNoSlotsHasEmptyUsers(): void
+    public function testGameWithNoSlotsHasNoPlayers(): void
     {
         $game = $this->buildGame();
 
-        $this->assertSame([], $game->getUsers());
+        $this->assertSame([], $game->getPlayers());
     }
 
-    // --- Single user mapping ---
+    // --- Single player mapping ---
 
-    public function testSingleUserNumber(): void
+    public function testSinglePlayerNumber(): void
     {
         $game = $this->buildGame(
             slots: [$this->gameSlotRecord(position: 3)],
@@ -75,10 +75,10 @@ final class GameBuilderTest extends TestCase
             users: [$this->userRecord()],
         );
 
-        $this->assertSame('3', $game->getUsers()[0]->getPosition()->format());
+        $this->assertSame('3', $game->getPlayers()[0]->getPosition()->format());
     }
 
-    public function testSingleUserVolleyballAndNet(): void
+    public function testSinglePlayerVolleyballAndNet(): void
     {
         $game = $this->buildGame(
             slots: [$this->gameSlotRecord()],
@@ -86,13 +86,13 @@ final class GameBuilderTest extends TestCase
             users: [$this->userRecord()],
         );
 
-        $user = $game->getUsers()[0];
+        $player = $game->getPlayers()[0];
 
-        $this->assertSame(5, $user->getVolleyball());
-        $this->assertSame(2, $user->getNet());
+        $this->assertSame(5, $player->getVolleyball());
+        $this->assertSame(2, $player->getNet());
     }
 
-    public function testSingleUserTime(): void
+    public function testSinglePlayerTime(): void
     {
         $game = $this->buildGame(
             slots: [$this->gameSlotRecord()],
@@ -100,10 +100,10 @@ final class GameBuilderTest extends TestCase
             users: [$this->userRecord()],
         );
 
-        $this->assertSame('19:30', $game->getUsers()[0]->getTime());
+        $this->assertSame('19:30', $game->getPlayers()[0]->getTime());
     }
 
-    public function testUserTimeMapsDefaultRowTime(): void
+    public function testPlayerTimeMapsDefaultRowTime(): void
     {
         $game = $this->buildGame(
             slots: [$this->gameSlotRecord()],
@@ -111,7 +111,7 @@ final class GameBuilderTest extends TestCase
             users: [$this->userRecord()],
         );
 
-        $this->assertSame('18:00', $game->getUsers()[0]->getTime());
+        $this->assertSame('18:00', $game->getPlayers()[0]->getTime());
     }
 
     // --- Name composition ---
@@ -124,7 +124,7 @@ final class GameBuilderTest extends TestCase
             users: [$this->userRecord(lastName: 'Smith')],
         );
 
-        $this->assertSame('Alice Smith', $game->getUsers()[0]->getName());
+        $this->assertSame('Alice Smith', $game->getPlayers()[0]->getName());
     }
 
     public function testNameWithFirstNameOnly(): void
@@ -135,7 +135,7 @@ final class GameBuilderTest extends TestCase
             users: [$this->userRecord()],
         );
 
-        $this->assertSame('Alice', $game->getUsers()[0]->getName());
+        $this->assertSame('Alice', $game->getPlayers()[0]->getName());
     }
 
     // --- Link ---
@@ -148,7 +148,7 @@ final class GameBuilderTest extends TestCase
             users: [$this->userRecord(username: 'alice')],
         );
 
-        $this->assertSame('https://t.me/alice', $game->getUsers()[0]->getLink());
+        $this->assertSame('https://t.me/alice', $game->getPlayers()[0]->getLink());
     }
 
     public function testLinkNullWhenUsernameNull(): void
@@ -159,12 +159,12 @@ final class GameBuilderTest extends TestCase
             users: [$this->userRecord()],
         );
 
-        $this->assertNull($game->getUsers()[0]->getLink());
+        $this->assertNull($game->getPlayers()[0]->getLink());
     }
 
-    // --- Multiple users ---
+    // --- Multiple players ---
 
-    public function testMultipleUsersOrderedBySlotPosition(): void
+    public function testMultiplePlayersOrderedBySlotPosition(): void
     {
         $game = $this->buildGame(
             slots: [
@@ -181,18 +181,18 @@ final class GameBuilderTest extends TestCase
             ],
         );
 
-        $users = $game->getUsers();
+        $players = $game->getPlayers();
 
-        $this->assertCount(2, $users);
-        $this->assertSame('1', $users[0]->getPosition()->format());
-        $this->assertSame('Alice', $users[0]->getName());
-        $this->assertSame('2', $users[1]->getPosition()->format());
-        $this->assertSame('Bob', $users[1]->getName());
+        $this->assertCount(2, $players);
+        $this->assertSame('1', $players[0]->getPosition()->format());
+        $this->assertSame('Alice', $players[0]->getName());
+        $this->assertSame('2', $players[1]->getPosition()->format());
+        $this->assertSame('Bob', $players[1]->getName());
     }
 
     // --- Multiple slots per user ---
 
-    public function testUserWithMultipleSlotsCreatesSeparateUsers(): void
+    public function testUserWithMultipleSlotsCreatesSeparatePlayers(): void
     {
         $game = $this->buildGame(
             slots: [
@@ -207,13 +207,13 @@ final class GameBuilderTest extends TestCase
             ],
         );
 
-        $users = $game->getUsers();
+        $players = $game->getPlayers();
 
-        $this->assertCount(2, $users);
-        $this->assertSame('1', $users[0]->getPosition()->format());
-        $this->assertSame('3', $users[1]->getPosition()->format());
-        $this->assertSame('Alice', $users[0]->getName());
-        $this->assertSame('Alice', $users[1]->getName());
+        $this->assertCount(2, $players);
+        $this->assertSame('1', $players[0]->getPosition()->format());
+        $this->assertSame('3', $players[1]->getPosition()->format());
+        $this->assertSame('Alice', $players[0]->getName());
+        $this->assertSame('Alice', $players[1]->getName());
     }
 
     // --- Helpers ---

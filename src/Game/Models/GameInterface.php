@@ -32,8 +32,8 @@ interface GameInterface
 
     public function getSettings(): GameSettings;
 
-    /** @return UserInterface[] */
-    public function getUsers(): array;
+    /** @return PlayerInterface[] */
+    public function getPlayers(): array;
 
     public function buildTelegramMessage(?string $inlineQueryId = null): TelegramMessage;
 

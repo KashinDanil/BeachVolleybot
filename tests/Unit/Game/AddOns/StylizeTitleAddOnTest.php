@@ -6,7 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Game\AddOns;
 
 use BeachVolleybot\Game\AddOns\StylizeTitleAddOn;
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Game\Roster\Position;
 use BeachVolleybot\Tests\Fixtures\CreatesGameMessageRecords;
 use DateTimeImmutable;
@@ -143,35 +143,35 @@ final class StylizeTitleAddOnTest extends TestCase
         $this->assertSame('_Saturday_ Bogatell __10:15__ volleyball', $this->buildTitle($game));
     }
 
-    // --- User properties preserved ---
+    // --- Player properties preserved ---
 
-    public function testUserTimesUnchanged(): void
+    public function testPlayerTimesUnchanged(): void
     {
-        $game = $this->game(users: [
-            $this->user(time: '19:00'),
+        $game = $this->game(players: [
+            $this->player(time: '19:00'),
         ]);
 
         $this->transform($game);
 
-        $this->assertSame('19:00', $game->users[0]->getTime());
+        $this->assertSame('19:00', $game->players[0]->getTime());
     }
 
-    public function testUserAttributesPreserved(): void
+    public function testPlayerAttributesPreserved(): void
     {
-        $game = $this->game(users: [
-            $this->user(telegramUserId: 42, number: 3, name: 'Alice', link: 'https://t.me/alice', volleyball: 2, net: 1, time: '20:00'),
+        $game = $this->game(players: [
+            $this->player(telegramUserId: 42, number: 3, name: 'Alice', link: 'https://t.me/alice', volleyball: 2, net: 1, time: '20:00'),
         ]);
 
         $this->transform($game);
 
-        $user = $game->users[0];
+        $player = $game->players[0];
 
-        $this->assertSame(42, $user->getTelegramUserId());
-        $this->assertSame('3', $user->getPosition()->format());
-        $this->assertSame('Alice', $user->getName());
-        $this->assertSame('https://t.me/alice', $user->getLink());
-        $this->assertSame(2, $user->getVolleyball());
-        $this->assertSame(1, $user->getNet());
+        $this->assertSame(42, $player->getTelegramUserId());
+        $this->assertSame('3', $player->getPosition()->format());
+        $this->assertSame('Alice', $player->getName());
+        $this->assertSame('https://t.me/alice', $player->getLink());
+        $this->assertSame(2, $player->getVolleyball());
+        $this->assertSame(1, $player->getNet());
     }
 
     // --- Game properties preserved ---
@@ -203,20 +203,20 @@ final class StylizeTitleAddOnTest extends TestCase
     private function game(
         int $gameId = 1,
         string $title = 'Beach Game 18:00',
-        array $users = [],
+        array $players = [],
     ): Game {
         return new Game(
             gameId: $gameId,
             gameKey: 'query_1',
             messages: [$this->inlineGameMessageRecord()],
             title: $title,
-            users: $users,
+            players: $players,
             createdAt: new DateTimeImmutable(),
             kickoffAt: new DateTimeImmutable('2099-12-31 18:00:00'),
         );
     }
 
-    private function user(
+    private function player(
         int $telegramUserId = 1,
         int $number = 1,
         string $name = 'Alice',
@@ -224,8 +224,8 @@ final class StylizeTitleAddOnTest extends TestCase
         int $volleyball = 0,
         int $net = 0,
         string $time = '18:00',
-    ): User {
-        return new User(
+    ): Player {
+        return new Player(
             telegramUserId: $telegramUserId,
             position: new Position($number),
             name: $name,

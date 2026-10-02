@@ -37,7 +37,7 @@ readonly class GameBuilder
             gameKey: $this->gameRecord->gameKey,
             messages: $this->messages,
             title: $this->gameRecord->title,
-            users: new RosterBuilder($this->slots, $this->gameUsers, $this->users)->build(),
+            players: new RosterBuilder($this->slots, $this->gameUsers, $this->users)->build(),
             createdAt: $this->gameRecord->createdAt,
             kickoffAt: $this->gameRecord->kickoffAt,
             venueName: $this->gameRecord->venueName,

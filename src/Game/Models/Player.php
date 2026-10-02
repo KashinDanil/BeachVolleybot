@@ -6,7 +6,7 @@ namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Game\Roster\PositionInterface;
 
-readonly class User implements UserInterface
+readonly class Player implements PlayerInterface
 {
     private const string PROFILE_URL_PREFIX = 'https://t.me/';
 

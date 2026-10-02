@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders\Game;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\AbstractAdminMessageBuilder;
@@ -56,13 +56,13 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
             $lines[] = $this->formatter->escape("Location: {$game->getLocation()}");
         }
 
-        $users = $game->getUsers();
-        $userCount = array_map(static fn($user) => $user->getTelegramUserId(), $users)
+        $players = $game->getPlayers();
+        $userCount = array_map(static fn($player) => $player->getTelegramUserId(), $players)
                 |> array_unique(...)
                 |> count(...);
 
         $lines[] = $this->formatter->escape("Users: $userCount");
-        $lines[] = $this->formatter->escape("Slots: " . count($users));
+        $lines[] = $this->formatter->escape("Slots: " . count($players));
 
         return implode($this->formatter->newLine(), $lines);
     }
@@ -73,8 +73,8 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
             return null;
         }
 
-        $name = User::buildName($creator->firstName, $creator->lastName);
-        $link = User::buildLink($creator->username);
+        $name = Player::buildName($creator->firstName, $creator->lastName);
+        $link = Player::buildLink($creator->username);
 
         $namePart = null !== $link
             ? $this->formatter->link($name, $link)

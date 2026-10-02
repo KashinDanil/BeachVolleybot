@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Admin;
 
-use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
@@ -66,7 +66,7 @@ final class UserRoleListMessageBuilder extends AbstractAdminMessageBuilder
 
     private function buildUserButton(UserRecord $user): array
     {
-        $name = User::buildName($user->firstName, $user->lastName);
+        $name = Player::buildName($user->firstName, $user->lastName);
 
         return $this->buildActionButton(
             "$name — {$user->role->name}",

@@ -6,7 +6,7 @@ namespace BeachVolleybot\Game\Models;
 
 use BeachVolleybot\Game\Roster\PositionInterface;
 
-interface UserInterface
+interface PlayerInterface
 {
     public function getTelegramUserId(): int;
 

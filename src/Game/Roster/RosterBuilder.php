@@ -6,7 +6,7 @@ namespace BeachVolleybot\Game\Roster;
 
 use BeachVolleybot\Game\GameSlotRecord;
 use BeachVolleybot\Game\GameUserRecord;
-use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\User\UserRecord;
 
 final readonly class RosterBuilder
@@ -31,22 +31,22 @@ final readonly class RosterBuilder
         $this->usersById = array_column($users, null, 'telegramUserId');
     }
 
-    /** @return list<User> one per slot, in slot order */
+    /** @return list<Player> one per slot, in slot order */
     public function build(): array
     {
-        return array_map($this->buildUser(...), $this->slots);
+        return array_map($this->buildPlayer(...), $this->slots);
     }
 
-    private function buildUser(GameSlotRecord $slot): User
+    private function buildPlayer(GameSlotRecord $slot): Player
     {
         $gameUser = $this->gameUsersById[$slot->telegramUserId];
         $userRecord = $this->usersById[$slot->telegramUserId] ?? null;
 
-        return new User(
+        return new Player(
             telegramUserId: $slot->telegramUserId,
             position: new Position($slot->position),
             name: $this->buildName($userRecord),
-            link: User::buildLink($userRecord?->username),
+            link: Player::buildLink($userRecord?->username),
             volleyball: $gameUser->volleyball,
             net: $gameUser->net,
             time: $gameUser->time,
@@ -59,6 +59,6 @@ final readonly class RosterBuilder
             return '';
         }
 
-        return User::buildName($userRecord->firstName, $userRecord->lastName);
+        return Player::buildName($userRecord->firstName, $userRecord->lastName);
     }
 }

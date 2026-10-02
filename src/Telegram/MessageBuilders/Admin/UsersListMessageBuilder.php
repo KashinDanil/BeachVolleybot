@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders\Admin;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
@@ -13,44 +13,44 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 
 final class UsersListMessageBuilder extends AbstractAdminMessageBuilder
 {
-    private const int USERS_PER_PAGE = 8;
+    private const int PLAYERS_PER_PAGE = 8;
 
     public function build(GameInterface $game, int $page): TelegramMessage
     {
         $gameId = $game->getGameId();
-        [$uniqueUsers, $slotCounts] = $this->aggregateUserSlots($game->getUsers());
+        [$uniquePlayers, $slotCounts] = $this->aggregatePlayerSlots($game->getPlayers());
 
-        $pagination = new KeyboardPagination(count($uniqueUsers), self::USERS_PER_PAGE, $page);
-        $pageUsers = array_slice($uniqueUsers, $pagination->getOffset(), self::USERS_PER_PAGE);
+        $pagination = new KeyboardPagination(count($uniquePlayers), self::PLAYERS_PER_PAGE, $page);
+        $pagePlayers = array_slice($uniquePlayers, $pagination->getOffset(), self::PLAYERS_PER_PAGE);
 
         return $this->buildMessage(
             $this->buildUsersListText($gameId, $game->getTitle(), $pagination),
-            $this->buildUsersListKeyboard($pageUsers, $slotCounts, $gameId, $pagination),
+            $this->buildUsersListKeyboard($pagePlayers, $slotCounts, $gameId, $pagination),
         );
     }
 
     /**
-     * @param UserInterface[] $users
+     * @param PlayerInterface[] $players
      *
-     * @return array{UserInterface[], array<int, int>}
+     * @return array{PlayerInterface[], array<int, int>}
      */
-    private function aggregateUserSlots(array $users): array
+    private function aggregatePlayerSlots(array $players): array
     {
-        $uniqueUsers = [];
+        $uniquePlayers = [];
         $slotCounts = [];
 
-        foreach ($users as $user) {
-            $userId = $user->getTelegramUserId();
+        foreach ($players as $player) {
+            $userId = $player->getTelegramUserId();
 
             if (!isset($slotCounts[$userId])) {
                 $slotCounts[$userId] = 0;
-                $uniqueUsers[] = $user;
+                $uniquePlayers[] = $player;
             }
 
             $slotCounts[$userId]++;
         }
 
-        return [$uniqueUsers, $slotCounts];
+        return [$uniquePlayers, $slotCounts];
     }
 
     private function buildUsersListText(int $gameId, string $gameTitle, KeyboardPagination $pagination): string
@@ -61,12 +61,12 @@ final class UsersListMessageBuilder extends AbstractAdminMessageBuilder
     }
 
     /**
-     * @param UserInterface[] $pageUsers
+     * @param PlayerInterface[] $pagePlayers
      * @param array<int, int> $slotCounts
      */
-    private function buildUsersListKeyboard(array $pageUsers, array $slotCounts, int $gameId, KeyboardPagination $pagination): array
+    private function buildUsersListKeyboard(array $pagePlayers, array $slotCounts, int $gameId, KeyboardPagination $pagination): array
     {
-        $keyboard = $this->buildUserRows($pageUsers, $slotCounts, $gameId);
+        $keyboard = $this->buildPlayerRows($pagePlayers, $slotCounts, $gameId);
 
         $paginationRow = $this->paginationRow(
             $pagination,
@@ -82,16 +82,16 @@ final class UsersListMessageBuilder extends AbstractAdminMessageBuilder
     }
 
     /**
-     * @param UserInterface[] $pageUsers
+     * @param PlayerInterface[] $pagePlayers
      * @param array<int, int> $slotCounts
      */
-    private function buildUserRows(array $pageUsers, array $slotCounts, int $gameId): array
+    private function buildPlayerRows(array $pagePlayers, array $slotCounts, int $gameId): array
     {
         $rows = [];
 
-        foreach ($pageUsers as $user) {
-            $userId = $user->getTelegramUserId();
-            $name = $this->buildUserLabel($user, $slotCounts[$userId]);
+        foreach ($pagePlayers as $player) {
+            $userId = $player->getTelegramUserId();
+            $name = $this->buildPlayerLabel($player, $slotCounts[$userId]);
 
             $rows[] = [
                 $this->buildActionButton(
@@ -106,9 +106,9 @@ final class UsersListMessageBuilder extends AbstractAdminMessageBuilder
         return $rows;
     }
 
-    private function buildUserLabel(UserInterface $user, int $slotCount): string
+    private function buildPlayerLabel(PlayerInterface $player, int $slotCount): string
     {
-        $name = $user->getName();
+        $name = $player->getName();
 
         if (1 < $slotCount) {
             return "$name (x$slotCount)";

@@ -77,35 +77,35 @@ final class GameFactoryTest extends DatabaseTestCase
         $this->assertNull(GameFactory::fromGameId($gameId)->getSettings()->playersPerNet);
     }
 
-    // --- Users ---
+    // --- Players ---
 
-    public function testGameWithNoUsersHasEmptyArray(): void
+    public function testGameWithNoPlayersHasEmptyArray(): void
     {
         $gameId = $this->createGame();
 
         $game = GameFactory::fromGameId($gameId);
 
-        $this->assertSame([], $game->getUsers());
+        $this->assertSame([], $game->getPlayers());
     }
 
-    public function testUserFieldsMappedCorrectly(): void
+    public function testPlayerFieldsMappedCorrectly(): void
     {
         $gameId = $this->createGame();
         $this->createUser(telegramUserId: 200, firstName: 'Alice', lastName: 'Smith', username: 'alice');
         $this->createGameUser($gameId, telegramUserId: 200, time: '19:30');
         $this->createSlot($gameId, telegramUserId: 200, position: 1);
 
-        $user = GameFactory::fromGameId($gameId)->getUsers()[0];
+        $player = GameFactory::fromGameId($gameId)->getPlayers()[0];
 
-        $this->assertSame('1', $user->getPosition()->format());
-        $this->assertSame('Alice Smith', $user->getName());
-        $this->assertSame('https://t.me/alice', $user->getLink());
-        $this->assertSame('19:30', $user->getTime());
-        $this->assertSame(0, $user->getVolleyball());
-        $this->assertSame(0, $user->getNet());
+        $this->assertSame('1', $player->getPosition()->format());
+        $this->assertSame('Alice Smith', $player->getName());
+        $this->assertSame('https://t.me/alice', $player->getLink());
+        $this->assertSame('19:30', $player->getTime());
+        $this->assertSame(0, $player->getVolleyball());
+        $this->assertSame(0, $player->getNet());
     }
 
-    public function testMultipleUsersOrderedByPosition(): void
+    public function testMultiplePlayersOrderedByPosition(): void
     {
         $gameId = $this->createGame();
         $this->createUser(telegramUserId: 200, firstName: 'Alice');
@@ -115,11 +115,11 @@ final class GameFactoryTest extends DatabaseTestCase
         $this->createSlot($gameId, telegramUserId: 201, position: 1);
         $this->createSlot($gameId, telegramUserId: 200, position: 2);
 
-        $users = GameFactory::fromGameId($gameId)->getUsers();
+        $players = GameFactory::fromGameId($gameId)->getPlayers();
 
-        $this->assertCount(2, $users);
-        $this->assertSame('Bob', $users[0]->getName());
-        $this->assertSame('Alice', $users[1]->getName());
+        $this->assertCount(2, $players);
+        $this->assertSame('Bob', $players[0]->getName());
+        $this->assertSame('Alice', $players[1]->getName());
     }
 
     // --- Helpers ---

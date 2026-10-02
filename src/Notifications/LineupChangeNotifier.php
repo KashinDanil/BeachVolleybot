@@ -8,7 +8,7 @@ use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\GameSlotManager;
 use BeachVolleybot\Game\GameUserManager;
-use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Game\Roster\Lineup;
 use BeachVolleybot\Game\Roster\RosterBuilder;
 use BeachVolleybot\User\NotificationType;
@@ -58,9 +58,9 @@ final readonly class LineupChangeNotifier
             return;
         }
 
-        $users = $this->findRosterUsers($gameBefore->gameId);
-        $playingUserIdsBefore = Lineup::forSettings($users, $gameBefore->settings, [])->getPlayingUserIds();
-        $playingUserIdsAfter = Lineup::forSettings($users, $settingsAfter, [])->getPlayingUserIds();
+        $players = $this->findRosterPlayers($gameBefore->gameId);
+        $playingUserIdsBefore = Lineup::forSettings($players, $gameBefore->settings, [])->getPlayingUserIds();
+        $playingUserIdsAfter = Lineup::forSettings($players, $settingsAfter, [])->getPlayingUserIds();
 
         $this->enqueueMoves($gameBefore->gameId, $playingUserIdsBefore, $playingUserIdsAfter, $actorId);
     }
@@ -72,7 +72,7 @@ final readonly class LineupChangeNotifier
             return null;
         }
 
-        $lineup = Lineup::forSettings($this->findRosterUsers($gameId), $settings, []);
+        $lineup = Lineup::forSettings($this->findRosterPlayers($gameId), $settings, []);
 
         if (!$lineup->hasLimit()) {
             return null;
@@ -81,8 +81,8 @@ final readonly class LineupChangeNotifier
         return $lineup->getPlayingUserIds();
     }
 
-    /** @return list<User> */
-    private function findRosterUsers(int $gameId): array
+    /** @return list<Player> */
+    private function findRosterPlayers(int $gameId): array
     {
         return new RosterBuilder(
             $this->gameSlotManager->findGameSlotRecordsByGameId($gameId),

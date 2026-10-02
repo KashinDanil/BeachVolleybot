@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders\Warnings;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Localization\Translator;
 
 final class NoEquipmentWarning implements GameWarningInterface
@@ -16,13 +16,13 @@ final class NoEquipmentWarning implements GameWarningInterface
 
     public function check(GameInterface $game, Translator $translator): ?string
     {
-        $users = $game->getUsers();
-        if (empty($users)) {
+        $players = $game->getPlayers();
+        if (empty($players)) {
             return null;
         }
 
-        $hasNet = array_any($users, static fn(UserInterface $user) => 0 < $user->getNet());
-        $hasVolleyball = array_any($users, static fn(UserInterface $user) => 0 < $user->getVolleyball());
+        $hasNet = array_any($players, static fn(PlayerInterface $player) => 0 < $player->getNet());
+        $hasVolleyball = array_any($players, static fn(PlayerInterface $player) => 0 < $player->getVolleyball());
 
         $message = match (true) {
             $hasNet && $hasVolleyball => null,
