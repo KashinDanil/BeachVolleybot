@@ -59,6 +59,50 @@ final class GameUserManagerTest extends DatabaseTestCase
         $this->assertSame('19:00', $this->gameUserManager->findEarliestTime($gameId));
     }
 
+    public function testFindEarliestTimePrefersPlayersWithAVolleyball(): void
+    {
+        $gameId = $this->createGame();
+        $this->createGameUser($gameId, 200, '17:00');
+        $this->createGameUser($gameId, 201, '19:00');
+        $this->gameUserManager->incrementVolleyball($gameId, 201);
+
+        $this->assertSame('19:00', $this->gameUserManager->findEarliestTime($gameId));
+    }
+
+    public function testFindEarliestTimePicksTheEarliestAcrossNetAndVolleyballHolders(): void
+    {
+        $gameId = $this->createGame();
+        $this->createGameUser($gameId, 200, '15:00');
+        $this->createGameUser($gameId, 201, '19:00');
+        $this->createGameUser($gameId, 202, '17:00');
+        $this->gameUserManager->incrementNet($gameId, 201);
+        $this->gameUserManager->incrementVolleyball($gameId, 202);
+
+        $this->assertSame('17:00', $this->gameUserManager->findEarliestTime($gameId));
+    }
+
+    public function testFindEarliestTimeCountsAPlayerWithBothNetAndVolleyball(): void
+    {
+        $gameId = $this->createGame();
+        $this->createGameUser($gameId, 200, '17:00');
+        $this->createGameUser($gameId, 201, '19:00');
+        $this->gameUserManager->incrementNet($gameId, 201);
+        $this->gameUserManager->incrementVolleyball($gameId, 201);
+
+        $this->assertSame('19:00', $this->gameUserManager->findEarliestTime($gameId));
+    }
+
+    public function testFindEarliestTimeFallsBackOnceTheLastVolleyballIsRemoved(): void
+    {
+        $gameId = $this->createGame();
+        $this->createGameUser($gameId, 200, '17:00');
+        $this->createGameUser($gameId, 201, '19:00');
+        $this->gameUserManager->incrementVolleyball($gameId, 201);
+        $this->gameUserManager->decrementVolleyball($gameId, 201);
+
+        $this->assertSame('17:00', $this->gameUserManager->findEarliestTime($gameId));
+    }
+
     public function testFindEarliestTimeFallsBackToTheEarliestPlayer(): void
     {
         $gameId = $this->createGame();
@@ -66,6 +110,13 @@ final class GameUserManagerTest extends DatabaseTestCase
         $this->createGameUser($gameId, 201, '17:00');
 
         $this->assertSame('17:00', $this->gameUserManager->findEarliestTime($gameId));
+    }
+
+    public function testFindEarliestTimeReturnsNullWhenGameHasNoPlayers(): void
+    {
+        $gameId = $this->createGame();
+
+        $this->assertNull($this->gameUserManager->findEarliestTime($gameId));
     }
 
     protected function setUp(): void

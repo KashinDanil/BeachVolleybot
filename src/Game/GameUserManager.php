@@ -71,7 +71,7 @@ readonly class GameUserManager
 
     public function findEarliestTime(int $gameId): ?string
     {
-        return $this->gameUserRepository->findEarliestTimeWithNet($gameId)
+        return $this->gameUserRepository->findEarliestTimeWithEquipment($gameId)
             ?? $this->gameUserRepository->findEarliestTime($gameId);
     }
 }

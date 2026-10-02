@@ -130,6 +130,30 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->assertSame(3, $gameUser->volleyball);
     }
 
+    // --- equipment: game time ---
+
+    public function testAdminAddNetRecalculatesGameTimeToTheTargetUser(): void
+    {
+        $gameId = $this->createGameWithUserSlot(200, 1);
+        new GameUserManager()->incrementNet($gameId, 200);
+        $this->seedGameUser($gameId, 201, 2, time: '16:00');
+
+        $this->adminGameManager->adminAddNet($gameId, 201);
+
+        $this->assertSame('Test 16:00', $this->db->get('games', 'title', ['game_id' => $gameId]));
+    }
+
+    public function testAdminAddVolleyballRecalculatesGameTimeToTheTargetUser(): void
+    {
+        $gameId = $this->createGameWithUserSlot(200, 1);
+        new GameUserManager()->incrementNet($gameId, 200);
+        $this->seedGameUser($gameId, 201, 2, time: '16:00');
+
+        $this->adminGameManager->adminAddVolleyball($gameId, 201);
+
+        $this->assertSame('Test 16:00', $this->db->get('games', 'title', ['game_id' => $gameId]));
+    }
+
     // --- setLocation: from coordinates ---
 
     public function testSetLocationSetsValueFromCoordinates(): void
@@ -192,13 +216,13 @@ final class GameManagerAdminTest extends DatabaseTestCase
         );
     }
 
-    private function seedGameUser(int $gameId, int $telegramUserId, int $position): void
+    private function seedGameUser(int $gameId, int $telegramUserId, int $position, string $time = '18:00'): void
     {
         $this->createUser($telegramUserId);
         $this->db->insert('game_users', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
-            'time' => '18:00',
+            'time' => $time,
         ]);
         $this->addSlot($gameId, $telegramUserId, $position);
     }

@@ -95,9 +95,13 @@ readonly class GameUserRepository
         return 0 < $statement->rowCount();
     }
 
-    public function findEarliestTimeWithNet(int $gameId): ?string
+    public function findEarliestTimeWithEquipment(int $gameId): ?string
     {
-        return $this->db->min('game_users', 'time', ['game_id' => $gameId, 'net[>]' => 0, 'time[!]' => null]) ?: null;
+        return $this->db->min('game_users', 'time', [
+            'game_id' => $gameId,
+            'time[!]' => null,
+            'OR' => ['net[>]' => 0, 'volleyball[>]' => 0],
+        ]) ?: null;
     }
 
     public function findEarliestTime(int $gameId): ?string

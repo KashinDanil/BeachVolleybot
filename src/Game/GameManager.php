@@ -142,12 +142,14 @@ readonly class GameManager
             return EquipmentResult::NoneLeft;
         }
 
-        $lineupBefore = $this->lineupChangeNotifier->capture($this->getGameRecord($gameId));
+        $game = $this->getGameRecord($gameId);
+        $lineupBefore = $this->lineupChangeNotifier->capture($game);
 
         if (!$this->gameUserManager->decrementVolleyball($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
 
+        $this->recalculateGameTime($game);
         $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Removed;
@@ -284,12 +286,14 @@ readonly class GameManager
 
     protected function incrementVolleyball(int $gameId, int $telegramUserId): EquipmentResult
     {
-        $lineupBefore = $this->lineupChangeNotifier->capture($this->getGameRecord($gameId));
+        $game = $this->getGameRecord($gameId);
+        $lineupBefore = $this->lineupChangeNotifier->capture($game);
 
         if (!$this->gameUserManager->incrementVolleyball($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
 
+        $this->recalculateGameTime($game);
         $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Added;

@@ -591,13 +591,37 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame('Beach 15:30', $title);
     }
 
-    public function testRecalculateGameTimeIgnoresUsersWithoutNets(): void
+    public function testAddVolleyballRecalculatesGameTimeToEarliestEquipmentHolder(): void
     {
         $gameId = $this->createGame(title: 'Beach 18:00');
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
         $this->seedUser($gameId, 201, position: 2, net: 0, time: '15:00');
 
         $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 15:00', $title);
+    }
+
+    public function testRemoveVolleyballRecalculatesGameTimeToNextEquipmentHolder(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 15:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, volleyball: 1, time: '15:00');
+
+        $this->gameManager->removeVolleyball($gameId, 201);
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 18:00', $title);
+    }
+
+    public function testRecalculateGameTimeIgnoresUsersWithoutEquipment(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedUser($gameId, 200, position: 1, volleyball: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, time: '18:00');
+
+        $this->gameManager->setUserTime($gameId, new TelegramUser(id: 201, firstName: 'Alice'), '15:00');
 
         $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach 18:00', $title);
@@ -625,6 +649,102 @@ final class GameManagerTest extends DatabaseTestCase
 
         $title = $this->gameRecord($gameId)->title;
         $this->assertSame('Beach 16:00', $title);
+    }
+
+    public function testRemoveLastVolleyballFallsBackToEarliestTimeAmongAllUsers(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedUser($gameId, 200, position: 1, volleyball: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, time: '16:00');
+
+        $this->gameManager->removeVolleyball($gameId, 200);
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 16:00', $title);
+    }
+
+    public function testRemoveNetKeepsGameTimeWhenUserStillHasAVolleyball(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, volleyball: 1, net: 1, time: '16:00');
+
+        $this->gameManager->removeNet($gameId, 201);
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 16:00', $title);
+    }
+
+    public function testRemoveVolleyballKeepsGameTimeWhenUserStillHasANet(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 16:00');
+        $this->seedUser($gameId, 200, position: 1, volleyball: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, volleyball: 1, net: 1, time: '16:00');
+
+        $this->gameManager->removeVolleyball($gameId, 201);
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 16:00', $title);
+    }
+
+    public function testRemoveOneOfTwoVolleyballsKeepsGameTime(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, volleyball: 2, time: '16:00');
+
+        $this->gameManager->removeVolleyball($gameId, 201);
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 16:00', $title);
+    }
+
+    public function testAddNetKeepsEarlierVolleyballHolderTime(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 16:00');
+        $this->seedUser($gameId, 200, position: 1, volleyball: 1, time: '16:00');
+        $this->seedUser($gameId, 201, position: 2, time: '18:00');
+
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 16:00', $title);
+    }
+
+    public function testAddVolleyballKeepsEarlierNetHolderTime(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '16:00');
+        $this->seedUser($gameId, 201, position: 2, time: '18:00');
+
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 16:00', $title);
+    }
+
+    public function testAddVolleyballRecalculatesGameTimeWhenNobodyHadEquipment(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 16:00');
+        $this->seedUser($gameId, 200, position: 1, time: '16:00');
+        $this->seedUser($gameId, 201, position: 2, time: '18:00');
+
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 18:00', $title);
+    }
+
+    public function testSetUserTimeByVolleyballHolderRecalculatesGameTime(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, volleyball: 1, time: '18:00');
+
+        $this->gameManager->setUserTime($gameId, new TelegramUser(id: 201, firstName: 'Alice'), '16:30');
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Beach 16:30', $title);
     }
 
     public function testRecalculateGameTimeKeepsTitleWhenNoChange(): void
@@ -704,6 +824,18 @@ final class GameManagerTest extends DatabaseTestCase
         $gameId = $this->createGame(title: 'Beach 18:00');
         $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
         $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Picnic Sunday 20:00');
+
+        $title = $this->gameRecord($gameId)->title;
+        $this->assertSame('Picnic Sunday 16:00', $title);
+    }
+
+    public function testChangeTitlePreservesEarlierVolleyballHolderTimeInTitle(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00'); // creator
+        $this->seedUser($gameId, 201, position: 2, volleyball: 1, time: '16:00');
 
         $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Picnic Sunday 20:00');
 
