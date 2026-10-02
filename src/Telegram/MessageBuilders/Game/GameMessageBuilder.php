@@ -7,7 +7,6 @@ namespace BeachVolleybot\Telegram\MessageBuilders\Game;
 use BeachVolleybot\Game\Models\GameInterface;
 use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Game\Roster\Lineup;
-use BeachVolleybot\Game\Roster\PlayerLimit;
 use BeachVolleybot\Localization\TitleLanguageResolver;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
@@ -105,12 +104,12 @@ final class GameMessageBuilder extends AbstractMessageBuilder
     {
         $lines = [];
         $appearances = [];
-        $limit = PlayerLimit::resolveLimit($game->getUsers(), $game->getSettings());
+        $lineup = Lineup::forSettings($game->getUsers(), $game->getSettings());
         $dividerEmitted = false;
 
         $gameTime = $game->getTime();
-        foreach (new Lineup($game->getUsers(), $limit)->getRowsToRender() as $user) {
-            if (!$dividerEmitted && !empty($lines) && $limit->isReserve($user)) {
+        foreach ($lineup->getRowsToRender() as $user) {
+            if (!$dividerEmitted && !empty($lines) && $lineup->isReserve($user)) {
                 $lines[] = $this->formatter->escape(self::RESERVES_DIVIDER);
                 $dividerEmitted = true;
             }

@@ -8,7 +8,9 @@ use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Game\AdminGameManager;
 use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\GameUserManager;
+use BeachVolleybot\Notifications\LineupChangeNotifier;
 use BeachVolleybot\Notifications\MinimumPlayersNotifier;
 use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
@@ -165,6 +167,31 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->assertSame([], SpyQueue::$instances);
     }
 
+    // --- adminAddVolleyball: PromotedIntoGame ---
+
+    public function testAdminCompletingASecondCourtPromotesReservesButNotTheTargetUser(): void
+    {
+        $gameId = $this->createGameWithUserSlot(200, 1);
+        $gameUserManager = new GameUserManager();
+        $gameUserManager->incrementNet($gameId, 200);
+        $gameUserManager->incrementVolleyball($gameId, 200);
+        $this->setGameSettings($gameId, new GameSettings(playersPerNet: 4));
+
+        foreach ([201, 202, 203, 204, 205] as $index => $telegramUserId) {
+            $this->seedGameUser($gameId, $telegramUserId, $index + 2);
+        }
+
+        $this->adminGameManager->adminAddNet($gameId, 205);
+        SpyQueue::reset();
+
+        $this->adminGameManager->adminAddVolleyball($gameId, 205);
+
+        $this->assertSame(
+            [['type' => NotificationType::PromotedIntoGame->value, 'game_id' => $gameId, 'user_id' => 204]],
+            array_map(static fn(SpyQueue $queue): ?array => $queue->lastPayload, SpyQueue::$instances),
+        );
+    }
+
     private function seedGameUser(int $gameId, int $telegramUserId, int $position): void
     {
         $this->createUser($telegramUserId);
@@ -184,7 +211,11 @@ final class GameManagerAdminTest extends DatabaseTestCase
         Connection::set($this->db);
         $this->gameManager = new GameManager();
         SpyQueue::reset();
-        $this->adminGameManager = new AdminGameManager(new MinimumPlayersNotifier(new NotificationEnqueuer(SpyQueue::class, sys_get_temp_dir())));
+        $spyEnqueuer = new NotificationEnqueuer(SpyQueue::class, sys_get_temp_dir());
+        $this->adminGameManager = new AdminGameManager(
+            new MinimumPlayersNotifier($spyEnqueuer),
+            new LineupChangeNotifier($spyEnqueuer),
+        );
     }
 
     protected function tearDown(): void

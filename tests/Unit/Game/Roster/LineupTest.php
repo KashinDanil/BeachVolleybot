@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Game\Roster;
 
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Game\Models\UserInterface;
 use BeachVolleybot\Game\Roster\Lineup;
@@ -596,6 +597,93 @@ final class LineupTest extends TestCase
 
         $this->assertSame(['Carol', 'Dave', 'Erin', 'Frank', 'Bob', 'Bob'], $this->names($arranged));
         $this->assertSame(['1', '2', '3', '4', '5', '6'], $this->numbers($arranged));
+    }
+
+    // --- Playing user ids ---
+
+    public function testPlayingUserIdsFollowSignUpOrderInsideTheLimit(): void
+    {
+        $users = [
+            $this->user(1, new Position(1)),
+            $this->user(2, new Position(2)),
+            $this->user(3, new Position(3)),
+        ];
+
+        $this->assertSame([1, 2], new Lineup($users, new PlayerLimit(2))->getPlayingUserIds());
+    }
+
+    public function testPromotedNetBringerIsPlaying(): void
+    {
+        $users = [
+            $this->user(1, new Position(1), volleyball: 1),
+            $this->user(2, new Position(2)),
+            $this->user(3, new Position(3), net: 1),
+        ];
+
+        $this->assertSame([1, 3], new Lineup($users, new PlayerLimit(2))->getPlayingUserIds());
+    }
+
+    public function testUserStraddlingTheLimitIsListedOnce(): void
+    {
+        $users = [
+            $this->user(1, new Position(1)),
+            $this->user(2, new PositionRange(2, 4)),
+        ];
+
+        $this->assertSame([1, 2], new Lineup($users, new PlayerLimit(3))->getPlayingUserIds());
+    }
+
+    public function testUserFullyBelowTheLimitIsNotPlaying(): void
+    {
+        $users = [
+            $this->user(1, new PositionRange(1, 2)),
+            $this->user(2, new Position(3)),
+        ];
+
+        $this->assertSame([1], new Lineup($users, new PlayerLimit(2))->getPlayingUserIds());
+    }
+
+    public function testEveryoneIsPlayingWithoutALimit(): void
+    {
+        $users = [$this->user(1, new Position(1)), $this->user(2, new PositionRange(2, 3))];
+        $lineup = new Lineup($users, new PlayerLimit(null));
+
+        $this->assertFalse($lineup->hasLimit());
+        $this->assertSame([1, 2], $lineup->getPlayingUserIds());
+    }
+
+    // --- forSettings ---
+
+    public function testForSettingsWithoutPlayersPerNetHasNoLimit(): void
+    {
+        $users = [$this->user(1, new Position(1), volleyball: 1, net: 1), $this->user(2, new Position(2))];
+
+        $this->assertFalse(Lineup::forSettings($users, new GameSettings())->hasLimit());
+    }
+
+    public function testForSettingsWithoutACourtHasNoLimit(): void
+    {
+        $users = [$this->user(1, new Position(1), net: 1), $this->user(2, new Position(2))];
+
+        $this->assertFalse(Lineup::forSettings($users, new GameSettings(playersPerNet: 4))->hasLimit());
+    }
+
+    public function testForSettingsPutsEveryonePastPlayersPerNetTimesCourtsInTheReserve(): void
+    {
+        $users = [
+            $this->user(1, new Position(1), volleyball: 1, net: 1),
+            $this->user(2, new Position(2)),
+            $this->user(3, new Position(3)),
+            $this->user(4, new Position(4)),
+            $this->user(5, new Position(5)),
+        ];
+
+        $lineup = Lineup::forSettings($users, new GameSettings(playersPerNet: 4), []);
+
+        $this->assertTrue($lineup->hasLimit());
+        $this->assertFalse($lineup->isReserve($users[3]));
+        $this->assertTrue($lineup->isReserve($users[4]));
+        $this->assertSame([1, 2, 3, 4], $lineup->getPlayingUserIds());
     }
 
     // --- Field fidelity ---

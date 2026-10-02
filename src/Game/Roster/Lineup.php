@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Roster;
 
-use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\AddOns\GameAddOnRegistry;
 use BeachVolleybot\Game\AddOns\MergeConsecutiveSlotsAddOn;
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Game\Models\UserInterface;
 
@@ -24,22 +24,60 @@ final readonly class Lineup
     ) {
     }
 
+    /**
+     * @param UserInterface[] $users
+     * @param list<class-string<GameAddOnInterface>> $addOns
+     */
+    public static function forSettings(array $users, GameSettings $settings, array $addOns = GAME_ADD_ONS): self
+    {
+        return new self($users, PlayerLimit::resolveLimit($users, $settings), $addOns);
+    }
+
+    public function hasLimit(): bool
+    {
+        return null !== $this->limit->threshold;
+    }
+
+    public function isReserve(UserInterface $row): bool
+    {
+        return $this->limit->isReserve($row);
+    }
+
     /** @return list<UserInterface> */
     public function getRowsToRender(): array
     {
-        if (null === $this->limit->threshold) {
+        if (!$this->hasLimit()) {
             return $this->users;
         }
 
-        $slots = $this->expandUsers();
-        $slots = $this->promoteUsers($slots, $this->userIdsToPromote($slots));
-        $slots = $this->renumberUsers($slots);
+        $slots = $this->arrangedSlots();
 
         if (!GameAddOnRegistry::isEnabled(MergeConsecutiveSlotsAddOn::class, $this->addOns)) {
             return $slots;
         }
 
         return $this->mergedBackIntoRows($slots);
+    }
+
+    public function getPlayingUserIds(): array
+    {
+        $playingSlots = array_filter($this->arrangedSlots(), fn(UserInterface $slot): bool => !$this->isReserve($slot));
+
+        return array_map(
+                static fn(UserInterface $slot): int => $slot->getTelegramUserId(),
+                $playingSlots,
+            )
+                |> array_unique(...)
+                |> array_values(...);
+    }
+
+    /** @return list<UserInterface> */
+    private function arrangedSlots(): array
+    {
+        $slots = $this->expandUsers();
+        $slots = $this->promoteUsers($slots, $this->userIdsToPromote($slots));
+
+        return $this->renumberUsers($slots);
     }
 
     /** @return list<UserInterface> */

@@ -7,6 +7,7 @@ namespace BeachVolleybot\Game;
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Notifications\LineupChangeNotifier;
 use BeachVolleybot\Notifications\MinimumPlayersNotifier;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\User\UserManager;
@@ -14,6 +15,7 @@ use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 use BeachVolleybot\Validator\Validator;
 use DateTimeImmutable;
 use InvalidArgumentException;
+use RuntimeException;
 
 readonly class GameManager
 {
@@ -27,6 +29,7 @@ readonly class GameManager
 
     public function __construct(
         protected MinimumPlayersNotifier $minimumPlayersNotifier = new MinimumPlayersNotifier(),
+        protected LineupChangeNotifier $lineupChangeNotifier = new LineupChangeNotifier(),
     ) {
         $this->gameRepository = new GameRepository(Connection::get());
         $this->gameUserManager = new GameUserManager();
@@ -78,11 +81,15 @@ readonly class GameManager
             return LeaveResult::NotJoined;
         }
 
+        $lineupBefore = $this->lineupChangeNotifier->capture($this->getGameRecord($gameId));
+
         $this->gameSlotManager->deleteSlot($gameId, max($positions));
 
         if (1 === count($positions)) {
             $this->gameUserManager->deleteGameUser($gameId, $telegramUserId);
         }
+
+        $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return LeaveResult::Left;
     }
@@ -106,11 +113,15 @@ readonly class GameManager
             return EquipmentResult::NoneLeft;
         }
 
+        $game = $this->getGameRecord($gameId);
+        $lineupBefore = $this->lineupChangeNotifier->capture($game);
+
         if (!$this->gameUserManager->decrementNet($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
 
-        $this->recalculateGameTime($gameId);
+        $this->recalculateGameTime($game);
+        $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Removed;
     }
@@ -134,9 +145,13 @@ readonly class GameManager
             return EquipmentResult::NoneLeft;
         }
 
+        $lineupBefore = $this->lineupChangeNotifier->capture($this->getGameRecord($gameId));
+
         if (!$this->gameUserManager->decrementVolleyball($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
+
+        $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Removed;
     }
@@ -154,28 +169,13 @@ readonly class GameManager
         $this->gameRepository->updateLocation($gameId, null);
     }
 
-    public function setPlayersPerNet(int $gameId, ?int $playersPerNet): void
-    {
-        $validationState = new Validator([
-            new MinimumPlayersPerNetRule($playersPerNet),
-        ])->validate();
-
-        if (!$validationState->isSuccess()) {
-            throw new InvalidArgumentException($validationState->getError()->getMessage());
-        }
-
-        $stored = $this->findGameRecordById($gameId)?->settings ?? new GameSettings();
-
-        $this->gameRepository->updateSettings($gameId, $stored->withPlayersPerNet($playersPerNet));
-    }
-
     public function setUserTime(int $gameId, TelegramUser $user, string $time): void
     {
         $this->ensureUserInGame($gameId, $user);
 
         $this->gameUserManager->updateTime($gameId, $user->id, $time);
 
-        $this->recalculateGameTime($gameId);
+        $this->recalculateGameTime($this->getGameRecord($gameId));
     }
 
     public function changeTitle(GameRecord $game, TelegramUser $user, string $newTitle): void
@@ -187,15 +187,17 @@ readonly class GameManager
         }
 
         $parsedTitle = ParsedTitle::parse($normalizedTitle, $game->createdAt);
+        $settings = $game->settings->withPlayersPerNet($parsedTitle->playersPerNet);
 
         $this->gameRepository->updateTitleWithDependencies(
             $game->gameId,
             $normalizedTitle,
             $parsedTitle->kickoffAt,
             $parsedTitle->venueName,
-            $game->settings->withPlayersPerNet($parsedTitle->playersPerNet),
+            $settings,
         );
         $this->setUserTime($game->gameId, $user, $proposedTime);
+        $this->lineupChangeNotifier->notifyPlayersPerNetChange($game, $settings, $user->id);
     }
 
     public function resolveGameIdByGameKey(string $gameKey): ?int
@@ -247,6 +249,12 @@ readonly class GameManager
         return $this->toGameRecords($this->gameRepository->findByKickoffBetween($from, $until));
     }
 
+    /** Only for a game the caller knows exists, e.g. one the user already has a row in. */
+    private function getGameRecord(int $gameId): GameRecord
+    {
+        return $this->findGameRecordById($gameId) ?? throw new RuntimeException("Game not found: $gameId");
+    }
+
     private function buildGameRecord(?array $row): ?GameRecord
     {
         return null !== $row ? GameRecord::fromRow($row) : null;
@@ -264,20 +272,28 @@ readonly class GameManager
 
     protected function incrementNet(int $gameId, int $telegramUserId): EquipmentResult
     {
+        $game = $this->getGameRecord($gameId);
+        $lineupBefore = $this->lineupChangeNotifier->capture($game);
+
         if (!$this->gameUserManager->incrementNet($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
 
-        $this->recalculateGameTime($gameId);
+        $this->recalculateGameTime($game);
+        $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Added;
     }
 
     protected function incrementVolleyball(int $gameId, int $telegramUserId): EquipmentResult
     {
+        $lineupBefore = $this->lineupChangeNotifier->capture($this->getGameRecord($gameId));
+
         if (!$this->gameUserManager->incrementVolleyball($gameId, $telegramUserId)) {
             return EquipmentResult::Error;
         }
+
+        $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Added;
     }
@@ -321,35 +337,24 @@ readonly class GameManager
         return TimeExtractor::extract($title);
     }
 
-    private function recalculateGameTime(int $gameId): void
+    private function recalculateGameTime(GameRecord $game): void
     {
-        $earliestTime = $this->gameUserManager->findEarliestTime($gameId);
+        $earliestGameTime = $this->gameUserManager->findEarliestTime($game->gameId);
+        $currentGameTime = TimeExtractor::extractRaw($game->title);
 
-        if (null === $earliestTime) {
+        if (null === $earliestGameTime || null === $currentGameTime || $currentGameTime === $earliestGameTime) {
             return;
         }
 
-        $gameRecord = $this->findGameRecordById($gameId);
-
-        if (null === $gameRecord) {
-            return;
-        }
-
-        $currentTime = TimeExtractor::extractRaw($gameRecord->title);
-
-        if (null === $currentTime || $currentTime === $earliestTime) {
-            return;
-        }
-
-        $updatedTitle = str_replace($currentTime, $earliestTime, $gameRecord->title);
-        $parsedTitle = ParsedTitle::parse($updatedTitle, $gameRecord->createdAt);
+        $updatedTitle = str_replace($currentGameTime, $earliestGameTime, $game->title);
+        $parsedTitle = ParsedTitle::parse($updatedTitle, $game->createdAt);
 
         $this->gameRepository->updateTitleWithDependencies(
-            $gameId,
+            $game->gameId,
             $updatedTitle,
             $parsedTitle->kickoffAt,
             $parsedTitle->venueName,
-            $gameRecord->settings,
+            $game->settings,
         );
     }
 }

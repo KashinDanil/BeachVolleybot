@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
+use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\GameSlotManager;
 use BeachVolleybot\Game\GameUserManager;
+use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\LeaveProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use DanilKashin\FileQueue\Queue\FileQueue;
 
 final class LeaveProcessorTest extends ProcessorTestCase
 {
@@ -116,6 +119,25 @@ final class LeaveProcessorTest extends ProcessorTestCase
 
         $this->assertAnsweredWith(CallbackAnswer::LEFT);
         $this->assertNull(new GameUserManager()->findGameUserRecord($gameId, 200));
+    }
+
+    public function testLeavingFromInsideTheLimitEnqueuesAPromotionForTheFirstReserve(): void
+    {
+        $gameId = $this->seedFullGame();
+        $this->setGameSettings($gameId, new GameSettings(playersPerNet: 4));
+
+        foreach ([200, 201, 202, 203, 204] as $index => $telegramUserId) {
+            $this->createGameUser($gameId, $telegramUserId);
+            $this->createSlot($gameId, $telegramUserId, $index + 1);
+        }
+
+        $gameUserManager = new GameUserManager();
+        $gameUserManager->incrementNet($gameId, 201);
+        $gameUserManager->incrementVolleyball($gameId, 201);
+
+        new LeaveProcessor($this->telegramSender)->process($this->buildUpdate('msg_1'));
+
+        $this->assertSame(1, new FileQueue('notification_' . $gameId, NotificationEnqueuer::QUEUE_DIR)->size());
     }
 
     private function buildUpdate(string $inlineMessageId, string $gameKey = 'query_1'): TelegramUpdate

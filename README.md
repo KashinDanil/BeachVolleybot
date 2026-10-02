@@ -98,7 +98,7 @@ Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `
 │   ├── Game/            # Core game logic, models, add-ons (registry + WeatherAddOn, MergeConsecutiveSlotsAddOn, StylizeTitleAddOn)
 │   ├── Localization/    # Translator (what the bot writes), CalendarVocabulary (what it reads)
 │   ├── Log/             # Log file management
-│   ├── Notifications/   # NotificationQueuePayload (one recipient each), NotificationEnqueuer, NotificationSender, MinimumPlayersNotifier
+│   ├── Notifications/   # NotificationQueuePayload (one recipient each), NotificationEnqueuer, NotificationSender, MinimumPlayersNotifier, LineupChangeNotifier
 │   ├── Processors/
 │   │   ├── AdminProcessors/    # Admin panel callbacks (game / user / equipment / logs / settings)
 │   │   ├── UserProcessors/     # /help (also /start), /games and /notifications commands with their callbacks

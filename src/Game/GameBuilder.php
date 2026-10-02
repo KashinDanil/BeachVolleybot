@@ -8,8 +8,7 @@ use BeachVolleybot\Game\AddOns\GameAddOnApplier;
 use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\Models\Game;
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\User;
-use BeachVolleybot\Game\Roster\Position;
+use BeachVolleybot\Game\Roster\RosterBuilder;
 use BeachVolleybot\User\UserRecord;
 
 readonly class GameBuilder
@@ -38,7 +37,7 @@ readonly class GameBuilder
             gameKey: $this->gameRecord->gameKey,
             messages: $this->messages,
             title: $this->gameRecord->title,
-            users: $this->buildUsers(),
+            users: new RosterBuilder($this->slots, $this->gameUsers, $this->users)->build(),
             createdAt: $this->gameRecord->createdAt,
             kickoffAt: $this->gameRecord->kickoffAt,
             venueName: $this->gameRecord->venueName,
@@ -47,34 +46,5 @@ readonly class GameBuilder
         );
 
         return GameAddOnApplier::apply($game, $this->addOns);
-    }
-
-    /** @return User[] */
-    private function buildUsers(): array
-    {
-        $gameUsersIndex = array_column($this->gameUsers, null, 'telegramUserId');
-        $usersIndex = array_column($this->users, null, 'telegramUserId');
-
-        $users = [];
-
-        foreach ($this->slots as $slot) {
-            $telegramUserId = $slot->telegramUserId;
-            $users[] = $this->buildUser($slot, $gameUsersIndex[$telegramUserId], $usersIndex[$telegramUserId]);
-        }
-
-        return $users;
-    }
-
-    private function buildUser(GameSlotRecord $slot, GameUserRecord $gameUser, UserRecord $userRecord): User
-    {
-        return new User(
-            telegramUserId: $slot->telegramUserId,
-            position: new Position($slot->position),
-            name: User::buildName($userRecord->firstName, $userRecord->lastName),
-            link: User::buildLink($userRecord->username),
-            volleyball: $gameUser->volleyball,
-            net: $gameUser->net,
-            time: $gameUser->time,
-        );
     }
 }

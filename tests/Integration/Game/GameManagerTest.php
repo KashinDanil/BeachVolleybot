@@ -15,6 +15,7 @@ use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Game\NewGameFactory;
+use BeachVolleybot\Notifications\LineupChangeNotifier;
 use BeachVolleybot\Notifications\MinimumPlayersNotifier;
 use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
@@ -35,7 +36,11 @@ final class GameManagerTest extends DatabaseTestCase
         parent::setUp();
         Connection::set($this->db);
         SpyQueue::reset();
-        $this->gameManager = new GameManager(new MinimumPlayersNotifier(new NotificationEnqueuer(SpyQueue::class, sys_get_temp_dir())));
+        $spyEnqueuer = new NotificationEnqueuer(SpyQueue::class, sys_get_temp_dir());
+        $this->gameManager = new GameManager(
+            new MinimumPlayersNotifier($spyEnqueuer),
+            new LineupChangeNotifier($spyEnqueuer),
+        );
     }
 
     protected function tearDown(): void
@@ -390,111 +395,6 @@ final class GameManagerTest extends DatabaseTestCase
 
         $game = $this->gameRecord($gameId);
         $this->assertSame('55.751244,37.618423', $game->location);
-    }
-
-    // --- settings ---
-
-    public function testSetPlayersPerNetPersistsTheLimit(): void
-    {
-        $gameId = $this->createGame();
-
-        $this->gameManager->setPlayersPerNet($gameId, 6);
-
-        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
-    }
-
-    public function testSetPlayersPerNetReplacesAnEarlierLimit(): void
-    {
-        $gameId = $this->createGame();
-        $this->gameManager->setPlayersPerNet($gameId, 6);
-
-        $this->gameManager->setPlayersPerNet($gameId, 8);
-
-        $this->assertSame(8, $this->gameRecord($gameId)->settings->playersPerNet);
-    }
-
-    public function testSetPlayersPerNetNullClearsTheLimit(): void
-    {
-        $gameId = $this->createGame();
-        $this->gameManager->setPlayersPerNet($gameId, 6);
-
-        $this->gameManager->setPlayersPerNet($gameId, null);
-
-        $this->assertNull($this->gameRecord($gameId)->settings->playersPerNet);
-    }
-
-    public function testSetPlayersPerNetReadsTheStoredSettingsBeforeWriting(): void
-    {
-        $gameId = $this->createGame();
-        $this->gameManager->setPlayersPerNet($gameId, 6);
-
-        $selects = $this->selectsAgainstGames($this->queriesDuring(
-            fn() => $this->gameManager->setPlayersPerNet($gameId, 8),
-        ));
-
-        $this->assertNotEmpty($selects);
-    }
-
-    public function testSetPlayersPerNetRejectsAValueBelowTheMinimum(): void
-    {
-        $gameId = $this->createGame();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $this->gameManager->setPlayersPerNet($gameId, MinimumPlayersPerNetRule::MINIMUM - 1);
-    }
-
-    public function testSetPlayersPerNetRejectsZeroWhichWouldReserveTheWholeRoster(): void
-    {
-        $gameId = $this->createGame();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $this->gameManager->setPlayersPerNet($gameId, 0);
-    }
-
-    public function testSetPlayersPerNetRejectsANegativeLimitThatWouldNeverApply(): void
-    {
-        $gameId = $this->createGame();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $this->gameManager->setPlayersPerNet($gameId, -4);
-    }
-
-    public function testARejectedLimitLeavesTheStoredSettingsAlone(): void
-    {
-        $gameId = $this->createGame();
-        $this->gameManager->setPlayersPerNet($gameId, 6);
-
-        try {
-            $this->gameManager->setPlayersPerNet($gameId, 1);
-        } catch (InvalidArgumentException) {
-            // Swallowed on purpose; the assertion below is the point.
-        }
-
-        $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
-    }
-
-    public function testSetPlayersPerNetAcceptsTheMinimum(): void
-    {
-        $gameId = $this->createGame();
-
-        $this->gameManager->setPlayersPerNet($gameId, MinimumPlayersPerNetRule::MINIMUM);
-
-        $this->assertSame(
-            MinimumPlayersPerNetRule::MINIMUM,
-            $this->gameRecord($gameId)->settings->playersPerNet,
-        );
-    }
-
-    public function testSetPlayersPerNetRoundTripsThroughTheGameRecord(): void
-    {
-        $gameId = $this->createGame();
-
-        $this->gameManager->setPlayersPerNet($gameId, 4);
-
-        $this->assertEquals(new GameSettings(playersPerNet: 4), $this->gameRecord($gameId)->settings);
     }
 
     public function testCreateGameStoresPlayersPerNetFromTitle(): void
@@ -939,7 +839,228 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame([], $this->enqueuedNotifications());
     }
 
+    // --- PromotedIntoGame / BumpedFromGame ---
+
+    public function testLeavingFromInsideTheLimitPromotesTheFirstReserve(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 204);
+        SpyQueue::reset();
+
+        $this->gameManager->leaveGame($gameId, 201);
+
+        $this->assertSame([204], $this->notifiedUserIds(NotificationType::PromotedIntoGame));
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::BumpedFromGame));
+    }
+
+    public function testLeavingFromTheReserveSendsNothing(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 204, 205);
+        SpyQueue::reset();
+
+        $this->gameManager->leaveGame($gameId, 204);
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
+    public function testCompletingASecondCourtPromotesTheReservesExceptTheActor(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 204, 205, 206);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 205, firstName: 'Player'));
+        SpyQueue::reset();
+
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 206, firstName: 'Player'));
+
+        $this->assertSame([204, 205], $this->notifiedUserIds(NotificationType::PromotedIntoGame));
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::BumpedFromGame));
+    }
+
+    public function testRemovingASecondNetBumpsThePlayersPastTheSmallerLimit(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 204, 205, 206, 207, 208);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Player'));
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 201, firstName: 'Player'));
+        SpyQueue::reset();
+
+        $this->gameManager->removeNet($gameId, 201);
+
+        $this->assertSame([204, 205, 206, 207], $this->notifiedUserIds(NotificationType::BumpedFromGame));
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::PromotedIntoGame));
+    }
+
+    public function testActorWhoDropsToTheReserveIsNotNotified(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 204, 205, 206, 207, 208);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 208, firstName: 'Player'));
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 208, firstName: 'Player'));
+        SpyQueue::reset();
+
+        $this->gameManager->removeVolleyball($gameId, 208);
+
+        $this->assertSame([204, 205, 206], $this->notifiedUserIds(NotificationType::BumpedFromGame));
+    }
+
+    public function testRemovingTheLastNetSendsNothing(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 204);
+        SpyQueue::reset();
+
+        $this->gameManager->removeNet($gameId, 200);
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
+    public function testTheFirstNetArrivingSendsNothing(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->gameManager->removeNet($gameId, 200);
+        $this->joinAs($gameId, 201, 202, 203, 204);
+        SpyQueue::reset();
+
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
+    public function testPlusOneCrossingTheLimitSendsNothing(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 203);
+        SpyQueue::reset();
+
+        $this->gameManager->leaveGame($gameId, 201);
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
+    public function testRaisingPlayersPerNetInTheTitlePromotesReserves(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 204, 205);
+        SpyQueue::reset();
+
+        $this->gameManager->changeTitle(
+            $this->gameRecord($gameId),
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Game 18:00, 6 spots per net',
+        );
+
+        $this->assertSame([204, 205], $this->notifiedUserIds(NotificationType::PromotedIntoGame));
+    }
+
+    public function testLoweringPlayersPerNetInTheTitleBumpsThePlayersPastIt(): void
+    {
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Game 18:00, 6 spots per net',
+            'query_1',
+        ));
+        $this->joinAs($gameId, 201, 202, 203, 204, 205);
+        SpyQueue::reset();
+
+        $this->gameManager->changeTitle(
+            $this->gameRecord($gameId),
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Game 18:00, 4 spots per net',
+        );
+
+        $this->assertSame([204, 205], $this->notifiedUserIds(NotificationType::BumpedFromGame));
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::PromotedIntoGame));
+    }
+
+    public function testRetitlingWithTheSameCountSendsNothing(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 204, 205);
+        SpyQueue::reset();
+
+        $this->gameManager->changeTitle(
+            $this->gameRecord($gameId),
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Beach Game 18:00, 4 spots per net',
+        );
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
+    public function testRemovingThePhraseFromTheTitlePromotesTheReserves(): void
+    {
+        $gameId = $this->createLimitedGame();
+        $this->joinAs($gameId, 201, 202, 203, 204, 205);
+        SpyQueue::reset();
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Game 18:00');
+
+        $this->assertSame([204, 205], $this->notifiedUserIds(NotificationType::PromotedIntoGame));
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::BumpedFromGame));
+    }
+
+    public function testAddingThePhraseToTheTitleBumpsThePlayersPastTheLimit(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $this->joinAs($gameId, 201, 202, 203, 204, 205);
+        SpyQueue::reset();
+
+        $this->gameManager->changeTitle(
+            $this->gameRecord($gameId),
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Game 18:00, 4 spots per net',
+        );
+
+        $this->assertSame([204, 205], $this->notifiedUserIds(NotificationType::BumpedFromGame));
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::PromotedIntoGame));
+    }
+
+    public function testRetitlingAGameWithoutThePhraseReadsNoRoster(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $gameRecord = $this->gameRecord($gameId);
+
+        $queries = $this->queriesDuring(function () use ($gameRecord) {
+            $this->gameManager->changeTitle($gameRecord, new TelegramUser(id: 200, firstName: 'Danil'), 'Game 19:00');
+        });
+
+        $this->assertSame([], array_filter($queries, static fn(string $query): bool => str_contains($query, 'SELECT * FROM "game_slots"')));
+    }
+
+    public function testGameWithoutALimitSendsNothing(): void
+    {
+        $gameId = $this->gameManager->createGame($this->newGameData());
+        $this->joinAs($gameId, 201, 202, 203, 204);
+        SpyQueue::reset();
+
+        $this->gameManager->leaveGame($gameId, 201);
+
+        $this->assertSame([], $this->enqueuedNotifications());
+    }
+
     // --- Helpers ---
+
+    /** The creator brings a net and a ball, so the limit is 4 from the start. */
+    private function createLimitedGame(): int
+    {
+        return $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Game 18:00, 4 spots per net',
+            'query_1',
+        ));
+    }
+
+    /** @return list<int> */
+    private function notifiedUserIds(NotificationType $type): array
+    {
+        $payloads = array_filter(
+            $this->enqueuedNotifications(),
+            static fn(?array $payload): bool => $type->value === $payload['type'],
+        );
+
+        return array_values(array_column($payloads, 'user_id'));
+    }
 
     private function joinAs(int $gameId, int ...$telegramUserIds): void
     {
