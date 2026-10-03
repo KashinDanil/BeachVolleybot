@@ -41,6 +41,11 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Beach 6 players max. per net 18:00'));
     }
 
+    public function testResolvesNetFirstWithColon(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Beach 18:00 per net: 6 players'));
+    }
+
     // --- Russian ---
 
     public function testResolvesSixMestNaSetku(): void
@@ -128,6 +133,36 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 человек макс. на сетку 18:00'));
     }
 
+    public function testResolvesAbbreviatedSlotNounEndingInADot(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 чел. на сетку 18:00'));
+    }
+
+    public function testResolvesAbbreviatedSlotNounAndLimitWordBothEndingInADot(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 чел. макс. на сетку 18:00'));
+    }
+
+    public function testResolvesNetFirst(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра на сетку 6 человек 18:00'));
+    }
+
+    public function testResolvesNetFirstWithQuantifierAndLimitWord(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра на одну сетку максимум 6 чел. 18:00'));
+    }
+
+    public function testResolvesNetFirstWithQuantifierNumberAndLimitWord(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра на 1 сетку максимум 6 чел. 18:00'));
+    }
+
+    public function testResolvesNetFirstWithDash(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 18:00, на сетку — 6 человек'));
+    }
+
     // --- Spanish ---
 
     public function testResolvesSixPlazasPorRed(): void
@@ -163,6 +198,11 @@ final class PlayersPerNetExtractorTest extends TestCase
     public function testResolvesWithAbbreviatedMaximoEndingInADot(): void
     {
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 6 personas máx. por red 18:00'));
+    }
+
+    public function testResolvesNetFirstSpanish(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 18:00 por cada red: 6 personas'));
     }
 
     // --- not a limit ---
@@ -232,9 +272,49 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertNull(PlayersPerNetExtractor::resolvePlayersPerNet('Игра 2099 на сетке'));
     }
 
-    public function testWordOrderReversedReturnsNull(): void
+    public function testCountFirstWinsOverAnEarlierNetFirstBelowTheMinimum(): void
     {
-        $this->assertNull(PlayersPerNetExtractor::resolvePlayersPerNet('на сетку 6 мест'));
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Пн 18:00 на корте 2 человека, макс 6 человек на сетку'));
+    }
+
+    public function testCountFirstWinsOverAnEarlierNetFirst(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Пн 18:00 на корте 12 мест, 6 человек на сетку'));
+    }
+
+    public function testCountFirstWinsOverALaterNetFirst(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Пн 18:00 6 человек на сетку, на корте 12 мест'));
+    }
+
+    public function testCountFirstWinsOverAnEarlierNetFirstOnAnotherLine(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet("Пн 18:00 на корте 12 мест\n6 человек на сетку"));
+    }
+
+    public function testCountFirstWinsOverAnEarlierNetFirstEnglish(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Mon 18:00 per court 12 spots, 6 players per net'));
+    }
+
+    public function testCountFirstWinsOverAnEarlierNetFirstSpanish(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Lun 18:00 por pista 12 plazas, 6 personas por red'));
+    }
+
+    public function testNetFirstResolvesWhenTheLaterCountFirstLacksASlotNoun(): void
+    {
+        $this->assertSame(12, PlayersPerNetExtractor::resolvePlayersPerNet('Пн 18:00 на корте 12 мест, 6 на сетку'));
+    }
+
+    public function testNetFirstWithAMissingSlotNounReturnsNull(): void
+    {
+        $this->assertNull(PlayersPerNetExtractor::resolvePlayersPerNet('Игра на сетку 6 18:00'));
+    }
+
+    public function testNetFirstDoesNotReadATimeAsACount(): void
+    {
+        $this->assertNull(PlayersPerNetExtractor::resolvePlayersPerNet('Игра на сетке 18:00 человек'));
     }
 
     public function testNoPhraseReturnsNull(): void
@@ -267,6 +347,16 @@ final class PlayersPerNetExtractorTest extends TestCase
     public function testExtractIncludesTheLimitWordInTheSpan(): void
     {
         $this->assertSame('6 человек максимум на 1 сетку', PlayersPerNetExtractor::extract('Игра 6 человек максимум на 1 сетку 18:00'));
+    }
+
+    public function testExtractReturnsTheNetFirstSpan(): void
+    {
+        $this->assertSame('на сетку — 6 человек', PlayersPerNetExtractor::extract('Игра 18:00, на сетку — 6 человек'));
+    }
+
+    public function testExtractReturnsTheCountFirstSpanOverAnEarlierNetFirst(): void
+    {
+        $this->assertSame('6 человек на сетку', PlayersPerNetExtractor::extract('Пн 18:00 на корте 12 мест, 6 человек на сетку'));
     }
 
     public function testExtractReturnsNullWhenNothingMatches(): void
