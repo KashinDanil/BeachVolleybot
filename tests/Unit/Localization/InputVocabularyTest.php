@@ -117,11 +117,17 @@ final class InputVocabularyTest extends TestCase
 
             $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$quantifier' is declared but not read");
         }
+
+        foreach (InputVocabulary::limitWords() as $limitWord) {
+            $title = "Game 6 spots $limitWord per net";
+
+            $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet($title), "'$limitWord' is declared but not read");
+        }
     }
 
     public function testNewVocabularyDoesNotCollideWithWeekdaysOrMonths(): void
     {
-        $newWords = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions(), ...InputVocabulary::netQuantifiers()];
+        $newWords = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions(), ...InputVocabulary::netQuantifiers(), ...InputVocabulary::limitWords()];
         $named = [...array_keys(InputVocabulary::weekdays()), ...array_keys(InputVocabulary::months())];
 
         $collisions = array_intersect($newWords, $named);
@@ -136,6 +142,7 @@ final class InputVocabularyTest extends TestCase
             'NET_NOUNS' => InputVocabulary::netNouns(),
             'PER_PREPOSITIONS' => InputVocabulary::perPrepositions(),
             'NET_QUANTIFIERS' => InputVocabulary::netQuantifiers(),
+            'LIMIT_WORDS' => InputVocabulary::limitWords(),
         ];
 
         foreach ($lists as $kindA => $wordsA) {
@@ -152,7 +159,7 @@ final class InputVocabularyTest extends TestCase
 
     public function testNoNewWordIsMistakenForAVenue(): void
     {
-        $words = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions(), ...InputVocabulary::netQuantifiers()];
+        $words = [...InputVocabulary::slotNouns(), ...InputVocabulary::netNouns(), ...InputVocabulary::perPrepositions(), ...InputVocabulary::netQuantifiers(), ...InputVocabulary::limitWords()];
 
         foreach ($words as $word) {
             $this->assertNull(KnownVenues::findInTitle($word), "'$word' is read back as a venue");

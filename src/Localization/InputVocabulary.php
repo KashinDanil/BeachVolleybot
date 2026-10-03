@@ -131,6 +131,16 @@ final class InputVocabulary
         Language::ES => ['red', 'cancha', 'pista'],
     ];
 
+    /**
+     * @var array<string, list<string>> language => optional "maximum" word that may sit between
+     *      the slot noun and the preposition ("6 человек максимум на сетку", "6 players max per net").
+     */
+    private const array LIMIT_WORDS = [
+        Language::EN => ['maximum', 'max', 'tops'],
+        Language::RU => ['максимум', 'макс'],
+        Language::ES => ['máximo', 'maximo', 'máx'],
+    ];
+
     /** @var array<string, list<string>> language => the preposition linking a slot count to a net */
     private const array PER_PREPOSITIONS = [
         Language::EN => ['per'],
@@ -209,6 +219,12 @@ final class InputVocabulary
     public static function netNouns(): array
     {
         return self::flatten(self::NET_NOUNS);
+    }
+
+    /** @return list<string> */
+    public static function limitWords(): array
+    {
+        return self::flatten(self::LIMIT_WORDS);
     }
 
     /** @return list<string> */

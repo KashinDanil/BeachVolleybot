@@ -31,6 +31,16 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Beach 6 people per 1 net 18:00'));
     }
 
+    public function testResolvesWithMaxBetweenSlotNounAndPreposition(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Beach 6 players max per 1 net 18:00'));
+    }
+
+    public function testResolvesWithAbbreviatedMaxEndingInADot(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Beach 6 players max. per net 18:00'));
+    }
+
     // --- Russian ---
 
     public function testResolvesSixMestNaSetku(): void
@@ -103,6 +113,21 @@ final class PlayersPerNetExtractorTest extends TestCase
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 человек на 1 сетку 18:00'));
     }
 
+    public function testResolvesWithMaximumBetweenSlotNounAndPreposition(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 человек максимум на 1 сетку 18:00'));
+    }
+
+    public function testResolvesWithShortMaximumBetweenSlotNounAndPreposition(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 мест макс на сетку 18:00'));
+    }
+
+    public function testResolvesWithAbbreviatedMaximumEndingInADot(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Игра 6 человек макс. на сетку 18:00'));
+    }
+
     // --- Spanish ---
 
     public function testResolvesSixPlazasPorRed(): void
@@ -128,6 +153,16 @@ final class PlayersPerNetExtractorTest extends TestCase
     public function testResolvesWithDigitOneBetweenPrepositionAndNetSpanish(): void
     {
         $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 6 personas por 1 red 18:00'));
+    }
+
+    public function testResolvesWithMaximoBetweenSlotNounAndPreposition(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 6 personas máximo por red 18:00'));
+    }
+
+    public function testResolvesWithAbbreviatedMaximoEndingInADot(): void
+    {
+        $this->assertSame(6, PlayersPerNetExtractor::resolvePlayersPerNet('Partido 6 personas máx. por red 18:00'));
     }
 
     // --- not a limit ---
@@ -227,6 +262,11 @@ final class PlayersPerNetExtractorTest extends TestCase
     public function testExtractReturnsTheLiteralSpan(): void
     {
         $this->assertSame('6 spots per net', PlayersPerNetExtractor::extract('Beach 6 spots per net 18:00'));
+    }
+
+    public function testExtractIncludesTheLimitWordInTheSpan(): void
+    {
+        $this->assertSame('6 человек максимум на 1 сетку', PlayersPerNetExtractor::extract('Игра 6 человек максимум на 1 сетку 18:00'));
     }
 
     public function testExtractReturnsNullWhenNothingMatches(): void
