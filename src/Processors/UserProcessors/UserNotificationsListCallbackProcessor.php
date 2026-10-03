@@ -20,7 +20,7 @@ class UserNotificationsListCallbackProcessor extends AbstractCallbackProcessor
         $this->telegramSender->editMessage(
             $callbackQuery->message->chat->id,
             $callbackQuery->message->messageId,
-            new NotificationSettingsMessageBuilder(Translator::fromUser($callbackQuery->from))->buildList($user->notifications),
+            new NotificationSettingsMessageBuilder(Translator::fromUser($callbackQuery->from))->buildList($user->effectiveNotifications()),
         );
         $this->answerCallbackQuery($callbackQuery, '');
     }

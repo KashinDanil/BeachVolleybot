@@ -97,6 +97,13 @@ final class UserRepositoryTest extends DatabaseTestCase
         $this->assertSame(NotificationType::PromotedIntoGame->bit(), (int)$user['notifications']);
     }
 
+    public function testUpsertLeavesNotificationsUnset(): void
+    {
+        $this->repository->upsert(200, 'Danil');
+
+        $this->assertNull($this->repository->findById(200)['notifications']);
+    }
+
     public function testUpdateNotificationsOverwritesThePreviousValue(): void
     {
         $this->repository->upsert(200, 'Danil');

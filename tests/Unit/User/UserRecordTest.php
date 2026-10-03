@@ -24,7 +24,7 @@ final class UserRecordTest extends TestCase
             'username' => 'kashindanil',
             'language_code' => 'ru',
             'role' => (string)Role::Admin->value,
-            'notifications' => (string)$notificationsMask,
+            'notifications' => $notificationsMask,
             'created_at' => '2026-01-01 10:00:00',
             'updated_at' => '2026-01-02 11:00:00',
         ]);
@@ -59,6 +59,35 @@ final class UserRecordTest extends TestCase
         $this->assertNull($record->lastName);
         $this->assertNull($record->username);
         $this->assertNull($record->languageCode);
+    }
+
+    public function testFromRowKeepsNullNotificationsNull(): void
+    {
+        $record = UserRecord::fromRow([
+            'telegram_user_id' => 200,
+            'first_name' => 'Danil',
+            'role' => Role::Player->value,
+            'notifications' => null,
+            'created_at' => '2026-01-01 10:00:00',
+            'updated_at' => '2026-01-01 10:00:00',
+        ]);
+
+        $this->assertNull($record->notifications);
+        $this->assertSame(0, $record->effectiveNotifications()->toInt());
+    }
+
+    public function testEffectiveNotificationsReturnsTheStoredSettings(): void
+    {
+        $record = UserRecord::fromRow([
+            'telegram_user_id' => 200,
+            'first_name' => 'Danil',
+            'role' => Role::Player->value,
+            'notifications' => NotificationType::BumpedFromGame->bit(),
+            'created_at' => '2026-01-01 10:00:00',
+            'updated_at' => '2026-01-01 10:00:00',
+        ]);
+
+        $this->assertSame($record->notifications, $record->effectiveNotifications());
     }
 
     public function testFromRowFallsBackToPlayerForAnUnknownRole(): void

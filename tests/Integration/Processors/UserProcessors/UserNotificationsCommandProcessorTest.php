@@ -68,13 +68,24 @@ final class UserNotificationsCommandProcessorTest extends ProcessorTestCase
         $this->assertSame(109, $deleteCall['args'][1]);
     }
 
-    public function testCreatesAMissingUserWithEveryNotificationOff(): void
+    public function testCreatesAMissingUserWithNotificationsUnset(): void
     {
         $this->processCommand();
 
         $record = new UserManager()->findUserRecordById(self::SENDER_ID);
         $this->assertNotNull($record);
-        $this->assertSame(0, $record->notifications->toInt());
+        $this->assertNull($record->notifications);
+    }
+
+    public function testUnsetNotificationsListEveryTypeAsOff(): void
+    {
+        $this->createUser(telegramUserId: self::SENDER_ID);
+
+        $this->processCommand();
+
+        foreach ($this->extractKeyboard($this->lastSendMessageCall()) as $row) {
+            $this->assertArrayNotHasKey('style', $row[0]);
+        }
     }
 
     public function testMarksEnabledNotificationsInTheList(): void

@@ -17,7 +17,7 @@ class UserNotificationsCommandProcessor extends AbstractActionProcessor
         $message = $update->message;
         $user = new UserManager()->ensureUserRecord($message->from);
 
-        $listMessage = new NotificationSettingsMessageBuilder(Translator::fromUser($message->from))->buildList($user->notifications);
+        $listMessage = new NotificationSettingsMessageBuilder(Translator::fromUser($message->from))->buildList($user->effectiveNotifications());
 
         $this->telegramSender->sendMessage($message->chat->id, $listMessage);
         $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);

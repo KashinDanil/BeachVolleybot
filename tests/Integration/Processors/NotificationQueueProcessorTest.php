@@ -77,6 +77,16 @@ final class NotificationQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([], $this->getSentChatIds());
     }
 
+    public function testSkipsAUserWhoseNotificationsAreUnset(): void
+    {
+        $this->createUser(200);
+        $this->createGameUser($this->gameId, 200);
+
+        $this->processNotificationFor(200, NotificationType::PromotedIntoGame);
+
+        $this->assertSame([], $this->getSentChatIds());
+    }
+
     public function testSkipsAnUnknownUser(): void
     {
         $this->assertTrue($this->processNotificationFor(999, NotificationType::BumpedFromGame));

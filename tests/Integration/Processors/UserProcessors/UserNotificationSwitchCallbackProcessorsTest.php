@@ -43,7 +43,7 @@ final class UserNotificationSwitchCallbackProcessorsTest extends ProcessorTestCa
 
     private function storedSettings(): NotificationSettings
     {
-        return new UserManager()->findUserRecordById(self::SENDER_ID)->notifications;
+        return new UserManager()->findUserRecordById(self::SENDER_ID)->effectiveNotifications();
     }
 
     public function testEnableRedrawsTheDetailWithDisableAndConfirms(): void
@@ -125,6 +125,17 @@ final class UserNotificationSwitchCallbackProcessorsTest extends ProcessorTestCa
 
         $this->assertMessageNotEdited();
         $this->assertAnsweredWith('');
-        $this->assertSame(0, $this->storedSettings()->toInt());
+        $this->assertNull(new UserManager()->findUserRecordById(self::SENDER_ID)->notifications);
+    }
+
+    public function testDisableOnUnsetNotificationsStoresEveryTypeOff(): void
+    {
+        $this->createUser(telegramUserId: self::SENDER_ID);
+
+        $this->processSwitch(UserCallbackAction::DisableNotification, NotificationType::PromotedIntoGame);
+
+        $this->assertSame(0, new UserManager()->findUserRecordById(self::SENDER_ID)->notifications?->toInt());
+        $this->assertSame('Enable', $this->editedKeyboard()[0][0]['text']);
+        $this->assertAnsweredWith('Notification disabled');
     }
 }

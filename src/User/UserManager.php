@@ -71,7 +71,7 @@ readonly class UserManager
 
     public function enableNotification(UserRecord $user, NotificationType $type): NotificationSettings
     {
-        $notifications = $user->notifications->enable($type);
+        $notifications = $user->effectiveNotifications()->enable($type);
         $this->userRepository->updateNotifications($user->telegramUserId, $notifications->toInt());
 
         return $notifications;
@@ -79,7 +79,7 @@ readonly class UserManager
 
     public function disableNotification(UserRecord $user, NotificationType $type): NotificationSettings
     {
-        $notifications = $user->notifications->disable($type);
+        $notifications = $user->effectiveNotifications()->disable($type);
         $this->userRepository->updateNotifications($user->telegramUserId, $notifications->toInt());
 
         return $notifications;

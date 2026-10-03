@@ -38,7 +38,7 @@ class UserNotificationDetailCallbackProcessor extends AbstractCallbackProcessor
             $callbackQuery->message->chat->id,
             $callbackQuery->message->messageId,
             new NotificationSettingsMessageBuilder(Translator::fromUser($callbackQuery->from))
-                ->buildDetail($notificationType, $user->notifications),
+                ->buildDetail($notificationType, $user->effectiveNotifications()),
         );
         $this->answerCallbackQuery($callbackQuery, '');
     }

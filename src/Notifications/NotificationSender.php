@@ -49,7 +49,7 @@ final readonly class NotificationSender
             return null;
         }
 
-        if (!$user->notifications->isEnabled($notificationPayload->type)) {
+        if (!$user->notifications?->isEnabled($notificationPayload->type)) {
             return null;
         }
 

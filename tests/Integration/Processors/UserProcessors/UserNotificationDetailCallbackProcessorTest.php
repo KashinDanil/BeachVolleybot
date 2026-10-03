@@ -9,6 +9,7 @@ use BeachVolleybot\Processors\UserProcessors\UserNotificationDetailCallbackProce
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
 
 final class UserNotificationDetailCallbackProcessorTest extends ProcessorTestCase
@@ -39,6 +40,23 @@ final class UserNotificationDetailCallbackProcessorTest extends ProcessorTestCas
         );
 
         new UserNotificationDetailCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+    }
+
+    public function testShowsAStoredNotificationAsEnabled(): void
+    {
+        $this->createUser(telegramUserId: self::SENDER_ID);
+        $this->db->update(
+            'users',
+            ['notifications' => new NotificationSettings()->enable(NotificationType::GameReachedMinimumPlayers)->toInt()],
+            ['telegram_user_id' => self::SENDER_ID],
+        );
+
+        $this->processCallback(
+            UserCallbackData::create(UserCallbackAction::NotificationDetail)
+                ->withNotificationType(NotificationType::GameReachedMinimumPlayers)
+        );
+
+        $this->assertStringContainsString("🔔 You'll get a notification when", $this->editedText());
     }
 
     public function testUnknownNotificationTypeOnlyAnswersTheCallback(): void

@@ -116,14 +116,14 @@ final class UserManagerTest extends DatabaseTestCase
         $this->assertSame(0, $this->currentUser(200)->notifications->toInt());
     }
 
-    public function testEnsureUserRecordCreatesAMissingUserWithNotificationsOff(): void
+    public function testEnsureUserRecordCreatesAMissingUserWithNotificationsUnset(): void
     {
         $record = $this->userManager->ensureUserRecord(new TelegramUser(id: 200, firstName: 'Danil', username: 'danil'));
 
         $this->assertSame(200, $record->telegramUserId);
         $this->assertSame('Danil', $record->firstName);
         $this->assertSame('danil', $record->username);
-        $this->assertSame(0, $record->notifications->toInt());
+        $this->assertNull($record->notifications);
         $this->assertNotNull($this->userManager->findUserRecordById(200));
     }
 
@@ -195,6 +195,26 @@ final class UserManagerTest extends DatabaseTestCase
             $this->currentUser(200)->notifications->toInt(),
             'Disabling every NotificationType left bits set in users.notifications.',
         );
+    }
+
+    public function testEnableNotificationOnUnsetNotificationsStartsFromEveryTypeOff(): void
+    {
+        $this->createUser(telegramUserId: 200);
+
+        $notifications = $this->userManager->enableNotification($this->currentUser(200), NotificationType::BumpedFromGame);
+
+        $this->assertSame(NotificationType::BumpedFromGame->bit(), $notifications->toInt());
+        $this->assertSame(NotificationType::BumpedFromGame->bit(), $this->currentUser(200)->notifications?->toInt());
+    }
+
+    public function testDisableNotificationOnUnsetNotificationsStoresEveryTypeOff(): void
+    {
+        $this->createUser(telegramUserId: 200);
+
+        $notifications = $this->userManager->disableNotification($this->currentUser(200), NotificationType::BumpedFromGame);
+
+        $this->assertSame(0, $notifications->toInt());
+        $this->assertSame(0, $this->currentUser(200)->notifications?->toInt());
     }
 
     private function currentUser(int $telegramUserId): UserRecord

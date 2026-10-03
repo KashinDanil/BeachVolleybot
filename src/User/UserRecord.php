@@ -16,10 +16,15 @@ readonly class UserRecord
         public ?string $username,
         public ?string $languageCode,
         public Role $role,
-        public NotificationSettings $notifications,
+        public ?NotificationSettings $notifications,
         public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
     ) {
+    }
+
+    public function effectiveNotifications(): NotificationSettings
+    {
+        return $this->notifications ?? new NotificationSettings();
     }
 
     /** @param array<string, mixed> $row */
@@ -32,9 +37,18 @@ readonly class UserRecord
             $row['username'] ?? null,
             $row['language_code'] ?? null,
             Role::tryFrom((int)$row['role']) ?? Role::Player,
-            NotificationSettings::fromInt((int)$row['notifications']),
+            self::parseNotifications($row['notifications'] ?? null),
             Timestamp::parse((string)$row['created_at']),
             Timestamp::parse((string)$row['updated_at']),
         );
+    }
+
+    private static function parseNotifications(?int $notifications): ?NotificationSettings
+    {
+        if (null === $notifications) {
+            return null;
+        }
+
+        return NotificationSettings::fromInt($notifications);
     }
 }

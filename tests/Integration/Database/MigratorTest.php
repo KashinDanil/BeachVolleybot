@@ -411,7 +411,7 @@ final class MigratorTest extends TestCase
 
         $user = (array) $this->db->get('users', '*', ['telegram_user_id' => 200]);
         $this->assertSame('Danil', $user['first_name']);
-        $this->assertSame(0, (int)$user['notifications']);
+        $this->assertNull($user['notifications']);
 
         $columns = $this->db->pdo->query('PRAGMA table_info(users)')->fetchAll(PDO::FETCH_ASSOC);
         $notificationsColumn = array_values(array_filter(
@@ -420,8 +420,8 @@ final class MigratorTest extends TestCase
         ))[0] ?? null;
         $this->assertNotNull($notificationsColumn);
         $this->assertSame('INTEGER', $notificationsColumn['type']);
-        $this->assertSame(1, (int)$notificationsColumn['notnull']);
-        $this->assertSame('0', $notificationsColumn['dflt_value']);
+        $this->assertSame(0, (int)$notificationsColumn['notnull']);
+        $this->assertNull($notificationsColumn['dflt_value']);
     }
 
     public function testLanguageCodeMigrationAddsANullableColumnAndKeepsExistingUsers(): void

@@ -9,6 +9,8 @@ use BeachVolleybot\Processors\UserProcessors\UserNotificationsListCallbackProces
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\NotificationSettings;
+use BeachVolleybot\User\NotificationType;
 
 final class UserNotificationsListCallbackProcessorTest extends ProcessorTestCase
 {
@@ -41,5 +43,40 @@ final class UserNotificationsListCallbackProcessorTest extends ProcessorTestCase
         $this->processCallback();
 
         $this->assertAnsweredWith('');
+    }
+
+    public function testUnsetNotificationsListEveryTypeAsOff(): void
+    {
+        $this->createUser(telegramUserId: self::SENDER_ID);
+
+        $this->processCallback();
+
+        foreach ($this->editedKeyboard() as $row) {
+            $this->assertArrayNotHasKey('style', $row[0]);
+        }
+    }
+
+    public function testMarksEnabledNotificationsInTheList(): void
+    {
+        $this->createUser(telegramUserId: self::SENDER_ID);
+        $this->db->update(
+            'users',
+            ['notifications' => new NotificationSettings()->enable(NotificationType::BumpedFromGame)->toInt()],
+            ['telegram_user_id' => self::SENDER_ID],
+        );
+
+        $this->processCallback();
+
+        $keyboard = $this->editedKeyboard();
+        $this->assertSame('success', $keyboard[NotificationType::BumpedFromGame->value - 1][0]['style'] ?? null);
+        $this->assertArrayNotHasKey('style', $keyboard[NotificationType::PromotedIntoGame->value - 1][0]);
+    }
+
+    private function editedKeyboard(): array
+    {
+        $editCalls = array_filter($this->bot->calls, fn($call) => 'editMessageText' === $call['method']);
+        $this->assertNotEmpty($editCalls);
+
+        return json_decode(end($editCalls)['args'][5]->toJson(), true)['inline_keyboard'];
     }
 }
