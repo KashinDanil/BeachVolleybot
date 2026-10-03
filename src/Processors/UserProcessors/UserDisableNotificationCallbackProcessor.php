@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\UserProcessors;
 
-use BeachVolleybot\Telegram\MessageBuilders\NotificationsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NotificationSettingsMessageBuilder;
 use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
 use BeachVolleybot\User\UserManager;
@@ -22,7 +22,7 @@ class UserDisableNotificationCallbackProcessor extends AbstractUserNotificationS
 
     protected function getConfirmationToastText(): string
     {
-        return NotificationsMessageBuilder::DISABLED_TOAST;
+        return NotificationSettingsMessageBuilder::DISABLED_TOAST;
     }
 
     protected function getLogAction(): string

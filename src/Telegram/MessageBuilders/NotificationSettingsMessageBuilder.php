@@ -14,7 +14,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
 
-final class NotificationsMessageBuilder extends AbstractMessageBuilder
+final class NotificationSettingsMessageBuilder extends AbstractMessageBuilder
 {
     public const string HEADER_TEXT       = 'Notifications';
     public const string CHOOSE_TEXT       = 'Choose a notification to set it up.';

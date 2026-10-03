@@ -7,7 +7,7 @@ namespace BeachVolleybot\Processors\UserProcessors;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
-use BeachVolleybot\Telegram\MessageBuilders\NotificationsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NotificationSettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\User\UserManager;
@@ -37,7 +37,7 @@ class UserNotificationDetailCallbackProcessor extends AbstractCallbackProcessor
         $this->telegramSender->editMessage(
             $callbackQuery->message->chat->id,
             $callbackQuery->message->messageId,
-            new NotificationsMessageBuilder(Translator::fromUser($callbackQuery->from))
+            new NotificationSettingsMessageBuilder(Translator::fromUser($callbackQuery->from))
                 ->buildDetail($notificationType, $user->notifications),
         );
         $this->answerCallbackQuery($callbackQuery, '');

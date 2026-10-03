@@ -7,7 +7,7 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
-use BeachVolleybot\Telegram\MessageBuilders\NotificationsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NotificationSettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
@@ -17,7 +17,7 @@ use UnhandledMatchError;
 
 final class NotificationsMessageBuilderTest extends TestCase
 {
-    private NotificationsMessageBuilder $builder;
+    private NotificationSettingsMessageBuilder $builder;
 
     private string $missingTranslationsFile;
 
@@ -172,7 +172,7 @@ final class NotificationsMessageBuilderTest extends TestCase
 
     public function testDetailIsTranslated(): void
     {
-        $builder = new NotificationsMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
+        $builder = new NotificationSettingsMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
         $settings = new NotificationSettings()->enable(NotificationType::GameReachedMinimumPlayers);
 
         $message = $builder->buildDetail(NotificationType::GameReachedMinimumPlayers, $settings);
@@ -183,7 +183,7 @@ final class NotificationsMessageBuilderTest extends TestCase
 
     public function testListLabelsAreTranslated(): void
     {
-        $builder = new NotificationsMessageBuilder(new Translator(Language::RU, $this->missingTranslationsFile));
+        $builder = new NotificationSettingsMessageBuilder(new Translator(Language::RU, $this->missingTranslationsFile));
 
         $this->assertSame(
             ['✅ Игра состоится', '⚠️ Не хватает игроков', '⬆️ Вы в игре', '⬇️ Вы не играете', '🕒 Время игры изменилось'],
@@ -196,7 +196,7 @@ final class NotificationsMessageBuilderTest extends TestCase
 
     public function testDetailHeadlineIsTheTranslatedLabel(): void
     {
-        $builder = new NotificationsMessageBuilder(new Translator(Language::RU, $this->missingTranslationsFile));
+        $builder = new NotificationSettingsMessageBuilder(new Translator(Language::RU, $this->missingTranslationsFile));
 
         $text = $builder->buildDetail(NotificationType::PromotedIntoGame, new NotificationSettings())->getText()->getMessageText();
 
@@ -275,7 +275,7 @@ final class NotificationsMessageBuilderTest extends TestCase
                 continue;
             }
 
-            $builder = new NotificationsMessageBuilder(new Translator($language, $this->missingTranslationsFile));
+            $builder = new NotificationSettingsMessageBuilder(new Translator($language, $this->missingTranslationsFile));
             $this->render(fn(): TelegramMessage => $builder->buildList(new NotificationSettings()));
 
             foreach (NotificationType::cases() as $type) {
@@ -312,7 +312,7 @@ final class NotificationsMessageBuilderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->builder = new NotificationsMessageBuilder(new Translator());
+        $this->builder = new NotificationSettingsMessageBuilder(new Translator());
         $this->missingTranslationsFile = sys_get_temp_dir() . '/bvb_notifications_missing_' . getmypid() . '.json';
     }
 

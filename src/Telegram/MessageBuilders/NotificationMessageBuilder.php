@@ -13,7 +13,7 @@ use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\User\NotificationType;
 use DateTimeImmutable;
 
-final class GameNotificationMessageBuilder extends AbstractMessageBuilder
+final class NotificationMessageBuilder extends AbstractMessageBuilder
 {
     public function __construct(
         private readonly Translator $translator,

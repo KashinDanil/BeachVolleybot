@@ -8,7 +8,7 @@ use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\GameNotificationMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NotificationMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\User\UserManager;
@@ -58,7 +58,7 @@ final readonly class NotificationSender
 
     private function buildMessage(NotificationQueuePayload $notificationPayload, GameRecord $game, UserRecord $recipient): TelegramMessage
     {
-        return new GameNotificationMessageBuilder(Translator::fromLanguageCode($recipient->languageCode))
+        return new NotificationMessageBuilder(Translator::fromLanguageCode($recipient->languageCode))
             ->build($notificationPayload->type, $game);
     }
 

@@ -6,7 +6,7 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Localization\Translator;
-use BeachVolleybot\Telegram\MessageBuilders\GameNotificationMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\NotificationMessageBuilder;
 use BeachVolleybot\Telegram\PlainText;
 use BeachVolleybot\User\NotificationType;
 use DanilKashin\Localization\Language;
@@ -33,7 +33,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
 
     public function testRendersThePromotedIntoGameMarkdownV2Message(): void
     {
-        $message = new GameNotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
+        $message = new NotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
             ->build(NotificationType::PromotedIntoGame, $this->game('Friday 18:00 Barceloneta'));
 
         $this->assertSame(
@@ -45,7 +45,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
 
     public function testRendersTheShortBeforeKickoffMarkdownV2Message(): void
     {
-        $message = new GameNotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
+        $message = new NotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
             ->build(NotificationType::GameShortBeforeKickoff, $this->game('Friday 18:00 Barceloneta'));
 
         $this->assertSame(
@@ -56,7 +56,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
 
     public function testRendersTheKickoffTimeChangedHintBelowTheQuotedTitle(): void
     {
-        $message = new GameNotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
+        $message = new NotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
             ->build(NotificationType::KickoffTimeChanged, $this->game('Friday 18:00 Barceloneta'));
 
         $this->assertStringEndsWith(
@@ -67,7 +67,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
 
     public function testEscapesMarkdownCharactersInTheTitle(): void
     {
-        $text = new GameNotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
+        $text = new NotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
             ->build(NotificationType::PromotedIntoGame, $this->game('*Beach* _game_ [18:00] ~ok~ `x` {y} | (net #2) 14.08!'))
             ->getText()
             ->getMessageText();
@@ -80,7 +80,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
 
     public function testDisablesTheLinkPreview(): void
     {
-        $message = new GameNotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
+        $message = new NotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
             ->build(NotificationType::PromotedIntoGame, $this->game());
 
         $this->assertTrue($message->getText()->isDisableWebPagePreview());
@@ -88,7 +88,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
 
     public function testCarriesNoKeyboardButtons(): void
     {
-        $message = new GameNotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
+        $message = new NotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW))
             ->build(NotificationType::GameShortBeforeKickoff, $this->game());
 
         $this->assertSame([], json_decode($message->getKeyboard()->toJson(), true)['inline_keyboard']);
@@ -173,7 +173,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
     {
         foreach ([Language::RU, Language::ES] as $language) {
             @unlink($this->missingTranslationsFile);
-            $builder = new GameNotificationMessageBuilder(
+            $builder = new NotificationMessageBuilder(
                 $this->translator($language),
                 new DateTimeImmutable(self::NOW),
                 new PlainText(),
@@ -204,7 +204,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
         $kickoffAtTheVenue = new DateTimeImmutable('2026-08-14 16:00', new DateTimeZone('UTC'))
             ->setTimezone(new DateTimeZone('Europe/Madrid'));
 
-        $text = new GameNotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW), new PlainText())
+        $text = new NotificationMessageBuilder($this->translator(Language::EN), new DateTimeImmutable(self::NOW), new PlainText())
             ->build(NotificationType::PromotedIntoGame, $this->game(kickoffAt: $kickoffAtTheVenue->format(DATE_ATOM)))
             ->getText()
             ->getMessageText();
@@ -216,7 +216,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
     {
         $kickoffAt = new DateTimeImmutable('today 18:00');
 
-        $text = new GameNotificationMessageBuilder($this->translator(Language::EN), formatter: new PlainText())
+        $text = new NotificationMessageBuilder($this->translator(Language::EN), formatter: new PlainText())
             ->build(NotificationType::PromotedIntoGame, $this->game(kickoffAt: $kickoffAt->format('Y-m-d H:i')))
             ->getText()
             ->getMessageText();
@@ -240,7 +240,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
 
     private function plainText(NotificationType $type, string $language, string $kickoffAt = self::KICKOFF): string
     {
-        return new GameNotificationMessageBuilder($this->translator($language), new DateTimeImmutable(self::NOW), new PlainText())
+        return new NotificationMessageBuilder($this->translator($language), new DateTimeImmutable(self::NOW), new PlainText())
             ->build($type, $this->game(kickoffAt: $kickoffAt))
             ->getText()
             ->getMessageText();
