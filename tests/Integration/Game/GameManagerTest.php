@@ -15,10 +15,13 @@ use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Game\LeaveResult;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Game\NewGameFactory;
+use BeachVolleybot\Game\ParsedTitle;
+use BeachVolleybot\Notifications\KickoffChangeNotifier;
 use BeachVolleybot\Notifications\LineupChangeNotifier;
 use BeachVolleybot\Notifications\MinimumPlayersNotifier;
 use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
+use BeachVolleybot\Tests\Fixtures\ReadsEnqueuedNotifications;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
 use BeachVolleybot\User\NotificationType;
@@ -29,6 +32,8 @@ use InvalidArgumentException;
 
 final class GameManagerTest extends DatabaseTestCase
 {
+    use ReadsEnqueuedNotifications;
+
     private GameManager $gameManager;
 
     protected function setUp(): void
@@ -40,6 +45,7 @@ final class GameManagerTest extends DatabaseTestCase
         $this->gameManager = new GameManager(
             new MinimumPlayersNotifier($spyEnqueuer),
             new LineupChangeNotifier($spyEnqueuer),
+            new KickoffChangeNotifier($spyEnqueuer),
         );
     }
 
@@ -241,6 +247,29 @@ final class GameManagerTest extends DatabaseTestCase
         $result = $this->gameManager->leaveGame($gameId, 200);
 
         $this->assertSame(LeaveResult::NotJoined, $result);
+    }
+
+    public function testLeaveGameRecalculatesGameTimeToTheNextEquipmentHolder(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
+
+        $this->gameManager->leaveGame($gameId, 201);
+
+        $this->assertSame('Beach 31.12.2099 18:00', $this->gameRecord($gameId)->title);
+    }
+
+    public function testLeaveGameKeepsGameTimeWhileThePlayerKeepsASlot(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '18:00');
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
+        $this->createSlot($gameId, 201, 3);
+
+        $this->gameManager->leaveGame($gameId, 201);
+
+        $this->assertSame('Beach 31.12.2099 16:00', $this->gameRecord($gameId)->title);
     }
 
     // --- addNet ---
@@ -761,7 +790,7 @@ final class GameManagerTest extends DatabaseTestCase
 
     // --- changeTitle ---
 
-    /** The caller hands in the game it already loaded, so only the time recalculation reads it back. */
+    /** The caller hands in the game it already loaded, so changeTitle never reads it back. */
     public function testChangeTitleDoesNotLoadTheGameItWasHandedIn(): void
     {
         $gameId = $this->gameManager->createGame($this->newGameData());
@@ -771,7 +800,7 @@ final class GameManagerTest extends DatabaseTestCase
             $this->gameManager->changeTitle($gameRecord, new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Saturday 20:00');
         });
 
-        $this->assertCount(1, $this->selectsAgainstGames($queries));
+        $this->assertSame([], $this->selectsAgainstGames($queries));
     }
 
     /** Title, kickoff, venue and settings land in one UPDATE — not a title write plus a separate settings write. */
@@ -786,6 +815,21 @@ final class GameManagerTest extends DatabaseTestCase
 
         $this->assertCount(1, $this->updatesAgainstGames($queries));
         $this->assertSame(6, $this->gameRecord($gameId)->settings->playersPerNet);
+    }
+
+    public function testChangeTitlePulledToAnEarlierTimeIsWrittenOnce(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
+        $gameRecord = $this->gameRecord($gameId);
+
+        $queries = $this->queriesDuring(function () use ($gameRecord) {
+            $this->gameManager->changeTitle($gameRecord, new TelegramUser(id: 200, firstName: 'Danil'), 'Beach 30.12.2099 20:00');
+        });
+
+        $this->assertCount(1, $this->updatesAgainstGames($queries));
+        $this->assertSame('Beach 30.12.2099 16:00', $this->gameRecord($gameId)->title);
     }
 
     public function testChangeTitleWhenCreatorIsOnlyUserUsesProposedTime(): void
@@ -1171,6 +1215,277 @@ final class GameManagerTest extends DatabaseTestCase
         $this->assertSame([], $this->enqueuedNotifications());
     }
 
+    // --- KickoffTimeChanged ---
+
+    public function testChangeTitleToANewDayNotifiesEveryoneExceptTheEditor(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2);
+        $this->seedUser($gameId, 202, position: 3);
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach 30.12.2099 18:00');
+
+        $this->assertSame([201, 202], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testChangeTitleKeepingTheKickoffSendsNoTimeNotification(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2);
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Picnic 31.12.2099 18:00');
+
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testChangeTitleThenRecalculatedNotifiesEachPlayerOnce(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
+        $this->seedUser($gameId, 202, position: 3);
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach 30.12.2099 20:00');
+
+        $this->assertSame('Beach 30.12.2099 16:00', $this->gameRecord($gameId)->title);
+        $this->assertSame([201, 202], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testChangeTitleThatTheRecalculationUndoesSendsNothing(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach 31.12.2099 20:00');
+
+        $this->assertSame('Beach 31.12.2099 16:00', $this->gameRecord($gameId)->title);
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testAddNetWithAnEarlierTimeNotifiesEveryoneExceptTheActor(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2, time: '16:00');
+        $this->seedUser($gameId, 202, position: 3);
+
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
+
+        $this->assertSame([200, 202], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testAddVolleyballWithAnEarlierTimeNotifiesEveryoneExceptTheActor(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2, time: '16:00');
+        $this->seedUser($gameId, 202, position: 3);
+
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
+
+        $this->assertSame([200, 202], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testRemoveNetThatMovesTheTimeNotifiesEveryoneExceptTheActor(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
+        $this->seedUser($gameId, 202, position: 3);
+
+        $this->gameManager->removeNet($gameId, 201);
+
+        $this->assertSame([200, 202], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testRemoveLastVolleyballThatMovesTheTimeNotifiesEveryoneExceptTheActor(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, volleyball: 1);
+        $this->seedUser($gameId, 201, position: 2, volleyball: 1, time: '16:00');
+        $this->seedUser($gameId, 202, position: 3);
+
+        $this->gameManager->removeVolleyball($gameId, 201);
+
+        $this->assertSame([200, 202], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testEquipmentThatKeepsTheEarliestTimeSendsNoTimeNotification(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, volleyball: 1, time: '16:00');
+        $this->seedUser($gameId, 201, position: 2, net: 1);
+
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 200, firstName: 'Danil'));
+
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testSetUserTimeThatMovesTheKickoffNotifiesEveryoneExceptTheActor(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2);
+
+        $this->gameManager->setUserTime($gameId, new TelegramUser(id: 200, firstName: 'Danil'), '15:30');
+
+        $this->assertSame([201], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testSetUserTimeThatKeepsTheKickoffSendsNoTimeNotification(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '16:00');
+        $this->seedUser($gameId, 201, position: 2, net: 1);
+
+        $this->gameManager->setUserTime($gameId, new TelegramUser(id: 201, firstName: 'Alice'), '17:00');
+
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testRewritingTheShortTimeFormatAloneSendsNoTimeNotification(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 8:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '08:00');
+        $this->seedUser($gameId, 201, position: 2, time: '08:00');
+
+        $this->gameManager->addVolleyball($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
+
+        $this->assertSame('Beach 31.12.2099 08:00', $this->gameRecord($gameId)->title);
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testShortTimeFormatMovedEarlierNotifies(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 8:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1, time: '08:00');
+        $this->seedUser($gameId, 201, position: 2, time: '07:30');
+
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
+
+        $this->assertSame('Beach 31.12.2099 07:30', $this->gameRecord($gameId)->title);
+        $this->assertSame([200], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testMovingToAnotherVenueAtTheSameTimeSendsNoTimeNotification(): void
+    {
+        $gameId = $this->createGame(title: 'Bogatell 31.12.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2);
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Barceloneta 31.12.2099 18:00');
+
+        $this->assertSame('Barceloneta', $this->gameRecord($gameId)->venueName);
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    /** Clocks go back on 25.10.2099, so 18:00 is 16:00 UTC the day before and 17:00 UTC on the day. */
+    public function testMovingAcrossTheClockChangeNotifiesAndStoresTheNewOffset(): void
+    {
+        $gameId = $this->createGame(title: 'Bogatell 24.10.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2);
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Bogatell 25.10.2099 18:00');
+
+        $this->assertSame('2099-10-25 17:00:00', Timestamp::format($this->gameRecord($gameId)->kickoffAt));
+        $this->assertSame([201], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testRecalculatingOnTheClockChangeDayKeepsTheDate(): void
+    {
+        $gameId = $this->createGame(title: 'Bogatell 25.10.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2, time: '16:00');
+
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 201, firstName: 'Alice'));
+
+        $this->assertSame('2099-10-25 15:00:00', Timestamp::format($this->gameRecord($gameId)->kickoffAt));
+        $this->assertSame([200], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    /** "Saturday" is read from the day the game was created, never from today. */
+    public function testRetitlingARelativeWeekdayKeepsItsKickoff(): void
+    {
+        $gameId = $this->createGameCreatedAt('Beach Saturday 18:00', '2099-12-01 10:00:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2);
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Picnic Saturday 18:00');
+
+        $this->assertSame([], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testRetitlingToAnotherRelativeWeekdayNotifies(): void
+    {
+        $gameId = $this->createGameCreatedAt('Beach Saturday 18:00', '2099-12-01 10:00:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2);
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 200, firstName: 'Danil'), 'Beach Sunday 18:00');
+
+        $this->assertSame('2099-12-06 17:00:00', Timestamp::format($this->gameRecord($gameId)->kickoffAt));
+        $this->assertSame([201], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testChangeTitleAndPlayersPerNetTogetherSendBothNotifications(): void
+    {
+        $gameId = $this->gameManager->createGame(NewGameData::fromUser(
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Beach 31.12.2099 18:00, 4 spots per net',
+            'query_1',
+        ));
+        $this->joinAs($gameId, 201, 202, 203, 204);
+        SpyQueue::reset();
+
+        $this->gameManager->changeTitle(
+            $this->gameRecord($gameId),
+            new TelegramUser(id: 200, firstName: 'Danil'),
+            'Beach 31.12.2099 20:00, 6 spots per net',
+        );
+
+        $this->assertSame([201, 202, 203, 204], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+        $this->assertSame([204], $this->notifiedUserIds(NotificationType::PromotedIntoGame));
+    }
+
+    public function testAdminRetitlingFromAPrivateChatNotifiesEveryPlayer(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2);
+
+        $this->gameManager->changeTitle($this->gameRecord($gameId), new TelegramUser(id: 300, firstName: 'Admin'), 'Beach 30.12.2099 18:00');
+
+        $this->assertSame([200, 201], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testJoiningWithAnEarlierTimeWhenNobodyHasEquipmentNotifiesTheOthers(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 18:00');
+        $this->seedUser($gameId, 200, position: 1);
+        $this->seedUser($gameId, 201, position: 2);
+
+        $this->gameManager->setUserTime($gameId, new TelegramUser(id: 202, firstName: 'Bob'), '17:00');
+
+        $this->assertSame('Beach 31.12.2099 17:00', $this->gameRecord($gameId)->title);
+        $this->assertSame([200, 201], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
+    public function testLeavingTheEarliestEquipmentHolderNotifiesTheRest(): void
+    {
+        $gameId = $this->createGame(title: 'Beach 31.12.2099 16:00');
+        $this->seedUser($gameId, 200, position: 1, net: 1);
+        $this->seedUser($gameId, 201, position: 2, net: 1, time: '16:00');
+        $this->seedUser($gameId, 202, position: 3);
+
+        $this->gameManager->leaveGame($gameId, 201);
+
+        $this->assertSame([200, 202], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
+    }
+
     // --- Helpers ---
 
     /** The creator brings a net and a ball, so the limit is 4 from the start. */
@@ -1183,28 +1498,11 @@ final class GameManagerTest extends DatabaseTestCase
         ));
     }
 
-    /** @return list<int> */
-    private function notifiedUserIds(NotificationType $type): array
-    {
-        $payloads = array_filter(
-            $this->enqueuedNotifications(),
-            static fn(?array $payload): bool => $type->value === $payload['type'],
-        );
-
-        return array_values(array_column($payloads, 'user_id'));
-    }
-
     private function joinAs(int $gameId, int ...$telegramUserIds): void
     {
         foreach ($telegramUserIds as $telegramUserId) {
             $this->gameManager->joinGame($gameId, new TelegramUser(id: $telegramUserId, firstName: 'Player'));
         }
-    }
-
-    /** @return list<?array> */
-    private function enqueuedNotifications(): array
-    {
-        return array_map(static fn(SpyQueue $queue): ?array => $queue->lastPayload, SpyQueue::$instances);
     }
 
     /** @return array{type: int, game_id: int, user_id: int} */
@@ -1224,6 +1522,15 @@ final class GameManagerTest extends DatabaseTestCase
             'Game 18:00',
             'query_1',
         );
+    }
+
+    private function createGameCreatedAt(string $title, string $createdAt): int
+    {
+        $kickoffAt = ParsedTitle::parse($title, Timestamp::parse($createdAt))->kickoffAt;
+        $gameId = $this->createGame(title: $title, kickoffAt: Timestamp::format($kickoffAt));
+        $this->db->update('games', ['created_at' => $createdAt], ['game_id' => $gameId]);
+
+        return $gameId;
     }
 
     private function seedUser(

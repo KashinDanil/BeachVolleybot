@@ -28,18 +28,10 @@ final readonly class MinimumPlayersNotifier
             return;
         }
 
-        foreach ($this->findRecipientIds($gameId, $slotOwnerId) as $recipientId) {
+        foreach ($this->gameUserManager->findUserIdsExcept($gameId, $slotOwnerId) as $recipientId) {
             $this->notificationEnqueuer->enqueue(
                 new NotificationQueuePayload(NotificationType::GameReachedMinimumPlayers, $gameId, $recipientId),
             );
         }
-    }
-
-    /** @return list<int> */
-    private function findRecipientIds(int $gameId, int $slotOwnerId): array
-    {
-        $userIds = array_column($this->gameUserManager->findGameUserRecordsByGameId($gameId), 'telegramUserId');
-
-        return array_values(array_filter($userIds, static fn(int $userId): bool => $slotOwnerId !== $userId));
     }
 }

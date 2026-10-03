@@ -146,6 +146,29 @@ final class NotificationQueueProcessorTest extends ProcessorTestCase
         $this->assertStringContainsString('>Bogatell 31\.12\.2099 18:00', $text);
     }
 
+    /** Clocks go back on 25.10.2099; the DM still reads the venue's 18:00, not the stored UTC hour. */
+    public function testTimeChangedSpellsTheNewKickoffOnTheVenueClockAfterTheClockChange(): void
+    {
+        $this->retitleGame($this->gameId, 'Bogatell 25.10.2099 18:00');
+        $this->joinGameWithOptIn(200, NotificationType::KickoffTimeChanged);
+
+        $this->processNotificationFor(200, NotificationType::KickoffTimeChanged);
+
+        $text = $this->getTextSentTo(200);
+        $this->assertStringContainsString('on Sunday, 25 Oct 2099 at 18:00', $text);
+        $this->assertStringContainsString('To change your own time in the game', $text);
+    }
+
+    public function testTimeChangedSpellsASummerKickoffOnTheVenueClock(): void
+    {
+        $this->retitleGame($this->gameId, 'Bogatell 24.10.2099 18:00');
+        $this->joinGameWithOptIn(200, NotificationType::KickoffTimeChanged);
+
+        $this->processNotificationFor(200, NotificationType::KickoffTimeChanged);
+
+        $this->assertStringContainsString('on Saturday, 24 Oct 2099 at 18:00', $this->getTextSentTo(200));
+    }
+
     // --- dropped ---
 
     public function testDropsANotificationForAGameThatAlreadyKickedOff(): void

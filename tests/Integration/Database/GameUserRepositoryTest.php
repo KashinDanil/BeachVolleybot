@@ -145,6 +145,36 @@ final class GameUserRepositoryTest extends DatabaseTestCase
         $this->assertNull($this->repository->findEarliestTimeWithEquipment($this->gameId));
     }
 
+    public function testFindUserIdsExceptSkipsTheExcludedUser(): void
+    {
+        $this->createUser(201, 'Bob');
+        $this->createUser(202, 'Eve');
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
+        $this->repository->create($this->gameId, 201, self::DEFAULT_TIME);
+        $this->repository->create($this->gameId, 202, self::DEFAULT_TIME);
+
+        $this->assertSame([200, 202], $this->repository->findUserIdsExcept($this->gameId, 201));
+    }
+
+    public function testFindUserIdsExceptListsEveryoneWhenTheExcludedUserIsNotInTheGame(): void
+    {
+        $this->createUser(201, 'Bob');
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
+        $this->repository->create($this->gameId, 201, self::DEFAULT_TIME);
+
+        $this->assertSame([200, 201], $this->repository->findUserIdsExcept($this->gameId, 999));
+    }
+
+    public function testFindUserIdsExceptIgnoresOtherGames(): void
+    {
+        $this->createUser(201, 'Bob');
+        $otherGameId = $this->createGame(inlineMessageId: 'msg_2', gameKey: 'query_2');
+        $this->repository->create($otherGameId, 201, self::DEFAULT_TIME);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
+
+        $this->assertSame([200], $this->repository->findUserIdsExcept($this->gameId, 999));
+    }
+
     public function testFindEarliestTimeWithEquipmentIgnoresOtherGames(): void
     {
         $otherGameId = $this->createGame(inlineMessageId: 'msg_2', gameKey: 'query_2');

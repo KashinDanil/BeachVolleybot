@@ -10,15 +10,19 @@ use BeachVolleybot\Game\EquipmentResult;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\GameUserManager;
+use BeachVolleybot\Notifications\KickoffChangeNotifier;
 use BeachVolleybot\Notifications\LineupChangeNotifier;
 use BeachVolleybot\Notifications\MinimumPlayersNotifier;
 use BeachVolleybot\Notifications\NotificationEnqueuer;
+use BeachVolleybot\Tests\Fixtures\ReadsEnqueuedNotifications;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
 use BeachVolleybot\User\NotificationType;
 
 final class GameManagerAdminTest extends DatabaseTestCase
 {
+    use ReadsEnqueuedNotifications;
+
     private GameManager $gameManager;
 
     private AdminGameManager $adminGameManager;
@@ -141,6 +145,7 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->adminGameManager->adminAddNet($gameId, 201);
 
         $this->assertSame('Test 16:00', $this->db->get('games', 'title', ['game_id' => $gameId]));
+        $this->assertSame([200], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
     }
 
     public function testAdminAddVolleyballRecalculatesGameTimeToTheTargetUser(): void
@@ -152,6 +157,7 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->adminGameManager->adminAddVolleyball($gameId, 201);
 
         $this->assertSame('Test 16:00', $this->db->get('games', 'title', ['game_id' => $gameId]));
+        $this->assertSame([200], $this->notifiedUserIds(NotificationType::KickoffTimeChanged));
     }
 
     // --- setLocation: from coordinates ---
@@ -178,7 +184,7 @@ final class GameManagerAdminTest extends DatabaseTestCase
 
         $this->assertSame(
             [['type' => NotificationType::GameReachedMinimumPlayers->value, 'game_id' => $gameId, 'user_id' => 201]],
-            array_map(static fn(SpyQueue $queue): ?array => $queue->lastPayload, SpyQueue::$instances),
+            $this->enqueuedNotifications(),
         );
     }
 
@@ -212,7 +218,7 @@ final class GameManagerAdminTest extends DatabaseTestCase
 
         $this->assertSame(
             [['type' => NotificationType::PromotedIntoGame->value, 'game_id' => $gameId, 'user_id' => 204]],
-            array_map(static fn(SpyQueue $queue): ?array => $queue->lastPayload, SpyQueue::$instances),
+            $this->enqueuedNotifications(),
         );
     }
 
@@ -239,6 +245,7 @@ final class GameManagerAdminTest extends DatabaseTestCase
         $this->adminGameManager = new AdminGameManager(
             new MinimumPlayersNotifier($spyEnqueuer),
             new LineupChangeNotifier($spyEnqueuer),
+            new KickoffChangeNotifier($spyEnqueuer),
         );
     }
 

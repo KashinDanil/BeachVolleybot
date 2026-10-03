@@ -119,6 +119,26 @@ final class GameUserManagerTest extends DatabaseTestCase
         $this->assertNull($this->gameUserManager->findEarliestTime($gameId));
     }
 
+    public function testFindUserIdsExceptListsTheOtherPlayersOfThatGame(): void
+    {
+        $gameId = $this->createGame();
+        $otherGameId = $this->createGame(inlineMessageId: 'msg_2', gameKey: 'query_2');
+        $this->createGameUser($gameId, 200);
+        $this->createGameUser($gameId, 201);
+        $this->createGameUser($gameId, 202);
+        $this->createGameUser($otherGameId, 203);
+
+        $this->assertSame([200, 202], $this->gameUserManager->findUserIdsExcept($gameId, 201));
+    }
+
+    public function testFindUserIdsExceptIsEmptyWhenOnlyTheExcludedUserPlays(): void
+    {
+        $gameId = $this->createGame();
+        $this->createGameUser($gameId, 200);
+
+        $this->assertSame([], $this->gameUserManager->findUserIdsExcept($gameId, 200));
+    }
+
     protected function setUp(): void
     {
         parent::setUp();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\GameSlotManager;
 use BeachVolleybot\Game\GameUserManager;
@@ -12,6 +13,7 @@ use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\LeaveProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\NotificationType;
 use DanilKashin\FileQueue\Queue\FileQueue;
 
 final class LeaveProcessorTest extends ProcessorTestCase
@@ -138,6 +140,24 @@ final class LeaveProcessorTest extends ProcessorTestCase
         new LeaveProcessor($this->telegramSender)->process($this->buildUpdate('msg_1'));
 
         $this->assertSame(1, new FileQueue('notification_' . $gameId, NotificationEnqueuer::QUEUE_DIR)->size());
+    }
+
+    public function testLeavingTheEarliestNetHolderEnqueuesATimeChangeForTheOthers(): void
+    {
+        $gameId = $this->seedFullGame(title: 'Bogatell 31.12.2099 16:00');
+        $this->createGameUser($gameId, 200, '16:00');
+        $this->createSlot($gameId, 200, 1);
+        $this->createGameUser($gameId, 201);
+        $this->createSlot($gameId, 201, 2);
+
+        $gameUserManager = new GameUserManager();
+        $gameUserManager->incrementNet($gameId, 200);
+        $gameUserManager->incrementNet($gameId, 201);
+
+        new LeaveProcessor($this->telegramSender)->process($this->buildUpdate('msg_1'));
+
+        $this->assertSame('Bogatell 31.12.2099 18:00', new GameManager()->findGameRecordById($gameId)->title);
+        $this->assertSame([201], $this->dequeueNotifiedUserIds($gameId, NotificationType::KickoffTimeChanged));
     }
 
     private function buildUpdate(string $inlineMessageId, string $gameKey = 'query_1'): TelegramUpdate

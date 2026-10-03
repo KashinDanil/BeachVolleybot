@@ -12,12 +12,15 @@ use BeachVolleybot\Game\GameSlotManager;
 use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Notifications\LineupChangeNotifier;
 use BeachVolleybot\Notifications\NotificationEnqueuer;
+use BeachVolleybot\Tests\Fixtures\ReadsEnqueuedNotifications;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
 use BeachVolleybot\User\NotificationType;
 
 final class LineupChangeNotifierTest extends DatabaseTestCase
 {
+    use ReadsEnqueuedNotifications;
+
     private LineupChangeNotifier $notifier;
 
     private GameUserManager $gameUserManager;
@@ -287,16 +290,6 @@ final class LineupChangeNotifierTest extends DatabaseTestCase
         return new GameManager()->findGameRecordById($gameId);
     }
 
-    /** @return list<int> */
-    private function notifiedUserIds(NotificationType $type): array
-    {
-        $payloads = array_filter(
-            array_map(static fn(SpyQueue $queue): ?array => $queue->lastPayload, SpyQueue::$instances),
-            static fn(?array $payload): bool => $type->value === $payload['type'],
-        );
-
-        return array_values(array_column($payloads, 'user_id'));
-    }
 
     /**
      * @param list<string> $queries

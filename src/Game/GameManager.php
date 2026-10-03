@@ -7,6 +7,7 @@ namespace BeachVolleybot\Game;
 use BeachVolleybot\Common\Extractors\TimeExtractor;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Notifications\KickoffChangeNotifier;
 use BeachVolleybot\Notifications\LineupChangeNotifier;
 use BeachVolleybot\Notifications\MinimumPlayersNotifier;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
@@ -27,6 +28,7 @@ readonly class GameManager
     public function __construct(
         protected MinimumPlayersNotifier $minimumPlayersNotifier = new MinimumPlayersNotifier(),
         protected LineupChangeNotifier $lineupChangeNotifier = new LineupChangeNotifier(),
+        protected KickoffChangeNotifier $kickoffChangeNotifier = new KickoffChangeNotifier(),
     ) {
         $this->gameRepository = new GameRepository(Connection::get());
         $this->gameUserManager = new GameUserManager();
@@ -78,7 +80,8 @@ readonly class GameManager
             return LeaveResult::NotJoined;
         }
 
-        $lineupBefore = $this->lineupChangeNotifier->capture($this->getGameRecord($gameId));
+        $game = $this->getGameRecord($gameId);
+        $lineupBefore = $this->lineupChangeNotifier->capture($game);
 
         $this->gameSlotManager->deleteSlot($gameId, max($positions));
 
@@ -86,6 +89,7 @@ readonly class GameManager
             $this->gameUserManager->deleteGameUser($gameId, $telegramUserId);
         }
 
+        $this->recalculateGameTime($game, $telegramUserId);
         $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return LeaveResult::Left;
@@ -117,7 +121,7 @@ readonly class GameManager
             return EquipmentResult::Error;
         }
 
-        $this->recalculateGameTime($game);
+        $this->recalculateGameTime($game, $telegramUserId);
         $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Removed;
@@ -149,7 +153,7 @@ readonly class GameManager
             return EquipmentResult::Error;
         }
 
-        $this->recalculateGameTime($game);
+        $this->recalculateGameTime($game, $telegramUserId);
         $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Removed;
@@ -174,7 +178,7 @@ readonly class GameManager
 
         $this->gameUserManager->updateTime($gameId, $user->id, $time);
 
-        $this->recalculateGameTime($this->getGameRecord($gameId));
+        $this->recalculateGameTime($this->getGameRecord($gameId), $user->id);
     }
 
     public function changeTitle(GameRecord $game, TelegramUser $user, string $newTitle): void
@@ -185,18 +189,10 @@ readonly class GameManager
             return;
         }
 
-        $parsedTitle = ParsedTitle::parse($normalizedTitle, $game->createdAt);
-        $settings = $game->settings->withPlayersPerNet($parsedTitle->playersPerNet);
+        $this->ensureUserInGame($game->gameId, $user);
+        $this->gameUserManager->updateTime($game->gameId, $user->id, $proposedTime);
 
-        $this->gameRepository->updateTitleWithDependencies(
-            $game->gameId,
-            $normalizedTitle,
-            $parsedTitle->kickoffAt,
-            $parsedTitle->venueName,
-            $settings,
-        );
-        $this->setUserTime($game->gameId, $user, $proposedTime);
-        $this->lineupChangeNotifier->notifyPlayersPerNetChange($game, $settings, $user->id);
+        $this->updateTitle($game, $this->titleWithEarliestTime($game->gameId, $normalizedTitle), $user->id);
     }
 
     public function resolveGameIdByGameKey(string $gameKey): ?int
@@ -278,7 +274,7 @@ readonly class GameManager
             return EquipmentResult::Error;
         }
 
-        $this->recalculateGameTime($game);
+        $this->recalculateGameTime($game, $telegramUserId);
         $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Added;
@@ -293,7 +289,7 @@ readonly class GameManager
             return EquipmentResult::Error;
         }
 
-        $this->recalculateGameTime($game);
+        $this->recalculateGameTime($game, $telegramUserId);
         $this->lineupChangeNotifier->notifyChanges($lineupBefore, $telegramUserId);
 
         return EquipmentResult::Added;
@@ -338,24 +334,43 @@ readonly class GameManager
         return TimeExtractor::extract($title);
     }
 
-    private function recalculateGameTime(GameRecord $game): void
+    private function recalculateGameTime(GameRecord $game, int $actorId): void
     {
-        $earliestGameTime = $this->gameUserManager->findEarliestTime($game->gameId);
-        $currentGameTime = TimeExtractor::extractRaw($game->title);
+        $updatedTitle = $this->titleWithEarliestTime($game->gameId, $game->title);
 
-        if (null === $earliestGameTime || null === $currentGameTime || $currentGameTime === $earliestGameTime) {
+        if ($updatedTitle === $game->title) {
             return;
         }
 
-        $updatedTitle = str_replace($currentGameTime, $earliestGameTime, $game->title);
-        $parsedTitle = ParsedTitle::parse($updatedTitle, $game->createdAt);
+        $this->updateTitle($game, $updatedTitle, $actorId);
+    }
+
+    private function titleWithEarliestTime(int $gameId, string $title): string
+    {
+        $earliestGameTime = $this->gameUserManager->findEarliestTime($gameId);
+        $currentGameTime = TimeExtractor::extractRaw($title);
+
+        if (null === $earliestGameTime || null === $currentGameTime) {
+            return $title;
+        }
+
+        return str_replace($currentGameTime, $earliestGameTime, $title);
+    }
+
+    private function updateTitle(GameRecord $game, string $title, int $actorId): void
+    {
+        $parsedTitle = ParsedTitle::parse($title, $game->createdAt);
+        $settings = $game->settings->withPlayersPerNet($parsedTitle->playersPerNet);
 
         $this->gameRepository->updateTitleWithDependencies(
             $game->gameId,
-            $updatedTitle,
+            $title,
             $parsedTitle->kickoffAt,
             $parsedTitle->venueName,
-            $game->settings,
+            $settings,
         );
+
+        $this->kickoffChangeNotifier->notifyIfChanged($game, $parsedTitle->kickoffAt, $actorId);
+        $this->lineupChangeNotifier->notifyPlayersPerNetChange($game, $settings, $actorId);
     }
 }

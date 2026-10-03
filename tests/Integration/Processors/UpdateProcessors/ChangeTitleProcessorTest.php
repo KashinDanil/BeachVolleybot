@@ -9,6 +9,7 @@ use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\NotificationType;
 
 /**
  * Who may rename a game, and what counts as a title, is ChangeTitleHandler's business — see
@@ -92,6 +93,30 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         $title = new GameManager()->findGameRecordById($gameId)?->title;
         $this->assertSame('Bogatell 31.12.2099 18:00', $title);
         $this->assertMessageNotEdited();
+    }
+
+    public function testRenameToAnotherDayEnqueuesATimeChangeForTheOtherPlayers(): void
+    {
+        $gameId = $this->seedGameOwnedByCreator();
+        $this->createGameUser($gameId, 201);
+        $this->createSlot($gameId, 201, 2);
+
+        new ChangeTitleProcessor($this->telegramSender)
+            ->process($this->buildUpdate('Bogatell 30.12.2099 18:00'));
+
+        $this->assertSame([201], $this->dequeueNotifiedUserIds($gameId, NotificationType::KickoffTimeChanged));
+    }
+
+    public function testRenameKeepingTheKickoffEnqueuesNoTimeChange(): void
+    {
+        $gameId = $this->seedGameOwnedByCreator();
+        $this->createGameUser($gameId, 201);
+        $this->createSlot($gameId, 201, 2);
+
+        new ChangeTitleProcessor($this->telegramSender)
+            ->process($this->buildUpdate('Barceloneta 31.12.2099 18:00'));
+
+        $this->assertSame([], $this->dequeueNotifiedUserIds($gameId, NotificationType::KickoffTimeChanged));
     }
 
     private function seedGameOwnedByCreator(): int

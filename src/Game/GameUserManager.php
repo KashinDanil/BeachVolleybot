@@ -29,6 +29,12 @@ readonly class GameUserManager
         return array_map(GameUserRecord::fromRow(...), $this->gameUserRepository->findByGameId($gameId));
     }
 
+    /** @return list<int> */
+    public function findUserIdsExcept(int $gameId, int $excludedUserId): array
+    {
+        return $this->gameUserRepository->findUserIdsExcept($gameId, $excludedUserId);
+    }
+
     public function isUserInGame(int $gameId, int $telegramUserId): bool
     {
         return $this->gameUserRepository->exists($gameId, $telegramUserId);

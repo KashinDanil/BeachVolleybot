@@ -45,6 +45,15 @@ readonly class GameUserRepository
         return $this->db->select('game_users', '*', ['game_id' => $gameId]);
     }
 
+    /** @return list<int> */
+    public function findUserIdsExcept(int $gameId, int $excludedUserId): array
+    {
+        return $this->db->select('game_users', 'telegram_user_id', [
+            'game_id' => $gameId,
+            'telegram_user_id[!]' => $excludedUserId,
+        ]);
+    }
+
     public function delete(int $gameId, int $telegramUserId): bool
     {
         $result = $this->db->delete('game_users', [
