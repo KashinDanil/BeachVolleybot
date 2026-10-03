@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\Handlers\GameHandlers;
 
 use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameMessageManager;
 use BeachVolleybot\Processors\Handlers\Traits\CallbackProcessorResolverTrait;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -27,7 +27,7 @@ final readonly class GameCallbackQueryHandler extends AbstractGameQueueHandler
 
     protected function resolveGameId(TelegramUpdate $update): ?int
     {
-        $gameId = new GameManager()->resolveGameIdByGameMessage($update->callbackQuery->toGameMessage());
+        $gameId = new GameMessageManager()->resolveGameIdByMessageAddress($update->callbackQuery->toMessageAddress());
 
         if (null === $gameId) {
             Logger::logVerbose('Game not found for callback target' . PHP_EOL);

@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameMessageRepository;
+use BeachVolleybot\Game\GameMessageManager;
 use BeachVolleybot\Processors\UpdateProcessors\ForwardGameProcessor;
-use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Telegram\Messages\MessageAddress;
+use BeachVolleybot\Tests\Fixtures\CreatesGameMessageRecords;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 
 final class ForwardGameProcessorTest extends ProcessorTestCase
 {
+    use CreatesGameMessageRecords;
+
     public function testAttachesNewInlineMessageIdWhenCallerIsCreator(): void
     {
         $gameId = $this->createGame(title: 'Saturday 18:00', createdBy: 200, inlineMessageId: 'msg_original');
@@ -19,11 +22,12 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
-        $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
+        $attachedTargets = new GameMessageManager()->findGameMessageRecordsByGameId($gameId);
         $this->assertEqualsCanonicalizing(
-            [new GameMessage(inlineMessageId: 'msg_original'), new GameMessage(inlineMessageId: 'msg_forwarded', inlineQueryId: 'query_1')],
-            $attachedTargets,
+            [MessageAddress::inline('msg_original'), MessageAddress::inline('msg_forwarded')],
+            $this->messageAddresses($attachedTargets),
         );
+        $this->assertEqualsCanonicalizing([null, 'query_1'], array_column($attachedTargets, 'inlineQueryId'));
     }
 
     public function testDoesNothingWhenGameDoesNotExist(): void
@@ -32,7 +36,7 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
-        $attachedId = new GameMessageRepository($this->db)->findGameIdByInlineMessageId('msg_forwarded');
+        $attachedId = new GameMessageManager()->resolveGameIdByInlineMessageId('msg_forwarded');
         $this->assertNull($attachedId);
     }
 
@@ -43,8 +47,8 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
-        $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
-        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_original')], $attachedTargets);
+        $attachedTargets = new GameMessageManager()->findGameMessageRecordsByGameId($gameId);
+        $this->assertEquals([MessageAddress::inline('msg_original')], $this->messageAddresses($attachedTargets));
     }
 
     public function testAttachesNewInlineMessageIdWhenCallerIsAdminButNotCreator(): void
@@ -55,11 +59,12 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
-        $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
+        $attachedTargets = new GameMessageManager()->findGameMessageRecordsByGameId($gameId);
         $this->assertEqualsCanonicalizing(
-            [new GameMessage(inlineMessageId: 'msg_original'), new GameMessage(inlineMessageId: 'msg_forwarded', inlineQueryId: 'query_1')],
-            $attachedTargets,
+            [MessageAddress::inline('msg_original'), MessageAddress::inline('msg_forwarded')],
+            $this->messageAddresses($attachedTargets),
         );
+        $this->assertEqualsCanonicalizing([null, 'query_1'], array_column($attachedTargets, 'inlineQueryId'));
     }
 
     public function testDoesNothingWhenQueryIsNotForwardPattern(): void
@@ -69,8 +74,8 @@ final class ForwardGameProcessorTest extends ProcessorTestCase
 
         new ForwardGameProcessor($this->telegramSender)->process($update);
 
-        $attachedTargets = new GameMessageRepository($this->db)->findByGameId($gameId);
-        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_original')], $attachedTargets);
+        $attachedTargets = new GameMessageManager()->findGameMessageRecordsByGameId($gameId);
+        $this->assertEquals([MessageAddress::inline('msg_original')], $this->messageAddresses($attachedTargets));
     }
 
     private function buildUpdate(

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram;
 
 use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Telegram\Messages\GameMessage;
+use BeachVolleybot\Telegram\Messages\MessageAddress;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use CURLFile;
 use TelegramBot\Api\BotApi;
@@ -18,26 +18,26 @@ readonly class TelegramMessageSender
     ) {
     }
 
-    public function editGameMessage(GameMessage $gameMessage, TelegramMessage $message): void
+    public function editGameMessage(MessageAddress $messageAddress, TelegramMessage $message): void
     {
-        if ($gameMessage->isInline()) {
-            $this->editInlineMessage($gameMessage->inlineMessageId, $message);
+        if ($messageAddress->isInline()) {
+            $this->editInlineMessage($messageAddress->inlineMessageId, $message);
 
             return;
         }
 
-        $this->editMessage($gameMessage->chatId, $gameMessage->messageId, $message);
+        $this->editMessage($messageAddress->chatId, $messageAddress->messageId, $message);
     }
 
-    public function removeGameMessageKeyboard(GameMessage $gameMessage): void
+    public function removeGameMessageKeyboard(MessageAddress $messageAddress): void
     {
-        if ($gameMessage->isInline()) {
-            $this->removeInlineKeyboard($gameMessage->inlineMessageId);
+        if ($messageAddress->isInline()) {
+            $this->removeInlineKeyboard($messageAddress->inlineMessageId);
 
             return;
         }
 
-        $this->removeChatKeyboard($gameMessage->chatId, $gameMessage->messageId);
+        $this->removeChatKeyboard($messageAddress->chatId, $messageAddress->messageId);
     }
 
     private function editInlineMessage(string $inlineMessageId, TelegramMessage $message): void

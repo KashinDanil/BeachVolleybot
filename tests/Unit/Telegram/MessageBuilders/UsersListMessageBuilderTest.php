@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Game\Roster\Position;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\UsersListMessageBuilder;
@@ -17,26 +17,26 @@ final class UsersListMessageBuilderTest extends TestCase
 
     public function testBuildShowsGameIdInHeader(): void
     {
-        $game = $this->createGameWithUsers(42, 'Friday Game 18:00', []);
+        $game = $this->createGameWithPlayers(42, 'Friday Game 18:00', []);
 
         $message = $this->builder->build($game, 1);
 
         $this->assertStringContainsString('#42', $message->getText()->getMessageText());
     }
 
-    private function createGameWithUsers(int $gameId, string $title, array $users): GameInterface
+    private function createGameWithPlayers(int $gameId, string $title, array $players): GameInterface
     {
         $game = $this->createStub(GameInterface::class);
         $game->method('getGameId')->willReturn($gameId);
         $game->method('getTitle')->willReturn($title);
-        $game->method('getUsers')->willReturn($users);
+        $game->method('getPlayers')->willReturn($players);
 
         return $game;
     }
 
     public function testBuildShowsGameTitle(): void
     {
-        $game = $this->createGameWithUsers(1, 'Friday Game 18:00', []);
+        $game = $this->createGameWithPlayers(1, 'Friday Game 18:00', []);
 
         $message = $this->builder->build($game, 1);
 
@@ -45,7 +45,7 @@ final class UsersListMessageBuilderTest extends TestCase
 
     public function testBuildWrapsGameTitleInBlockquote(): void
     {
-        $game = $this->createGameWithUsers(1, 'Friday Game 18:00', []);
+        $game = $this->createGameWithPlayers(1, 'Friday Game 18:00', []);
 
         $message = $this->builder->build($game, 1);
 
@@ -56,9 +56,9 @@ final class UsersListMessageBuilderTest extends TestCase
 
     public function testBuildShowsUserButtons(): void
     {
-        $game = $this->createGameWithUsers(1, 'Game 18:00', [
-            $this->createUser(100, 'Alice'),
-            $this->createUser(200, 'Bob'),
+        $game = $this->createGameWithPlayers(1, 'Game 18:00', [
+            $this->createPlayer(100, 'Alice'),
+            $this->createPlayer(200, 'Bob'),
         ]);
 
         $message = $this->builder->build($game, 1);
@@ -68,9 +68,9 @@ final class UsersListMessageBuilderTest extends TestCase
         $this->assertSame('Bob', $keyboard[1][0]['text']);
     }
 
-    private function createUser(int $telegramUserId, string $name): User
+    private function createPlayer(int $telegramUserId, string $name): Player
     {
-        return new User(
+        return new Player(
             telegramUserId: $telegramUserId,
             position: new Position(1),
             name: $name,
@@ -88,10 +88,10 @@ final class UsersListMessageBuilderTest extends TestCase
 
     public function testBuildShowsSlotCountForMultipleSlots(): void
     {
-        $game = $this->createGameWithUsers(1, 'Game 18:00', [
-            $this->createUser(100, 'Alice'),
-            $this->createUser(100, 'Alice'),
-            $this->createUser(200, 'Bob'),
+        $game = $this->createGameWithPlayers(1, 'Game 18:00', [
+            $this->createPlayer(100, 'Alice'),
+            $this->createPlayer(100, 'Alice'),
+            $this->createPlayer(200, 'Bob'),
         ]);
 
         $message = $this->builder->build($game, 1);
@@ -103,11 +103,11 @@ final class UsersListMessageBuilderTest extends TestCase
 
     public function testBuildHasPaginationOnMultiplePages(): void
     {
-        $users = [];
+        $players = [];
         for ($i = 1; $i <= 10; $i++) {
-            $users[] = $this->createUser($i, "User$i");
+            $players[] = $this->createPlayer($i, "User$i");
         }
-        $game = $this->createGameWithUsers(1, 'Game 18:00', $users);
+        $game = $this->createGameWithPlayers(1, 'Game 18:00', $players);
 
         $message = $this->builder->build($game, 1);
         $keyboard = $this->extractKeyboard($message);
@@ -132,7 +132,7 @@ final class UsersListMessageBuilderTest extends TestCase
 
     public function testBuildHasBackButton(): void
     {
-        $game = $this->createGameWithUsers(1, 'Game 18:00', []);
+        $game = $this->createGameWithPlayers(1, 'Game 18:00', []);
 
         $message = $this->builder->build($game, 1);
         $keyboard = $this->extractKeyboard($message);
@@ -143,7 +143,7 @@ final class UsersListMessageBuilderTest extends TestCase
 
     public function testBuildShowsPageInfo(): void
     {
-        $game = $this->createGameWithUsers(1, 'Game 18:00', []);
+        $game = $this->createGameWithPlayers(1, 'Game 18:00', []);
 
         $message = $this->builder->build($game, 1);
 

@@ -4,36 +4,53 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Game\Roster;
 
-use BeachVolleybot\Common\Logger;
 use BeachVolleybot\Game\AddOns\GameAddOnInterface;
 use BeachVolleybot\Game\AddOns\GameAddOnRegistry;
 use BeachVolleybot\Game\AddOns\MergeConsecutiveSlotsAddOn;
-use BeachVolleybot\Game\Models\User;
-use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\GameSettings;
+use BeachVolleybot\Game\Models\Player;
+use BeachVolleybot\Game\Models\PlayerInterface;
 
 final readonly class Lineup
 {
     /**
-     * @param UserInterface[] $users
+     * @param PlayerInterface[] $players
      * @param list<class-string<GameAddOnInterface>> $addOns
      */
     public function __construct(
-        private array $users,
+        private array $players,
         private PlayerLimit $limit,
         private array $addOns = GAME_ADD_ONS,
     ) {
     }
 
-    /** @return list<UserInterface> */
+    /**
+     * @param PlayerInterface[] $players
+     * @param list<class-string<GameAddOnInterface>> $addOns
+     */
+    public static function forSettings(array $players, GameSettings $settings, array $addOns = GAME_ADD_ONS): self
+    {
+        return new self($players, PlayerLimit::resolveLimit($players, $settings), $addOns);
+    }
+
+    public function hasLimit(): bool
+    {
+        return null !== $this->limit->threshold;
+    }
+
+    public function isReserve(PlayerInterface $row): bool
+    {
+        return $this->limit->isReserve($row);
+    }
+
+    /** @return list<PlayerInterface> */
     public function getRowsToRender(): array
     {
-        if (null === $this->limit->threshold) {
-            return $this->users;
+        if (!$this->hasLimit()) {
+            return $this->players;
         }
 
-        $slots = $this->expandUsers();
-        $slots = $this->promoteUsers($slots, $this->userIdsToPromote($slots));
-        $slots = $this->renumberUsers($slots);
+        $slots = $this->arrangedSlots();
 
         if (!GameAddOnRegistry::isEnabled(MergeConsecutiveSlotsAddOn::class, $this->addOns)) {
             return $slots;
@@ -42,16 +59,37 @@ final readonly class Lineup
         return $this->mergedBackIntoRows($slots);
     }
 
-    /** @return list<UserInterface> */
-    private function expandUsers(): array
+    public function getPlayingUserIds(): array
+    {
+        $playingSlots = array_filter($this->arrangedSlots(), fn(PlayerInterface $slot): bool => !$this->isReserve($slot));
+
+        return array_map(
+                static fn(PlayerInterface $slot): int => $slot->getTelegramUserId(),
+                $playingSlots,
+            )
+                |> array_unique(...)
+                |> array_values(...);
+    }
+
+    /** @return list<PlayerInterface> */
+    private function arrangedSlots(): array
+    {
+        $slots = $this->expandPlayers();
+        $slots = $this->promotePlayers($slots, $this->userIdsToPromote($slots));
+
+        return $this->renumberPlayers($slots);
+    }
+
+    /** @return list<PlayerInterface> */
+    private function expandPlayers(): array
     {
         $slots = [];
 
-        foreach ($this->users as $user) {
-            $position = $user->getPosition();
+        foreach ($this->players as $player) {
+            $position = $player->getPosition();
 
             for ($number = $position->first(); $number <= $position->last(); $number++) {
-                $slots[] = $this->createNewUser($user, new Position($number));
+                $slots[] = $this->createNewPlayer($player, new Position($number));
             }
         }
 
@@ -59,12 +97,12 @@ final readonly class Lineup
     }
 
     /**
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      * @param list<int> $userIdsToPromote
      *
-     * @return list<UserInterface>
+     * @return list<PlayerInterface>
      */
-    private function promoteUsers(array $slots, array $userIdsToPromote): array
+    private function promotePlayers(array $slots, array $userIdsToPromote): array
     {
         $front = [];
         $rest = [];
@@ -89,7 +127,7 @@ final readonly class Lineup
     /**
      * As soon as the limit would push any equipment carrier out, all of them move up.
      *
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
      * @return list<int>
      */
@@ -109,7 +147,7 @@ final readonly class Lineup
      * sign-up order, whichever the type — to equip every court that can be run, which is as many
      * courts as the scarcer of nets and balls allows.
      *
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
      * @return list<int>
      */
@@ -149,7 +187,7 @@ final readonly class Lineup
 
     /**
      * @param list<int> $userIds
-     * @param UserInterface[] $arrangement
+     * @param PlayerInterface[] $arrangement
      */
     private function allPlaying(array $userIds, array $arrangement): bool
     {
@@ -159,27 +197,27 @@ final readonly class Lineup
     }
 
     /**
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
      * @return array<int, int> nets per user, bringers only
      */
     private function netsByUserId(array $slots): array
     {
         return array_filter(array_map(
-            static fn(UserInterface $slot): int => $slot->getNet(),
+            static fn(PlayerInterface $slot): int => $slot->getNet(),
             $this->firstSlotByUserId($slots),
         ));
     }
 
     /**
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
      * @return array<int, int> volleyballs per user, holders only
      */
     private function volleyballsByUserId(array $slots): array
     {
         return array_filter(array_map(
-            static fn(UserInterface $slot): int => $slot->getVolleyball(),
+            static fn(PlayerInterface $slot): int => $slot->getVolleyball(),
             $this->firstSlotByUserId($slots),
         ));
     }
@@ -187,9 +225,9 @@ final readonly class Lineup
     /**
      * Equipment is repeated on every slot a user holds, so counting it means counting one slot.
      *
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
-     * @return array<int, UserInterface> keyed by user id, in slot order
+     * @return array<int, PlayerInterface> keyed by user id, in slot order
      */
     private function firstSlotByUserId(array $slots): array
     {
@@ -203,29 +241,29 @@ final readonly class Lineup
     }
 
     /**
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
      * @return list<int>
      */
     private function playingUserIds(array $slots): array
     {
         return array_map(
-            static fn(UserInterface $slot): int => $slot->getTelegramUserId(),
+            static fn(PlayerInterface $slot): int => $slot->getTelegramUserId(),
             array_slice($slots, 0, $this->limit->threshold),
         );
     }
 
     /**
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
-     * @return list<UserInterface>
+     * @return list<PlayerInterface>
      */
-    private function renumberUsers(array $slots): array
+    private function renumberPlayers(array $slots): array
     {
         $renumbered = [];
 
         foreach (array_values($slots) as $index => $slot) {
-            $renumbered[] = $this->createNewUser($slot, new Position($index + 1));
+            $renumbered[] = $this->createNewPlayer($slot, new Position($index + 1));
         }
 
         return $renumbered;
@@ -235,9 +273,9 @@ final readonly class Lineup
      * Each side of the divider is merged on its own, so slots that straddle it stay two rows —
      * a single line cannot carry numbers from both sides.
      *
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
-     * @return list<UserInterface>
+     * @return list<PlayerInterface>
      */
     private function mergedBackIntoRows(array $slots): array
     {
@@ -250,35 +288,35 @@ final readonly class Lineup
     }
 
     /**
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
-     * @return list<UserInterface>
+     * @return list<PlayerInterface>
      */
     private function playingSlots(array $slots): array
     {
-        return array_values(array_filter($slots, fn(UserInterface $slot): bool => !$this->limit->isReserve($slot)));
+        return array_values(array_filter($slots, fn(PlayerInterface $slot): bool => !$this->limit->isReserve($slot)));
     }
 
     /**
-     * @param UserInterface[] $slots
+     * @param PlayerInterface[] $slots
      *
-     * @return list<UserInterface>
+     * @return list<PlayerInterface>
      */
     private function reserveSlots(array $slots): array
     {
         return array_values(array_filter($slots, $this->limit->isReserve(...)));
     }
 
-    private function createNewUser(UserInterface $user, PositionInterface $position): User
+    private function createNewPlayer(PlayerInterface $player, PositionInterface $position): Player
     {
-        return new User(
-            telegramUserId: $user->getTelegramUserId(),
+        return new Player(
+            telegramUserId: $player->getTelegramUserId(),
             position: $position,
-            name: $user->getName(),
-            link: $user->getLink(),
-            volleyball: $user->getVolleyball(),
-            net: $user->getNet(),
-            time: $user->getTime(),
+            name: $player->getName(),
+            link: $player->getLink(),
+            volleyball: $player->getVolleyball(),
+            net: $player->getNet(),
+            time: $player->getTime(),
         );
     }
 }

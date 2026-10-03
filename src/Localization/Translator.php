@@ -32,7 +32,12 @@ readonly class Translator
 
     public static function fromUser(TelegramUser $user): self
     {
-        return new self(Language::fromCode($user->languageCode ?? self::DEFAULT_LANGUAGE));
+        return self::fromLanguageCode($user->languageCode);
+    }
+
+    public static function fromLanguageCode(?string $languageCode): self
+    {
+        return new self(Language::fromCode($languageCode ?? self::DEFAULT_LANGUAGE));
     }
 
     public static function supportedLanguages(): array

@@ -28,6 +28,7 @@ final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
         parent::__construct($formatter);
     }
 
+    /** @param list<GameRecord> $games */
     public function buildGamesList(array $games, KeyboardPagination $pagination): TelegramMessage
     {
         return $this->buildMessage(
@@ -36,6 +37,7 @@ final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
         );
     }
 
+    /** @param list<GameRecord> $games */
     private function buildGamesListText(array $games, KeyboardPagination $pagination): string
     {
         $header = $this->formatHeader(self::HEADER_MESSAGE);
@@ -47,13 +49,13 @@ final class GamesListMessageBuilder extends AbstractAdminMessageBuilder
         return $header . $this->formatter->newLine() . $this->formatter->escape("Page {$pagination->getPage()} of {$pagination->getTotalPages()}");
     }
 
+    /** @param list<GameRecord> $games */
     private function buildGamesListKeyboard(array $games, KeyboardPagination $pagination): array
     {
         $keyboard = [];
 
         foreach ($games as $game) {
-            $gameRecord = GameRecord::fromRow($game);
-            $keyboard[] = [$this->buildGameButton($gameRecord->gameId, $gameRecord->kickoffAt)];
+            $keyboard[] = [$this->buildGameButton($game->gameId, $game->kickoffAt)];
         }
 
         $paginationRow = $this->paginationRow($pagination, AdminCallbackData::create(AdminCallbackAction::GamesList));

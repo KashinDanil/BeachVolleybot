@@ -25,6 +25,7 @@ use BeachVolleybot\Processors\Handlers\PrivateHandlers\SettingsMenuCommandHandle
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserGamesListCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserHelpCommandHandler;
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserNotificationsCommandHandler;
 
 /**
  * Owns the routing table. Handler match patterns must be mutually exclusive across both
@@ -82,6 +83,7 @@ final readonly class ProcessorRegistryFactory
             new SendShareButtonHandler(),
             new SettingsMenuCommandHandler(),
             new UserGamesListCommandHandler(),
+            new UserNotificationsCommandHandler(),
             new UserNewGameCommandHandler(),
             new UserHelpCommandHandler(),
         ];

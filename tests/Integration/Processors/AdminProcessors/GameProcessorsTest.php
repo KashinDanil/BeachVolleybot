@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\AdminProcessors;
 
-use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Game\GameSlotManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminAddNetProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminAddSlotProcessor;
@@ -126,9 +126,9 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveSlotProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(1, $slots);
-        $this->assertSame(1, (int)$slots[0]['position']);
+        $this->assertSame(1, $slots[0]->position);
     }
 
     public function testRemoveSlotDeletesGameUserWhenLastSlot(): void
@@ -142,7 +142,7 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveSlotProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $this->assertNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
+        $this->assertNull(new GameUserManager()->findGameUserRecord($gameId, 200));
     }
 
     public function testRemoveSlotRefreshesInlineMessage(): void
@@ -173,7 +173,7 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminAddSlotProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(2, $slots);
     }
 
@@ -208,8 +208,8 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminAddNetProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, (int)$gameUser['net']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->net);
     }
 
     // --- GameRemoveNetProcessor ---
@@ -225,8 +225,8 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveNetProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, (int)$gameUser['net']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->net);
     }
 
     // --- GameAddVolleyballProcessor ---
@@ -242,8 +242,8 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminAddVolleyballProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, (int)$gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->volleyball);
     }
 
     // --- GameRemoveVolleyballProcessor ---
@@ -259,8 +259,8 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveVolleyballProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(2, (int)$gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(2, $gameUser->volleyball);
     }
 
     // --- RemoveSlot edge case: user not joined ---
@@ -343,8 +343,8 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveNetProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(0, (int)$gameUser['net']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(0, $gameUser->net);
     }
 
     // --- RemoveVolleyball edge case: user has zero volleyballs ---
@@ -360,8 +360,8 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminRemoveVolleyballProcessor($this->telegramSender, $callbackData)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(0, (int)$gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(0, $gameUser->volleyball);
     }
 
     // --- UsersListProcessor: handles nonexistent game ---

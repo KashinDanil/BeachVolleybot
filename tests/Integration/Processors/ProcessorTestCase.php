@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors;
 
+use BeachVolleybot\Common\QueueName;
 use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
+use BeachVolleybot\User\NotificationType;
 use BeachVolleybot\User\Role;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
+use DanilKashin\FileQueue\Queue\FileQueue;
 use DateTimeImmutable;
 
 abstract class ProcessorTestCase extends DatabaseTestCase
@@ -34,10 +38,14 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         $this->telegramSender = new TelegramMessageSender($this->bot);
 
         // Each test gets a fresh :memory: DB with gameId starting at 1, but the
-        // on-disk weather queue directory persists across tests — drain it so
+        // on-disk queue directories persist across tests — drain them so
         // enqueues from prior tests don't leak into assertions.
-        foreach (glob(WeatherEnqueuer::QUEUE_DIR . '/*') ?: [] as $path) {
-            @unlink($path);
+        foreach ([WeatherEnqueuer::QUEUE_DIR, NotificationEnqueuer::QUEUE_DIR] as $queueDir) {
+            @mkdir($queueDir, 0777, true);
+
+            foreach (glob($queueDir . '/*') ?: [] as $path) {
+                @unlink($path);
+            }
         }
     }
 
@@ -54,6 +62,25 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     protected function seedRoot(): void
     {
         $this->createUser(self::ADMIN_TELEGRAM_USER_ID, role: Role::Root->value);
+    }
+
+    /**
+     * Drains the game's notification queue.
+     *
+     * @return list<int>
+     */
+    protected function dequeueNotifiedUserIds(int $gameId, NotificationType $type): array
+    {
+        $queue = new FileQueue(QueueName::Notification->forId($gameId), NotificationEnqueuer::QUEUE_DIR);
+        $userIds = [];
+
+        while (null !== $message = $queue->dequeue()) {
+            if ($type->value === $message->payload['type']) {
+                $userIds[] = $message->payload['user_id'];
+            }
+        }
+
+        return $userIds;
     }
 
     /** A game's day is judged at its venue, so a fixture that means "today" has to say whose. */

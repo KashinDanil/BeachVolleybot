@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Database;
 
 use BeachVolleybot\Database\GameMessageRepository;
-use BeachVolleybot\Telegram\Messages\GameMessage;
 use PDOException;
 
 final class GameMessageRepositoryTest extends DatabaseTestCase
@@ -25,10 +24,10 @@ final class GameMessageRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(
             [
-                new GameMessage(inlineMessageId: 'msg_first'),
-                new GameMessage(inlineMessageId: 'msg_second', inlineQueryId: 'query_second'),
+                $this->inlineMessageRow($gameId, 'msg_first'),
+                $this->inlineMessageRow($gameId, 'msg_second', 'query_second'),
             ],
-            $this->repository->findByGameId($gameId),
+            $this->withoutCreatedAt($this->repository->findByGameId($gameId)),
         );
     }
 
@@ -39,10 +38,10 @@ final class GameMessageRepositoryTest extends DatabaseTestCase
 
         $this->assertEquals(
             [
-                new GameMessage(inlineMessageId: 'msg_first'),
-                new GameMessage(chatId: -100, messageId: 55),
+                $this->inlineMessageRow($gameId, 'msg_first'),
+                ['game_id' => $gameId, 'chat_id' => -100, 'message_id' => 55, 'inline_message_id' => null, 'inline_query_id' => null],
             ],
-            $this->repository->findByGameId($gameId),
+            $this->withoutCreatedAt($this->repository->findByGameId($gameId)),
         );
     }
 
@@ -122,5 +121,27 @@ final class GameMessageRepositoryTest extends DatabaseTestCase
         $this->db->delete('games', ['game_id' => $gameId]);
 
         $this->assertSame([], $this->repository->findByGameId($gameId));
+    }
+
+    /** @return array<string, mixed> */
+    private function inlineMessageRow(int $gameId, string $inlineMessageId, ?string $inlineQueryId = null): array
+    {
+        return [
+            'game_id' => $gameId,
+            'chat_id' => null,
+            'message_id' => null,
+            'inline_message_id' => $inlineMessageId,
+            'inline_query_id' => $inlineQueryId,
+        ];
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function withoutCreatedAt(array $rows): array
+    {
+        return array_map(static fn(array $row): array => array_diff_key($row, ['created_at' => true]), $rows);
     }
 }

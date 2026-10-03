@@ -214,7 +214,7 @@ final class WeatherAddOnTest extends DatabaseTestCase
             gameKey: 'iq',
             messages: [],
             title: $title,
-            users: [],
+            players: [],
             createdAt: new DateTimeImmutable(),
             kickoffAt: GameDateTimeResolver::resolveOrFail($title, new DateTimeImmutable()),
             location: $location,

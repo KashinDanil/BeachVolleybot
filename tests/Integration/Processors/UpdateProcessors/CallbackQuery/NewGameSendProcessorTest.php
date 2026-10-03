@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
 use BeachVolleybot\Common\GameDateResolver;
-use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameMessageManager;
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameSendProcessor;
@@ -41,9 +42,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
     {
         $this->runProcessor($this->dmSendUpdate('Bogatell'));
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
-        $this->assertNotNull($gameId);
-        $this->assertStringContainsString('Bogatell', new GameRepository($this->db)->findById($gameId)['title']);
+        $this->assertStringContainsString('Bogatell', $this->createdGame()->title);
     }
 
     public function testTitleIsDateFirstSoVenueNameDoesNotShadowTheDate(): void
@@ -52,8 +51,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
         // as a March date. Date-first keeps the picked day winning the leftmost match.
         $this->runProcessor($this->dmSendUpdate('Gavà Mar'));
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
-        $title = new GameRepository($this->db)->findById($gameId)['title'];
+        $title = $this->createdGame()->title;
 
         $resolved = GameDateResolver::resolve($title, new DateTimeImmutable());
         $this->assertNotNull($resolved);
@@ -70,8 +68,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
         $this->runProcessor($update);
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
-        $title = new GameRepository($this->db)->findById($gameId)['title'];
+        $title = $this->createdGame()->title;
 
         $this->assertStringContainsString('Четверг, 31.12', $title);
         $this->assertSame('31.12', GameDateResolver::resolve($title, new DateTimeImmutable())->format('d.m'));
@@ -87,20 +84,17 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
         $this->runProcessor($update);
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
-        $title = new GameRepository($this->db)->findById($gameId)['title'];
+        $game = $this->createdGame();
 
-        $this->assertStringContainsString('👥 8 spots per net', $title);
-        $this->assertSame(8, new GameManager()->findGameRecordById($gameId)?->settings->playersPerNet);
+        $this->assertStringContainsString('👥 8 spots per net', $game->title);
+        $this->assertSame(8, $game->settings->playersPerNet);
     }
 
     public function testUntouchedWizardPersistsNoPlayersPerNetSetting(): void
     {
         $this->runProcessor($this->dmSendUpdate('Bogatell'));
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
-
-        $this->assertNull(new GameManager()->findGameRecordById($gameId)?->settings->playersPerNet);
+        $this->assertNull($this->createdGame()->settings->playersPerNet);
     }
 
     public function testThePlayersPerNetRowDoesNotShadowTheDateOrTime(): void
@@ -114,8 +108,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
         $this->runProcessor($update);
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
-        $title = new GameRepository($this->db)->findById($gameId)['title'];
+        $title = $this->createdGame()->title;
 
         $this->assertSame('31.12', GameDateResolver::resolve($title, new DateTimeImmutable())->format('d.m'));
         $this->assertStringContainsString(self::PICKED_TIME, $title);
@@ -125,10 +118,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
     {
         $this->runProcessor($this->dmSendUpdate(null));
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
-        $this->assertNotNull($gameId);
-
-        $title = new GameRepository($this->db)->findById($gameId)['title'];
+        $title = $this->createdGame()->title;
         $this->assertNull(KnownVenues::findInTitle($title));
         $this->assertSame('31.12', GameDateResolver::resolve($title, new DateTimeImmutable())->format('d.m'));
         $this->assertStringContainsString(self::PICKED_TIME, $title);
@@ -140,7 +130,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
         $this->runProcessor($this->dmSendUpdate('Bogatell'));
 
-        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertSame(0, new GameManager()->countGames());
     }
 
     public function testRestartsTheWizardWhenTheKickoffDayHasAlreadyPassed(): void
@@ -155,7 +145,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
         $this->runProcessor($update);
 
-        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertSame(0, new GameManager()->countGames());
         $this->assertSame(0, $this->sendMessageCount());
 
         $text = $this->editedText();
@@ -172,7 +162,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
         $this->runProcessor($update);
 
-        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertSame(0, new GameManager()->countGames());
 
         $text = $this->editedText();
         $this->assertNotNull($text, 'Expected the ephemeral wizard to rewind to the date picker');
@@ -191,10 +181,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
 
         $this->runProcessor($update);
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
-        $this->assertNotNull($gameId, 'Expected the game to be created despite the unrecognized venue');
-
-        $title = new GameRepository($this->db)->findById($gameId)['title'];
+        $title = $this->createdGame()->title;
         $this->assertNull(KnownVenues::findInTitle($title));
     }
 
@@ -205,7 +192,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
         $this->runProcessor($update);
         $this->runProcessor($update); // the second final tap finds the existing game and bails
 
-        $this->assertSame(1, new GameRepository($this->db)->countAll());
+        $this->assertSame(1, new GameManager()->countGames());
         // First run posts the game and its DM share reply (2 sends); the second run bails before posting.
         $this->assertSame(2, $this->sendMessageCount());
     }
@@ -214,7 +201,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
     {
         $this->runProcessor($this->groupEphemeralSendUpdate('Bogatell'));
 
-        $this->assertNotNull(new GameManager()->resolveGameIdByChatMessage(self::GROUP_CHAT_ID, self::SENT_MESSAGE_ID));
+        $this->assertNotNull(new GameMessageManager()->resolveGameIdByChatMessage(self::GROUP_CHAT_ID, self::SENT_MESSAGE_ID));
         $this->assertTrue($this->calledApi('pinChatMessage'), 'Expected the posted message to be pinned in a group');
         $this->assertTrue($this->editedEphemeralMessage(), 'Expected the ephemeral wizard message to be edited to the success view');
     }
@@ -223,7 +210,7 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
     {
         $this->runProcessor($this->dmSendUpdate('Bogatell'));
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $gameId = new GameMessageManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
         $shareReply = $this->shareReplyTo(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
         $this->assertNotNull($shareReply, 'Expected a share reply to follow the posted game in a DM');
 
@@ -355,5 +342,16 @@ final class NewGameSendProcessorTest extends ProcessorTestCase
         }
 
         return false;
+    }
+
+    private function createdGame(): GameRecord
+    {
+        $gameId = new GameMessageManager()->resolveGameIdByChatMessage(self::DM_CHAT_ID, self::SENT_MESSAGE_ID);
+        $this->assertNotNull($gameId, 'Expected the game to be created');
+
+        $game = new GameManager()->findGameRecordById($gameId);
+        $this->assertNotNull($game, 'Expected the created game to be stored');
+
+        return $game;
     }
 }

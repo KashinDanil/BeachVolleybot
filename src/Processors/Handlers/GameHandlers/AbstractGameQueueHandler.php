@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\Handlers\GameHandlers;
 
+use BeachVolleybot\Common\QueueName;
 use BeachVolleybot\Processors\AbstractQueuedProcessorHandler;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
@@ -17,7 +18,7 @@ abstract readonly class AbstractGameQueueHandler extends AbstractQueuedProcessor
             return null;
         }
 
-        return 'game_' . $gameId;
+        return QueueName::Game->forId($gameId);
     }
 
     abstract protected function resolveGameId(TelegramUpdate $update): ?int;

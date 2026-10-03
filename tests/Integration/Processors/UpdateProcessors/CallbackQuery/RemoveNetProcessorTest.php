@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\RemoveNetProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -19,8 +19,8 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
 
         new RemoveNetProcessor($this->telegramSender)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, $gameUser['net']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->net);
     }
 
     public function testAnswersNetRemoved(): void
@@ -87,8 +87,8 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
         $this->assertMessageNotEdited();
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(2, $gameUser['net']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(2, $gameUser->net);
     }
 
     public function testTodayPastHourStillRemovesBecauseDayHasNotEnded(): void
@@ -101,8 +101,8 @@ final class RemoveNetProcessorTest extends ProcessorTestCase
         new RemoveNetProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::NET_REMOVED);
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, $gameUser['net']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->net);
     }
 
     private function buildUpdate(string $inlineMessageId, string $gameKey = 'query_1'): TelegramUpdate

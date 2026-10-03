@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\RemoveVolleyballProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -19,8 +19,8 @@ final class RemoveVolleyballProcessorTest extends ProcessorTestCase
 
         new RemoveVolleyballProcessor($this->telegramSender)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, $gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->volleyball);
     }
 
     public function testAnswersVolleyballRemoved(): void
@@ -87,8 +87,8 @@ final class RemoveVolleyballProcessorTest extends ProcessorTestCase
         $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
         $this->assertMessageNotEdited();
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(2, $gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(2, $gameUser->volleyball);
     }
 
     public function testTodayPastHourStillRemovesBecauseDayHasNotEnded(): void
@@ -101,8 +101,8 @@ final class RemoveVolleyballProcessorTest extends ProcessorTestCase
         new RemoveVolleyballProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::VOLLEYBALL_REMOVED);
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, $gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->volleyball);
     }
 
     private function buildUpdate(string $inlineMessageId, string $gameKey = 'query_1'): TelegramUpdate

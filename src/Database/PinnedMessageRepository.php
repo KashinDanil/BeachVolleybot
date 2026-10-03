@@ -48,13 +48,11 @@ readonly class PinnedMessageRepository
     /** @return list<int> */
     public function findExpiredIds(int $chatId, int $excludeMessageId): array
     {
-        $rows = $this->db->select('pinned_messages', ['message_id'], [
+        return $this->db->select('pinned_messages', 'message_id', [
             'chat_id' => $chatId,
             'message_id[!]' => $excludeMessageId,
             'unpin_after[<=]' => Timestamp::format(new DateTimeImmutable()),
             'unpin_after[!]' => null,
         ]);
-
-        return array_map(static fn(array $row): int => (int)$row['message_id'], $rows);
     }
 }

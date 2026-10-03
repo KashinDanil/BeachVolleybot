@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Game\GameSlotManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\AddVolleyballProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
@@ -20,8 +20,8 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
 
         new AddVolleyballProcessor($this->telegramSender)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(2, $gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(2, $gameUser->volleyball);
     }
 
     public function testAnswersVolleyballAdded(): void
@@ -54,13 +54,13 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
         $this->assertAnsweredWith(CallbackAnswer::VOLLEYBALL_ADDED);
         $this->assertMessageEdited();
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertNotNull($gameUser);
-        $this->assertSame(1, $gameUser['volleyball']);
+        $this->assertSame(1, $gameUser->volleyball);
 
-        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(1, $slots);
-        $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
+        $this->assertSame(200, $slots[0]->telegramUserId);
     }
 
     public function testAnswersGameNotFoundWhenGameMissing(): void
@@ -85,8 +85,8 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
         $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
         $this->assertMessageNotEdited();
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(1, $gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(1, $gameUser->volleyball);
     }
 
     public function testTodayPastHourStillAddsBecauseDayHasNotEnded(): void
@@ -99,8 +99,8 @@ final class AddVolleyballProcessorTest extends ProcessorTestCase
         new AddVolleyballProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::VOLLEYBALL_ADDED);
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame(2, $gameUser['volleyball']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame(2, $gameUser->volleyball);
     }
 
     private function buildUpdate(string $inlineMessageId, string $gameKey = 'query_1'): TelegramUpdate

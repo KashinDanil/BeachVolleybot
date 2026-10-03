@@ -12,6 +12,7 @@ readonly class GameMessagePoster
     public function __construct(
         private TelegramMessageSender $telegramSender,
         private GameManager $gameManager,
+        private GameMessageManager $gameMessageManager = new GameMessageManager(),
     ) {
     }
 
@@ -32,7 +33,7 @@ readonly class GameMessagePoster
         }
 
         $gameId = $this->gameManager->createGame($newGameData);
-        $this->gameManager->addChatMessage($gameId, $chatId, $sentMessageId);
+        $this->gameMessageManager->addChatMessage($gameId, $chatId, $sentMessageId);
 
         return new PostedGame($gameId, $sentMessageId, $game->getKickoffAt());
     }

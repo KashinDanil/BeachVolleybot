@@ -7,7 +7,7 @@ namespace BeachVolleybot\Processors\AdminProcessors;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\SettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\User\CurrentUser;
+use BeachVolleybot\User\UserManager;
 
 class SettingsMenuCommandProcessor extends AbstractActionProcessor
 {
@@ -15,7 +15,7 @@ class SettingsMenuCommandProcessor extends AbstractActionProcessor
     {
         $message = $update->message;
 
-        $role = CurrentUser::fromTelegramId($message->from->id)->role();
+        $role = new UserManager()->ensureUserRecord($message->from)->role;
         $settingsMessage = new SettingsMessageBuilder()->buildMainMenu($role);
 
         $this->telegramSender->sendMessage($message->chat->id, $settingsMessage);

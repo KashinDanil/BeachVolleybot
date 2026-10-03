@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Queue;
 
+use BeachVolleybot\Database\ConcurrentSqliteMedoo;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Routing\IncomingMessageQueueRouter;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Unit\Queue\Stub\SpyQueue;
-use Medoo\Medoo;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -18,13 +18,13 @@ final class IncomingMessageQueueRouterTest extends TestCase
     private const string BASE_DIR = '/tmp/test_queues';
 
     private IncomingMessageQueueRouter $router;
-    private Medoo $db;
+    private ConcurrentSqliteMedoo $db;
 
     protected function setUp(): void
     {
         @mkdir(BASE_LOG_DIR, 0777, true);
 
-        $this->db = new Medoo([
+        $this->db = new ConcurrentSqliteMedoo([
             'type' => 'sqlite',
             'database' => ':memory:',
             'error' => PDO::ERRMODE_EXCEPTION,

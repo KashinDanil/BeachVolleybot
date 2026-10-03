@@ -17,7 +17,7 @@ final readonly class GameMessagePinner
 {
     public function __construct(
         private TelegramMessageSender $sender,
-        private MessagePinManager $manager = new MessagePinManager(),
+        private PinnedMessageManager $pinnedMessageManager = new PinnedMessageManager(),
     ) {
     }
 
@@ -26,7 +26,7 @@ final readonly class GameMessagePinner
         $pinned = $this->sender->pinChatMessage($chatId, $messageId);
 
         if ($pinned) {
-            $this->manager->register($chatId, $messageId, $messageJson, $eventDate);
+            $this->pinnedMessageManager->register($chatId, $messageId, $messageJson, $eventDate);
         }
 
         $this->unpinExpired($chatId, keepPinnedMessageId: $messageId);
@@ -43,7 +43,7 @@ final readonly class GameMessagePinner
 
     /**
      * Pins a game message the bot itself posted. Telegram gives no Message back from sendMessage,
-     * so this builds the synthetic pinned-message payload MessagePinManager stores. Shared by the
+     * so this builds the synthetic pinned-message payload PinnedMessageManager stores. Shared by the
      * create-from-message and /new_game flows so the payload shape lives in one place.
      */
     private function pinGameMessage(int $chatId, PostedGame $game, string $title, int $messageDate): void
@@ -60,12 +60,12 @@ final readonly class GameMessagePinner
 
     private function unpinExpired(int $chatId, int $keepPinnedMessageId): void
     {
-        $expiredMessageIds = $this->manager->findMessageIdsToUnpin($chatId, $keepPinnedMessageId);
+        $expiredMessageIds = $this->pinnedMessageManager->findMessageIdsToUnpin($chatId, $keepPinnedMessageId);
 
         foreach ($expiredMessageIds as $expiredMessageId) {
             $this->sender->unpinChatMessage($chatId, $expiredMessageId);
         }
 
-        $this->manager->deleteByIds($chatId, $expiredMessageIds);
+        $this->pinnedMessageManager->deleteByIds($chatId, $expiredMessageIds);
     }
 }

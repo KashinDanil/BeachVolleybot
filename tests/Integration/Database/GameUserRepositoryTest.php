@@ -111,6 +111,93 @@ final class GameUserRepositoryTest extends DatabaseTestCase
         $this->assertSame(0, $this->repository->findByGameUser($this->gameId, 200)['net']);
     }
 
+    public function testFindEarliestTimeWithEquipmentCountsNetHolders(): void
+    {
+        $this->createUser(201, 'Bob');
+        $this->repository->create($this->gameId, 200, '15:00');
+        $this->repository->create($this->gameId, 201, '17:00', net: 1);
+
+        $this->assertSame('17:00', $this->repository->findEarliestTimeWithEquipment($this->gameId));
+    }
+
+    public function testFindEarliestTimeWithEquipmentCountsVolleyballHolders(): void
+    {
+        $this->createUser(201, 'Bob');
+        $this->repository->create($this->gameId, 200, '15:00');
+        $this->repository->create($this->gameId, 201, '17:00', volleyball: 1);
+
+        $this->assertSame('17:00', $this->repository->findEarliestTimeWithEquipment($this->gameId));
+    }
+
+    public function testFindEarliestTimeWithEquipmentPicksTheEarliestHolder(): void
+    {
+        $this->createUser(201, 'Bob');
+        $this->repository->create($this->gameId, 200, '19:00', net: 1);
+        $this->repository->create($this->gameId, 201, '17:00', volleyball: 1);
+
+        $this->assertSame('17:00', $this->repository->findEarliestTimeWithEquipment($this->gameId));
+    }
+
+    public function testFindEarliestTimeWithEquipmentReturnsNullWhenNobodyHasEquipment(): void
+    {
+        $this->repository->create($this->gameId, 200, '15:00');
+
+        $this->assertNull($this->repository->findEarliestTimeWithEquipment($this->gameId));
+    }
+
+    public function testFindUserIdsExceptSkipsTheExcludedUser(): void
+    {
+        $this->createUser(201, 'Bob');
+        $this->createUser(202, 'Eve');
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
+        $this->repository->create($this->gameId, 201, self::DEFAULT_TIME);
+        $this->repository->create($this->gameId, 202, self::DEFAULT_TIME);
+
+        $this->assertSame([200, 202], $this->repository->findUserIdsExcept($this->gameId, 201));
+    }
+
+    public function testFindUserIdsExceptListsEveryoneWhenTheExcludedUserIsNotInTheGame(): void
+    {
+        $this->createUser(201, 'Bob');
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
+        $this->repository->create($this->gameId, 201, self::DEFAULT_TIME);
+
+        $this->assertSame([200, 201], $this->repository->findUserIdsExcept($this->gameId, 999));
+    }
+
+    public function testFindUserIdsExceptIgnoresOtherGames(): void
+    {
+        $this->createUser(201, 'Bob');
+        $otherGameId = $this->createGame(inlineMessageId: 'msg_2', gameKey: 'query_2');
+        $this->repository->create($otherGameId, 201, self::DEFAULT_TIME);
+        $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);
+
+        $this->assertSame([200], $this->repository->findUserIdsExcept($this->gameId, 999));
+    }
+
+    public function testFindEarliestTimeWithEquipmentIgnoresOtherGames(): void
+    {
+        $otherGameId = $this->createGame(inlineMessageId: 'msg_2', gameKey: 'query_2');
+        $this->repository->create($otherGameId, 200, '15:00', volleyball: 1);
+        $this->repository->create($this->gameId, 200, '17:00', net: 1);
+
+        $this->assertSame('17:00', $this->repository->findEarliestTimeWithEquipment($this->gameId));
+    }
+
+    public function testFindEarliestTimeReturnsTheEarliestPlayer(): void
+    {
+        $this->createUser(201, 'Bob');
+        $this->repository->create($this->gameId, 200, '19:00', net: 1);
+        $this->repository->create($this->gameId, 201, '17:00');
+
+        $this->assertSame('17:00', $this->repository->findEarliestTime($this->gameId));
+    }
+
+    public function testFindEarliestTimeReturnsNullWhenGameHasNoPlayers(): void
+    {
+        $this->assertNull($this->repository->findEarliestTime($this->gameId));
+    }
+
     public function testDeleteRemovesEntry(): void
     {
         $this->repository->create($this->gameId, 200, self::DEFAULT_TIME);

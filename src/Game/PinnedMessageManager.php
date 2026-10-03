@@ -9,7 +9,7 @@ use BeachVolleybot\Database\PinnedMessageRepository;
 use BeachVolleybot\Database\Timestamp;
 use DateTimeImmutable;
 
-readonly class MessagePinManager
+readonly class PinnedMessageManager
 {
     private PinnedMessageRepository $pinnedMessageRepository;
 

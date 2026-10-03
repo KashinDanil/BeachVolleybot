@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\Handlers\PrivateHandlers;
 
+use BeachVolleybot\Common\QueueName;
 use BeachVolleybot\Processors\AbstractQueuedProcessorHandler;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
@@ -15,6 +16,6 @@ abstract readonly class AbstractDmQueueHandler extends AbstractQueuedProcessorHa
             ?? $update->message?->from->id
             ?? $update->editedMessage?->from->id;
 
-        return 'dm_' . $userId;
+        return QueueName::Dm->forId($userId);
     }
 }

@@ -12,8 +12,12 @@ use BeachVolleybot\Telegram\TelegramMessageSender;
 
 enum UserCallbackAction: string implements CallbackActionInterface
 {
-    case GamesList  = 'ugl';
+    case GamesList = 'ugl';
     case GameDetail = 'ugd';
+    case NotificationsList = 'unl';
+    case NotificationDetail = 'und';
+    case EnableNotification = 'une';
+    case DisableNotification = 'undi';
 
     /**
      * @param TelegramMessageSender $telegramSender
@@ -26,8 +30,12 @@ enum UserCallbackAction: string implements CallbackActionInterface
         ?CallbackDataInterface $callbackData,
     ): AbstractActionProcessor {
         return match ($this) {
-            self::GamesList  => new UserGamesListCallbackProcessor($telegramSender, $callbackData),
+            self::GamesList => new UserGamesListCallbackProcessor($telegramSender, $callbackData),
             self::GameDetail => new UserGameDetailCallbackProcessor($telegramSender, $callbackData),
+            self::NotificationsList => new UserNotificationsListCallbackProcessor($telegramSender),
+            self::NotificationDetail => new UserNotificationDetailCallbackProcessor($telegramSender, $callbackData),
+            self::EnableNotification => new UserEnableNotificationCallbackProcessor($telegramSender, $callbackData),
+            self::DisableNotification => new UserDisableNotificationCallbackProcessor($telegramSender, $callbackData),
         };
     }
 }

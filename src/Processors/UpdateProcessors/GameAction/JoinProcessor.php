@@ -16,7 +16,7 @@ class JoinProcessor extends AbstractGameCallbackProcessor
         $from = $callbackQuery->from;
         $gameId = $game->getGameId();
 
-        new GameManager()->joinGame($gameId, $from->id, $from->firstName, $from->lastName, $from->username);
+        new GameManager()->joinGame($gameId, $from);
         $this->logUserAction($from, 'join', "gameId=$gameId");
 
         $this->refreshGameMessages($gameId);

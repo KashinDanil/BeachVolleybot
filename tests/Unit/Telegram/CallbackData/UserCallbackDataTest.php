@@ -10,6 +10,7 @@ use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
+use BeachVolleybot\User\NotificationType;
 use PHPUnit\Framework\TestCase;
 
 final class UserCallbackDataTest extends TestCase
@@ -40,6 +41,15 @@ final class UserCallbackDataTest extends TestCase
             ->toJson();
 
         $this->assertSame('{"ua":"ugd","g":42,"p":3}', $json);
+    }
+
+    public function testCreateWithNotificationType(): void
+    {
+        $json = UserCallbackData::create(UserCallbackAction::EnableNotification)
+            ->withNotificationType(NotificationType::PromotedIntoGame)
+            ->toJson();
+
+        $this->assertSame('{"ua":"une","n":3}', $json);
     }
 
     // --- fromJson recognizes user vs other namespaces ---
@@ -132,6 +142,47 @@ final class UserCallbackDataTest extends TestCase
         $this->assertSame(UserCallbackAction::GameDetail, $withGameId->getAction());
     }
 
+    public function testWithPageAndGameIdPreserveNotificationType(): void
+    {
+        $callbackData = UserCallbackData::create(UserCallbackAction::NotificationDetail)
+            ->withNotificationType(NotificationType::BumpedFromGame)
+            ->withPage(2)
+            ->withGameId(7);
+
+        $this->assertSame(NotificationType::BumpedFromGame, $callbackData->getNotificationType());
+    }
+
+    // --- notification type ---
+
+    public function testGetNotificationTypeReturnsNullWhenAbsent(): void
+    {
+        $callbackData = UserCallbackData::fromJson('{"ua":"und"}');
+
+        $this->assertNull($callbackData->getNotificationType());
+    }
+
+    public function testFromJsonParsesNotificationType(): void
+    {
+        $callbackData = UserCallbackData::fromJson('{"ua":"und","n":2}');
+
+        $this->assertSame(NotificationType::GameShortBeforeKickoff, $callbackData->getNotificationType());
+    }
+
+    public function testFromJsonTurnsUnknownNotificationTypeIntoNull(): void
+    {
+        $callbackData = UserCallbackData::fromJson('{"ua":"und","n":99}');
+
+        $this->assertNotNull($callbackData);
+        $this->assertNull($callbackData->getNotificationType());
+    }
+
+    public function testFromJsonTurnsNonIntegerNotificationTypeIntoNull(): void
+    {
+        $callbackData = UserCallbackData::fromJson('{"ua":"und","n":"1"}');
+
+        $this->assertNull($callbackData->getNotificationType());
+    }
+
     // --- roundtrip ---
 
     public function testCreateAndParseRoundtrip(): void
@@ -199,6 +250,35 @@ final class UserCallbackDataTest extends TestCase
 
         foreach ($cases as $json) {
             $this->assertLessThanOrEqual(64, strlen($json), "Callback data exceeds 64 bytes: $json");
+        }
+    }
+
+    public function testEveryNotificationTypeRoundTripsWithinTheByteLimit(): void
+    {
+        $notificationActions = [
+            UserCallbackAction::NotificationDetail,
+            UserCallbackAction::EnableNotification,
+            UserCallbackAction::DisableNotification,
+        ];
+
+        foreach ($notificationActions as $action) {
+            foreach (NotificationType::cases() as $type) {
+                $json = UserCallbackData::create($action)->withNotificationType($type)->toJson();
+                $parsed = UserCallbackData::fromJson($json);
+
+                $this->assertLessThanOrEqual(
+                    64,
+                    strlen($json),
+                    "The $action->name button for NotificationType::$type->name exceeds Telegram's 64-byte callback data limit: $json",
+                );
+                $this->assertSame($action, $parsed?->getAction(), "Callback data did not parse back: $json");
+                $this->assertSame(
+                    $type,
+                    $parsed->getNotificationType(),
+                    "NotificationType::$type->name was lost in the $action->name callback data $json. "
+                    . 'Check UserCallbackData::parseNotificationType().',
+                );
+            }
         }
     }
 }

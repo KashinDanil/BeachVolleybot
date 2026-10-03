@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -18,8 +18,8 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
         new SetLocationProcessor($this->telegramSender)->process($update);
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertSame('41.399747,2.20778', $game['location']);
+        $game = new GameManager()->findGameRecordById($gameId);
+        $this->assertSame('41.399747,2.20778', $game->location);
     }
 
     public function testReactsWithCheckmark(): void
@@ -70,8 +70,8 @@ final class SetLocationProcessorTest extends ProcessorTestCase
 
         new SetLocationProcessor($this->telegramSender)->process($update);
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertNull($game['location']);
+        $game = new GameManager()->findGameRecordById($gameId);
+        $this->assertNull($game->location);
     }
 
     public function testIgnoresWhenGameNotFound(): void
