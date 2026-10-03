@@ -26,7 +26,7 @@ final readonly class NotificationSender
 
     public function send(NotificationQueuePayload $notificationPayload, GameRecord $game): void
     {
-        $recipient = $this->findRecipient($notificationPayload);
+        $recipient = $this->findEligibleRecipient($notificationPayload);
 
         if (null === $recipient) {
             return;
@@ -37,7 +37,7 @@ final readonly class NotificationSender
     }
 
     /** The payload's user, as long as they are still in the game and opted in to this type. */
-    private function findRecipient(NotificationQueuePayload $notificationPayload): ?UserRecord
+    private function findEligibleRecipient(NotificationQueuePayload $notificationPayload): ?UserRecord
     {
         if (!$this->gameUserManager->isUserInGame($notificationPayload->gameId, $notificationPayload->userId)) {
             return null;

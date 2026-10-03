@@ -48,7 +48,7 @@ final class NotificationsMessageBuilder extends AbstractMessageBuilder
         foreach (NotificationType::cases() as $type) {
             $keyboard[] = [
                 $this->buildActionButton(
-                    $this->translator->translate(NotificationTypeTexts::forType($type)->label),
+                    new LocalizedNotificationTexts($type, $this->translator)->label(),
                     UserCallbackData::create(UserCallbackAction::NotificationDetail)->withNotificationType($type),
                     $settings->isEnabled($type) ? InlineButtonStyle::SUCCESS : null,
                 ),
@@ -61,12 +61,13 @@ final class NotificationsMessageBuilder extends AbstractMessageBuilder
     public function buildDetail(NotificationType $type, NotificationSettings $settings): TelegramMessage
     {
         $enabled = $settings->isEnabled($type);
+        $texts = new LocalizedNotificationTexts($type, $this->translator);
         $newLine = $this->formatter->newLine();
 
-        $text = $this->formatter->bold($this->translator->translate(NotificationTypeTexts::forType($type)->label))
+        $text = $this->formatter->bold($texts->label())
             . $newLine
             . $newLine
-            . $this->formatter->escape($this->buildStatusSentence($type, $enabled));
+            . $this->formatter->escape($this->buildStatusSentence($texts, $enabled));
 
         return $this->buildMessage($text, [
             [$this->buildSwitchButton($type, $enabled)],
@@ -77,14 +78,11 @@ final class NotificationsMessageBuilder extends AbstractMessageBuilder
         ]);
     }
 
-    private function buildStatusSentence(NotificationType $type, bool $enabled): string
+    private function buildStatusSentence(LocalizedNotificationTexts $texts, bool $enabled): string
     {
         $sentence = $enabled ? self::ENABLED_SENTENCE : self::DISABLED_SENTENCE;
 
-        return sprintf(
-            $this->translator->translate($sentence),
-            $this->translator->translate(NotificationTypeTexts::forType($type)->trigger),
-        );
+        return sprintf($this->translator->translate($sentence), $texts->trigger());
     }
 
     private function buildSwitchButton(NotificationType $type, bool $enabled): array

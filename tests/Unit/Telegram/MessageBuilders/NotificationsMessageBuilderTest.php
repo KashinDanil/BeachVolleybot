@@ -124,7 +124,7 @@ final class NotificationsMessageBuilderTest extends TestCase
         $text = $this->detailText(NotificationType::GameShortBeforeKickoff, $settings);
 
         $this->assertStringContainsString(
-            "🔔 You'll get a notification when kickoff is near and a game you've joined still doesn't have enough players\\.",
+            "🔔 You'll get a notification when a game you've joined still doesn't have enough players 12 hours before kickoff\\.",
             $text,
         );
     }

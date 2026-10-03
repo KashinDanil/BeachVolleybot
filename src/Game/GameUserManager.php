@@ -30,6 +30,12 @@ readonly class GameUserManager
     }
 
     /** @return list<int> */
+    public function findUserIds(int $gameId): array
+    {
+        return $this->gameUserRepository->findUserIds($gameId);
+    }
+
+    /** @return list<int> */
     public function findUserIdsExcept(int $gameId, int $excludedUserId): array
     {
         return $this->gameUserRepository->findUserIdsExcept($gameId, $excludedUserId);

@@ -49,7 +49,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
             ->build(NotificationType::GameShortBeforeKickoff, $this->game('Friday 18:00 Barceloneta'));
 
         $this->assertSame(
-            "*⚠️ Short of players*\n\nThe game on Friday, 14 Aug at 18:00 starts soon, but there still aren't enough players:\n>Friday 18:00 Barceloneta",
+            "*⚠️ Short of players*\n\nThe game on Friday, 14 Aug at 18:00 starts in about 12 hours, but there still aren't enough players:\n>Friday 18:00 Barceloneta",
             $message->getText()->getMessageText(),
         );
     }
@@ -101,7 +101,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
             $this->plainText(NotificationType::GameReachedMinimumPlayers, Language::EN),
         );
         $this->assertSame(
-            "⚠️ Short of players\n\nThe game on Friday, 14 Aug at 18:00 starts soon, but there still aren't enough players:\nFriday 18:00 Barceloneta",
+            "⚠️ Short of players\n\nThe game on Friday, 14 Aug at 18:00 starts in about 12 hours, but there still aren't enough players:\nFriday 18:00 Barceloneta",
             $this->plainText(NotificationType::GameShortBeforeKickoff, Language::EN),
         );
         $this->assertSame(
@@ -126,7 +126,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
             $this->plainText(NotificationType::GameReachedMinimumPlayers, Language::RU),
         );
         $this->assertSame(
-            "⚠️ Не хватает игроков\n\nИгра в пятницу, 14 авг в 18:00 скоро начнётся, но игроков всё ещё не хватает:\nFriday 18:00 Barceloneta",
+            "⚠️ Не хватает игроков\n\nИгра в пятницу, 14 авг в 18:00 начнётся примерно через 12 часов, но игроков всё ещё не хватает:\nFriday 18:00 Barceloneta",
             $this->plainText(NotificationType::GameShortBeforeKickoff, Language::RU),
         );
         $this->assertSame(
@@ -151,7 +151,7 @@ final class GameNotificationMessageBuilderTest extends TestCase
             $this->plainText(NotificationType::GameReachedMinimumPlayers, Language::ES),
         );
         $this->assertStringEndsWith(
-            "Pronto empieza el partido el viernes, 14 ago a las 18:00, pero aún faltan jugadores:\nFriday 18:00 Barceloneta",
+            "El partido el viernes, 14 ago a las 18:00 empieza en aproximadamente 12 horas, pero aún faltan jugadores:\nFriday 18:00 Barceloneta",
             $this->plainText(NotificationType::GameShortBeforeKickoff, Language::ES),
         );
         $this->assertStringEndsWith(

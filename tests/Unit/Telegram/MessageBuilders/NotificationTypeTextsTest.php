@@ -33,14 +33,38 @@ final class NotificationTypeTextsTest extends TestCase
         }
     }
 
-    public function testEveryDescriptionFormatTakesTheKickoffDayAndTime(): void
+    public function testEveryDescriptionFormatTakesTheKickoffDayAndTimeThenAnyLeadTime(): void
     {
         foreach (NotificationType::cases() as $type) {
+            $texts = NotificationTypeTexts::forType($type);
+
             $this->assertSame(
-                2,
-                substr_count(NotificationTypeTexts::forType($type)->descriptionFormat, '%s'),
+                2 + $this->leadTimePlaceholders($texts),
+                substr_count($texts->descriptionFormat, '%s'),
                 "NotificationType::$type->name",
             );
         }
+    }
+
+    public function testATriggerTakesAPlaceholderOnlyForItsLeadTime(): void
+    {
+        foreach (NotificationType::cases() as $type) {
+            $texts = NotificationTypeTexts::forType($type);
+
+            $this->assertSame(
+                $this->leadTimePlaceholders($texts),
+                substr_count($texts->trigger, '%s'),
+                "NotificationType::$type->name",
+            );
+        }
+    }
+
+    private function leadTimePlaceholders(NotificationTypeTexts $texts): int
+    {
+        if (null === $texts->leadTimeHours) {
+            return 0;
+        }
+
+        return 1;
     }
 }

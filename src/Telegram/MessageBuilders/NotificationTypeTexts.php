@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders;
 
+use BeachVolleybot\Notifications\ShortOfPlayersNotifier;
 use BeachVolleybot\User\NotificationType;
 
 final readonly class NotificationTypeTexts
@@ -13,6 +14,7 @@ final readonly class NotificationTypeTexts
         public string $trigger,
         public string $descriptionFormat,
         public ?string $hint = null,
+        public ?int $leadTimeHours = null,
     ) {
     }
 
@@ -26,8 +28,9 @@ final readonly class NotificationTypeTexts
             ),
             NotificationType::GameShortBeforeKickoff => new self(
                 label: '⚠️ Short of players',
-                trigger: "kickoff is near and a game you've joined still doesn't have enough players",
-                descriptionFormat: "The game %s at %s starts soon, but there still aren't enough players:",
+                trigger: "a game you've joined still doesn't have enough players %s before kickoff",
+                descriptionFormat: "The game %s at %s starts in about %s, but there still aren't enough players:",
+                leadTimeHours: ShortOfPlayersNotifier::LEAD_TIME_HOURS,
             ),
             NotificationType::PromotedIntoGame => new self(
                 label: "⬆️ You're in",

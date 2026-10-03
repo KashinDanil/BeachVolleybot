@@ -24,6 +24,8 @@ This project was created to address a common frustration: _manually copying part
   it fires each time the count climbs back to 4
 - **Game-time notification** — when a game's day or time changes (a title edit, or a net, volleyball, time reply or leave that
   moves the earliest time), everyone else in it who opted in gets a DM
+- **Short-of-players notification** — when a game still has fewer than 4 players (+1s included) 12 hours before kickoff, everyone
+  in it who opted in gets a DM; a scan worker sends it once, as the game crosses that mark
 - **Welcome flow** — the `/start` command (also triggered by `/help`) shows a welcome message
 - **Group help** — `/help` in a group sends the same help text as an ephemeral message, visible only to the person who asked; answered inside the webhook request, since Telegram expires an ephemeral reply 15 seconds after the command
 - **Weather forecasts** — hourly forecast for the game window, attached to the message and refreshed whenever the game changes; powered by Open-Meteo, resolved per known venue, cached in SQLite, and computed off the request path by a dedicated worker
@@ -74,6 +76,10 @@ WeatherScanWorker (every 5 minutes, independent of any update)
       → WeatherRefreshLadder (is the cached forecast older than this game's rung?)
         → WeatherEnqueuer → weather queue (same path as above)
 
+NotificationScanWorker (every 30 minutes, independent of any update)
+  → ShortOfPlayersNotifier (games whose 12h-before-kickoff mark passed since the last scan, still under 4 players)
+    → NotificationEnqueuer (same path as below)
+
 NotificationEnqueuer (a game event enqueues one NotificationQueuePayload per recipient: type, game, user)
   → notifications/notification_<gameId> queue   (per-game ordering)
     → NotificationQueueWorker
@@ -100,7 +106,7 @@ Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `
 │   ├── Game/            # Core game logic, models, add-ons (registry + WeatherAddOn, MergeConsecutiveSlotsAddOn, StylizeTitleAddOn)
 │   ├── Localization/    # Translator (what the bot writes), CalendarVocabulary (what it reads)
 │   ├── Log/             # Log file management
-│   ├── Notifications/   # NotificationQueuePayload (one recipient each), NotificationEnqueuer, NotificationSender, MinimumPlayersNotifier, LineupChangeNotifier, KickoffChangeNotifier
+│   ├── Notifications/   # NotificationQueuePayload (one recipient each), NotificationEnqueuer, NotificationSender, MinimumPlayersNotifier, LineupChangeNotifier, KickoffChangeNotifier, ShortOfPlayersNotifier
 │   ├── Processors/
 │   │   ├── AdminProcessors/    # Admin panel callbacks (game / user / equipment / logs / settings)
 │   │   ├── UserProcessors/     # /help (also /start), /games and /notifications commands with their callbacks
@@ -130,7 +136,7 @@ Routing is a `ProcessorRegistry` over handlers declaring `matches(update)` and `
 │   │   ├── Location/           # GameLocationResolver, KnownVenues catalog, VenueDirectory, Venue / VenueAlias
 │   │   ├── Queue/              # WeatherEnqueuer, WeatherQueuePayload
 │   │   └── Schedule/           # WeatherRefreshScheduler, WeatherRefreshLadder
-│   └── Workers/         # AppQueueWorker, WeatherQueueWorker, WeatherScanWorker, NotificationQueueWorker
+│   └── Workers/         # AppQueueWorker, WeatherQueueWorker, WeatherScanWorker, NotificationQueueWorker, NotificationScanWorker
 └── tests/               # PHPUnit tests (Unit + Integration)
 ```
 
@@ -225,10 +231,11 @@ DB_DATA_DIR=../../../db
 
 ## Workers
 
-The project runs four workers concurrently: the **app worker** (processes Telegram updates from per-game / per-DM / per-chat queues), the **weather
+The project runs five workers concurrently: the **app worker** (processes Telegram updates from per-game / per-DM / per-chat queues), the **weather
 worker** (fetches forecasts for games), the **weather scan worker** (wakes every 5 minutes and enqueues the upcoming games whose forecast has aged
-past its ladder rung), and the **notification worker** (sends notification DMs to the users who opted in to them). All four are started automatically
-by `install.sh`.
+past its ladder rung), the **notification worker** (sends notification DMs to the users who opted in to them), and the **notification scan worker**
+(wakes every 30 minutes and enqueues the time-based notifications, such as a game still short of players 12 hours before kickoff). All five are
+started automatically by `install.sh`.
 
 To start them in the background:
 
@@ -237,7 +244,8 @@ make workers-start
 ```
 
 App errors log to `logs/app-worker-errors.log`; weather errors log to `logs/weather-worker-errors.log`; scan errors log to
-`logs/weather-scan-worker-errors.log`; notification errors log to `logs/notification-worker-errors.log`.
+`logs/weather-scan-worker-errors.log`; notification errors log to `logs/notification-worker-errors.log`; notification scan errors log to
+`logs/notification-scan-worker-errors.log`.
 
 To restart them (stops running processes, then starts fresh ones):
 
@@ -258,6 +266,7 @@ make app-worker-run
 make weather-worker-run
 make weather-scan-worker-run
 make notification-worker-run
+make notification-scan-worker-run
 ```
 
 ## Localization

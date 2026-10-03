@@ -25,36 +25,28 @@ final class GameNotificationMessageBuilder extends AbstractMessageBuilder
 
     public function build(NotificationType $type, GameRecord $game): TelegramMessage
     {
-        $newLine = $this->formatter->newLine();
+        $texts = new LocalizedNotificationTexts($type, $this->translator);
 
-        $text = $this->buildHeadline($type)
-            . $newLine
-            . $newLine
-            . $this->buildDescription($type, $game)
-            . $newLine
-            . $this->buildQuotedTitle($game)
-            . $this->buildHint($type);
+        $paragraphs = [
+            $this->buildHeader($texts),
+            $this->buildDescription($texts, $game) . $this->formatter->newLine() . $this->buildQuotedTitle($game),
+            $this->buildHint($texts),
+        ];
 
-        return $this->buildMessage($text, []);
+        return $this->buildMessage($this->joinParagraphs($paragraphs), []);
     }
 
-    private function buildHeadline(NotificationType $type): string
+    private function buildHeader(LocalizedNotificationTexts $texts): string
     {
-        return $this->formatter->bold($this->translator->translate(NotificationTypeTexts::forType($type)->label));
+        return $this->formatter->bold($texts->label());
     }
 
-    /** "A spot opened up, and you're now playing on Friday, 14 Aug at 18:00:" */
-    private function buildDescription(NotificationType $type, GameRecord $game): string
+    private function buildDescription(LocalizedNotificationTexts $texts, GameRecord $game): string
     {
         $kickoffFormatter = new KickoffFormatter($game->kickoffAt, $this->translator, $this->now);
+        $kickoffDay = $kickoffFormatter->formatWeekdayWithPreposition() . ', ' . $kickoffFormatter->formatDayAndMonth();
 
-        $description = sprintf(
-            $this->translator->translate(NotificationTypeTexts::forType($type)->descriptionFormat),
-            $kickoffFormatter->formatWeekdayWithPreposition() . ', ' . $kickoffFormatter->formatDayAndMonth(),
-            $kickoffFormatter->formatTime(),
-        );
-
-        return $this->formatter->escape($description);
+        return $this->formatter->escape($texts->description($kickoffDay, $kickoffFormatter->formatTime()));
     }
 
     private function buildQuotedTitle(GameRecord $game): string
@@ -62,16 +54,22 @@ final class GameNotificationMessageBuilder extends AbstractMessageBuilder
         return $this->formatter->blockquote($this->formatter->escape($game->title));
     }
 
-    private function buildHint(NotificationType $type): string
+    private function buildHint(LocalizedNotificationTexts $texts): ?string
     {
-        $hint = NotificationTypeTexts::forType($type)->hint;
+        $hint = $texts->hint();
 
         if (null === $hint) {
-            return '';
+            return null;
         }
 
-        $newLine = $this->formatter->newLine();
+        return $this->formatter->escape($hint);
+    }
 
-        return $newLine . $newLine . $this->formatter->escape($this->translator->translate($hint));
+    /** @param list<?string> $paragraphs a null one is left out */
+    private function joinParagraphs(array $paragraphs): string
+    {
+        $blankLine = $this->formatter->newLine() . $this->formatter->newLine();
+
+        return implode($blankLine, array_filter($paragraphs));
     }
 }
