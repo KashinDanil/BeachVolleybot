@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Notifications;
 
 use BeachVolleybot\Common\QueueName;
+use BeachVolleybot\User\NotificationType;
 use DanilKashin\FileQueue\Queue\QueueInterface;
 use DanilKashin\FileQueue\Queue\QueueMessage;
 
@@ -26,5 +27,13 @@ final readonly class NotificationEnqueuer
         $queue = new ($this->queueClass)(QueueName::Notification->forId($notificationPayload->gameId), $this->baseDir);
 
         $queue->enqueue(new QueueMessage($notificationPayload->jsonSerialize()));
+    }
+
+    /** @param array<int> $userIds */
+    public function enqueueForUsers(NotificationType $type, int $gameId, array $userIds): void
+    {
+        foreach ($userIds as $userId) {
+            $this->enqueue(new NotificationQueuePayload($type, $gameId, $userId));
+        }
     }
 }

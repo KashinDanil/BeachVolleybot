@@ -56,6 +56,28 @@ final class NotificationEnqueuerTest extends TestCase
         $this->assertSame(['type' => 2, 'game_id' => 12, 'user_id' => 201], SpyQueue::$instances[1]->lastPayload);
     }
 
+    public function testEnqueuesOnePayloadPerUser(): void
+    {
+        new NotificationEnqueuer(SpyQueue::class, $this->baseDir)
+            ->enqueueForUsers(NotificationType::KickoffTimeChanged, 12, [200, 201]);
+
+        $this->assertSame(
+            [
+                ['type' => 5, 'game_id' => 12, 'user_id' => 200],
+                ['type' => 5, 'game_id' => 12, 'user_id' => 201],
+            ],
+            array_map(static fn(SpyQueue $queue): array => $queue->lastPayload, SpyQueue::$instances),
+        );
+    }
+
+    public function testEnqueuesNothingForNoUsers(): void
+    {
+        new NotificationEnqueuer(SpyQueue::class, $this->baseDir)
+            ->enqueueForUsers(NotificationType::KickoffTimeChanged, 12, []);
+
+        $this->assertEmpty(SpyQueue::$instances);
+    }
+
     public function testWritesADequeuablePayload(): void
     {
         new NotificationEnqueuer(FileQueue::class, $this->baseDir)

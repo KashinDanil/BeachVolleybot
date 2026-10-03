@@ -26,10 +26,10 @@ final readonly class KickoffChangeNotifier
             return;
         }
 
-        foreach ($this->gameUserManager->findUserIdsExcept($gameBefore->gameId, $actorId) as $recipientId) {
-            $this->notificationEnqueuer->enqueue(
-                new NotificationQueuePayload(NotificationType::KickoffTimeChanged, $gameBefore->gameId, $recipientId),
-            );
-        }
+        $this->notificationEnqueuer->enqueueForUsers(
+            NotificationType::KickoffTimeChanged,
+            $gameBefore->gameId,
+            $this->gameUserManager->findUserIdsExcept($gameBefore->gameId, $actorId),
+        );
     }
 }

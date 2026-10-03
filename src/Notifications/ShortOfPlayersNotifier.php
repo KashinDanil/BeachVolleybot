@@ -56,11 +56,11 @@ final readonly class ShortOfPlayersNotifier
                 return;
             }
 
-            foreach ($this->gameUserManager->findUserIds($gameId) as $recipientId) {
-                $this->notificationEnqueuer->enqueue(
-                    new NotificationQueuePayload(NotificationType::GameShortBeforeKickoff, $gameId, $recipientId),
-                );
-            }
+            $this->notificationEnqueuer->enqueueForUsers(
+                NotificationType::GameShortBeforeKickoff,
+                $gameId,
+                $this->gameUserManager->findUserIds($gameId),
+            );
         } catch (Throwable $e) {
             Logger::logApp('Short-of-players scan skipped game #' . $gameId . ': ' . $e->getMessage());
         }

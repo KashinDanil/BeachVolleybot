@@ -28,10 +28,10 @@ final readonly class MinimumPlayersNotifier
             return;
         }
 
-        foreach ($this->gameUserManager->findUserIdsExcept($gameId, $slotOwnerId) as $recipientId) {
-            $this->notificationEnqueuer->enqueue(
-                new NotificationQueuePayload(NotificationType::GameReachedMinimumPlayers, $gameId, $recipientId),
-            );
-        }
+        $this->notificationEnqueuer->enqueueForUsers(
+            NotificationType::GameReachedMinimumPlayers,
+            $gameId,
+            $this->gameUserManager->findUserIdsExcept($gameId, $slotOwnerId),
+        );
     }
 }

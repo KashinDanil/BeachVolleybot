@@ -96,20 +96,10 @@ final readonly class LineupChangeNotifier
      */
     private function enqueueMoves(int $gameId, array $playingUserIdsBefore, array $playingUserIdsAfter, int $actorId): void
     {
-        $promotedUserIds = array_diff($playingUserIdsAfter, $playingUserIdsBefore);
-        $this->enqueue(NotificationType::PromotedIntoGame, $gameId, $promotedUserIds, $actorId);
+        $promotedUserIds = array_diff($playingUserIdsAfter, $playingUserIdsBefore, [$actorId]);
+        $this->notificationEnqueuer->enqueueForUsers(NotificationType::PromotedIntoGame, $gameId, $promotedUserIds);
 
-        $bumpedUserIds = array_diff($playingUserIdsBefore, $playingUserIdsAfter);
-        $this->enqueue(NotificationType::BumpedFromGame, $gameId, $bumpedUserIds, $actorId);
-    }
-
-    /** @param array<int> $userIds */
-    private function enqueue(NotificationType $type, int $gameId, array $userIds, int $actorId): void
-    {
-        foreach ($userIds as $userId) {
-            if ($actorId !== $userId) {
-                $this->notificationEnqueuer->enqueue(new NotificationQueuePayload($type, $gameId, $userId));
-            }
-        }
+        $bumpedUserIds = array_diff($playingUserIdsBefore, $playingUserIdsAfter, [$actorId]);
+        $this->notificationEnqueuer->enqueueForUsers(NotificationType::BumpedFromGame, $gameId, $bumpedUserIds);
     }
 }
