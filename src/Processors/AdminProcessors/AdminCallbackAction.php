@@ -20,6 +20,10 @@ use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogFileActionsCallbac
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogGetCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogsListCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogTailCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootDisableUserNotificationProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootEnableUserNotificationProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootUserNotificationDetailProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootUserNotificationsListProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootDemoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootPromoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleDetailProcessor;
@@ -48,6 +52,10 @@ enum AdminCallbackAction: string implements CallbackActionInterface
     case UserDetail = 'uv';
     case PromoteUser = 'pu';
     case DemoteUser = 'du';
+    case UserNotifications = 'nl';
+    case UserNotificationDetail = 'nd';
+    case EnableUserNotification = 'ne';
+    case DisableUserNotification = 'nx';
     case RemoveSlot = 'rs';
     case AddSlot = 'as';
     case RemoveLocation = 'rl';
@@ -83,6 +91,10 @@ enum AdminCallbackAction: string implements CallbackActionInterface
             self::UserDetail => new RootUserRoleDetailProcessor($telegramSender, $callbackData, $sender),
             self::PromoteUser => new RootPromoteUserProcessor($telegramSender, $callbackData, $sender),
             self::DemoteUser => new RootDemoteUserProcessor($telegramSender, $callbackData, $sender),
+            self::UserNotifications => new RootUserNotificationsListProcessor($telegramSender, $callbackData, $sender),
+            self::UserNotificationDetail => new RootUserNotificationDetailProcessor($telegramSender, $callbackData, $sender),
+            self::EnableUserNotification => new RootEnableUserNotificationProcessor($telegramSender, $callbackData, $sender),
+            self::DisableUserNotification => new RootDisableUserNotificationProcessor($telegramSender, $callbackData, $sender),
             self::RemoveSlot => new AdminRemoveSlotProcessor($telegramSender, $callbackData, $sender),
             self::AddSlot => new AdminAddSlotProcessor($telegramSender, $callbackData, $sender),
             self::RemoveLocation => new AdminRemoveLocationCallbackProcessor($telegramSender, $callbackData, $sender),
@@ -104,7 +116,11 @@ enum AdminCallbackAction: string implements CallbackActionInterface
             self::UsersList,
             self::UserDetail,
             self::PromoteUser,
-            self::DemoteUser => Role::Root,
+            self::DemoteUser,
+            self::UserNotifications,
+            self::UserNotificationDetail,
+            self::EnableUserNotification,
+            self::DisableUserNotification => Role::Root,
             default => Role::Admin,
         };
     }

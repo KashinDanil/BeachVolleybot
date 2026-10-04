@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\CallbackData;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
+use BeachVolleybot\User\NotificationType;
 
 final readonly class AdminCallbackData extends AbstractCallbackData implements PageableCallbackDataInterface
 {
-    private const string KEY_ACTION   = 'aa';
-    private const string KEY_GAME_ID  = 'g';
-    private const string KEY_USER_ID  = 'u';
-    private const string KEY_PAGE     = 'p';
-    private const string KEY_FILENAME = 'f';
+    private const string KEY_ACTION       = 'aa';
+    private const string KEY_GAME_ID      = 'g';
+    private const string KEY_USER_ID      = 'u';
+    private const string KEY_PAGE         = 'p';
+    private const string KEY_FILENAME     = 'f';
+    private const string KEY_NOTIFICATION = 'n';
 
     private function __construct(
         private AdminCallbackAction $action,
@@ -20,6 +22,7 @@ final readonly class AdminCallbackData extends AbstractCallbackData implements P
         private ?int $userId = null,
         private ?int $page = null,
         private ?string $filename = null,
+        private ?NotificationType $notificationType = null,
     ) {
     }
 
@@ -47,27 +50,42 @@ final readonly class AdminCallbackData extends AbstractCallbackData implements P
             userId: $data[self::KEY_USER_ID] ?? null,
             page: $data[self::KEY_PAGE] ?? null,
             filename: $data[self::KEY_FILENAME] ?? null,
+            notificationType: self::parseNotificationType($data[self::KEY_NOTIFICATION] ?? null),
         );
+    }
+
+    private static function parseNotificationType(mixed $rawNotificationType): ?NotificationType
+    {
+        if (!is_int($rawNotificationType)) {
+            return null;
+        }
+
+        return NotificationType::tryFrom($rawNotificationType);
     }
 
     public function withGameId(int $gameId): self
     {
-        return new self($this->action, $gameId, $this->userId, $this->page, $this->filename);
+        return new self($this->action, $gameId, $this->userId, $this->page, $this->filename, $this->notificationType);
     }
 
     public function withUserId(int $userId): self
     {
-        return new self($this->action, $this->gameId, $userId, $this->page, $this->filename);
+        return new self($this->action, $this->gameId, $userId, $this->page, $this->filename, $this->notificationType);
     }
 
     public function withPage(int $page): static
     {
-        return new self($this->action, $this->gameId, $this->userId, $page, $this->filename);
+        return new self($this->action, $this->gameId, $this->userId, $page, $this->filename, $this->notificationType);
     }
 
     public function withFilename(string $filename): self
     {
-        return new self($this->action, $this->gameId, $this->userId, $this->page, $filename);
+        return new self($this->action, $this->gameId, $this->userId, $this->page, $filename, $this->notificationType);
+    }
+
+    public function withNotificationType(NotificationType $notificationType): self
+    {
+        return new self($this->action, $this->gameId, $this->userId, $this->page, $this->filename, $notificationType);
     }
 
     public function getAction(): AdminCallbackAction
@@ -95,6 +113,11 @@ final readonly class AdminCallbackData extends AbstractCallbackData implements P
         return $this->filename;
     }
 
+    public function getNotificationType(): ?NotificationType
+    {
+        return $this->notificationType;
+    }
+
     public function jsonSerialize(): array
     {
         $data = [self::KEY_ACTION => $this->action->value];
@@ -113,6 +136,10 @@ final readonly class AdminCallbackData extends AbstractCallbackData implements P
 
         if (null !== $this->filename) {
             $data[self::KEY_FILENAME] = $this->filename;
+        }
+
+        if (null !== $this->notificationType) {
+            $data[self::KEY_NOTIFICATION] = $this->notificationType->value;
         }
 
         return $data;

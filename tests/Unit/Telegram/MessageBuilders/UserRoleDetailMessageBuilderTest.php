@@ -98,13 +98,43 @@ final class UserRoleDetailMessageBuilderTest extends TestCase
         $this->assertBackRowLast($keyboard);
     }
 
-    public function testRootHasNoActionButton(): void
+    public function testRootWhoNeverOptedInHasOnlyTheBackButton(): void
     {
-        $message = $this->builder->buildUserDetail($this->userRecord(100, 'Alice', role: Role::Root));
+        $message = $this->builder->buildUserDetail($this->userRecord(100, 'Alice', role: Role::Root, notifications: null));
         $keyboard = $this->extractKeyboard($message);
 
         $this->assertCount(1, $keyboard);
         $this->assertSame("\u{21A9} Back", $keyboard[0][0]['text']);
+    }
+
+    public function testOptedInUserHasTheNotificationsButtonAfterTheRoleAction(): void
+    {
+        $message = $this->builder->buildUserDetail($this->userRecord(100, 'Alice', role: Role::Player));
+        $keyboard = $this->extractKeyboard($message);
+
+        $this->assertSame([['Promote to Admin'], ['Notifications'], ["\u{21A9} Back"]], $this->rowLabels($keyboard));
+        $this->assertSame('{"aa":"nl","u":100}', $keyboard[1][0]['callback_data']);
+    }
+
+    public function testOptedInRootHasTheNotificationsButton(): void
+    {
+        $message = $this->builder->buildUserDetail($this->userRecord(100, 'Alice', role: Role::Root));
+        $keyboard = $this->extractKeyboard($message);
+
+        $this->assertSame([['Notifications'], ["\u{21A9} Back"]], $this->rowLabels($keyboard));
+    }
+
+    public function testUserWhoNeverOptedInHasNoNotificationsButton(): void
+    {
+        $message = $this->builder->buildUserDetail($this->userRecord(100, 'Alice', notifications: null));
+
+        $this->assertSame([['Promote to Admin'], ["\u{21A9} Back"]], $this->rowLabels($this->extractKeyboard($message)));
+    }
+
+    /** @return list<list<string>> */
+    private function rowLabels(array $keyboard): array
+    {
+        return array_map(static fn(array $row) => array_column($row, 'text'), $keyboard);
     }
 
     private function assertBackRowLast(array $keyboard): void

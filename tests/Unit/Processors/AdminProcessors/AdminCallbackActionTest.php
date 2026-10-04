@@ -21,6 +21,10 @@ use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogFileActionsCallbac
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogGetCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogsListCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogTailCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootDisableUserNotificationProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootEnableUserNotificationProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootUserNotificationDetailProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootUserNotificationsListProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootDemoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootPromoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleDetailProcessor;
@@ -55,6 +59,10 @@ final class AdminCallbackActionTest extends TestCase
             [AdminCallbackAction::UserDetail, RootUserRoleDetailProcessor::class],
             [AdminCallbackAction::PromoteUser, RootPromoteUserProcessor::class],
             [AdminCallbackAction::DemoteUser, RootDemoteUserProcessor::class],
+            [AdminCallbackAction::UserNotifications, RootUserNotificationsListProcessor::class],
+            [AdminCallbackAction::UserNotificationDetail, RootUserNotificationDetailProcessor::class],
+            [AdminCallbackAction::EnableUserNotification, RootEnableUserNotificationProcessor::class],
+            [AdminCallbackAction::DisableUserNotification, RootDisableUserNotificationProcessor::class],
             [AdminCallbackAction::RemoveSlot, AdminRemoveSlotProcessor::class],
             [AdminCallbackAction::AddSlot, AdminAddSlotProcessor::class],
             [AdminCallbackAction::RemoveLocation, AdminRemoveLocationCallbackProcessor::class],
@@ -100,6 +108,10 @@ final class AdminCallbackActionTest extends TestCase
             AdminCallbackAction::UserDetail,
             AdminCallbackAction::PromoteUser,
             AdminCallbackAction::DemoteUser,
+            AdminCallbackAction::UserNotifications,
+            AdminCallbackAction::UserNotificationDetail,
+            AdminCallbackAction::EnableUserNotification,
+            AdminCallbackAction::DisableUserNotification,
         ];
 
         foreach ($userManagementActions as $action) {

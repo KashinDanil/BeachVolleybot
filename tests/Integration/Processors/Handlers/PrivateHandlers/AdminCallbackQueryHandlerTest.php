@@ -105,6 +105,34 @@ final class AdminCallbackQueryHandlerTest extends ProcessorTestCase
         $this->assertStringContainsString('Settings', $this->editedText());
     }
 
+    public function testRootOpensAUsersNotifications(): void
+    {
+        $this->seedRoot();
+        $this->seedOptedInUser();
+
+        $this->processThroughHandler('{"aa":"nl","u":300}');
+
+        $this->assertStringContainsString("*Notifications*\nUser: Alice\n", $this->editedText());
+        $this->assertAnsweredWith('');
+    }
+
+    public function testAdminIsRestrictedFromSwitchingAUsersNotification(): void
+    {
+        $this->seedAdmin();
+        $this->seedOptedInUser();
+
+        $this->processThroughHandler('{"aa":"ne","u":300,"n":3}');
+
+        $this->assertAnsweredWith(self::RESTRICTED);
+        $this->assertSame(0, new UserManager()->findUserRecordById(300)->notifications?->toInt());
+    }
+
+    private function seedOptedInUser(): void
+    {
+        $this->createUser(300, 'Alice');
+        $this->db->update('users', ['notifications' => 0], ['telegram_user_id' => 300]);
+    }
+
     public function testAdminOpensTheGamesList(): void
     {
         $this->seedAdmin();

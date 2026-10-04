@@ -18,6 +18,7 @@ final class UserRoleDetailMessageBuilder extends AbstractAdminMessageBuilder
     private const string HEADER_MESSAGE   = 'User';
     private const string PROMOTE_TO_ADMIN = 'Promote to Admin';
     private const string DEMOTE_TO_PLAYER = 'Demote to Player';
+    private const string NOTIFICATIONS = 'Notifications';
     private const string OPTED_IN         = 'Opted in';
 
     public function buildUserDetail(UserRecord $user): TelegramMessage
@@ -74,6 +75,15 @@ final class UserRoleDetailMessageBuilder extends AbstractAdminMessageBuilder
         $roleActionRow = $this->buildRoleActionRow($user->telegramUserId, $user->role);
         if (null !== $roleActionRow) {
             $keyboard[] = $roleActionRow;
+        }
+
+        if (null !== $user->notifications) {
+            $keyboard[] = [
+                $this->buildActionButton(
+                    self::NOTIFICATIONS,
+                    AdminCallbackData::create(AdminCallbackAction::UserNotifications)->withUserId($user->telegramUserId),
+                ),
+            ];
         }
 
         $keyboard[] = $this->backButtonRow(
