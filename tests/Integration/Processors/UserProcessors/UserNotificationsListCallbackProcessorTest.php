@@ -51,7 +51,7 @@ final class UserNotificationsListCallbackProcessorTest extends ProcessorTestCase
 
         $this->processCallback();
 
-        foreach ($this->editedKeyboard() as $row) {
+        foreach ($this->lastKeyboard('editMessageText') as $row) {
             $this->assertArrayNotHasKey('style', $row[0]);
         }
     }
@@ -67,16 +67,8 @@ final class UserNotificationsListCallbackProcessorTest extends ProcessorTestCase
 
         $this->processCallback();
 
-        $keyboard = $this->editedKeyboard();
+        $keyboard = $this->lastKeyboard('editMessageText');
         $this->assertSame('success', $keyboard[NotificationType::BumpedFromGame->value - 1][0]['style'] ?? null);
         $this->assertArrayNotHasKey('style', $keyboard[NotificationType::PromotedIntoGame->value - 1][0]);
-    }
-
-    private function editedKeyboard(): array
-    {
-        $editCalls = array_filter($this->bot->calls, fn($call) => 'editMessageText' === $call['method']);
-        $this->assertNotEmpty($editCalls);
-
-        return json_decode(end($editCalls)['args'][5]->toJson(), true)['inline_keyboard'];
     }
 }

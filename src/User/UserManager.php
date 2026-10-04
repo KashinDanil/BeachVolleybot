@@ -46,22 +46,14 @@ readonly class UserManager
         return $this->userRepository->countAll();
     }
 
-    public function upsertUser(TelegramUser $telegramUser): void
+    public function ensureUserRecordWithNotificationSettings(TelegramUser $telegramUser): UserRecord
     {
-        $this->userRepository->upsert(
-            $telegramUser->id,
-            $telegramUser->firstName,
-            $telegramUser->lastName,
-            $telegramUser->username,
-            $this->normalizeLanguageCode($telegramUser->languageCode),
-        );
+        return UserRecord::fromRow($this->upsert($telegramUser, new NotificationSettings()));
     }
 
     public function ensureUserRecord(TelegramUser $telegramUser): UserRecord
     {
-        $this->upsertUser($telegramUser);
-
-        return UserRecord::fromRow($this->userRepository->findById($telegramUser->id));
+        return UserRecord::fromRow($this->upsert($telegramUser));
     }
 
     public function changeRole(UserRecord $user, Role $role): void
@@ -83,6 +75,19 @@ readonly class UserManager
         $this->userRepository->updateNotifications($user->telegramUserId, $notifications->toInt());
 
         return $notifications;
+    }
+
+    /** @return array<string, mixed> */
+    private function upsert(TelegramUser $telegramUser, ?NotificationSettings $initialNotifications = null): array
+    {
+        return $this->userRepository->upsert(
+            $telegramUser->id,
+            $telegramUser->firstName,
+            $telegramUser->lastName,
+            $telegramUser->username,
+            $this->normalizeLanguageCode($telegramUser->languageCode),
+            $initialNotifications?->toInt(),
+        );
     }
 
     /**

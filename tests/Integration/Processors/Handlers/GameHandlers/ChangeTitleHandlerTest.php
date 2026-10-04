@@ -193,10 +193,10 @@ final class ChangeTitleHandlerTest extends ProcessorTestCase
 
         $queries = $this->queriesWhileMatchingInPrivateChat('Bogatell 31.12.2099 20:00', self::NON_CREATOR_ID);
 
-        $this->assertCount(3, $queries);
+        $this->assertCount(2, $queries);
         $this->assertStringContainsString('games', $queries[0]);
         $this->assertStringContainsString('INSERT INTO users', $queries[1]);
-        $this->assertStringContainsString('users', $queries[2]);
+        $this->assertStringContainsString('RETURNING', $queries[1]);
     }
 
     public function testChatterInPrivateChatCostsNoQuery(): void

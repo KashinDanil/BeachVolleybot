@@ -38,7 +38,7 @@ readonly class GameManager
 
     public function createGame(NewGameData $data): int
     {
-        $this->userManager->upsertUser($data->creator);
+        $this->userManager->ensureUserRecord($data->creator);
 
         $parsedTitle = ParsedTitle::parse($data->title, $data->createdAt);
         $settings = new GameSettings($parsedTitle->playersPerNet);
@@ -67,7 +67,7 @@ readonly class GameManager
 
     public function joinGame(int $gameId, TelegramUser $user): void
     {
-        $this->userManager->upsertUser($user);
+        $this->userManager->ensureUserRecord($user);
         $this->ensureGameUser($gameId, $user->id);
         $this->addSlot($gameId, $user->id);
     }
@@ -311,7 +311,7 @@ readonly class GameManager
 
     private function ensureUserInGame(int $gameId, TelegramUser $user): void
     {
-        $this->userManager->upsertUser($user);
+        $this->userManager->ensureUserRecord($user);
         $this->ensureGameUser($gameId, $user->id);
         $this->ensureGameUserSlot($gameId, $user->id);
     }

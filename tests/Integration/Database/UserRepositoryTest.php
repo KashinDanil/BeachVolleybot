@@ -104,6 +104,55 @@ final class UserRepositoryTest extends DatabaseTestCase
         $this->assertNull($this->repository->findById(200)['notifications']);
     }
 
+    public function testUpsertReturnsTheStoredRow(): void
+    {
+        $this->repository->upsert(200, 'Danil', languageCode: 'ru');
+        $this->repository->updateNotifications(200, NotificationType::PromotedIntoGame->bit());
+
+        $row = $this->repository->upsert(200, 'Daniil', username: 'danil');
+
+        $this->assertSame($this->repository->findById(200), $row);
+        $this->assertSame('Daniil', $row['first_name']);
+        $this->assertSame('ru', $row['language_code']);
+        $this->assertSame(NotificationType::PromotedIntoGame->bit(), $row['notifications']);
+    }
+
+    public function testUpsertWithInitialNotificationsInsertsThem(): void
+    {
+        $this->repository->upsert(200, 'Danil', initialNotifications: 0);
+
+        $this->assertSame(0, $this->repository->findById(200)['notifications']);
+    }
+
+    public function testUpsertWithInitialNotificationsFillsUnsetOnes(): void
+    {
+        $this->repository->upsert(200, 'Danil');
+
+        $this->repository->upsert(200, 'Danil', initialNotifications: 0);
+
+        $this->assertSame(0, $this->repository->findById(200)['notifications']);
+    }
+
+    public function testUpsertWithInitialNotificationsKeepsExistingOnes(): void
+    {
+        $this->repository->upsert(200, 'Danil');
+        $this->repository->updateNotifications(200, NotificationType::PromotedIntoGame->bit());
+
+        $this->repository->upsert(200, 'Danil', initialNotifications: 0);
+
+        $this->assertSame(NotificationType::PromotedIntoGame->bit(), $this->repository->findById(200)['notifications']);
+    }
+
+    public function testPlainUpsertKeepsExistingNotifications(): void
+    {
+        $this->repository->upsert(200, 'Danil');
+        $this->repository->updateNotifications(200, NotificationType::PromotedIntoGame->bit());
+
+        $this->repository->upsert(200, 'Danil');
+
+        $this->assertSame(NotificationType::PromotedIntoGame->bit(), $this->repository->findById(200)['notifications']);
+    }
+
     public function testUpdateNotificationsOverwritesThePreviousValue(): void
     {
         $this->repository->upsert(200, 'Danil');

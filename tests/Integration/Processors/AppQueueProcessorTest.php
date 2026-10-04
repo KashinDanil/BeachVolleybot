@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors;
 
-use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RoleGateProcessor;
 use BeachVolleybot\Processors\AppQueueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
@@ -128,13 +127,11 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([PinMessageProcessor::class], $this->recorder->selections);
     }
 
-    public function testRoutesAdminPrivateSettingsCommandToSettingsMenuProcessor(): void
+    public function testRoutesAnyonesPrivateSettingsCommandToTheRoleGate(): void
     {
-        $this->seedAdmin();
+        $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/settings', fromId: 999)));
 
-        $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/settings', fromId: self::ADMIN_TELEGRAM_USER_ID)));
-
-        $this->assertSame([SettingsMenuCommandProcessor::class], $this->recorder->selections);
+        $this->assertSame([RoleGateProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesPrivateGamesCommandToUserGamesListCommandProcessor(): void
@@ -174,13 +171,6 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([ChangeTitleProcessor::class], $this->recorder->selections);
     }
 
-    public function testReturnsNullForNonAdminPrivateSettingsCommand(): void
-    {
-        $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/settings', fromId: 999)));
-
-        $this->assertSame([null], $this->recorder->selections);
-    }
-
     public function testRoutesNonAdminCallbackQueryViaCallbackData(): void
     {
         $this->processor->process(new QueueMessage($this->callbackQueryPayload(inlineMessageId: 'msg_1', data: '{"a":"j"}')));
@@ -188,13 +178,11 @@ final class AppQueueProcessorTest extends ProcessorTestCase
         $this->assertSame([JoinProcessor::class], $this->recorder->selections);
     }
 
-    public function testRoutesAdminCallbackQueryViaAdminCallbackData(): void
+    public function testRoutesAdminCallbackQueryViaAdminCallbackDataToTheRoleGate(): void
     {
-        $this->seedAdmin();
-
         $this->processor->process(new QueueMessage($this->adminCallbackQueryPayload(data: '{"aa":"st"}')));
 
-        $this->assertSame([SettingsMenuCallbackProcessor::class], $this->recorder->selections);
+        $this->assertSame([RoleGateProcessor::class], $this->recorder->selections);
     }
 
     public function testRoutesUserGamesListCallbackToUserGamesListCallbackProcessor(): void

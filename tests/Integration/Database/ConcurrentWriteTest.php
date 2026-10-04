@@ -60,6 +60,17 @@ final class ConcurrentWriteTest extends DatabaseTestCase
         $this->assertSame('ru', $workerUsers->findById(200)['language_code']);
     }
 
+    public function testUserUpsertReturningTheRowLeavesNothingOpenForAnotherConnection(): void
+    {
+        $this->openConnections();
+
+        new UserRepository($this->workerDb)->upsert(200, 'Danil', initialNotifications: 0);
+        new UserRepository($this->webhookDb)->upsert(300, 'Alice');
+
+        $this->assertSame(0, (int)$this->webhookDb->query('PRAGMA wal_checkpoint(TRUNCATE)')->fetchColumn());
+        $this->assertSame(0, new UserRepository($this->webhookDb)->findById(200)['notifications']);
+    }
+
     public function testNetDecrementAfterAReadSucceedsWhileAnotherConnectionWrote(): void
     {
         $gameId = $this->createGame();

@@ -10,7 +10,6 @@ use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\User\NotificationType;
 use BeachVolleybot\User\UserManager;
-use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 
 final class UserNotificationsCommandProcessorTest extends ProcessorTestCase
 {
@@ -24,7 +23,7 @@ final class UserNotificationsCommandProcessorTest extends ProcessorTestCase
         $this->assertNotNull($sendCall, 'Expected sendMessage to be called');
         $this->assertSame(self::SENDER_ID, $sendCall['args'][0]);
         $this->assertStringContainsString('Choose a notification to set it up', $sendCall['args'][1]);
-        $this->assertCount(count(NotificationType::cases()), $this->extractKeyboard($sendCall));
+        $this->assertCount(count(NotificationType::cases()), $this->lastKeyboard('sendMessage'));
     }
 
     private function processCommand(): void
@@ -45,15 +44,6 @@ final class UserNotificationsCommandProcessorTest extends ProcessorTestCase
         }
 
         return end($calls);
-    }
-
-    private function extractKeyboard(?array $sendCall): array
-    {
-        $this->assertNotNull($sendCall);
-        /** @var InlineKeyboardMarkup $keyboard */
-        $keyboard = $sendCall['args'][5];
-
-        return json_decode($keyboard->toJson(), true)['inline_keyboard'];
     }
 
     public function testDeletesTheNotificationsCommandMessage(): void
@@ -83,7 +73,7 @@ final class UserNotificationsCommandProcessorTest extends ProcessorTestCase
 
         $this->processCommand();
 
-        foreach ($this->extractKeyboard($this->lastSendMessageCall()) as $row) {
+        foreach ($this->lastKeyboard('sendMessage') as $row) {
             $this->assertArrayNotHasKey('style', $row[0]);
         }
     }
@@ -99,7 +89,7 @@ final class UserNotificationsCommandProcessorTest extends ProcessorTestCase
 
         $this->processCommand();
 
-        $keyboard = $this->extractKeyboard($this->lastSendMessageCall());
+        $keyboard = $this->lastKeyboard('sendMessage');
         $this->assertSame('success', $keyboard[2][0]['style'] ?? null);
         $this->assertArrayNotHasKey('style', $keyboard[0][0]);
     }

@@ -44,6 +44,25 @@ readonly class TelegramUpdate implements JsonSerializable
         return null !== $this->chosenInlineResult;
     }
 
+    public function getMessage(): ?TelegramMessage
+    {
+        return $this->message ?? $this->editedMessage;
+    }
+
+    /** The chat the update happened in; null for inline queries and presses on inline messages. */
+    public function getChat(): ?TelegramChat
+    {
+        return $this->callbackQuery?->message?->chat ?? $this->getMessage()?->chat;
+    }
+
+    public function getFrom(): ?TelegramUser
+    {
+        return $this->callbackQuery?->from
+            ?? $this->inlineQuery?->from
+            ?? $this->chosenInlineResult?->from
+            ?? $this->getMessage()?->from;
+    }
+
     public function jsonSerialize(): array
     {
         return $this->rawPayload;

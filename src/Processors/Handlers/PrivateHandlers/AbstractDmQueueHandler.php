@@ -12,10 +12,6 @@ abstract readonly class AbstractDmQueueHandler extends AbstractQueuedProcessorHa
 {
     public function routeToQueue(TelegramUpdate $update): string
     {
-        $userId = $update->callbackQuery?->from->id
-            ?? $update->message?->from->id
-            ?? $update->editedMessage?->from->id;
-
-        return QueueName::Dm->forId($userId);
+        return QueueName::Dm->forId($update->getFrom()?->id);
     }
 }

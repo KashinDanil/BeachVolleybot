@@ -41,7 +41,7 @@ final class SettingsMenuProcessorTest extends ProcessorTestCase
 
         new SettingsMenuCommandProcessor($this->telegramSender)->process($update);
 
-        $this->assertContains('Logs', $this->sentKeyboardLabels());
+        $this->assertContains('Logs', $this->lastKeyboardLabels('sendMessage'));
     }
 
     public function testCommandHidesLogsButtonForAdmin(): void
@@ -51,16 +51,6 @@ final class SettingsMenuProcessorTest extends ProcessorTestCase
 
         new SettingsMenuCommandProcessor($this->telegramSender)->process($update);
 
-        $this->assertNotContains('Logs', $this->sentKeyboardLabels());
-    }
-
-    /** @return list<string> */
-    private function sentKeyboardLabels(): array
-    {
-        $sendCalls = array_values(array_filter($this->bot->calls, fn($c) => 'sendMessage' === $c['method']));
-        $keyboard = end($sendCalls)['args'][5];
-        $rows = json_decode($keyboard->toJson(), true)['inline_keyboard'];
-
-        return array_column(array_merge(...$rows), 'text');
+        $this->assertNotContains('Logs', $this->lastKeyboardLabels('sendMessage'));
     }
 }

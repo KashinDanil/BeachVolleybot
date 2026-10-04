@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Common\Extractors\ForwardGameQueryExtractor;
+use BeachVolleybot\Processors\AdminProcessors\RestrictedActionCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\RoleGateProcessor;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
 use BeachVolleybot\Processors\ProcessorRegistry;
@@ -18,23 +20,26 @@ use BeachVolleybot\Processors\UpdateProcessors\GroupHelpCommandProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\GroupNewGameCommandProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\InlineQueryProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
+use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameConfirmProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGamePickVenueProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\NewGame\NewGameSendProcessor;
-use BeachVolleybot\Processors\UpdateProcessors\NewGameCallbackAction;
 use BeachVolleybot\Processors\UpdateProcessors\PinMessageProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLiveLocationProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserDisableNotificationCallbackProcessor;
+use BeachVolleybot\Processors\UserProcessors\UserEnableNotificationCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserHelpCommandProcessor;
-use BeachVolleybot\Processors\UserProcessors\UserDisableNotificationCallbackProcessor;
-use BeachVolleybot\Processors\UserProcessors\UserEnableNotificationCallbackProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserNewGameCommandProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserNotificationsCommandProcessor;
+use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\User\Role;
+use BeachVolleybot\User\UserManager;
 
 final class ProcessorRegistryTest extends ProcessorTestCase
 {
@@ -58,15 +63,24 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $this->assertInstanceOf(JoinProcessor::class, $this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
-    public function testResolvesAdminCallbackQueryToDmQueueAndSettingsMenuCallbackProcessor(): void
+    public function testResolvesAdminCallbackQueryToDmQueueAndTheGatedSettingsMenuCallbackProcessor(): void
     {
         $this->seedAdmin();
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload('{"aa":"st"}'));
+        $callbackData = AdminCallbackData::fromJson('{"aa":"st"}');
 
         $this->assertSame('dm_12345678', $this->queuedRegistry->resolveQueueName($update));
-        $this->assertInstanceOf(
-            SettingsMenuCallbackProcessor::class,
-            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        $processor = $this->queuedRegistry->resolveProcessor($update, $this->telegramSender);
+
+        $this->assertEquals(
+            new RoleGateProcessor(
+                $this->telegramSender,
+                new UserManager()->findUserRecordById(self::ADMIN_TELEGRAM_USER_ID),
+                Role::Admin,
+                new SettingsMenuCallbackProcessor($this->telegramSender, $callbackData),
+                new RestrictedActionCallbackProcessor($this->telegramSender, $callbackData),
+            ),
+            $processor,
         );
     }
 
@@ -268,15 +282,21 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         );
     }
 
-    public function testResolvesAdminSettingsCommandToDmQueueAndSettingsMenuCommandProcessor(): void
+    public function testResolvesSettingsCommandFromAnyoneToDmQueueAndTheGatedSettingsMenuCommandProcessor(): void
     {
-        $this->seedAdmin();
-        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings', fromId: self::ADMIN_TELEGRAM_USER_ID));
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings', fromId: 999));
 
-        $this->assertSame('dm_12345678', $this->queuedRegistry->resolveQueueName($update));
-        $this->assertInstanceOf(
-            SettingsMenuCommandProcessor::class,
-            $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
+        $this->assertSame('dm_999', $this->queuedRegistry->resolveQueueName($update));
+        $processor = $this->queuedRegistry->resolveProcessor($update, $this->telegramSender);
+
+        $this->assertEquals(
+            new RoleGateProcessor(
+                $this->telegramSender,
+                new UserManager()->findUserRecordById(999),
+                Role::Admin,
+                new SettingsMenuCommandProcessor($this->telegramSender),
+            ),
+            $processor,
         );
     }
 
@@ -289,14 +309,6 @@ final class ProcessorRegistryTest extends ProcessorTestCase
             SendShareButtonProcessor::class,
             $this->queuedRegistry->resolveProcessor($update, $this->telegramSender),
         );
-    }
-
-    public function testReturnsNullForNonAdminSettingsCommand(): void
-    {
-        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings', fromId: 999));
-
-        $this->assertNull($this->queuedRegistry->resolveQueueName($update));
-        $this->assertNull($this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
     public function testReturnsNullForArbitraryPrivateText(): void

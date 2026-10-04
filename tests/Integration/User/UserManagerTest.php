@@ -217,6 +217,47 @@ final class UserManagerTest extends DatabaseTestCase
         $this->assertSame(0, $this->currentUser(200)->notifications?->toInt());
     }
 
+    public function testEnsureUserRecordWithNotificationSettingsCreatesAMissingUserWithEveryNotificationOff(): void
+    {
+        $this->userManager->ensureUserRecordWithNotificationSettings(new TelegramUser(id: 200, firstName: 'Danil', username: 'danil', languageCode: 'ru-RU'));
+
+        $record = $this->currentUser(200);
+        $this->assertSame('danil', $record->username);
+        $this->assertSame('ru', $record->languageCode);
+        $this->assertSame(0, $record->notifications?->toInt());
+    }
+
+    public function testEnsureUserRecordWithNotificationSettingsTurnsUnsetNotificationsOff(): void
+    {
+        $this->createUser(telegramUserId: 200);
+
+        $this->userManager->ensureUserRecordWithNotificationSettings(new TelegramUser(id: 200, firstName: 'Danil'));
+
+        $this->assertSame(0, $this->currentUser(200)->notifications?->toInt());
+    }
+
+    public function testEnsureUserRecordWithNotificationSettingsKeepsExistingNotifications(): void
+    {
+        $this->createUser(telegramUserId: 200);
+        $this->userManager->enableNotification($this->currentUser(200), NotificationType::BumpedFromGame);
+
+        $this->userManager->ensureUserRecordWithNotificationSettings(new TelegramUser(id: 200, firstName: 'Danil'));
+
+        $this->assertSame(NotificationType::BumpedFromGame->bit(), $this->currentUser(200)->notifications?->toInt());
+    }
+
+    public function testEnsureUserRecordReturnsTheStoredRecord(): void
+    {
+        $this->createUser(telegramUserId: 200, firstName: 'Old');
+        $this->userManager->enableNotification($this->currentUser(200), NotificationType::BumpedFromGame);
+
+        $record = $this->userManager->ensureUserRecord(new TelegramUser(id: 200, firstName: 'Danil', username: 'danil'));
+
+        $this->assertEquals($this->currentUser(200), $record);
+        $this->assertSame('Danil', $record->firstName);
+        $this->assertTrue($record->notifications?->isEnabled(NotificationType::BumpedFromGame));
+    }
+
     private function currentUser(int $telegramUserId): UserRecord
     {
         return $this->userManager->findUserRecordById($telegramUserId)

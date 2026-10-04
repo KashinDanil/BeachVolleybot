@@ -51,18 +51,10 @@ final class UserNotificationSwitchCallbackProcessorsTest extends ProcessorTestCa
         $this->processSwitch(UserCallbackAction::EnableNotification, NotificationType::PromotedIntoGame);
 
         $this->assertStringContainsString("🔔 You'll get a notification when", $this->editedText());
-        $switchButton = $this->editedKeyboard()[0][0];
+        $switchButton = $this->lastKeyboard('editMessageText')[0][0];
         $this->assertSame('Disable', $switchButton['text']);
         $this->assertSame('danger', $switchButton['style']);
         $this->assertAnsweredWith('Notification enabled');
-    }
-
-    private function editedKeyboard(): array
-    {
-        $editCalls = array_filter($this->bot->calls, fn($call) => 'editMessageText' === $call['method']);
-        $this->assertNotEmpty($editCalls);
-
-        return json_decode(end($editCalls)['args'][5]->toJson(), true)['inline_keyboard'];
     }
 
     public function testDisableClearsOnlyThatNotification(): void
@@ -91,7 +83,7 @@ final class UserNotificationSwitchCallbackProcessorsTest extends ProcessorTestCa
         $this->processSwitch(UserCallbackAction::DisableNotification, NotificationType::PromotedIntoGame);
 
         $this->assertStringContainsString("🔕 You won't get a notification when", $this->editedText());
-        $switchButton = $this->editedKeyboard()[0][0];
+        $switchButton = $this->lastKeyboard('editMessageText')[0][0];
         $this->assertSame('Enable', $switchButton['text']);
         $this->assertSame('success', $switchButton['style']);
         $this->assertAnsweredWith('Notification disabled');
@@ -135,7 +127,7 @@ final class UserNotificationSwitchCallbackProcessorsTest extends ProcessorTestCa
         $this->processSwitch(UserCallbackAction::DisableNotification, NotificationType::PromotedIntoGame);
 
         $this->assertSame(0, new UserManager()->findUserRecordById(self::SENDER_ID)->notifications?->toInt());
-        $this->assertSame('Enable', $this->editedKeyboard()[0][0]['text']);
+        $this->assertSame('Enable', $this->lastKeyboard('editMessageText')[0][0]['text']);
         $this->assertAnsweredWith('Notification disabled');
     }
 }

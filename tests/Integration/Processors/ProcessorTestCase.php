@@ -54,6 +54,21 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         Connection::close();
     }
 
+    /** The inline keyboard of the last message sent or edited through $method, as rows of buttons. */
+    protected function lastKeyboard(string $method): array
+    {
+        $calls = array_values(array_filter($this->bot->calls, fn(array $call) => $method === $call['method']));
+        $this->assertNotEmpty($calls, "Expected $method to be called");
+
+        return json_decode(end($calls)['args'][5]->toJson(), true)['inline_keyboard'];
+    }
+
+    /** @return list<string> */
+    protected function lastKeyboardLabels(string $method): array
+    {
+        return array_column(array_merge(...$this->lastKeyboard($method)), 'text');
+    }
+
     protected function seedAdmin(): void
     {
         $this->createUser(self::ADMIN_TELEGRAM_USER_ID, role: Role::Admin->value);
