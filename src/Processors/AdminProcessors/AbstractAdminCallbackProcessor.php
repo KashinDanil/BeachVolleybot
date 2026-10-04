@@ -21,7 +21,7 @@ abstract class AbstractAdminCallbackProcessor extends AbstractCallbackProcessor
         parent::__construct($telegramSender);
     }
 
-    protected function editSettingsMessage(TelegramCallbackQuery $callbackQuery, TelegramMessage $message): void
+    protected function editAdminPanelMessage(TelegramCallbackQuery $callbackQuery, TelegramMessage $message): void
     {
         $this->telegramSender->editMessage(
             $callbackQuery->message->chat->id,

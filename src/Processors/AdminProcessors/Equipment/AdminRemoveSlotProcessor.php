@@ -25,7 +25,7 @@ class AdminRemoveSlotProcessor extends AbstractAdminMutationProcessor
 
         if (LeaveResult::NotJoined === $result) {
             $this->answerCallbackQuery($update->callbackQuery, 'No slots to remove');
-            $this->editSettingsMessage($update->callbackQuery, GameDetailMessageFactory::build($gameId, $this->sender->role));
+            $this->editAdminPanelMessage($update->callbackQuery, GameDetailMessageFactory::build($gameId, $this->sender->role));
 
             return;
         }
@@ -33,9 +33,9 @@ class AdminRemoveSlotProcessor extends AbstractAdminMutationProcessor
         $this->refreshGameMessages($gameId);
 
         if (new GameUserManager()->isUserInGame($gameId, $telegramUserId)) {
-            $this->editSettingsMessage($update->callbackQuery, UserSettingsMessageFactory::build($gameId, $telegramUserId));
+            $this->editAdminPanelMessage($update->callbackQuery, UserSettingsMessageFactory::build($gameId, $telegramUserId));
         } else {
-            $this->editSettingsMessage($update->callbackQuery, UsersListMessageFactory::build($gameId, 1));
+            $this->editAdminPanelMessage($update->callbackQuery, UsersListMessageFactory::build($gameId, 1));
         }
 
         $this->answerCallbackQuery($update->callbackQuery, 'Slot removed');

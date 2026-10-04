@@ -21,7 +21,7 @@ class RootLogTailCallbackProcessor extends AbstractAdminMutationProcessor
             return;
         }
 
-        $this->editSettingsMessage($update->callbackQuery, LogTailMessageFactory::build($filename));
+        $this->editAdminPanelMessage($update->callbackQuery, LogTailMessageFactory::build($filename));
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

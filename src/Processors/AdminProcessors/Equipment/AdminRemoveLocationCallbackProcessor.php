@@ -20,7 +20,7 @@ class AdminRemoveLocationCallbackProcessor extends AbstractAdminMutationProcesso
 
         $this->refreshGameMessages($gameId);
 
-        $this->editSettingsMessage($update->callbackQuery, GameDetailMessageFactory::build($gameId, $this->sender->role));
+        $this->editAdminPanelMessage($update->callbackQuery, GameDetailMessageFactory::build($gameId, $this->sender->role));
         $this->answerCallbackQuery($update->callbackQuery, 'Location removed');
     }
 }

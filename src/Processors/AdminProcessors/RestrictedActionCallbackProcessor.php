@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\AdminProcessors;
 
+use BeachVolleybot\Telegram\MessageBuilders\Admin\AdminPanelMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\RestrictedMessageBuilder;
-use BeachVolleybot\Telegram\MessageBuilders\Admin\SettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
 class RestrictedActionCallbackProcessor extends AbstractAdminCallbackProcessor
@@ -20,12 +20,12 @@ class RestrictedActionCallbackProcessor extends AbstractAdminCallbackProcessor
         $this->answerCallbackQuery($callbackQuery, self::MESSAGE);
 
         if (!$role->isAdmin()) {
-            $this->editSettingsMessage($callbackQuery, new RestrictedMessageBuilder()->build());
+            $this->editAdminPanelMessage($callbackQuery, new RestrictedMessageBuilder()->build());
 
             return;
         }
 
-        $settingsMenu = new SettingsMessageBuilder()->buildMainMenu($role);
-        $this->editSettingsMessage($callbackQuery, $settingsMenu);
+        $adminPanelMessage = new AdminPanelMessageBuilder()->buildMainMenu($role);
+        $this->editAdminPanelMessage($callbackQuery, $adminPanelMessage);
     }
 }

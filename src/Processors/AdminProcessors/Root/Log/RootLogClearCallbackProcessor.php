@@ -24,7 +24,7 @@ class RootLogClearCallbackProcessor extends AbstractAdminMutationProcessor
         new LogFileRepository()->clear($filename);
 
         $this->logAdminAction($update->callbackQuery->from, 'root_clear_log', "file=$filename");
-        $this->editSettingsMessage($update->callbackQuery, LogFileActionsMessageFactory::build($filename));
+        $this->editAdminPanelMessage($update->callbackQuery, LogFileActionsMessageFactory::build($filename));
         $this->answerCallbackQuery($update->callbackQuery, 'Cleared');
     }
 }

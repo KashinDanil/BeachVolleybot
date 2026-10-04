@@ -15,7 +15,7 @@ class AdminUserSettingsProcessor extends AbstractAdminCallbackProcessor
         $gameId = $this->adminCallbackData->getGameId();
         $telegramUserId = $this->adminCallbackData->getUserId();
 
-        $this->editSettingsMessage($update->callbackQuery, UserSettingsMessageFactory::build($gameId, $telegramUserId));
+        $this->editAdminPanelMessage($update->callbackQuery, UserSettingsMessageFactory::build($gameId, $telegramUserId));
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

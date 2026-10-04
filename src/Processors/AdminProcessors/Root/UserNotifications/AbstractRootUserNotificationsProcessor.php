@@ -21,7 +21,7 @@ abstract class AbstractRootUserNotificationsProcessor extends AbstractAdminMutat
         $user = new UserManager()->findUserRecordById($telegramUserId);
 
         if (null === $user?->notifications) {
-            $this->editSettingsMessage($update->callbackQuery, UserRoleDetailMessageFactory::build($telegramUserId));
+            $this->editAdminPanelMessage($update->callbackQuery, UserRoleDetailMessageFactory::build($telegramUserId));
             $this->answerCallbackQuery($update->callbackQuery, self::UNAVAILABLE_TOAST);
 
             return;

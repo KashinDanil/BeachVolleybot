@@ -173,11 +173,11 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             'group plain /help' => TelegramUpdate::fromArray(
                 $this->ephemeralGroupMessagePayload(fromId: $nonAdminId, ephemeralMessageId: null),
             ),
-            'private /settings by admin' => TelegramUpdate::fromArray(
-                $this->privateMessagePayload('/settings', fromId: $adminId),
+            'private /admin by admin' => TelegramUpdate::fromArray(
+                $this->privateMessagePayload('/admin', fromId: $adminId),
             ),
-            'private /settings by non-admin' => TelegramUpdate::fromArray(
-                $this->privateMessagePayload('/settings', fromId: $nonAdminId),
+            'private /admin by non-admin' => TelegramUpdate::fromArray(
+                $this->privateMessagePayload('/admin', fromId: $nonAdminId),
             ),
             'private via-bot game share' => TelegramUpdate::fromArray(
                 $this->privateViaBotGameMessagePayload('iq1'),

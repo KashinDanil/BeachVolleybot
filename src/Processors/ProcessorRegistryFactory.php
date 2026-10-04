@@ -19,9 +19,9 @@ use BeachVolleybot\Processors\Handlers\NewGameHandlers\UserNewGameCommandHandler
 use BeachVolleybot\Processors\Handlers\PinHandlers\DeletePinNotificationHandler;
 use BeachVolleybot\Processors\Handlers\PinHandlers\PinMessageHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\AdminCallbackQueryHandler;
+use BeachVolleybot\Processors\Handlers\PrivateHandlers\AdminPanelCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\GroupHelpCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\SendShareButtonHandler;
-use BeachVolleybot\Processors\Handlers\PrivateHandlers\SettingsMenuCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserCallbackQueryHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserGamesListCommandHandler;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\UserHelpCommandHandler;
@@ -81,7 +81,7 @@ final readonly class ProcessorRegistryFactory
             new JoinWithTimeHandler(),
             new CreateGameFromMessageHandler(),
             new SendShareButtonHandler(),
-            new SettingsMenuCommandHandler(),
+            new AdminPanelCommandHandler(),
             new UserGamesListCommandHandler(),
             new UserNotificationsCommandHandler(),
             new UserNewGameCommandHandler(),

@@ -229,7 +229,7 @@ final class AdminCallbackDataTest extends TestCase
     public function testCallbackDataFitsWithin64Bytes(): void
     {
         $cases = [
-            AdminCallbackData::create(AdminCallbackAction::Settings)->toJson(),
+            AdminCallbackData::create(AdminCallbackAction::AdminPanel)->toJson(),
             AdminCallbackData::create(AdminCallbackAction::Logs)->toJson(),
             AdminCallbackData::create(AdminCallbackAction::LogFile)->withFilename('user_actions.log')->toJson(),
             AdminCallbackData::create(AdminCallbackAction::GamesList)->withPage(999)->toJson(),

@@ -28,13 +28,13 @@ final class RestrictedActionCallbackProcessorTest extends ProcessorTestCase
         $this->assertSame([], $this->lastKeyboard('editMessageText'));
     }
 
-    public function testAdminIsMovedBackToTheSettingsMenuWithoutAQuery(): void
+    public function testAdminIsMovedBackToTheAdminPanelWithoutAQuery(): void
     {
         $queries = $this->queriesDuring(fn() => $this->processAs(Role::Admin));
 
         $this->assertSame([], $queries);
         $this->assertAnsweredWith(self::RESTRICTED);
-        $this->assertStringContainsString('Settings', $this->editedText());
+        $this->assertStringContainsString('Admin panel', $this->editedText());
         $this->assertNotContains('Logs', $this->lastKeyboardLabels('editMessageText'));
     }
 

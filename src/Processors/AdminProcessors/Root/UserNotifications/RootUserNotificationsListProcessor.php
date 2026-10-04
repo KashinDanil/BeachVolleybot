@@ -15,7 +15,7 @@ class RootUserNotificationsListProcessor extends AbstractRootUserNotificationsPr
     {
         $listMessage = new UserNotificationSettingsMessageBuilder($user)->buildList($notifications);
 
-        $this->editSettingsMessage($update->callbackQuery, $listMessage);
+        $this->editAdminPanelMessage($update->callbackQuery, $listMessage);
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

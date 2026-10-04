@@ -15,7 +15,7 @@ class AdminUsersListCallbackProcessor extends AbstractAdminCallbackProcessor
         $gameId = $this->adminCallbackData->getGameId();
         $page = $this->adminCallbackData->getPage();
 
-        $this->editSettingsMessage($update->callbackQuery, UsersListMessageFactory::build($gameId, $page));
+        $this->editAdminPanelMessage($update->callbackQuery, UsersListMessageFactory::build($gameId, $page));
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

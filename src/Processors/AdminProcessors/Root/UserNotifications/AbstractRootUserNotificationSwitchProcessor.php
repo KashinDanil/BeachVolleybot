@@ -26,7 +26,7 @@ abstract class AbstractRootUserNotificationSwitchProcessor extends AbstractRootU
 
         $changedNotifications = $this->applyNotificationChange(new UserManager(), $user, $notificationType);
 
-        $this->editSettingsMessage(
+        $this->editAdminPanelMessage(
             $callbackQuery,
             new UserNotificationSettingsMessageBuilder($user)->buildDetail($notificationType, $changedNotifications),
         );

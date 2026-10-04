@@ -38,7 +38,7 @@ use BeachVolleybot\User\UserRecord;
 
 enum AdminCallbackAction: string implements CallbackActionInterface
 {
-    case Settings = 'st';
+    case AdminPanel = 'st';
     case Logs = 'lgs';
     case LogFile = 'lf';
     case LogGet = 'lg';
@@ -77,7 +77,7 @@ enum AdminCallbackAction: string implements CallbackActionInterface
         UserRecord $sender,
     ): AbstractActionProcessor {
         return match ($this) {
-            self::Settings => new SettingsMenuCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::AdminPanel => new AdminPanelCallbackProcessor($telegramSender, $callbackData, $sender),
             self::Logs => new RootLogsListCallbackProcessor($telegramSender, $callbackData, $sender),
             self::LogFile => new RootLogFileActionsCallbackProcessor($telegramSender, $callbackData, $sender),
             self::LogGet => new RootLogGetCallbackProcessor($telegramSender, $callbackData, $sender),

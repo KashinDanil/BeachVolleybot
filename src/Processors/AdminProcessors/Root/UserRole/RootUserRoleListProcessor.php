@@ -14,7 +14,7 @@ class RootUserRoleListProcessor extends AbstractAdminCallbackProcessor
     {
         $page = $this->adminCallbackData->getPage();
 
-        $this->editSettingsMessage($update->callbackQuery, UserRoleListMessageFactory::build($page));
+        $this->editAdminPanelMessage($update->callbackQuery, UserRoleListMessageFactory::build($page));
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
-use BeachVolleybot\Telegram\MessageBuilders\Admin\SettingsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\AdminPanelMessageBuilder;
 use BeachVolleybot\User\Role;
 use PHPUnit\Framework\TestCase;
 
-final class SettingsMessageBuilderTest extends TestCase
+final class AdminPanelMessageBuilderTest extends TestCase
 {
-    private SettingsMessageBuilder $builder;
+    private AdminPanelMessageBuilder $builder;
 
-    public function testMainMenuContainsSettingsHeader(): void
+    public function testMainMenuContainsAdminPanelHeader(): void
     {
         $message = $this->builder->buildMainMenu(Role::Root);
 
-        $this->assertStringContainsString('Settings', $message->getText()->getMessageText());
+        $this->assertStringContainsString('Admin panel', $message->getText()->getMessageText());
     }
 
     public function testRootSeesLogsButton(): void
@@ -100,6 +100,6 @@ final class SettingsMessageBuilderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->builder = new SettingsMessageBuilder();
+        $this->builder = new AdminPanelMessageBuilder();
     }
 }

@@ -129,7 +129,7 @@ final class AppQueueProcessorTest extends ProcessorTestCase
 
     public function testRoutesAnyonesPrivateSettingsCommandToTheRoleGate(): void
     {
-        $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/settings', fromId: 999)));
+        $this->processor->process(new QueueMessage($this->privateMessagePayload(text: '/admin', fromId: 999)));
 
         $this->assertSame([RoleGateProcessor::class], $this->recorder->selections);
     }

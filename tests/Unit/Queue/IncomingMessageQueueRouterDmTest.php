@@ -23,7 +23,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
 
     public function testPrivateMessageRoutesToDmQueue(): void
     {
-        $this->router->route($this->privateMessageUpdate(12345678, '/settings'));
+        $this->router->route($this->privateMessageUpdate(12345678, '/admin'));
 
         $this->assertEnqueuedOnce('dm_12345678');
     }
@@ -48,7 +48,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
                     'from' => ['id' => 999, 'first_name' => 'Bot', 'is_bot' => true],
                     'chat' => ['id' => 12345678, 'type' => 'private'],
                     'date' => 1700000000,
-                    'text' => 'Settings',
+                    'text' => 'Admin panel',
                 ],
                 'data' => '{"aa":"st"}',
             ],
@@ -199,7 +199,7 @@ final class IncomingMessageQueueRouterDmTest extends TestCase
                     'from' => ['id' => 999, 'first_name' => 'Bot', 'is_bot' => true],
                     'chat' => ['id' => $userId, 'type' => 'private'],
                     'date' => 1700000000,
-                    'text' => 'Settings',
+                    'text' => 'Admin panel',
                 ],
                 'data' => $data,
             ],

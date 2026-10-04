@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Processors;
 
 use BeachVolleybot\Common\Extractors\ForwardGameQueryExtractor;
+use BeachVolleybot\Processors\AdminProcessors\AdminPanelCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\AdminPanelCommandProcessor;
 use BeachVolleybot\Processors\AdminProcessors\RestrictedActionCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\RoleGateProcessor;
-use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
-use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
 use BeachVolleybot\Processors\ProcessorRegistry;
 use BeachVolleybot\Processors\ProcessorRegistryFactory;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
@@ -63,7 +63,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         $this->assertInstanceOf(JoinProcessor::class, $this->queuedRegistry->resolveProcessor($update, $this->telegramSender));
     }
 
-    public function testResolvesAdminCallbackQueryToDmQueueAndTheGatedSettingsMenuCallbackProcessor(): void
+    public function testResolvesAdminCallbackQueryToDmQueueAndTheGatedAdminPanelCallbackProcessor(): void
     {
         $this->seedAdmin();
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload('{"aa":"st"}'));
@@ -78,7 +78,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
                 $this->telegramSender,
                 $sender,
                 Role::Admin,
-                new SettingsMenuCallbackProcessor($this->telegramSender, $callbackData, $sender),
+                new AdminPanelCallbackProcessor($this->telegramSender, $callbackData, $sender),
                 new RestrictedActionCallbackProcessor($this->telegramSender, $callbackData, $sender),
             ),
             $processor,
@@ -283,9 +283,9 @@ final class ProcessorRegistryTest extends ProcessorTestCase
         );
     }
 
-    public function testResolvesSettingsCommandFromAnyoneToDmQueueAndTheGatedSettingsMenuCommandProcessor(): void
+    public function testResolvesAdminCommandFromAnyoneToDmQueueAndTheGatedAdminPanelCommandProcessor(): void
     {
-        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings', fromId: 999));
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/admin', fromId: 999));
 
         $this->assertSame('dm_999', $this->queuedRegistry->resolveQueueName($update));
         $processor = $this->queuedRegistry->resolveProcessor($update, $this->telegramSender);
@@ -296,7 +296,7 @@ final class ProcessorRegistryTest extends ProcessorTestCase
                 $this->telegramSender,
                 $sender,
                 Role::Admin,
-                new SettingsMenuCommandProcessor($this->telegramSender, $sender),
+                new AdminPanelCommandProcessor($this->telegramSender, $sender),
             ),
             $processor,
         );

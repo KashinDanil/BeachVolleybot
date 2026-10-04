@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\AdminProcessors;
 
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
-use BeachVolleybot\Telegram\MessageBuilders\Admin\SettingsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Admin\AdminPanelMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\User\UserRecord;
 
-class SettingsMenuCommandProcessor extends AbstractActionProcessor
+class AdminPanelCommandProcessor extends AbstractActionProcessor
 {
     public function __construct(
         TelegramMessageSender $telegramSender,
@@ -22,9 +22,9 @@ class SettingsMenuCommandProcessor extends AbstractActionProcessor
     public function process(TelegramUpdate $update): void
     {
         $message = $update->message;
-        $settingsMessage = new SettingsMessageBuilder()->buildMainMenu($this->sender->role);
+        $adminPanelMessage = new AdminPanelMessageBuilder()->buildMainMenu($this->sender->role);
 
-        $this->telegramSender->sendMessage($message->chat->id, $settingsMessage);
+        $this->telegramSender->sendMessage($message->chat->id, $adminPanelMessage);
         $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Processors\AdminProcessors;
 
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
+use BeachVolleybot\Processors\AdminProcessors\AdminPanelCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminAddNetProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminAddSlotProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Equipment\AdminAddVolleyballProcessor;
@@ -29,7 +30,6 @@ use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootDemoteUserProces
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootPromoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleDetailProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleListProcessor;
-use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
@@ -45,7 +45,7 @@ final class AdminCallbackActionTest extends TestCase
     public function testResolvesAllActions(): void
     {
         $mapping = [
-            [AdminCallbackAction::Settings, SettingsMenuCallbackProcessor::class],
+            [AdminCallbackAction::AdminPanel, AdminPanelCallbackProcessor::class],
             [AdminCallbackAction::Logs, RootLogsListCallbackProcessor::class],
             [AdminCallbackAction::LogFile, RootLogFileActionsCallbackProcessor::class],
             [AdminCallbackAction::LogGet, RootLogGetCallbackProcessor::class],
@@ -141,7 +141,7 @@ final class AdminCallbackActionTest extends TestCase
     public function testBrowsingActionsRequireAdmin(): void
     {
         $adminActions = [
-            AdminCallbackAction::Settings,
+            AdminCallbackAction::AdminPanel,
             AdminCallbackAction::GamesList,
             AdminCallbackAction::GameDetail,
         ];

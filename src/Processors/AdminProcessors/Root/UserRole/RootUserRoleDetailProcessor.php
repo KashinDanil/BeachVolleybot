@@ -14,7 +14,7 @@ class RootUserRoleDetailProcessor extends AbstractAdminCallbackProcessor
     {
         $telegramUserId = $this->adminCallbackData->getUserId();
 
-        $this->editSettingsMessage($update->callbackQuery, UserRoleDetailMessageFactory::build($telegramUserId));
+        $this->editAdminPanelMessage($update->callbackQuery, UserRoleDetailMessageFactory::build($telegramUserId));
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

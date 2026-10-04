@@ -105,7 +105,7 @@ final class AdminCallbackQueryHandlerTest extends ProcessorTestCase
         $this->processThroughHandler('{"aa":"lgs"}');
 
         $this->assertAnsweredWith(self::RESTRICTED);
-        $this->assertStringContainsString('Settings', $this->editedText());
+        $this->assertStringContainsString('Admin panel', $this->editedText());
     }
 
     public function testRootOpensAUsersNotifications(): void
@@ -193,7 +193,7 @@ final class AdminCallbackQueryHandlerTest extends ProcessorTestCase
         $this->processThroughHandler($this->gameUserCallbackData($action, $gameId));
 
         $this->assertAnsweredWith(self::RESTRICTED);
-        $this->assertStringContainsString('Settings', $this->editedText());
+        $this->assertStringContainsString('Admin panel', $this->editedText());
         $this->assertSame($gameStateBefore, $this->gameState());
         $editCalls = array_filter($this->bot->calls, fn(array $call) => 'editMessageText' === $call['method']);
         $this->assertCount(1, $editCalls, 'Only the settings panel is edited, no game message is refreshed');

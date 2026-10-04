@@ -23,7 +23,7 @@ class RootUserNotificationDetailProcessor extends AbstractRootUserNotificationsP
 
         $detailMessage = new UserNotificationSettingsMessageBuilder($user)->buildDetail($notificationType, $notifications);
 
-        $this->editSettingsMessage($update->callbackQuery, $detailMessage);
+        $this->editAdminPanelMessage($update->callbackQuery, $detailMessage);
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

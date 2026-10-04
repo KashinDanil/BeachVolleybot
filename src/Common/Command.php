@@ -9,7 +9,7 @@ enum Command: string
     case Help = '/help';
     case HelpPrivate = '/help_private';
     case Start = '/start';
-    case Settings = '/settings';
+    case Admin = '/admin';
     case Games = '/games';
     case NewGame = '/new_game';
     case NewGamePrivate = '/new_game_private';

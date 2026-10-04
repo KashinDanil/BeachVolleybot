@@ -59,7 +59,7 @@ final class UserRoleListMessageBuilder extends AbstractAdminMessageBuilder
             $keyboard[] = $paginationRow;
         }
 
-        $keyboard[] = $this->backButtonRow(AdminCallbackData::create(AdminCallbackAction::Settings));
+        $keyboard[] = $this->backButtonRow(AdminCallbackData::create(AdminCallbackAction::AdminPanel));
 
         return $keyboard;
     }

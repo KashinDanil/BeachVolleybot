@@ -51,7 +51,7 @@ abstract class AbstractRootUserRoleMutationProcessor extends AbstractAdminMutati
 
     private function refreshDetail(TelegramUpdate $update, int $telegramUserId, string $toast): void
     {
-        $this->editSettingsMessage($update->callbackQuery, UserRoleDetailMessageFactory::build($telegramUserId));
+        $this->editAdminPanelMessage($update->callbackQuery, UserRoleDetailMessageFactory::build($telegramUserId));
         $this->answerCallbackQuery($update->callbackQuery, $toast);
     }
 }

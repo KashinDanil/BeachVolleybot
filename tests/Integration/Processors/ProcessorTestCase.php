@@ -574,7 +574,7 @@ abstract class ProcessorTestCase extends DatabaseTestCase
                     'from' => ['id' => 999, 'first_name' => 'Bot', 'is_bot' => true],
                     'chat' => ['id' => $chatId, 'first_name' => $firstName, 'type' => 'private'],
                     'date' => 1700000000,
-                    'text' => 'Settings',
+                    'text' => 'Admin panel',
                 ],
                 'data' => $data,
             ],

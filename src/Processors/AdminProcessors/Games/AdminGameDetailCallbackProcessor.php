@@ -14,7 +14,7 @@ class AdminGameDetailCallbackProcessor extends AbstractAdminCallbackProcessor
     {
         $message = GameDetailMessageFactory::build($this->adminCallbackData->getGameId(), $this->sender->role);
 
-        $this->editSettingsMessage($update->callbackQuery, $message);
+        $this->editAdminPanelMessage($update->callbackQuery, $message);
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

@@ -14,7 +14,7 @@ class RootLogsListCallbackProcessor extends AbstractAdminMutationProcessor
     {
         $page = $this->adminCallbackData->getPage();
 
-        $this->editSettingsMessage($update->callbackQuery, LogsListMessageFactory::build($page));
+        $this->editAdminPanelMessage($update->callbackQuery, LogsListMessageFactory::build($page));
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

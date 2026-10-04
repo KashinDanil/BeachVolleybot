@@ -14,7 +14,7 @@ class AdminGamesListCallbackProcessor extends AbstractAdminCallbackProcessor
     {
         $page = $this->adminCallbackData->getPage();
 
-        $this->editSettingsMessage($update->callbackQuery, GamesListMessageFactory::build($page));
+        $this->editAdminPanelMessage($update->callbackQuery, GamesListMessageFactory::build($page));
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

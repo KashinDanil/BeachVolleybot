@@ -21,7 +21,7 @@ class RootLogFileActionsCallbackProcessor extends AbstractAdminMutationProcessor
             return;
         }
 
-        $this->editSettingsMessage($update->callbackQuery, LogFileActionsMessageFactory::build($filename));
+        $this->editAdminPanelMessage($update->callbackQuery, LogFileActionsMessageFactory::build($filename));
         $this->answerCallbackQuery($update->callbackQuery, '');
     }
 }

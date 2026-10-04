@@ -11,9 +11,9 @@ use BeachVolleybot\Telegram\MessageBuilders\Game\GamesListMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\User\Role;
 
-final class SettingsMessageBuilder extends AbstractAdminMessageBuilder
+final class AdminPanelMessageBuilder extends AbstractAdminMessageBuilder
 {
-    private const string HEADER_MESSAGE = 'Settings';
+    private const string HEADER_MESSAGE = 'Admin panel';
 
     public function buildMainMenu(Role $role): TelegramMessage
     {
