@@ -8,12 +8,15 @@ use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Processors\UserProcessors\UserNotificationsListCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
 
 final class UserNotificationsListCallbackProcessorTest extends ProcessorTestCase
 {
+    use CreatesUserRecords;
+
     private const int SENDER_ID = 555;
 
     public function testEditsTheMessageBackToTheList(): void
@@ -35,7 +38,26 @@ final class UserNotificationsListCallbackProcessorTest extends ProcessorTestCase
             ),
         );
 
-        new UserNotificationsListCallbackProcessor($this->telegramSender)->process($update);
+        new UserNotificationsListCallbackProcessor($this->telegramSender, $this->ensureSender($update))->process($update);
+    }
+
+    public function testListsTheGivenSendersNotificationsWithoutAQuery(): void
+    {
+        $callbackData = UserCallbackData::create(UserCallbackAction::NotificationsList);
+        $update = TelegramUpdate::fromArray(
+            $this->adminCallbackQueryPayload(data: $callbackData->toJson(), fromId: self::SENDER_ID, chatId: self::SENDER_ID),
+        );
+        $sender = $this->userRecord(
+            telegramUserId: self::SENDER_ID,
+            notifications: new NotificationSettings()->enable(NotificationType::BumpedFromGame),
+        );
+        $processor = new UserNotificationsListCallbackProcessor($this->telegramSender, $sender);
+
+        $queries = $this->queriesDuring(fn() => $processor->process($update));
+
+        $this->assertSame([], $queries);
+        $keyboard = $this->lastKeyboard('editMessageText');
+        $this->assertSame('success', $keyboard[NotificationType::BumpedFromGame->value - 1][0]['style'] ?? null);
     }
 
     public function testAnswersTheCallbackSilently(): void

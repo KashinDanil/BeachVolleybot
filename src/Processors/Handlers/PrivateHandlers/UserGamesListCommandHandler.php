@@ -9,6 +9,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserGamesListCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 final readonly class UserGamesListCommandHandler extends AbstractDmQueueHandler
 {
@@ -19,9 +20,10 @@ final readonly class UserGamesListCommandHandler extends AbstractDmQueueHandler
             && Command::Games->matches($update->message->text);
     }
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return new UserGamesListCommandProcessor($telegramSender);
     }

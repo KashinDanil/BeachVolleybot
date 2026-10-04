@@ -10,13 +10,14 @@ use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\NotificationSettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\User\UserManager;
+use BeachVolleybot\User\UserRecord;
 
 class UserNotificationDetailCallbackProcessor extends AbstractCallbackProcessor
 {
     public function __construct(
         TelegramMessageSender $telegramSender,
         private readonly UserCallbackData $callbackData,
+        private readonly UserRecord $sender,
     ) {
         parent::__construct($telegramSender);
     }
@@ -32,13 +33,11 @@ class UserNotificationDetailCallbackProcessor extends AbstractCallbackProcessor
             return;
         }
 
-        $user = new UserManager()->ensureUserRecord($callbackQuery->from);
-
         $this->telegramSender->editMessage(
             $callbackQuery->message->chat->id,
             $callbackQuery->message->messageId,
             new NotificationSettingsMessageBuilder(Translator::fromUser($callbackQuery->from))
-                ->buildDetail($notificationType, $user->effectiveNotifications()),
+                ->buildDetail($notificationType, $this->sender->effectiveNotifications()),
         );
         $this->answerCallbackQuery($callbackQuery, '');
     }

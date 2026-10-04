@@ -8,16 +8,23 @@ use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\MessageBuilders\NotificationSettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\User\UserManager;
+use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 class UserNotificationsCommandProcessor extends AbstractActionProcessor
 {
+    public function __construct(
+        TelegramMessageSender $telegramSender,
+        private readonly UserRecord $sender,
+    ) {
+        parent::__construct($telegramSender);
+    }
+
     public function process(TelegramUpdate $update): void
     {
         $message = $update->message;
-        $user = new UserManager()->ensureUserRecord($message->from);
 
-        $listMessage = new NotificationSettingsMessageBuilder(Translator::fromUser($message->from))->buildList($user->effectiveNotifications());
+        $listMessage = new NotificationSettingsMessageBuilder(Translator::fromUser($message->from))->buildList($this->sender->effectiveNotifications());
 
         $this->telegramSender->sendMessage($message->chat->id, $listMessage);
         $this->telegramSender->deleteMessage($message->chat->id, $message->messageId);

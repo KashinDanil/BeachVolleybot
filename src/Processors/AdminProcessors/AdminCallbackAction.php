@@ -30,6 +30,7 @@ use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\User\Role;
+use BeachVolleybot\User\UserRecord;
 
 enum AdminCallbackAction: string implements CallbackActionInterface
 {
@@ -58,35 +59,37 @@ enum AdminCallbackAction: string implements CallbackActionInterface
     /**
      * @param TelegramMessageSender $telegramSender
      * @param AdminCallbackData $callbackData
+     * @param UserRecord $sender
      *
      * @return AbstractActionProcessor
      */
     public function resolveProcessor(
         TelegramMessageSender $telegramSender,
-        ?CallbackDataInterface $callbackData
+        ?CallbackDataInterface $callbackData,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return match ($this) {
-            self::Settings => new SettingsMenuCallbackProcessor($telegramSender, $callbackData),
-            self::Logs => new RootLogsListCallbackProcessor($telegramSender, $callbackData),
-            self::LogFile => new RootLogFileActionsCallbackProcessor($telegramSender, $callbackData),
-            self::LogGet => new RootLogGetCallbackProcessor($telegramSender, $callbackData),
-            self::LogTail => new RootLogTailCallbackProcessor($telegramSender, $callbackData),
-            self::LogClear => new RootLogClearCallbackProcessor($telegramSender, $callbackData),
-            self::GamesList => new AdminGamesListCallbackProcessor($telegramSender, $callbackData),
-            self::GameDetail => new AdminGameDetailCallbackProcessor($telegramSender, $callbackData),
-            self::GameUsers => new AdminUsersListCallbackProcessor($telegramSender, $callbackData),
-            self::UserSettings => new AdminUserSettingsProcessor($telegramSender, $callbackData),
-            self::UsersList => new RootUserRoleListProcessor($telegramSender, $callbackData),
-            self::UserDetail => new RootUserRoleDetailProcessor($telegramSender, $callbackData),
-            self::PromoteUser => new RootPromoteUserProcessor($telegramSender, $callbackData),
-            self::DemoteUser => new RootDemoteUserProcessor($telegramSender, $callbackData),
-            self::RemoveSlot => new AdminRemoveSlotProcessor($telegramSender, $callbackData),
-            self::AddSlot => new AdminAddSlotProcessor($telegramSender, $callbackData),
-            self::RemoveLocation => new AdminRemoveLocationCallbackProcessor($telegramSender, $callbackData),
-            self::AddNet => new AdminAddNetProcessor($telegramSender, $callbackData),
-            self::RemoveNet => new AdminRemoveNetProcessor($telegramSender, $callbackData),
-            self::AddVolleyball => new AdminAddVolleyballProcessor($telegramSender, $callbackData),
-            self::RemoveVolleyball => new AdminRemoveVolleyballProcessor($telegramSender, $callbackData),
+            self::Settings => new SettingsMenuCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::Logs => new RootLogsListCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::LogFile => new RootLogFileActionsCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::LogGet => new RootLogGetCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::LogTail => new RootLogTailCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::LogClear => new RootLogClearCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::GamesList => new AdminGamesListCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::GameDetail => new AdminGameDetailCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::GameUsers => new AdminUsersListCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::UserSettings => new AdminUserSettingsProcessor($telegramSender, $callbackData, $sender),
+            self::UsersList => new RootUserRoleListProcessor($telegramSender, $callbackData, $sender),
+            self::UserDetail => new RootUserRoleDetailProcessor($telegramSender, $callbackData, $sender),
+            self::PromoteUser => new RootPromoteUserProcessor($telegramSender, $callbackData, $sender),
+            self::DemoteUser => new RootDemoteUserProcessor($telegramSender, $callbackData, $sender),
+            self::RemoveSlot => new AdminRemoveSlotProcessor($telegramSender, $callbackData, $sender),
+            self::AddSlot => new AdminAddSlotProcessor($telegramSender, $callbackData, $sender),
+            self::RemoveLocation => new AdminRemoveLocationCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::AddNet => new AdminAddNetProcessor($telegramSender, $callbackData, $sender),
+            self::RemoveNet => new AdminRemoveNetProcessor($telegramSender, $callbackData, $sender),
+            self::AddVolleyball => new AdminAddVolleyballProcessor($telegramSender, $callbackData, $sender),
+            self::RemoveVolleyball => new AdminRemoveVolleyballProcessor($telegramSender, $callbackData, $sender),
         };
     }
 

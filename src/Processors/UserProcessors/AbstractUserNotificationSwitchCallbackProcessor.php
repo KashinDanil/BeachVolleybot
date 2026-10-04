@@ -20,6 +20,7 @@ abstract class AbstractUserNotificationSwitchCallbackProcessor extends AbstractC
     public function __construct(
         TelegramMessageSender $telegramSender,
         private readonly UserCallbackData $callbackData,
+        private readonly UserRecord $sender,
     ) {
         parent::__construct($telegramSender);
     }
@@ -35,9 +36,7 @@ abstract class AbstractUserNotificationSwitchCallbackProcessor extends AbstractC
             return;
         }
 
-        $userManager = new UserManager();
-        $user = $userManager->ensureUserRecord($callbackQuery->from);
-        $notifications = $this->applyNotificationChange($userManager, $user, $notificationType);
+        $notifications = $this->applyNotificationChange(new UserManager(), $this->sender, $notificationType);
 
         $this->telegramSender->editMessage(
             $callbackQuery->message->chat->id,

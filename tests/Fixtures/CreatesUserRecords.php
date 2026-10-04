@@ -17,6 +17,7 @@ trait CreatesUserRecords
         ?string $lastName = null,
         ?string $username = null,
         Role $role = Role::Player,
+        ?NotificationSettings $notifications = new NotificationSettings(),
     ): UserRecord {
         return new UserRecord(
             telegramUserId: $telegramUserId,
@@ -25,7 +26,7 @@ trait CreatesUserRecords
             username: $username,
             languageCode: null,
             role: $role,
-            notifications: new NotificationSettings(),
+            notifications: $notifications,
             createdAt: new DateTimeImmutable('2026-01-01 10:00:00'),
             updatedAt: new DateTimeImmutable('2026-01-01 10:00:00'),
         );

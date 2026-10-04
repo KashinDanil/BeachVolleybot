@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Integration\Processors\UserProcessors;
 use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
@@ -14,6 +15,8 @@ use BeachVolleybot\User\UserManager;
 
 final class UserNotificationSwitchCallbackProcessorsTest extends ProcessorTestCase
 {
+    use CreatesUserRecords;
+
     private const int SENDER_ID = 555;
 
     public function testEnablePersistsTheNotification(): void
@@ -38,7 +41,7 @@ final class UserNotificationSwitchCallbackProcessorsTest extends ProcessorTestCa
             ),
         );
 
-        $callbackData->getAction()->resolveProcessor($this->telegramSender, $callbackData)->process($update);
+        $callbackData->getAction()->resolveProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
     }
 
     private function storedSettings(): NotificationSettings
@@ -101,11 +104,24 @@ final class UserNotificationSwitchCallbackProcessorsTest extends ProcessorTestCa
         );
     }
 
-    public function testCreatesAMissingUserBeforeSwitching(): void
+    public function testSwitchStartsFromTheGivenSendersSettings(): void
     {
-        $this->processSwitch(UserCallbackAction::EnableNotification, NotificationType::GameShortBeforeKickoff);
+        $this->createUser(telegramUserId: self::SENDER_ID);
+        $callbackData = UserCallbackData::create(UserCallbackAction::EnableNotification)
+            ->withNotificationType(NotificationType::PromotedIntoGame);
+        $update = TelegramUpdate::fromArray(
+            $this->adminCallbackQueryPayload(data: $callbackData->toJson(), fromId: self::SENDER_ID, chatId: self::SENDER_ID),
+        );
+        $sender = $this->userRecord(
+            telegramUserId: self::SENDER_ID,
+            notifications: new NotificationSettings()->enable(NotificationType::BumpedFromGame),
+        );
 
-        $this->assertTrue($this->storedSettings()->isEnabled(NotificationType::GameShortBeforeKickoff));
+        UserCallbackAction::EnableNotification->resolveProcessor($this->telegramSender, $callbackData, $sender)->process($update);
+
+        $settings = $this->storedSettings();
+        $this->assertTrue($settings->isEnabled(NotificationType::PromotedIntoGame));
+        $this->assertTrue($settings->isEnabled(NotificationType::BumpedFromGame));
     }
 
     public function testMissingNotificationTypeChangesNothing(): void

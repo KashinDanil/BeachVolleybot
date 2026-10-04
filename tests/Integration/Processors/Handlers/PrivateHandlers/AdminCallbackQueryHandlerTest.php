@@ -51,17 +51,38 @@ final class AdminCallbackQueryHandlerTest extends ProcessorTestCase
         $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
 
         $processor = $this->handler->createProcessor($this->telegramSender, $update);
+        $sender = new UserManager()->findUserRecordById(self::ADMIN_TELEGRAM_USER_ID);
 
         $this->assertEquals(
             new RoleGateProcessor(
                 $this->telegramSender,
-                new UserManager()->findUserRecordById(self::ADMIN_TELEGRAM_USER_ID),
+                $sender,
                 Role::Root,
-                new RootLogsListCallbackProcessor($this->telegramSender, $callbackData),
-                new RestrictedActionCallbackProcessor($this->telegramSender, $callbackData),
+                new RootLogsListCallbackProcessor($this->telegramSender, $callbackData, $sender),
+                new RestrictedActionCallbackProcessor($this->telegramSender, $callbackData, $sender),
             ),
             $processor,
         );
+    }
+
+    public function testAdminsSettingsPressCostsOneQuery(): void
+    {
+        $this->seedAdmin();
+
+        $queries = $this->queriesDuring(fn() => $this->processThroughHandler('{"aa":"st"}'));
+
+        $this->assertCount(1, $queries);
+        $this->assertStringContainsString('INSERT INTO users', $queries[0]);
+    }
+
+    public function testRestrictedPressCostsOneQuery(): void
+    {
+        $this->seedAdmin();
+
+        $queries = $this->queriesDuring(fn() => $this->processThroughHandler('{"aa":"lgs"}'));
+
+        $this->assertCount(1, $queries);
+        $this->assertStringContainsString('INSERT INTO users', $queries[0]);
     }
 
     public function testRootOpensTheRootOnlyLogs(): void

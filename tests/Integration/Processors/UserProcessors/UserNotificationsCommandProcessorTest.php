@@ -7,12 +7,16 @@ namespace BeachVolleybot\Tests\Integration\Processors\UserProcessors;
 use BeachVolleybot\Common\Command;
 use BeachVolleybot\Processors\UserProcessors\UserNotificationsCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
 use BeachVolleybot\User\UserManager;
 
 final class UserNotificationsCommandProcessorTest extends ProcessorTestCase
 {
+    use CreatesUserRecords;
+
     private const int SENDER_ID = 555;
 
     public function testSendsTheNotificationsList(): void
@@ -32,7 +36,24 @@ final class UserNotificationsCommandProcessorTest extends ProcessorTestCase
             $this->privateMessagePayload(Command::Notifications->value, fromId: self::SENDER_ID),
         );
 
-        new UserNotificationsCommandProcessor($this->telegramSender)->process($update);
+        new UserNotificationsCommandProcessor($this->telegramSender, $this->ensureSender($update))->process($update);
+    }
+
+    public function testListsTheGivenSendersNotificationsWithoutAQuery(): void
+    {
+        $update = TelegramUpdate::fromArray(
+            $this->privateMessagePayload(Command::Notifications->value, fromId: self::SENDER_ID),
+        );
+        $sender = $this->userRecord(
+            telegramUserId: self::SENDER_ID,
+            notifications: new NotificationSettings()->enable(NotificationType::PromotedIntoGame),
+        );
+        $processor = new UserNotificationsCommandProcessor($this->telegramSender, $sender);
+
+        $queries = $this->queriesDuring(fn() => $processor->process($update));
+
+        $this->assertSame([], $queries);
+        $this->assertSame('success', $this->lastKeyboard('sendMessage')[2][0]['style'] ?? null);
     }
 
     private function lastSendMessageCall(): ?array
@@ -56,15 +77,6 @@ final class UserNotificationsCommandProcessorTest extends ProcessorTestCase
         $deleteCall = end($deleteCalls);
         $this->assertSame(self::SENDER_ID, $deleteCall['args'][0]);
         $this->assertSame(109, $deleteCall['args'][1]);
-    }
-
-    public function testCreatesAMissingUserWithNotificationsUnset(): void
-    {
-        $this->processCommand();
-
-        $record = new UserManager()->findUserRecordById(self::SENDER_ID);
-        $this->assertNotNull($record);
-        $this->assertNull($record->notifications);
     }
 
     public function testUnsetNotificationsListEveryTypeAsOff(): void

@@ -35,7 +35,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminGamesListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminGamesListCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -47,7 +47,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminGamesListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminGamesListCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -63,7 +63,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminGameDetailCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminGameDetailCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -75,7 +75,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminGameDetailCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminGameDetailCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -91,7 +91,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminUsersListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminUsersListCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -107,7 +107,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminUserSettingsProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminUserSettingsProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -124,7 +124,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminRemoveSlotProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminRemoveSlotProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(1, $slots);
@@ -140,7 +140,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminRemoveSlotProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminRemoveSlotProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertNull(new GameUserManager()->findGameUserRecord($gameId, 200));
     }
@@ -154,7 +154,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminRemoveSlotProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminRemoveSlotProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $editCalls = array_filter($this->bot->calls, fn($c) => 'editMessageText' === $c['method']);
         $this->assertGreaterThanOrEqual(1, count($editCalls));
@@ -171,7 +171,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminAddSlotProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminAddSlotProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(2, $slots);
@@ -189,7 +189,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminRemoveLocationCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminRemoveLocationCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $game = $this->db->get('games', '*', ['game_id' => $gameId]);
         $this->assertNull($game['location']);
@@ -206,7 +206,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminAddNetProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminAddNetProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertSame(1, $gameUser->net);
@@ -223,7 +223,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminRemoveNetProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminRemoveNetProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertSame(1, $gameUser->net);
@@ -240,7 +240,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminAddVolleyballProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminAddVolleyballProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertSame(1, $gameUser->volleyball);
@@ -257,7 +257,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminRemoveVolleyballProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminRemoveVolleyballProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertSame(2, $gameUser->volleyball);
@@ -274,7 +274,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminRemoveSlotProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminRemoveSlotProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertAnsweredWith('No slots to remove');
     }
@@ -290,7 +290,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminUserSettingsProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminUserSettingsProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -307,7 +307,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminGameDetailCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminGameDetailCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -325,7 +325,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminGamesListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminGamesListCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -341,7 +341,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminRemoveNetProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminRemoveNetProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertSame(0, $gameUser->net);
@@ -358,7 +358,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminRemoveVolleyballProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminRemoveVolleyballProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertSame(0, $gameUser->volleyball);
@@ -373,7 +373,7 @@ final class GameProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new AdminUsersListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new AdminUsersListCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }

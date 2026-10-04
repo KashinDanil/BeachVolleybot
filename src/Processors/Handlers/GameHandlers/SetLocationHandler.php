@@ -8,6 +8,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SetLocationProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 final readonly class SetLocationHandler extends AbstractGameReplyQueueHandler
 {
@@ -18,9 +19,10 @@ final readonly class SetLocationHandler extends AbstractGameReplyQueueHandler
             && $update->message->hasLocation();
     }
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return new SetLocationProcessor($telegramSender);
     }

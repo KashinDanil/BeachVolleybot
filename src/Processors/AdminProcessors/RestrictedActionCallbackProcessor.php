@@ -7,7 +7,6 @@ namespace BeachVolleybot\Processors\AdminProcessors;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\RestrictedMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\SettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
-use BeachVolleybot\User\UserManager;
 
 class RestrictedActionCallbackProcessor extends AbstractAdminCallbackProcessor
 {
@@ -16,7 +15,7 @@ class RestrictedActionCallbackProcessor extends AbstractAdminCallbackProcessor
     public function process(TelegramUpdate $update): void
     {
         $callbackQuery = $update->callbackQuery;
-        $role = new UserManager()->ensureUserRecord($callbackQuery->from)->role;
+        $role = $this->sender->role;
 
         $this->answerCallbackQuery($callbackQuery, self::MESSAGE);
 

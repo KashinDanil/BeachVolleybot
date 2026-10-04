@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\Handlers\PrivateHandlers;
 
 use BeachVolleybot\Common\QueueName;
-use BeachVolleybot\Processors\AbstractQueuedProcessorHandler;
+use BeachVolleybot\Processors\AbstractSenderQueueHandler;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-abstract readonly class AbstractDmQueueHandler extends AbstractQueuedProcessorHandler
+abstract readonly class AbstractDmQueueHandler extends AbstractSenderQueueHandler
 {
     public function routeToQueue(TelegramUpdate $update): string
     {

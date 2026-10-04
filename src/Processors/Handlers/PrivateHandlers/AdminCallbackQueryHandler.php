@@ -10,7 +10,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
-use BeachVolleybot\User\UserManager;
+use BeachVolleybot\User\UserRecord;
 
 final readonly class AdminCallbackQueryHandler extends AbstractDmQueueHandler
 {
@@ -21,9 +21,10 @@ final readonly class AdminCallbackQueryHandler extends AbstractDmQueueHandler
             && null !== AdminCallbackData::fromJson($update->callbackQuery->data);
     }
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         /** @var AdminCallbackData $callbackData matches() guarantees valid admin callback data */
         $callbackData = AdminCallbackData::fromJson($update->callbackQuery->data);
@@ -31,10 +32,10 @@ final readonly class AdminCallbackQueryHandler extends AbstractDmQueueHandler
 
         return new RoleGateProcessor(
             $telegramSender,
-            new UserManager()->ensureUserRecord($update->callbackQuery->from),
+            $sender,
             $action->requiredRole(),
-            $action->resolveProcessor($telegramSender, $callbackData),
-            new RestrictedActionCallbackProcessor($telegramSender, $callbackData),
+            $action->resolveProcessor($telegramSender, $callbackData, $sender),
+            new RestrictedActionCallbackProcessor($telegramSender, $callbackData, $sender),
         );
     }
 }

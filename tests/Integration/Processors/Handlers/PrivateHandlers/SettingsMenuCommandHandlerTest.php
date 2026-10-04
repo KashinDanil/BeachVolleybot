@@ -41,12 +41,22 @@ final class SettingsMenuCommandHandlerTest extends ProcessorTestCase
         $this->assertMessageDeleted();
     }
 
+    public function testAdminsSettingsCommandCostsOneQuery(): void
+    {
+        $this->seedAdmin();
+
+        $queries = $this->queriesDuring(fn() => $this->processThroughHandler(self::ADMIN_TELEGRAM_USER_ID));
+
+        $this->assertCount(1, $queries);
+        $this->assertStringContainsString('INSERT INTO users', $queries[0]);
+    }
+
     public function testPlayersSettingsCommandIsIgnored(): void
     {
         $this->processThroughHandler(self::PLAYER_ID);
 
         $this->assertSame([], $this->bot->calls);
-        $this->assertNotNull(new UserManager()->findUserRecordById(self::PLAYER_ID));
+        $this->assertSame(0, new UserManager()->findUserRecordById(self::PLAYER_ID)?->notifications?->toInt());
     }
 
     private function processThroughHandler(int $fromId): void

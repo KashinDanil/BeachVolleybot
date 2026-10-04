@@ -26,7 +26,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogsListCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogsListCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -38,7 +38,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogFileActionsCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogFileActionsCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -52,7 +52,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogFileActionsCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogFileActionsCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageNotEdited();
     }
@@ -66,7 +66,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogGetCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogGetCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertDocumentSent();
     }
@@ -78,7 +78,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogGetCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogGetCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $calls = array_filter($this->bot->calls, fn($c) => 'sendDocument' === $c['method']);
         $this->assertEmpty($calls);
@@ -93,7 +93,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogTailCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogTailCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -105,7 +105,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogClearCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogClearCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertSame('', file_get_contents($this->testLogFile));
         $this->assertMessageEdited();
@@ -120,7 +120,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogTailCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogTailCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageNotEdited();
         $this->assertAnsweredWith(LogFileRepository::INVALID_FILENAME);
@@ -135,7 +135,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogClearCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogClearCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageNotEdited();
         $this->assertAnsweredWith(LogFileRepository::INVALID_FILENAME);
@@ -150,7 +150,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogGetCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogGetCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $documentCalls = array_filter($this->bot->calls, fn($c) => 'sendDocument' === $c['method']);
         $this->assertEmpty($documentCalls);
@@ -166,7 +166,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogClearCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogClearCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertAnsweredWith('Cleared');
     }
@@ -180,7 +180,7 @@ final class LogProcessorsTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new RootLogTailCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new RootLogTailCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageNotEdited();
         $this->assertAnsweredWith(LogFileRepository::INVALID_FILENAME);

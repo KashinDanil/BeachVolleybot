@@ -10,6 +10,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserNewGameCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 final readonly class UserNewGameCommandHandler extends AbstractDmQueueHandler
 {
@@ -23,9 +24,10 @@ final readonly class UserNewGameCommandHandler extends AbstractDmQueueHandler
             );
     }
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return new UserNewGameCommandProcessor($telegramSender);
     }

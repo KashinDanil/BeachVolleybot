@@ -7,11 +7,14 @@ namespace BeachVolleybot\Tests\Integration\Processors;
 use BeachVolleybot\Common\QueueName;
 use BeachVolleybot\Database\Connection;
 use BeachVolleybot\Notifications\NotificationEnqueuer;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
 use BeachVolleybot\User\NotificationType;
 use BeachVolleybot\User\Role;
+use BeachVolleybot\User\UserManager;
+use BeachVolleybot\User\UserRecord;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 use DanilKashin\FileQueue\Queue\FileQueue;
@@ -67,6 +70,12 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     protected function lastKeyboardLabels(string $method): array
     {
         return array_column(array_merge(...$this->lastKeyboard($method)), 'text');
+    }
+
+    /** The record a sender queue handler hands its processor. */
+    protected function ensureSender(TelegramUpdate $update): UserRecord
+    {
+        return new UserManager()->ensureUserRecord($update->getFrom());
     }
 
     protected function seedAdmin(): void

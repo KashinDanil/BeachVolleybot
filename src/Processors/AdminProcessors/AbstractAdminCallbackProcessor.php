@@ -9,12 +9,14 @@ use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramCallbackQuery;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 abstract class AbstractAdminCallbackProcessor extends AbstractCallbackProcessor
 {
     public function __construct(
         TelegramMessageSender $telegramSender,
         protected readonly AdminCallbackData $adminCallbackData,
+        protected readonly UserRecord $sender,
     ) {
         parent::__construct($telegramSender);
     }

@@ -8,6 +8,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\SendShareButtonProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 final readonly class SendShareButtonHandler extends AbstractDmQueueHandler
 {
@@ -19,9 +20,10 @@ final readonly class SendShareButtonHandler extends AbstractDmQueueHandler
             && $update->message->hasInlineKeyboard();
     }
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return new SendShareButtonProcessor($telegramSender);
     }

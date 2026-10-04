@@ -9,6 +9,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UserProcessors\UserNotificationsCommandProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 final readonly class UserNotificationsCommandHandler extends AbstractDmQueueHandler
 {
@@ -19,10 +20,11 @@ final readonly class UserNotificationsCommandHandler extends AbstractDmQueueHand
             && Command::Notifications->matches($update->message->text);
     }
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
-        return new UserNotificationsCommandProcessor($telegramSender);
+        return new UserNotificationsCommandProcessor($telegramSender, $sender);
     }
 }

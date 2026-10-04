@@ -8,12 +8,15 @@ use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Processors\UserProcessors\UserNotificationDetailCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
 
 final class UserNotificationDetailCallbackProcessorTest extends ProcessorTestCase
 {
+    use CreatesUserRecords;
+
     private const int SENDER_ID = 555;
 
     public function testEditsTheMessageToTheNotificationDetail(): void
@@ -39,7 +42,7 @@ final class UserNotificationDetailCallbackProcessorTest extends ProcessorTestCas
             ),
         );
 
-        new UserNotificationDetailCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new UserNotificationDetailCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
     }
 
     public function testShowsAStoredNotificationAsEnabled(): void
@@ -56,6 +59,25 @@ final class UserNotificationDetailCallbackProcessorTest extends ProcessorTestCas
                 ->withNotificationType(NotificationType::GameReachedMinimumPlayers)
         );
 
+        $this->assertStringContainsString("🔔 You'll get a notification when", $this->editedText());
+    }
+
+    public function testShowsTheGivenSendersNotificationWithoutAQuery(): void
+    {
+        $callbackData = UserCallbackData::create(UserCallbackAction::NotificationDetail)
+            ->withNotificationType(NotificationType::GameReachedMinimumPlayers);
+        $update = TelegramUpdate::fromArray(
+            $this->adminCallbackQueryPayload(data: $callbackData->toJson(), fromId: self::SENDER_ID, chatId: self::SENDER_ID),
+        );
+        $sender = $this->userRecord(
+            telegramUserId: self::SENDER_ID,
+            notifications: new NotificationSettings()->enable(NotificationType::GameReachedMinimumPlayers),
+        );
+        $processor = new UserNotificationDetailCallbackProcessor($this->telegramSender, $callbackData, $sender);
+
+        $queries = $this->queriesDuring(fn() => $processor->process($update));
+
+        $this->assertSame([], $queries);
         $this->assertStringContainsString("🔔 You'll get a notification when", $this->editedText());
     }
 

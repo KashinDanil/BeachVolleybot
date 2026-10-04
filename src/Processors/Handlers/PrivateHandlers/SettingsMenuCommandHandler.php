@@ -11,7 +11,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\User\Role;
-use BeachVolleybot\User\UserManager;
+use BeachVolleybot\User\UserRecord;
 
 final readonly class SettingsMenuCommandHandler extends AbstractDmQueueHandler
 {
@@ -22,15 +22,16 @@ final readonly class SettingsMenuCommandHandler extends AbstractDmQueueHandler
             && Command::Settings->matches($update->message->text);
     }
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return new RoleGateProcessor(
             $telegramSender,
-            new UserManager()->ensureUserRecord($update->message->from),
+            $sender,
             Role::Admin,
-            new SettingsMenuCommandProcessor($telegramSender),
+            new SettingsMenuCommandProcessor($telegramSender, $sender),
         );
     }
 }

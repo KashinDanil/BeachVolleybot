@@ -71,14 +71,15 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
         $this->assertSame('dm_12345678', $this->queuedRegistry->resolveQueueName($update));
         $processor = $this->queuedRegistry->resolveProcessor($update, $this->telegramSender);
+        $sender = new UserManager()->findUserRecordById(self::ADMIN_TELEGRAM_USER_ID);
 
         $this->assertEquals(
             new RoleGateProcessor(
                 $this->telegramSender,
-                new UserManager()->findUserRecordById(self::ADMIN_TELEGRAM_USER_ID),
+                $sender,
                 Role::Admin,
-                new SettingsMenuCallbackProcessor($this->telegramSender, $callbackData),
-                new RestrictedActionCallbackProcessor($this->telegramSender, $callbackData),
+                new SettingsMenuCallbackProcessor($this->telegramSender, $callbackData, $sender),
+                new RestrictedActionCallbackProcessor($this->telegramSender, $callbackData, $sender),
             ),
             $processor,
         );
@@ -288,13 +289,14 @@ final class ProcessorRegistryTest extends ProcessorTestCase
 
         $this->assertSame('dm_999', $this->queuedRegistry->resolveQueueName($update));
         $processor = $this->queuedRegistry->resolveProcessor($update, $this->telegramSender);
+        $sender = new UserManager()->findUserRecordById(999);
 
         $this->assertEquals(
             new RoleGateProcessor(
                 $this->telegramSender,
-                new UserManager()->findUserRecordById(999),
+                $sender,
                 Role::Admin,
-                new SettingsMenuCommandProcessor($this->telegramSender),
+                new SettingsMenuCommandProcessor($this->telegramSender, $sender),
             ),
             $processor,
         );

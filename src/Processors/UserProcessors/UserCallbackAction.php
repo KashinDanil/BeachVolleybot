@@ -9,6 +9,7 @@ use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 enum UserCallbackAction: string implements CallbackActionInterface
 {
@@ -22,20 +23,22 @@ enum UserCallbackAction: string implements CallbackActionInterface
     /**
      * @param TelegramMessageSender $telegramSender
      * @param UserCallbackData $callbackData
+     * @param UserRecord $sender
      *
      * @return AbstractActionProcessor
      */
     public function resolveProcessor(
         TelegramMessageSender $telegramSender,
         ?CallbackDataInterface $callbackData,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return match ($this) {
             self::GamesList => new UserGamesListCallbackProcessor($telegramSender, $callbackData),
             self::GameDetail => new UserGameDetailCallbackProcessor($telegramSender, $callbackData),
-            self::NotificationsList => new UserNotificationsListCallbackProcessor($telegramSender),
-            self::NotificationDetail => new UserNotificationDetailCallbackProcessor($telegramSender, $callbackData),
-            self::EnableNotification => new UserEnableNotificationCallbackProcessor($telegramSender, $callbackData),
-            self::DisableNotification => new UserDisableNotificationCallbackProcessor($telegramSender, $callbackData),
+            self::NotificationsList => new UserNotificationsListCallbackProcessor($telegramSender, $sender),
+            self::NotificationDetail => new UserNotificationDetailCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::EnableNotification => new UserEnableNotificationCallbackProcessor($telegramSender, $callbackData, $sender),
+            self::DisableNotification => new UserDisableNotificationCallbackProcessor($telegramSender, $callbackData, $sender),
         };
     }
 }

@@ -28,11 +28,14 @@ use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleListProc
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use BeachVolleybot\User\Role;
 use PHPUnit\Framework\TestCase;
 
 final class AdminCallbackActionTest extends TestCase
 {
+    use CreatesUserRecords;
+
     private TelegramMessageSender $sender;
 
     public function testResolvesAllActions(): void
@@ -61,9 +64,17 @@ final class AdminCallbackActionTest extends TestCase
             [AdminCallbackAction::RemoveVolleyball, AdminRemoveVolleyballProcessor::class],
         ];
 
+        $userRecord = $this->userRecord(role: Role::Root);
+
         foreach ($mapping as [$action, $expectedClass]) {
-            $processor = $action->resolveProcessor($this->sender, AdminCallbackData::create($action));
-            $this->assertInstanceOf($expectedClass, $processor, "Failed for action '$action->value'");
+            $callbackData = AdminCallbackData::create($action);
+            $processor = $action->resolveProcessor($this->sender, $callbackData, $userRecord);
+
+            $this->assertEquals(
+                new $expectedClass($this->sender, $callbackData, $userRecord),
+                $processor,
+                "Failed for action '$action->value'",
+            );
         }
     }
 
