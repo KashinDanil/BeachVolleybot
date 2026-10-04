@@ -35,16 +35,16 @@ final class UserSettingsMessageBuilderTest extends TestCase
     {
         $message = $this->build(firstName: 'Alice', username: 'alice');
 
-        $text = $message->getText()->getMessageText();
-        $this->assertStringContainsString('Alice', $text);
-        $this->assertStringContainsString('https://t.me/alice', $text);
+        $this->assertStringContainsString('[Alice](https://t.me/alice)', $message->getText()->getMessageText());
     }
 
     public function testOmitsUserLinkWhenNotProvided(): void
     {
         $message = $this->build(firstName: 'Alice', username: null);
 
-        $this->assertStringNotContainsString('https://t.me/', $message->getText()->getMessageText());
+        $text = $message->getText()->getMessageText();
+        $this->assertStringContainsString("\nAlice\n", $text);
+        $this->assertStringNotContainsString('https://t.me/', $text);
     }
 
     public function testShowsFallbackNameWhenUserRowMissing(): void

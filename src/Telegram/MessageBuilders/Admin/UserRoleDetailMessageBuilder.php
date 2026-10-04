@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders\Admin;
 
 use BeachVolleybot\Database\Timestamp;
-use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\ProfileNameFormatter;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\User\Role;
@@ -31,15 +31,9 @@ final class UserRoleDetailMessageBuilder extends AbstractAdminMessageBuilder
 
     private function buildUserDetailText(UserRecord $user): string
     {
-        $userName = Player::buildName($user->firstName, $user->lastName);
-        $userLink = Player::buildLink($user->username);
-        $namePart = null !== $userLink
-            ? $this->formatter->link($userName, $userLink)
-            : $this->formatter->escape($userName);
-
         return implode($this->formatter->newLine(), [
             $this->formatHeader(self::HEADER_MESSAGE),
-            $namePart,
+            new ProfileNameFormatter($this->formatter)->formatUser($user),
             $this->formatter->escape('Username: ' . $this->formatUsername($user)),
             $this->formatter->escape("Telegram ID: ") . $this->formatter->code((string)$user->telegramUserId),
             $this->formatter->escape("Role: ") . $user->role->name,

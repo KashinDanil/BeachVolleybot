@@ -13,6 +13,7 @@ use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\AbstractMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\ProfileNameFormatter;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\GameWarningCollector;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoEquipmentWarning;
@@ -142,12 +143,7 @@ final class GameMessageBuilder extends AbstractMessageBuilder
 
     protected function defaultDisplayName(PlayerInterface $player, int $appearance): string
     {
-        $name = $player->getName();
-        $link = $player->getLink();
-
-        $formatted = null !== $link
-            ? $this->formatter->link($name, $link)
-            : $this->formatter->escape($name);
+        $formatted = new ProfileNameFormatter($this->formatter)->format($player->getName(), $player->getLink());
 
         if (1 < $appearance) {
             $plusCount = $this->plusCount($player, $appearance);

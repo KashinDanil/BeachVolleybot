@@ -25,6 +25,20 @@ final class UserRoleDetailMessageBuilderTest extends TestCase
         $this->assertStringContainsString('Role: Admin', $message->getText()->getMessageText());
     }
 
+    public function testLinksTheNameToTheProfileWhenThereIsAUsername(): void
+    {
+        $message = $this->builder->buildUserDetail($this->userRecord(100, 'Alice', 'Smith', username: 'alice'));
+
+        $this->assertStringContainsString("*User*\n[Alice Smith](https://t.me/alice)\n", $message->getText()->getMessageText());
+    }
+
+    public function testShowsThePlainNameWithoutAUsername(): void
+    {
+        $message = $this->builder->buildUserDetail($this->userRecord(100, 'Alice', 'Smith'));
+
+        $this->assertStringContainsString("*User*\nAlice Smith\n", $message->getText()->getMessageText());
+    }
+
     public function testShowsTelegramId(): void
     {
         $message = $this->builder->buildUserDetail($this->userRecord(100, 'Alice', role: Role::Player));

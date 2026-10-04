@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Admin;
 
-use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\ProfileNameFormatter;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\User\UserRecord;
@@ -74,14 +74,7 @@ final class UserSettingsMessageBuilder extends AbstractAdminMessageBuilder
             return $this->formatter->escape("User $telegramUserId");
         }
 
-        $userName = Player::buildName($user->firstName, $user->lastName);
-
-        $userLink = Player::buildLink($user->username);
-        if (null !== $userLink) {
-            return $this->formatter->link($userName, $userLink);
-        }
-
-        return $this->formatter->escape($userName);
+        return new ProfileNameFormatter($this->formatter)->formatUser($user);
     }
 
     private function buildUserSettingsKeyboard(int $gameId, int $telegramUserId): array

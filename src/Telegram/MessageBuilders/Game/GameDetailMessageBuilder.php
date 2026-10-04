@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders\Game;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\AbstractAdminMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\ProfileNameFormatter;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\User\UserRecord;
 
@@ -73,14 +73,7 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
             return null;
         }
 
-        $name = Player::buildName($creator->firstName, $creator->lastName);
-        $link = Player::buildLink($creator->username);
-
-        $namePart = null !== $link
-            ? $this->formatter->link($name, $link)
-            : $this->formatter->escape($name);
-
-        return $this->formatter->escape('Creator: ') . $namePart;
+        return $this->formatter->escape('Creator: ') . new ProfileNameFormatter($this->formatter)->formatUser($creator);
     }
 
     private function buildGameDetailKeyboard(GameInterface $game, bool $sharingEnabled): array

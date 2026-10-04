@@ -210,7 +210,7 @@ final class GameDetailMessageBuilderTest extends TestCase
         $message = $this->buildDetail($game, creator: $creator);
 
         $text = $message->getText()->getMessageText();
-        $this->assertStringContainsString('Danil Kashin', $text);
+        $this->assertStringContainsString('Creator: Danil Kashin', $text);
         $this->assertStringNotContainsString('https://t.me/', $text);
     }
 
@@ -222,8 +222,7 @@ final class GameDetailMessageBuilderTest extends TestCase
         $message = $this->buildDetail($game, creator: $creator);
 
         $text = $message->getText()->getMessageText();
-        $this->assertStringContainsString('Danil', $text);
-        $this->assertStringContainsString('https://t.me/danil_kashin', $text);
+        $this->assertStringContainsString('Creator: [Danil](https://t.me/danil_kashin)', $text);
     }
 
     private function buildDetail(GameInterface $game, ?UserRecord $creator = null, bool $sharingEnabled = true): TelegramMessage

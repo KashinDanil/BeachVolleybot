@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Admin;
 
-use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\MessageBuilders\AbstractNotificationSettingsMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\ProfileNameFormatter;
 use BeachVolleybot\Telegram\MessageBuilders\LocalizedNotificationTexts;
 use BeachVolleybot\User\NotificationSettings;
 use BeachVolleybot\User\NotificationType;
@@ -37,19 +37,8 @@ final class UserNotificationSettingsMessageBuilder extends AbstractNotificationS
 
     private function buildUserLine(): string
     {
-        return $this->formatter->escape(self::USER_LABEL) . $this->formatUserName();
-    }
-
-    private function formatUserName(): string
-    {
-        $userName = Player::buildName($this->user->firstName, $this->user->lastName);
-        $userLink = Player::buildLink($this->user->username);
-
-        if (null === $userLink) {
-            return $this->formatter->escape($userName);
-        }
-
-        return $this->formatter->link($userName, $userLink);
+        return $this->formatter->escape(self::USER_LABEL)
+            . new ProfileNameFormatter($this->formatter)->formatUser($this->user);
     }
 
     protected function buildListKeyboard(NotificationSettings $settings): array
