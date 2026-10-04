@@ -25,7 +25,7 @@ class AdminRemoveSlotProcessor extends AbstractAdminMutationProcessor
 
         if (LeaveResult::NotJoined === $result) {
             $this->answerCallbackQuery($update->callbackQuery, 'No slots to remove');
-            $this->editSettingsMessage($update->callbackQuery, GameDetailMessageFactory::build($gameId));
+            $this->editSettingsMessage($update->callbackQuery, GameDetailMessageFactory::build($gameId, $this->sender->role));
 
             return;
         }

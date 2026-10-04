@@ -120,7 +120,16 @@ enum AdminCallbackAction: string implements CallbackActionInterface
             self::UserNotifications,
             self::UserNotificationDetail,
             self::EnableUserNotification,
-            self::DisableUserNotification => Role::Root,
+            self::DisableUserNotification,
+            self::GameUsers,
+            self::UserSettings,
+            self::RemoveSlot,
+            self::AddSlot,
+            self::RemoveLocation,
+            self::AddNet,
+            self::RemoveNet,
+            self::AddVolleyball,
+            self::RemoveVolleyball => Role::Root,
             default => Role::Admin,
         };
     }

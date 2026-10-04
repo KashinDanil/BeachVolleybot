@@ -10,6 +10,7 @@ use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\AbstractAdminMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Helpers\ProfileNameFormatter;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\User\Role;
 use BeachVolleybot\User\UserRecord;
 
 final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
@@ -25,11 +26,15 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
         ]);
     }
 
-    public function buildGameDetail(GameInterface $game, ?UserRecord $creator, bool $sharingEnabled = true): TelegramMessage
-    {
+    public function buildGameDetail(
+        GameInterface $game,
+        ?UserRecord $creator,
+        Role $viewerRole,
+        bool $sharingEnabled = true,
+    ): TelegramMessage {
         return $this->buildMessage(
             $this->buildGameDetailText($game, $creator, $sharingEnabled),
-            $this->buildGameDetailKeyboard($game, $sharingEnabled),
+            $this->buildGameDetailKeyboard($game, $viewerRole, $sharingEnabled),
         );
     }
 
@@ -76,7 +81,7 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
         return $this->formatter->escape('Creator: ') . new ProfileNameFormatter($this->formatter)->formatUser($creator);
     }
 
-    private function buildGameDetailKeyboard(GameInterface $game, bool $sharingEnabled): array
+    private function buildGameDetailKeyboard(GameInterface $game, Role $viewerRole, bool $sharingEnabled): array
     {
         $gameId = $game->getGameId();
 
@@ -91,20 +96,24 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
             ];
         }
 
-        $keyboard[] = [
-            $this->buildActionButton(
-                'Users',
-                AdminCallbackData::create(AdminCallbackAction::GameUsers)
-                    ->withGameId($gameId)
-                    ->withPage(1),
-            ),
-        ];
+        $usersAction = AdminCallbackAction::GameUsers;
+        if ($viewerRole->isAtLeast($usersAction->requiredRole())) {
+            $keyboard[] = [
+                $this->buildActionButton(
+                    'Users',
+                    AdminCallbackData::create($usersAction)
+                        ->withGameId($gameId)
+                        ->withPage(1),
+                ),
+            ];
+        }
 
-        if (null !== $game->getLocation()) {
+        $removeLocationAction = AdminCallbackAction::RemoveLocation;
+        if (null !== $game->getLocation() && $viewerRole->isAtLeast($removeLocationAction->requiredRole())) {
             $keyboard[] = [
                 $this->buildActionButton(
                     'Remove Location',
-                    AdminCallbackData::create(AdminCallbackAction::RemoveLocation)->withGameId($gameId),
+                    AdminCallbackData::create($removeLocationAction)->withGameId($gameId),
                 ),
             ];
         }

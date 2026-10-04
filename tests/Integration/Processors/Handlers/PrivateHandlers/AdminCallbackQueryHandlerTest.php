@@ -9,11 +9,14 @@ use BeachVolleybot\Processors\AdminProcessors\RestrictedActionCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\RoleGateProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogsListCallbackProcessor;
 use BeachVolleybot\Processors\Handlers\PrivateHandlers\AdminCallbackQueryHandler;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
+use BeachVolleybot\Telegram\MessageBuilders\AbstractMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
 use BeachVolleybot\User\Role;
 use BeachVolleybot\User\UserManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class AdminCallbackQueryHandlerTest extends ProcessorTestCase
 {
@@ -141,6 +144,101 @@ final class AdminCallbackQueryHandlerTest extends ProcessorTestCase
 
         $this->assertMessageEdited();
         $this->assertAnsweredWith('');
+    }
+
+    public function testAdminOpensAGameWithOnlyShareAndBack(): void
+    {
+        $this->seedAdmin();
+        $gameId = $this->seedUpcomingGameWithLocation();
+
+        $this->processThroughHandler(AdminCallbackData::create(AdminCallbackAction::GameDetail)->withGameId($gameId)->toJson());
+
+        $this->assertSame(['Share', AbstractMessageBuilder::LABEL_BACK], $this->lastKeyboardLabels('editMessageText'));
+        $this->assertAnsweredWith('');
+    }
+
+    public function testRootOpensAGameWithEveryButton(): void
+    {
+        $this->seedRoot();
+        $gameId = $this->seedUpcomingGameWithLocation();
+
+        $this->processThroughHandler(AdminCallbackData::create(AdminCallbackAction::GameDetail)->withGameId($gameId)->toJson());
+
+        $this->assertSame(
+            ['Share', 'Users', 'Remove Location', AbstractMessageBuilder::LABEL_BACK],
+            $this->lastKeyboardLabels('editMessageText'),
+        );
+    }
+
+    public static function gameMutationActions(): iterable
+    {
+        yield 'game users' => [AdminCallbackAction::GameUsers];
+        yield 'user settings' => [AdminCallbackAction::UserSettings];
+        yield 'remove slot' => [AdminCallbackAction::RemoveSlot];
+        yield 'add slot' => [AdminCallbackAction::AddSlot];
+        yield 'remove location' => [AdminCallbackAction::RemoveLocation];
+        yield 'add net' => [AdminCallbackAction::AddNet];
+        yield 'remove net' => [AdminCallbackAction::RemoveNet];
+        yield 'add volleyball' => [AdminCallbackAction::AddVolleyball];
+        yield 'remove volleyball' => [AdminCallbackAction::RemoveVolleyball];
+    }
+
+    #[DataProvider('gameMutationActions')]
+    public function testAdminIsRestrictedFromChangingAGameAndNothingChanges(AdminCallbackAction $action): void
+    {
+        $this->seedAdmin();
+        $gameId = $this->seedUpcomingGameWithLocation(net: 1, volleyball: 1);
+        $gameStateBefore = $this->gameState();
+
+        $this->processThroughHandler($this->gameUserCallbackData($action, $gameId));
+
+        $this->assertAnsweredWith(self::RESTRICTED);
+        $this->assertStringContainsString('Settings', $this->editedText());
+        $this->assertSame($gameStateBefore, $this->gameState());
+        $editCalls = array_filter($this->bot->calls, fn(array $call) => 'editMessageText' === $call['method']);
+        $this->assertCount(1, $editCalls, 'Only the settings panel is edited, no game message is refreshed');
+    }
+
+    public function testRootStillChangesAGame(): void
+    {
+        $this->seedRoot();
+        $gameId = $this->seedUpcomingGameWithLocation();
+
+        $this->processThroughHandler($this->gameUserCallbackData(AdminCallbackAction::AddNet, $gameId));
+
+        $this->assertSame(1, new GameUserManager()->findGameUserRecord($gameId, 200)->net);
+        $this->assertAnsweredWith('Added');
+    }
+
+    private function seedUpcomingGameWithLocation(int $net = 0, int $volleyball = 0): int
+    {
+        $gameId = $this->createGame(title: 'Game 31.12.2099 18:00');
+        $this->db->update('games', ['location' => '55.7,37.6'], ['game_id' => $gameId]);
+        $this->createUser(200, 'Alice');
+        $this->db->insert('game_users', [
+            'game_id' => $gameId,
+            'telegram_user_id' => 200,
+            'time' => '18:00',
+            'volleyball' => $volleyball,
+            'net' => $net,
+        ]);
+        $this->createSlot($gameId, 200, 1);
+
+        return $gameId;
+    }
+
+    private function gameUserCallbackData(AdminCallbackAction $action, int $gameId): string
+    {
+        return AdminCallbackData::create($action)->withGameId($gameId)->withUserId(200)->withPage(1)->toJson();
+    }
+
+    private function gameState(): array
+    {
+        return [
+            $this->db->select('games', '*'),
+            $this->db->select('game_users', '*'),
+            $this->db->select('game_slots', '*'),
+        ];
     }
 
     public function testPlayerPressingAnAdminButtonTurnsThePanelIntoTheRestrictedMessage(): void

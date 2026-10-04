@@ -119,12 +119,9 @@ final class AdminCallbackActionTest extends TestCase
         }
     }
 
-    public function testNonLogActionsRequireAdmin(): void
+    public function testGameMutationActionsRequireRoot(): void
     {
-        $adminActions = [
-            AdminCallbackAction::Settings,
-            AdminCallbackAction::GamesList,
-            AdminCallbackAction::GameDetail,
+        $gameMutationActions = [
             AdminCallbackAction::GameUsers,
             AdminCallbackAction::UserSettings,
             AdminCallbackAction::RemoveSlot,
@@ -134,6 +131,19 @@ final class AdminCallbackActionTest extends TestCase
             AdminCallbackAction::RemoveNet,
             AdminCallbackAction::AddVolleyball,
             AdminCallbackAction::RemoveVolleyball,
+        ];
+
+        foreach ($gameMutationActions as $action) {
+            $this->assertSame(Role::Root, $action->requiredRole(), "Failed for action '$action->value'");
+        }
+    }
+
+    public function testBrowsingActionsRequireAdmin(): void
+    {
+        $adminActions = [
+            AdminCallbackAction::Settings,
+            AdminCallbackAction::GamesList,
+            AdminCallbackAction::GameDetail,
         ];
 
         foreach ($adminActions as $action) {

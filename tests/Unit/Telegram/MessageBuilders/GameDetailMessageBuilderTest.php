@@ -11,6 +11,7 @@ use BeachVolleybot\Telegram\MessageBuilders\Game\GameDetailMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Game\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
+use BeachVolleybot\User\Role;
 use BeachVolleybot\User\UserRecord;
 use PHPUnit\Framework\TestCase;
 
@@ -225,9 +226,59 @@ final class GameDetailMessageBuilderTest extends TestCase
         $this->assertStringContainsString('Creator: [Danil](https://t.me/danil_kashin)', $text);
     }
 
-    private function buildDetail(GameInterface $game, ?UserRecord $creator = null, bool $sharingEnabled = true): TelegramMessage
+    private function buildDetail(
+        GameInterface $game,
+        ?UserRecord $creator = null,
+        bool $sharingEnabled = true,
+        Role $viewerRole = Role::Root,
+    ): TelegramMessage {
+        return $this->builder->buildGameDetail($game, $creator, $viewerRole, $sharingEnabled);
+    }
+
+    // --- viewer role ---
+
+    public function testAdminSeesOnlyShareAndBack(): void
     {
-        return $this->builder->buildGameDetail($game, $creator, $sharingEnabled);
+        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', players: [], location: '55.7,37.6');
+
+        $message = $this->buildDetail($game, viewerRole: Role::Admin);
+        $keyboard = $this->extractKeyboard($message);
+
+        $buttonTexts = array_map(fn($row) => $row[0]['text'], $keyboard);
+        $this->assertSame(['Share', "\u{21A9} Back"], $buttonTexts);
+    }
+
+    public function testRootSeesEveryButton(): void
+    {
+        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', players: [], location: '55.7,37.6');
+
+        $message = $this->buildDetail($game, viewerRole: Role::Root);
+        $keyboard = $this->extractKeyboard($message);
+
+        $buttonTexts = array_map(fn($row) => $row[0]['text'], $keyboard);
+        $this->assertSame(['Share', 'Users', 'Remove Location', "\u{21A9} Back"], $buttonTexts);
+    }
+
+    public function testPlayerSeesOnlyShareAndBack(): void
+    {
+        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', players: [], location: '55.7,37.6');
+
+        $message = $this->buildDetail($game, viewerRole: Role::Player);
+        $keyboard = $this->extractKeyboard($message);
+
+        $buttonTexts = array_map(fn($row) => $row[0]['text'], $keyboard);
+        $this->assertSame(['Share', "\u{21A9} Back"], $buttonTexts);
+    }
+
+    public function testAdminSeesOnlyBackOnPastGame(): void
+    {
+        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', players: [], location: '55.7,37.6');
+
+        $message = $this->buildDetail($game, sharingEnabled: false, viewerRole: Role::Admin);
+        $keyboard = $this->extractKeyboard($message);
+
+        $buttonTexts = array_map(fn($row) => $row[0]['text'], $keyboard);
+        $this->assertSame(["\u{21A9} Back"], $buttonTexts);
     }
 
     // --- past-kickoff behavior ---

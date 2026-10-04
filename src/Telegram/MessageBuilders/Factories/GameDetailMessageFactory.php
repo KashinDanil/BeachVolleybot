@@ -9,11 +9,12 @@ use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\MessageBuilders\Game\GameDetailMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\User\Role;
 use BeachVolleybot\User\UserManager;
 
 final class GameDetailMessageFactory
 {
-    public static function build(int $gameId): TelegramMessage
+    public static function build(int $gameId, Role $viewerRole): TelegramMessage
     {
         $gameRecord = new GameManager()->findGameRecordById($gameId);
         $builder = new GameDetailMessageBuilder();
@@ -29,6 +30,6 @@ final class GameDetailMessageFactory
         // until the kickoff day is over, not just until the kickoff hour.
         $sharingEnabled = !GameDateTimeResolver::isKickoffDayPast($game->getKickoffAt());
 
-        return $builder->buildGameDetail($game, $creator, $sharingEnabled);
+        return $builder->buildGameDetail($game, $creator, $viewerRole, $sharingEnabled);
     }
 }

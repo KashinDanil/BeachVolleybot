@@ -195,6 +195,22 @@ final class GameProcessorsTest extends ProcessorTestCase
         $this->assertNull($game['location']);
     }
 
+    public function testRemoveLocationRendersTheGameForTheSendersRole(): void
+    {
+        $this->seedRoot();
+        $gameId = $this->seedFullGame();
+        $this->db->update('games', ['location' => '55.7,37.6'], ['game_id' => $gameId]);
+
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::RemoveLocation)->withGameId($gameId);
+        $update = TelegramUpdate::fromArray(
+            $this->adminCallbackQueryPayload($callbackData->toJson()),
+        );
+
+        new AdminRemoveLocationCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
+
+        $this->assertContains('Users', $this->lastKeyboardLabels('editMessageText'));
+    }
+
     // --- GameAddNetProcessor ---
 
     public function testAddNetIncrementsNetCount(): void
@@ -279,6 +295,21 @@ final class GameProcessorsTest extends ProcessorTestCase
         $this->assertAnsweredWith('No slots to remove');
     }
 
+    public function testRemoveSlotRendersTheGameForTheSendersRoleWhenUserHasNoSlots(): void
+    {
+        $this->seedRoot();
+        $gameId = $this->seedFullGame();
+
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::RemoveSlot)->withGameId($gameId)->withUserId(999);
+        $update = TelegramUpdate::fromArray(
+            $this->adminCallbackQueryPayload($callbackData->toJson()),
+        );
+
+        new AdminRemoveSlotProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
+
+        $this->assertContains('Users', $this->lastKeyboardLabels('editMessageText'));
+    }
+
     // --- UserSettings edge case: user not found ---
 
     public function testUserSettingsShowsUserNotFound(): void
@@ -299,6 +330,7 @@ final class GameProcessorsTest extends ProcessorTestCase
 
     public function testGameDetailShowsRemoveLocationWhenLocationExists(): void
     {
+        $this->seedRoot();
         $gameId = $this->seedGameWithUser();
         $this->db->update('games', ['location' => '55.7,37.6'], ['game_id' => $gameId]);
 
@@ -309,7 +341,25 @@ final class GameProcessorsTest extends ProcessorTestCase
 
         new AdminGameDetailCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
-        $this->assertMessageEdited();
+        $this->assertContains('Remove Location', $this->lastKeyboardLabels('editMessageText'));
+    }
+
+    public function testGameDetailHidesGameChangesFromAdmin(): void
+    {
+        $this->seedAdmin();
+        $gameId = $this->seedGameWithUser();
+        $this->db->update('games', ['location' => '55.7,37.6'], ['game_id' => $gameId]);
+
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::GameDetail)->withGameId($gameId);
+        $update = TelegramUpdate::fromArray(
+            $this->adminCallbackQueryPayload($callbackData->toJson()),
+        );
+
+        new AdminGameDetailCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
+
+        $buttonLabels = $this->lastKeyboardLabels('editMessageText');
+        $this->assertNotContains('Users', $buttonLabels);
+        $this->assertNotContains('Remove Location', $buttonLabels);
     }
 
     // --- GamesListProcessor: pagination ---

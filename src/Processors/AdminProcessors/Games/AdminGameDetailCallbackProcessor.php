@@ -12,7 +12,7 @@ class AdminGameDetailCallbackProcessor extends AbstractAdminCallbackProcessor
 {
     public function process(TelegramUpdate $update): void
     {
-        $message = GameDetailMessageFactory::build($this->adminCallbackData->getGameId());
+        $message = GameDetailMessageFactory::build($this->adminCallbackData->getGameId(), $this->sender->role);
 
         $this->editSettingsMessage($update->callbackQuery, $message);
         $this->answerCallbackQuery($update->callbackQuery, '');
