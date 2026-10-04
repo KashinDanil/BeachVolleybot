@@ -8,20 +8,18 @@ readonly class AdminGameManager extends GameManager
 {
     public function adminAddSlot(int $gameId, int $telegramUserId): void
     {
-        if (!$this->gameUserRepository->exists($gameId, $telegramUserId)) {
+        if (!$this->gameUserManager->isUserInGame($gameId, $telegramUserId)) {
             return;
         }
 
-        $this->gameSlotRepository->create(
-            $gameId,
-            $telegramUserId,
-            $this->gameSlotRepository->getNextPosition($gameId),
-        );
+        $this->gameSlotManager->addSlot($gameId, $telegramUserId);
+
+        $this->minimumPlayersNotifier->notifyIfReached($gameId, $telegramUserId);
     }
 
     public function adminAddNet(int $gameId, int $telegramUserId): EquipmentResult
     {
-        if (!$this->gameUserRepository->exists($gameId, $telegramUserId)) {
+        if (!$this->gameUserManager->isUserInGame($gameId, $telegramUserId)) {
             return EquipmentResult::NotJoined;
         }
 
@@ -30,7 +28,7 @@ readonly class AdminGameManager extends GameManager
 
     public function adminAddVolleyball(int $gameId, int $telegramUserId): EquipmentResult
     {
-        if (!$this->gameUserRepository->exists($gameId, $telegramUserId)) {
+        if (!$this->gameUserManager->isUserInGame($gameId, $telegramUserId)) {
             return EquipmentResult::NotJoined;
         }
 

@@ -48,7 +48,7 @@ final class GameAddOnApplierTest extends TestCase
             gameKey: 'query_1',
             messages: [],
             title: 'Beach Game 18:00',
-            users: [],
+            players: [],
             createdAt: new DateTimeImmutable(),
             kickoffAt: new DateTimeImmutable('2099-12-31 18:00:00'),
         );

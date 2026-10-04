@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameRepository;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameMessageManager;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameFromMessageProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
@@ -30,12 +30,12 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
         new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
 
         // The game is resolvable by the chat message the bot posted (id 42).
-        $gameId = new GameManager()->resolveGameIdByChatMessage(self::CHAT_ID, self::SENT_MESSAGE_ID);
+        $gameId = new GameMessageManager()->resolveGameIdByChatMessage(self::CHAT_ID, self::SENT_MESSAGE_ID);
         $this->assertNotNull($gameId);
 
-        $game = new GameRepository($this->db)->findById($gameId);
-        $this->assertNotEmpty($game['game_key']);
-        $this->assertStringContainsString('Bogatell', $game['title']);
+        $game = new GameManager()->findGameRecordById($gameId);
+        $this->assertNotEmpty($game->gameKey);
+        $this->assertStringContainsString('Bogatell', $game->title);
     }
 
     public function testPostsTheGameMessageIntoTheChat(): void
@@ -71,7 +71,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
 
         new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
 
-        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertSame(0, new GameManager()->countGames());
         $this->assertNull($this->deletedMessage());
         $this->assertFalse($this->sentMessageToChat(self::CHAT_ID));
     }
@@ -83,7 +83,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
 
         new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
 
-        $this->assertSame(0, new GameRepository($this->db)->countAll());
+        $this->assertSame(0, new GameManager()->countGames());
         $this->assertNull($this->deletedMessage());
     }
 
@@ -96,7 +96,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
 
         // The key is derived from the message, so the second run resolves the
         // existing game and bails before creating or posting anything again.
-        $this->assertSame(1, new GameRepository($this->db)->countAll());
+        $this->assertSame(1, new GameManager()->countGames());
         $this->assertSame(1, $this->sendMessageCount());
     }
 
@@ -116,7 +116,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
         new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
 
         // The game is still created and posted, just not pinned.
-        $this->assertNotNull(new GameManager()->resolveGameIdByChatMessage(200, self::SENT_MESSAGE_ID));
+        $this->assertNotNull(new GameMessageManager()->resolveGameIdByChatMessage(200, self::SENT_MESSAGE_ID));
         $this->assertFalse($this->pinnedMessage(200, self::SENT_MESSAGE_ID));
     }
 
@@ -126,7 +126,7 @@ final class CreateGameFromMessageProcessorTest extends ProcessorTestCase
 
         new CreateGameFromMessageProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameManager()->resolveGameIdByChatMessage(200, self::SENT_MESSAGE_ID);
+        $gameId = new GameMessageManager()->resolveGameIdByChatMessage(200, self::SENT_MESSAGE_ID);
         $shareReply = $this->shareReplyTo(200, self::SENT_MESSAGE_ID);
         $this->assertNotNull($shareReply, 'Expected a share reply to follow the posted game in a DM');
 

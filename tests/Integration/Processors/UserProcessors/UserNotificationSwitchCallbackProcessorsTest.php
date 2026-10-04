@@ -1,0 +1,149 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BeachVolleybot\Tests\Integration\Processors\UserProcessors;
+
+use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
+use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
+use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\NotificationSettings;
+use BeachVolleybot\User\NotificationType;
+use BeachVolleybot\User\UserManager;
+
+final class UserNotificationSwitchCallbackProcessorsTest extends ProcessorTestCase
+{
+    use CreatesUserRecords;
+
+    private const int SENDER_ID = 555;
+
+    public function testEnablePersistsTheNotification(): void
+    {
+        $this->processSwitch(UserCallbackAction::EnableNotification, NotificationType::PromotedIntoGame);
+
+        $this->assertTrue($this->storedSettings()->isEnabled(NotificationType::PromotedIntoGame));
+    }
+
+    private function processSwitch(UserCallbackAction $action, NotificationType $notificationType): void
+    {
+        $this->process(UserCallbackData::create($action)->withNotificationType($notificationType));
+    }
+
+    private function process(UserCallbackData $callbackData): void
+    {
+        $update = TelegramUpdate::fromArray(
+            $this->adminCallbackQueryPayload(
+                data: $callbackData->toJson(),
+                fromId: self::SENDER_ID,
+                chatId: self::SENDER_ID,
+            ),
+        );
+
+        $callbackData->getAction()->resolveProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
+    }
+
+    private function storedSettings(): NotificationSettings
+    {
+        return new UserManager()->findUserRecordById(self::SENDER_ID)->effectiveNotifications();
+    }
+
+    public function testEnableRedrawsTheDetailWithDisableAndConfirms(): void
+    {
+        $this->processSwitch(UserCallbackAction::EnableNotification, NotificationType::PromotedIntoGame);
+
+        $this->assertStringContainsString("🔔 You'll get a notification when", $this->editedText());
+        $switchButton = $this->lastKeyboard('editMessageText')[0][0];
+        $this->assertSame('Disable', $switchButton['text']);
+        $this->assertSame('danger', $switchButton['style']);
+        $this->assertAnsweredWith('Notification enabled');
+    }
+
+    public function testDisableClearsOnlyThatNotification(): void
+    {
+        $this->enable(NotificationType::PromotedIntoGame);
+        $this->enable(NotificationType::BumpedFromGame);
+
+        $this->processSwitch(UserCallbackAction::DisableNotification, NotificationType::PromotedIntoGame);
+
+        $settings = $this->storedSettings();
+        $this->assertFalse($settings->isEnabled(NotificationType::PromotedIntoGame));
+        $this->assertTrue($settings->isEnabled(NotificationType::BumpedFromGame));
+    }
+
+    private function enable(NotificationType $notificationType): void
+    {
+        $this->createUser(telegramUserId: self::SENDER_ID);
+        $userManager = new UserManager();
+        $userManager->enableNotification($userManager->findUserRecordById(self::SENDER_ID), $notificationType);
+    }
+
+    public function testDisableRedrawsTheDetailWithEnableAndConfirms(): void
+    {
+        $this->enable(NotificationType::PromotedIntoGame);
+
+        $this->processSwitch(UserCallbackAction::DisableNotification, NotificationType::PromotedIntoGame);
+
+        $this->assertStringContainsString("🔕 You won't get a notification when", $this->editedText());
+        $switchButton = $this->lastKeyboard('editMessageText')[0][0];
+        $this->assertSame('Enable', $switchButton['text']);
+        $this->assertSame('success', $switchButton['style']);
+        $this->assertAnsweredWith('Notification disabled');
+    }
+
+    public function testEnablingAnAlreadyEnabledNotificationKeepsItEnabled(): void
+    {
+        $this->enable(NotificationType::PromotedIntoGame);
+
+        $this->processSwitch(UserCallbackAction::EnableNotification, NotificationType::PromotedIntoGame);
+
+        $this->assertSame(
+            1 << NotificationType::PromotedIntoGame->value,
+            $this->storedSettings()->toInt(),
+        );
+    }
+
+    public function testSwitchStartsFromTheGivenSendersSettings(): void
+    {
+        $this->createUser(telegramUserId: self::SENDER_ID);
+        $callbackData = UserCallbackData::create(UserCallbackAction::EnableNotification)
+            ->withNotificationType(NotificationType::PromotedIntoGame);
+        $update = TelegramUpdate::fromArray(
+            $this->adminCallbackQueryPayload(data: $callbackData->toJson(), fromId: self::SENDER_ID, chatId: self::SENDER_ID),
+        );
+        $sender = $this->userRecord(
+            telegramUserId: self::SENDER_ID,
+            notifications: new NotificationSettings()->enable(NotificationType::BumpedFromGame),
+        );
+
+        UserCallbackAction::EnableNotification->resolveProcessor($this->telegramSender, $callbackData, $sender)->process($update);
+
+        $settings = $this->storedSettings();
+        $this->assertTrue($settings->isEnabled(NotificationType::PromotedIntoGame));
+        $this->assertTrue($settings->isEnabled(NotificationType::BumpedFromGame));
+    }
+
+    public function testMissingNotificationTypeChangesNothing(): void
+    {
+        $this->createUser(telegramUserId: self::SENDER_ID);
+        $callbackData = UserCallbackData::create(UserCallbackAction::EnableNotification);
+
+        $this->process($callbackData);
+
+        $this->assertMessageNotEdited();
+        $this->assertAnsweredWith('');
+        $this->assertNull(new UserManager()->findUserRecordById(self::SENDER_ID)->notifications);
+    }
+
+    public function testDisableOnUnsetNotificationsStoresEveryTypeOff(): void
+    {
+        $this->createUser(telegramUserId: self::SENDER_ID);
+
+        $this->processSwitch(UserCallbackAction::DisableNotification, NotificationType::PromotedIntoGame);
+
+        $this->assertSame(0, new UserManager()->findUserRecordById(self::SENDER_ID)->notifications?->toInt());
+        $this->assertSame('Enable', $this->lastKeyboard('editMessageText')[0][0]['text']);
+        $this->assertAnsweredWith('Notification disabled');
+    }
+}

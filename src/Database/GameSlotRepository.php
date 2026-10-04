@@ -30,6 +30,11 @@ readonly class GameSlotRepository
         ]);
     }
 
+    public function countByGameId(int $gameId): int
+    {
+        return (int)$this->db->count('game_slots', ['game_id' => $gameId]);
+    }
+
     public function findByUser(int $gameId, int $telegramUserId): array
     {
         return $this->db->select('game_slots', '*', [
@@ -56,10 +61,10 @@ readonly class GameSlotRepository
 
     public function findPositionsByUser(int $gameId, int $telegramUserId): array
     {
-        return array_map('intval', $this->db->select('game_slots', 'position', [
+        return $this->db->select('game_slots', 'position', [
             'game_id' => $gameId,
             'telegram_user_id' => $telegramUserId,
-        ]));
+        ]);
     }
 
     public function deleteByUser(int $gameId, int $telegramUserId): int
@@ -79,9 +84,9 @@ readonly class GameSlotRepository
 
     private function decrementPositionsAbove(int $gameId, int $deletedPosition): void
     {
-        $statement = $this->db->pdo->prepare( //Because commands are processed sequentially, we can do that safely without worrying about concurrency issues.
-            'UPDATE game_slots SET position = position - 1 WHERE game_id = :game_id AND position > :deleted_position'
+        $this->db->query( //Because commands are processed sequentially, we can do that safely without worrying about concurrency issues.
+            'UPDATE game_slots SET position = position - 1 WHERE game_id = :game_id AND position > :deleted_position',
+            [':game_id' => $gameId, ':deleted_position' => $deletedPosition],
         );
-        $statement->execute([':game_id' => $gameId, ':deleted_position' => $deletedPosition]);
     }
 }

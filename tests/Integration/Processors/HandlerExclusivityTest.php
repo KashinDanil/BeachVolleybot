@@ -109,6 +109,9 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             'non-inline admin button by admin' => TelegramUpdate::fromArray(
                 $this->adminCallbackQueryPayload(json_encode(['aa' => 'st']), fromId: $adminId),
             ),
+            'non-inline admin button by non-admin' => TelegramUpdate::fromArray(
+                $this->adminCallbackQueryPayload(json_encode(['aa' => 'st']), fromId: $nonAdminId, chatId: $nonAdminId),
+            ),
             'non-inline user button by admin' => TelegramUpdate::fromArray(
                 $this->adminCallbackQueryPayload(json_encode(['ua' => 'ugl']), fromId: $adminId),
             ),
@@ -147,6 +150,12 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             'private /games' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/games', fromId: $nonAdminId),
             ),
+            'private /notifications' => TelegramUpdate::fromArray(
+                $this->privateMessagePayload('/notifications', fromId: $nonAdminId),
+            ),
+            'private notification callback' => TelegramUpdate::fromArray(
+                $this->adminCallbackQueryPayload('{"ua":"und","n":1}', fromId: $nonAdminId, chatId: $nonAdminId),
+            ),
             'private /help' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/help', fromId: $nonAdminId),
             ),
@@ -166,6 +175,9 @@ final class HandlerExclusivityTest extends ProcessorTestCase
             ),
             'private /settings by admin' => TelegramUpdate::fromArray(
                 $this->privateMessagePayload('/settings', fromId: $adminId),
+            ),
+            'private /settings by non-admin' => TelegramUpdate::fromArray(
+                $this->privateMessagePayload('/settings', fromId: $nonAdminId),
             ),
             'private via-bot game share' => TelegramUpdate::fromArray(
                 $this->privateViaBotGameMessagePayload('iq1'),

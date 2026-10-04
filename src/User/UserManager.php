@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BeachVolleybot\User;
+
+use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Database\UserRepository;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
+use DanilKashin\Localization\Language;
+
+readonly class UserManager
+{
+    private UserRepository $userRepository;
+
+    public function __construct()
+    {
+        $this->userRepository = new UserRepository(Connection::get());
+    }
+
+    public function findUserRecordById(int $telegramUserId): ?UserRecord
+    {
+        $row = $this->userRepository->findById($telegramUserId);
+
+        return null !== $row ? UserRecord::fromRow($row) : null;
+    }
+
+    /**
+     * @param list<int> $telegramUserIds
+     *
+     * @return list<UserRecord>
+     */
+    public function findUserRecordsByIds(array $telegramUserIds): array
+    {
+        return $this->toUserRecords($this->userRepository->findByIds($telegramUserIds));
+    }
+
+    /** @return list<UserRecord> */
+    public function findUserRecordsPage(int $limit, int $offset): array
+    {
+        return $this->toUserRecords($this->userRepository->findAllPaginated($limit, $offset));
+    }
+
+    public function countUsers(): int
+    {
+        return $this->userRepository->countAll();
+    }
+
+    public function ensureUserRecordWithNotificationSettings(TelegramUser $telegramUser): UserRecord
+    {
+        return UserRecord::fromRow($this->upsert($telegramUser, new NotificationSettings()));
+    }
+
+    public function ensureUserRecord(TelegramUser $telegramUser): UserRecord
+    {
+        return UserRecord::fromRow($this->upsert($telegramUser));
+    }
+
+    public function changeRole(UserRecord $user, Role $role): void
+    {
+        $this->userRepository->updateRole($user->telegramUserId, $role->value);
+    }
+
+    public function enableNotification(UserRecord $user, NotificationType $type): NotificationSettings
+    {
+        $notifications = $user->effectiveNotifications()->enable($type);
+        $this->userRepository->updateNotifications($user->telegramUserId, $notifications->toInt());
+
+        return $notifications;
+    }
+
+    public function disableNotification(UserRecord $user, NotificationType $type): NotificationSettings
+    {
+        $notifications = $user->effectiveNotifications()->disable($type);
+        $this->userRepository->updateNotifications($user->telegramUserId, $notifications->toInt());
+
+        return $notifications;
+    }
+
+    /** @return array<string, mixed> */
+    private function upsert(TelegramUser $telegramUser, ?NotificationSettings $initialNotifications = null): array
+    {
+        return $this->userRepository->upsert(
+            $telegramUser->id,
+            $telegramUser->firstName,
+            $telegramUser->lastName,
+            $telegramUser->username,
+            $this->normalizeLanguageCode($telegramUser->languageCode),
+            $initialNotifications?->toInt(),
+        );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     *
+     * @return list<UserRecord>
+     */
+    private function toUserRecords(array $rows): array
+    {
+        return array_map(UserRecord::fromRow(...), $rows);
+    }
+
+    private function normalizeLanguageCode(?string $languageCode): ?string
+    {
+        return null !== $languageCode ? Language::fromCode($languageCode) : null;
+    }
+}

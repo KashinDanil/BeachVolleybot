@@ -6,11 +6,14 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Telegram\MessageBuilders\Admin\UserRoleListMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use BeachVolleybot\User\Role;
 use PHPUnit\Framework\TestCase;
 
 final class UserRoleListMessageBuilderTest extends TestCase
 {
+    use CreatesUserRecords;
+
     private const int PAGE_SIZE = 8;
 
     private UserRoleListMessageBuilder $builder;
@@ -24,12 +27,12 @@ final class UserRoleListMessageBuilderTest extends TestCase
 
     public function testBuildShowsUserButtonsWithRoleName(): void
     {
-        $userRows = [
-            $this->userRow(100, 'Alice', Role::Player),
-            $this->userRow(200, 'Bob', Role::Admin),
+        $users = [
+            $this->userRecord(100, 'Alice', role: Role::Player),
+            $this->userRecord(200, 'Bob', role: Role::Admin),
         ];
 
-        $message = $this->builder->build($userRows, $this->pagination(2, 1));
+        $message = $this->builder->build($users, $this->pagination(2, 1));
         $keyboard = $this->extractKeyboard($message);
 
         $this->assertSame('Alice — Player', $keyboard[0][0]['text']);
@@ -38,13 +41,13 @@ final class UserRoleListMessageBuilderTest extends TestCase
 
     public function testBuildStylesUserButtonsByRole(): void
     {
-        $userRows = [
-            $this->userRow(100, 'Rita', Role::Root),
-            $this->userRow(200, 'Adam', Role::Admin),
-            $this->userRow(300, 'Pola', Role::Player),
+        $users = [
+            $this->userRecord(100, 'Rita', role: Role::Root),
+            $this->userRecord(200, 'Adam', role: Role::Admin),
+            $this->userRecord(300, 'Pola', role: Role::Player),
         ];
 
-        $message = $this->builder->build($userRows, $this->pagination(3, 1));
+        $message = $this->builder->build($users, $this->pagination(3, 1));
         $keyboard = $this->extractKeyboard($message);
 
         $this->assertSame('primary', $keyboard[0][0]['style']);
@@ -54,12 +57,12 @@ final class UserRoleListMessageBuilderTest extends TestCase
 
     public function testBuildHasPaginationOnMultiplePages(): void
     {
-        $userRows = [];
+        $users = [];
         for ($i = 1; $i <= self::PAGE_SIZE; $i++) {
-            $userRows[] = $this->userRow($i, "User$i", Role::Player);
+            $users[] = $this->userRecord($i, "User$i", role: Role::Player);
         }
 
-        $message = $this->builder->build($userRows, $this->pagination(self::PAGE_SIZE + 2, 1));
+        $message = $this->builder->build($users, $this->pagination(self::PAGE_SIZE + 2, 1));
         $keyboard = $this->extractKeyboard($message);
 
         $this->assertContains('Next »', $this->flattenButtonTexts($keyboard));
@@ -76,21 +79,9 @@ final class UserRoleListMessageBuilderTest extends TestCase
 
     public function testBuildShowsPageInfo(): void
     {
-        $message = $this->builder->build([$this->userRow(100, 'Alice', Role::Player)], $this->pagination(1, 1));
+        $message = $this->builder->build([$this->userRecord(100, 'Alice', role: Role::Player)], $this->pagination(1, 1));
 
         $this->assertStringContainsString('Page 1 of 1', $message->getText()->getMessageText());
-    }
-
-    /** @return array<string, mixed> */
-    private function userRow(int $telegramUserId, string $firstName, Role $role): array
-    {
-        return [
-            'telegram_user_id' => $telegramUserId,
-            'first_name' => $firstName,
-            'last_name' => null,
-            'username' => null,
-            'role' => $role->value,
-        ];
     }
 
     private function pagination(int $totalUsers, int $page): KeyboardPagination

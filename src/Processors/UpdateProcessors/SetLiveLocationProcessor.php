@@ -7,6 +7,7 @@ namespace BeachVolleybot\Processors\UpdateProcessors;
 use BeachVolleybot\Common\LocationUpdateThrottle;
 use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
@@ -33,13 +34,11 @@ class SetLiveLocationProcessor extends AbstractGameReplyProcessor
             return;
         }
 
-        $gameManager = new GameManager();
-
-        if (!$gameManager->isUserInGame($gameRecord->gameId, $editedMessage->from->id)) {
+        if (!new GameUserManager()->isUserInGame($gameRecord->gameId, $editedMessage->from->id)) {
             return;
         }
 
-        $location = $gameManager->setLocation($gameRecord->gameId, $editedMessage->location->latitude, $editedMessage->location->longitude);
+        $location = new GameManager()->setLocation($gameRecord->gameId, $editedMessage->location->latitude, $editedMessage->location->longitude);
         $this->logUserAction($editedMessage->from, 'update_live_location', "gameId=$gameRecord->gameId;location=$location");
 
         self::getThrottle()->touch($gameRecord->gameKey);

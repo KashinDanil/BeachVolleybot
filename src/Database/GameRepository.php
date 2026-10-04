@@ -7,6 +7,7 @@ namespace BeachVolleybot\Database;
 use BeachVolleybot\Game\GameSettings;
 use DateTimeImmutable;
 
+/** @internal Use \BeachVolleybot\Game\GameManager instead; it is the only intended caller. */
 readonly class GameRepository extends AbstractRepository
 {
     protected function table(): string

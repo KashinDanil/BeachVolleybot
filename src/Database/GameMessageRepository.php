@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Database;
 
-use BeachVolleybot\Telegram\Messages\GameMessage;
 use Medoo\Medoo;
 
 /**
  * The single seam over game_messages: one row is either an inline message
- * (inline_message_id) or a chat message (chat_id + message_id). Exposes them to the
- * domain as a uniform list of GameMessage.
+ * (inline_message_id) or a chat message (chat_id + message_id).
  */
 readonly class GameMessageRepository
 {
@@ -37,15 +35,13 @@ readonly class GameMessageRepository
         ]);
     }
 
-    /** @return list<GameMessage> */
+    /** @return list<array<string, mixed>> */
     public function findByGameId(int $gameId): array
     {
-        $rows = $this->db->select('game_messages', ['chat_id', 'message_id', 'inline_message_id', 'inline_query_id'], [
+        return $this->db->select('game_messages', '*', [
             'game_id' => $gameId,
             'ORDER' => ['created_at' => 'ASC'],
         ]);
-
-        return array_map(GameMessage::fromArray(...), $rows);
     }
 
     public function findGameIdByInlineMessageId(string $inlineMessageId): ?int

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors\CallbackQuery;
 
-use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\GameUserRepository;
+use BeachVolleybot\Game\GameSlotManager;
+use BeachVolleybot\Game\GameUserManager;
+use BeachVolleybot\Notifications\NotificationEnqueuer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\CallbackAnswer;
 use BeachVolleybot\Processors\UpdateProcessors\GameAction\JoinProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use DanilKashin\FileQueue\Queue\FileQueue;
 
 final class JoinProcessorTest extends ProcessorTestCase
 {
@@ -20,7 +22,7 @@ final class JoinProcessorTest extends ProcessorTestCase
 
         new JoinProcessor($this->telegramSender)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertNotNull($gameUser);
     }
 
@@ -31,9 +33,9 @@ final class JoinProcessorTest extends ProcessorTestCase
 
         new JoinProcessor($this->telegramSender)->process($update);
 
-        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(1, $slots);
-        $this->assertSame(1, (int) $slots[0]['position']);
+        $this->assertSame(1, $slots[0]->position);
     }
 
     public function testSecondJoinAddsExtraSlot(): void
@@ -43,9 +45,9 @@ final class JoinProcessorTest extends ProcessorTestCase
 
         new JoinProcessor($this->telegramSender)->process($update);
 
-        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(2, $slots);
-        $this->assertSame(2, (int) $slots[1]['position']);
+        $this->assertSame(2, $slots[1]->position);
     }
 
     public function testSecondJoinDoesNotDuplicateGameUser(): void
@@ -55,7 +57,7 @@ final class JoinProcessorTest extends ProcessorTestCase
 
         new JoinProcessor($this->telegramSender)->process($update);
 
-        $gameUsers = new GameUserRepository($this->db)->findByGameId($gameId);
+        $gameUsers = new GameUserManager()->findGameUserRecordsByGameId($gameId);
         $this->assertCount(1, $gameUsers);
     }
 
@@ -100,7 +102,7 @@ final class JoinProcessorTest extends ProcessorTestCase
         $this->assertKeyboardRemoved();
         $this->assertAnsweredWith(CallbackAnswer::GAME_ALREADY_FINISHED);
         $this->assertMessageNotEdited();
-        $this->assertNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
+        $this->assertNull(new GameUserManager()->findGameUserRecord($gameId, 200));
     }
 
     public function testTodayPastHourStillJoinsBecauseDayHasNotEnded(): void
@@ -112,7 +114,42 @@ final class JoinProcessorTest extends ProcessorTestCase
         new JoinProcessor($this->telegramSender)->process($update);
 
         $this->assertAnsweredWith(CallbackAnswer::JOINED);
-        $this->assertNotNull(new GameUserRepository($this->db)->findByGameUser($gameId, 200));
+        $this->assertNotNull(new GameUserManager()->findGameUserRecord($gameId, 200));
+    }
+
+    public function testFourthPlayerJoiningEnqueuesAMinimumPlayersNotificationForTheOthers(): void
+    {
+        $gameId = $this->seedGameWithPlayers(201, 202, 203);
+
+        new JoinProcessor($this->telegramSender)->process($this->buildUpdate('msg_1'));
+
+        $this->assertSame(3, $this->notificationQueueSize($gameId));
+    }
+
+    public function testThirdPlayerJoiningEnqueuesNoNotification(): void
+    {
+        $gameId = $this->seedGameWithPlayers(201, 202);
+
+        new JoinProcessor($this->telegramSender)->process($this->buildUpdate('msg_1'));
+
+        $this->assertSame(0, $this->notificationQueueSize($gameId));
+    }
+
+    private function seedGameWithPlayers(int ...$telegramUserIds): int
+    {
+        $gameId = $this->seedFullGame();
+
+        foreach ($telegramUserIds as $index => $telegramUserId) {
+            $this->createGameUser($gameId, $telegramUserId);
+            $this->createSlot($gameId, $telegramUserId, $index + 1);
+        }
+
+        return $gameId;
+    }
+
+    private function notificationQueueSize(int $gameId): int
+    {
+        return new FileQueue('notification_' . $gameId, NotificationEnqueuer::QUEUE_DIR)->size();
     }
 
     private function buildUpdate(string $inlineMessageId, int $fromId = 200, string $gameKey = 'query_1'): TelegramUpdate

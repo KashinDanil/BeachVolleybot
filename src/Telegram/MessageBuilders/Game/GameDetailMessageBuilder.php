@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace BeachVolleybot\Telegram\MessageBuilders\Game;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\User;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\Admin\AbstractAdminMessageBuilder;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\ProfileNameFormatter;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\User\UserRecord;
 
 final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
 {
@@ -24,15 +25,15 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
         ]);
     }
 
-    public function buildGameDetail(GameInterface $game, ?array $creatorRow, bool $sharingEnabled = true): TelegramMessage
+    public function buildGameDetail(GameInterface $game, ?UserRecord $creator, bool $sharingEnabled = true): TelegramMessage
     {
         return $this->buildMessage(
-            $this->buildGameDetailText($game, $creatorRow, $sharingEnabled),
+            $this->buildGameDetailText($game, $creator, $sharingEnabled),
             $this->buildGameDetailKeyboard($game, $sharingEnabled),
         );
     }
 
-    private function buildGameDetailText(GameInterface $game, ?array $creatorRow, bool $sharingEnabled): string
+    private function buildGameDetailText(GameInterface $game, ?UserRecord $creator, bool $sharingEnabled): string
     {
         $lines = [$this->formatHeader("Game #{$game->getGameId()}")];
 
@@ -45,7 +46,7 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
 
         $lines[] = $this->formatter->blockquote($this->formatter->escape($game->getTitle()));
 
-        $creatorLine = $this->buildCreatorLine($creatorRow);
+        $creatorLine = $this->buildCreatorLine($creator);
 
         if (null !== $creatorLine) {
             $lines[] = $creatorLine;
@@ -55,31 +56,24 @@ final class GameDetailMessageBuilder extends AbstractAdminMessageBuilder
             $lines[] = $this->formatter->escape("Location: {$game->getLocation()}");
         }
 
-        $users = $game->getUsers();
-        $userCount = array_map(static fn($user) => $user->getTelegramUserId(), $users)
+        $players = $game->getPlayers();
+        $userCount = array_map(static fn($player) => $player->getTelegramUserId(), $players)
                 |> array_unique(...)
                 |> count(...);
 
         $lines[] = $this->formatter->escape("Users: $userCount");
-        $lines[] = $this->formatter->escape("Slots: " . count($users));
+        $lines[] = $this->formatter->escape("Slots: " . count($players));
 
         return implode($this->formatter->newLine(), $lines);
     }
 
-    private function buildCreatorLine(?array $creatorRow): ?string
+    private function buildCreatorLine(?UserRecord $creator): ?string
     {
-        if (null === $creatorRow) {
+        if (null === $creator) {
             return null;
         }
 
-        $name = User::buildName($creatorRow['first_name'], $creatorRow['last_name'] ?? null);
-        $link = User::buildLink($creatorRow['username'] ?? null);
-
-        $namePart = null !== $link
-            ? $this->formatter->link($name, $link)
-            : $this->formatter->escape($name);
-
-        return $this->formatter->escape('Creator: ') . $namePart;
+        return $this->formatter->escape('Creator: ') . new ProfileNameFormatter($this->formatter)->formatUser($creator);
     }
 
     private function buildGameDetailKeyboard(GameInterface $game, bool $sharingEnabled): array

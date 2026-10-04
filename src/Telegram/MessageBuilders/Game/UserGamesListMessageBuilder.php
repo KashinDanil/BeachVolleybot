@@ -29,7 +29,7 @@ final class UserGamesListMessageBuilder extends AbstractMessageBuilder
         parent::__construct($formatter);
     }
 
-    /** @param list<array<string, mixed>> $games */
+    /** @param list<GameRecord> $games */
     public function buildGamesList(array $games, KeyboardPagination $pagination): TelegramMessage
     {
         return $this->buildMessage(
@@ -38,7 +38,7 @@ final class UserGamesListMessageBuilder extends AbstractMessageBuilder
         );
     }
 
-    /** @param list<array<string, mixed>> $games */
+    /** @param list<GameRecord> $games */
     private function buildText(array $games, KeyboardPagination $pagination): string
     {
         $header = $this->formatter->bold($this->translator->translate(self::HEADER_TEXT));
@@ -60,16 +60,15 @@ final class UserGamesListMessageBuilder extends AbstractMessageBuilder
             . $this->formatter->escape($pageIndicator);
     }
 
-    /** @param list<array<string, mixed>> $games */
+    /** @param list<GameRecord> $games */
     private function buildKeyboard(array $games, KeyboardPagination $pagination): array
     {
         $keyboard = [];
 
         foreach ($games as $game) {
-            $gameRecord = GameRecord::fromRow($game);
             $keyboard[] = [$this->buildGameButton(
-                $gameRecord->gameId,
-                $gameRecord->kickoffAt,
+                $game->gameId,
+                $game->kickoffAt,
                 $pagination->getPage(),
             )];
         }

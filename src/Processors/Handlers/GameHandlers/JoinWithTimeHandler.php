@@ -9,6 +9,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 final readonly class JoinWithTimeHandler extends AbstractGameReplyQueueHandler
 {
@@ -20,9 +21,10 @@ final readonly class JoinWithTimeHandler extends AbstractGameReplyQueueHandler
             && null !== TimeExtractor::extract($update->message->text);
     }
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return new JoinWithTimeProcessor($telegramSender);
     }

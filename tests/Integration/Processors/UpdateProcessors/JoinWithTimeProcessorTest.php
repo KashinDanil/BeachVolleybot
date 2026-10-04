@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameUserRepository;
-use BeachVolleybot\Database\GameSlotRepository;
+use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameSlotManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\JoinWithTimeProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\NotificationType;
 
 final class JoinWithTimeProcessorTest extends ProcessorTestCase
 {
@@ -19,9 +21,9 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertNotNull($gameUser);
-        $this->assertSame('15:30', $gameUser['time']);
+        $this->assertSame('15:30', $gameUser->time);
     }
 
     public function testNewUserGetsSlot(): void
@@ -31,9 +33,9 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(1, $slots);
-        $this->assertSame(200, (int)$slots[0]['telegram_user_id']);
+        $this->assertSame(200, $slots[0]->telegramUserId);
     }
 
     public function testExistingUserUpdatesTime(): void
@@ -43,8 +45,8 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame('16:00', $gameUser['time']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame('16:00', $gameUser->time);
     }
 
     public function testExistingUserDoesNotGetExtraSlot(): void
@@ -54,7 +56,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
         $this->assertCount(1, $slots);
     }
 
@@ -85,8 +87,8 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
-        $this->assertSame('15:30', $gameUser['time']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
+        $this->assertSame('15:30', $gameUser->time);
     }
 
     public function testKeepsUserMessageThatCarriesMoreThanTheTime(): void
@@ -140,7 +142,7 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
 
         new JoinWithTimeProcessor($this->telegramSender)->process($update);
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
         $this->assertNull($gameUser);
         $this->assertMessageNotEdited();
     }
@@ -178,6 +180,29 @@ final class JoinWithTimeProcessorTest extends ProcessorTestCase
         new JoinWithTimeProcessor($this->telegramSender)->process(TelegramUpdate::fromArray($payload));
 
         $this->assertMessageNotEdited();
+    }
+
+    public function testEarlierTimeEnqueuesATimeChangeForTheOthers(): void
+    {
+        $gameId = $this->seedFullGame(gameKey: 'query_1', title: 'Bogatell 31.12.2099 18:00');
+        $this->createGameUser($gameId, 201);
+        $this->createSlot($gameId, 201, 1);
+
+        new JoinWithTimeProcessor($this->telegramSender)->process($this->buildUpdate('17:00', 'query_1'));
+
+        $this->assertSame('Bogatell 31.12.2099 17:00', new GameManager()->findGameRecordById($gameId)->title);
+        $this->assertSame([201], $this->dequeueNotifiedUserIds($gameId, NotificationType::KickoffTimeChanged));
+    }
+
+    public function testTimeThatKeepsTheKickoffEnqueuesNoTimeChange(): void
+    {
+        $gameId = $this->seedFullGame(gameKey: 'query_1', title: 'Bogatell 31.12.2099 18:00');
+        $this->createGameUser($gameId, 201);
+        $this->createSlot($gameId, 201, 1);
+
+        new JoinWithTimeProcessor($this->telegramSender)->process($this->buildUpdate('19:00', 'query_1'));
+
+        $this->assertSame([], $this->dequeueNotifiedUserIds($gameId, NotificationType::KickoffTimeChanged));
     }
 
     private function buildUpdate(string $text, string $gameKey): TelegramUpdate

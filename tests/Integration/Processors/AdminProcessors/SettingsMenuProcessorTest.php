@@ -9,15 +9,19 @@ use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCommandProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\Role;
 
 final class SettingsMenuProcessorTest extends ProcessorTestCase
 {
+    use CreatesUserRecords;
+
     public function testSettingsCommandSendsMessage(): void
     {
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings'));
 
-        new SettingsMenuCommandProcessor($this->telegramSender)->process($update);
+        new SettingsMenuCommandProcessor($this->telegramSender, $this->ensureSender($update))->process($update);
 
         $this->assertMessageSent();
     }
@@ -29,7 +33,7 @@ final class SettingsMenuProcessorTest extends ProcessorTestCase
             $this->adminCallbackQueryPayload($callbackData->toJson()),
         );
 
-        new SettingsMenuCallbackProcessor($this->telegramSender, $callbackData)->process($update);
+        new SettingsMenuCallbackProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
 
         $this->assertMessageEdited();
     }
@@ -39,9 +43,9 @@ final class SettingsMenuProcessorTest extends ProcessorTestCase
         $this->seedRoot();
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings'));
 
-        new SettingsMenuCommandProcessor($this->telegramSender)->process($update);
+        new SettingsMenuCommandProcessor($this->telegramSender, $this->ensureSender($update))->process($update);
 
-        $this->assertContains('Logs', $this->sentKeyboardLabels());
+        $this->assertContains('Logs', $this->lastKeyboardLabels('sendMessage'));
     }
 
     public function testCommandHidesLogsButtonForAdmin(): void
@@ -49,18 +53,36 @@ final class SettingsMenuProcessorTest extends ProcessorTestCase
         $this->seedAdmin();
         $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings'));
 
-        new SettingsMenuCommandProcessor($this->telegramSender)->process($update);
+        new SettingsMenuCommandProcessor($this->telegramSender, $this->ensureSender($update))->process($update);
 
-        $this->assertNotContains('Logs', $this->sentKeyboardLabels());
+        $this->assertNotContains('Logs', $this->lastKeyboardLabels('sendMessage'));
     }
 
-    /** @return list<string> */
-    private function sentKeyboardLabels(): array
+    public function testCommandBuildsTheMenuForTheGivenSenderWithoutAQuery(): void
     {
-        $sendCalls = array_values(array_filter($this->bot->calls, fn($c) => 'sendMessage' === $c['method']));
-        $keyboard = end($sendCalls)['args'][5];
-        $rows = json_decode($keyboard->toJson(), true)['inline_keyboard'];
+        $update = TelegramUpdate::fromArray($this->privateMessagePayload('/settings'));
+        $processor = new SettingsMenuCommandProcessor($this->telegramSender, $this->userRecord(role: Role::Root));
 
-        return array_column(array_merge(...$rows), 'text');
+        $queries = $this->queriesDuring(fn() => $processor->process($update));
+
+        $this->assertSame([], $queries);
+        $this->assertContains('Logs', $this->lastKeyboardLabels('sendMessage'));
+    }
+
+    public function testCallbackBuildsTheMenuForTheGivenSenderWithoutAQuery(): void
+    {
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::Settings);
+        $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
+        $processor = new SettingsMenuCallbackProcessor(
+            $this->telegramSender,
+            $callbackData,
+            $this->userRecord(role: Role::Admin),
+        );
+
+        $queries = $this->queriesDuring(fn() => $processor->process($update));
+
+        $this->assertSame([], $queries);
+        $this->assertNotContains('Logs', $this->lastKeyboardLabels('editMessageText'));
+        $this->assertContains('Games', $this->lastKeyboardLabels('editMessageText'));
     }
 }

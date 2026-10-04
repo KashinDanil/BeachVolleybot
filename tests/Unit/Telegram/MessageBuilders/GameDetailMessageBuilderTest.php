@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Telegram\MarkdownV2;
 use BeachVolleybot\Telegram\MessageBuilders\Game\GameDetailMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Game\ShareGameMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
+use BeachVolleybot\User\UserRecord;
 use PHPUnit\Framework\TestCase;
 
 final class GameDetailMessageBuilderTest extends TestCase
 {
+    use CreatesUserRecords;
+
     private GameDetailMessageBuilder $builder;
 
     public function testGameNotFoundContainsGameNotFoundText(): void
@@ -43,19 +47,19 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailShowsGameId(): void
     {
-        $game = $this->createGameStub(gameId: 42, title: 'Friday Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 42, title: 'Friday Game 18:00', players: []);
 
         $message = $this->buildDetail($game);
 
         $this->assertStringContainsString('#42', $message->getText()->getMessageText());
     }
 
-    private function createGameStub(int $gameId, string $title, array $users, ?string $location = null): GameInterface
+    private function createGameStub(int $gameId, string $title, array $players, ?string $location = null): GameInterface
     {
         $game = $this->createStub(GameInterface::class);
         $game->method('getGameId')->willReturn($gameId);
         $game->method('getTitle')->willReturn($title);
-        $game->method('getUsers')->willReturn($users);
+        $game->method('getPlayers')->willReturn($players);
         $game->method('getLocation')->willReturn($location);
 
         return $game;
@@ -63,7 +67,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailShowsTitle(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Friday Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Friday Game 18:00', players: []);
 
         $message = $this->buildDetail($game);
 
@@ -72,7 +76,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailWrapsTitleInBlockquote(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Friday Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Friday Game 18:00', players: []);
 
         $message = $this->buildDetail($game);
 
@@ -83,29 +87,29 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailShowsUserCount(): void
     {
-        $user1 = $this->createUserStub(100);
-        $user2 = $this->createUserStub(200);
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: [$user1, $user2]);
+        $player1 = $this->createPlayerStub(100);
+        $player2 = $this->createPlayerStub(200);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: [$player1, $player2]);
 
         $message = $this->buildDetail($game);
 
         $this->assertStringContainsString('Users: 2', $message->getText()->getMessageText());
     }
 
-    private function createUserStub(int $telegramUserId): UserInterface
+    private function createPlayerStub(int $telegramUserId): PlayerInterface
     {
-        $user = $this->createStub(UserInterface::class);
-        $user->method('getTelegramUserId')->willReturn($telegramUserId);
+        $player = $this->createStub(PlayerInterface::class);
+        $player->method('getTelegramUserId')->willReturn($telegramUserId);
 
-        return $user;
+        return $player;
     }
 
     public function testGameDetailShowsSlotCount(): void
     {
-        $user1 = $this->createUserStub(100);
-        $user2 = $this->createUserStub(100);
-        $user3 = $this->createUserStub(200);
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: [$user1, $user2, $user3]);
+        $player1 = $this->createPlayerStub(100);
+        $player2 = $this->createPlayerStub(100);
+        $player3 = $this->createPlayerStub(200);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: [$player1, $player2, $player3]);
 
         $message = $this->buildDetail($game);
 
@@ -115,7 +119,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailShowsLocationWhenPresent(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: [], location: '55.7,37.6');
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: [], location: '55.7,37.6');
 
         $message = $this->buildDetail($game);
 
@@ -124,7 +128,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailOmitsLocationWhenNull(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
 
         $message = $this->buildDetail($game);
 
@@ -133,7 +137,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailHasShareButtonAsFirstRow(): void
     {
-        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', players: []);
 
         $message = $this->buildDetail($game);
         $keyboard = $this->extractKeyboard($message);
@@ -144,7 +148,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailHasUsersButton(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
 
         $message = $this->buildDetail($game);
         $keyboard = $this->extractKeyboard($message);
@@ -154,7 +158,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailShowsRemoveLocationWhenLocationPresent(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: [], location: '55.7,37.6');
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: [], location: '55.7,37.6');
 
         $message = $this->buildDetail($game);
         $keyboard = $this->extractKeyboard($message);
@@ -167,7 +171,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailHidesRemoveLocationWhenNoLocation(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
 
         $message = $this->buildDetail($game);
         $keyboard = $this->extractKeyboard($message);
@@ -178,7 +182,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testGameDetailHasBackButton(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
 
         $message = $this->buildDetail($game);
         $keyboard = $this->extractKeyboard($message);
@@ -189,49 +193,48 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     // --- creator line ---
 
-    public function testGameDetailOmitsCreatorLineWhenCreatorRowMissing(): void
+    public function testGameDetailOmitsCreatorLineWhenCreatorMissing(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
 
-        $message = $this->buildDetail($game, creatorRow: null);
+        $message = $this->buildDetail($game, creator: null);
 
         $this->assertStringNotContainsString('Creator', $message->getText()->getMessageText());
     }
 
     public function testGameDetailShowsCreatorNameWithoutLinkWhenNoUsername(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
-        $creatorRow = ['first_name' => 'Danil', 'last_name' => 'Kashin', 'username' => null];
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
+        $creator = $this->userRecord(200, 'Danil', lastName: 'Kashin');
 
-        $message = $this->buildDetail($game, creatorRow: $creatorRow);
+        $message = $this->buildDetail($game, creator: $creator);
 
         $text = $message->getText()->getMessageText();
-        $this->assertStringContainsString('Danil Kashin', $text);
+        $this->assertStringContainsString('Creator: Danil Kashin', $text);
         $this->assertStringNotContainsString('https://t.me/', $text);
     }
 
     public function testGameDetailShowsCreatorLinkWhenUsernamePresent(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
-        $creatorRow = ['first_name' => 'Danil', 'last_name' => null, 'username' => 'danil_kashin'];
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
+        $creator = $this->userRecord(200, 'Danil', username: 'danil_kashin');
 
-        $message = $this->buildDetail($game, creatorRow: $creatorRow);
+        $message = $this->buildDetail($game, creator: $creator);
 
         $text = $message->getText()->getMessageText();
-        $this->assertStringContainsString('Danil', $text);
-        $this->assertStringContainsString('https://t.me/danil_kashin', $text);
+        $this->assertStringContainsString('Creator: [Danil](https://t.me/danil_kashin)', $text);
     }
 
-    private function buildDetail(GameInterface $game, ?array $creatorRow = null, bool $sharingEnabled = true): TelegramMessage
+    private function buildDetail(GameInterface $game, ?UserRecord $creator = null, bool $sharingEnabled = true): TelegramMessage
     {
-        return $this->builder->buildGameDetail($game, $creatorRow, $sharingEnabled);
+        return $this->builder->buildGameDetail($game, $creator, $sharingEnabled);
     }
 
     // --- past-kickoff behavior ---
 
     public function testPastGameOmitsShareButton(): void
     {
-        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 42, title: 'Game 18:00', players: []);
 
         $message = $this->buildDetail($game, sharingEnabled: false);
         $keyboard = $this->extractKeyboard($message);
@@ -245,7 +248,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testPastGameShowsFinishedNoticeInBody(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
 
         $message = $this->buildDetail($game, sharingEnabled: false);
 
@@ -257,7 +260,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testFutureGameOmitsFinishedNotice(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
 
         $message = $this->buildDetail($game, sharingEnabled: true);
 
@@ -269,7 +272,7 @@ final class GameDetailMessageBuilderTest extends TestCase
 
     public function testPastGameFirstKeyboardRowIsUsersNotShare(): void
     {
-        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', users: []);
+        $game = $this->createGameStub(gameId: 1, title: 'Game 18:00', players: []);
 
         $message = $this->buildDetail($game, sharingEnabled: false);
         $keyboard = $this->extractKeyboard($message);

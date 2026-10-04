@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameUserRepository;
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\ChangeTitleProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\NotificationType;
 
 /**
  * Who may rename a game, and what counts as a title, is ChangeTitleHandler's business — see
@@ -27,7 +28,7 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         new ChangeTitleProcessor($this->telegramSender)
             ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = new GameManager()->findGameRecordById($gameId)?->title;
         $this->assertSame('Picnic 31.12.2099 20:00', $title);
     }
 
@@ -38,8 +39,8 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         new ChangeTitleProcessor($this->telegramSender)
             ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, self::CREATOR_ID);
-        $this->assertSame('20:00', $gameUser['time']);
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, self::CREATOR_ID);
+        $this->assertSame('20:00', $gameUser->time);
     }
 
     public function testRefreshesInlineMessageOnSuccess(): void
@@ -74,7 +75,7 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         new ChangeTitleProcessor($this->telegramSender)
             ->process($this->buildUpdate('Picnic 31.12.2099 20:00'));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = new GameManager()->findGameRecordById($gameId)?->title;
         $this->assertSame('Old Game 01.01.2020 18:00', $title);
         $this->assertMessageNotEdited();
     }
@@ -89,9 +90,33 @@ final class ChangeTitleProcessorTest extends ProcessorTestCase
         new ChangeTitleProcessor($this->telegramSender)
             ->process(TelegramUpdate::fromArray($payload));
 
-        $title = new GameRepository($this->db)->findTitleByGameId($gameId);
+        $title = new GameManager()->findGameRecordById($gameId)?->title;
         $this->assertSame('Bogatell 31.12.2099 18:00', $title);
         $this->assertMessageNotEdited();
+    }
+
+    public function testRenameToAnotherDayEnqueuesATimeChangeForTheOtherPlayers(): void
+    {
+        $gameId = $this->seedGameOwnedByCreator();
+        $this->createGameUser($gameId, 201);
+        $this->createSlot($gameId, 201, 2);
+
+        new ChangeTitleProcessor($this->telegramSender)
+            ->process($this->buildUpdate('Bogatell 30.12.2099 18:00'));
+
+        $this->assertSame([201], $this->dequeueNotifiedUserIds($gameId, NotificationType::KickoffTimeChanged));
+    }
+
+    public function testRenameKeepingTheKickoffEnqueuesNoTimeChange(): void
+    {
+        $gameId = $this->seedGameOwnedByCreator();
+        $this->createGameUser($gameId, 201);
+        $this->createSlot($gameId, 201, 2);
+
+        new ChangeTitleProcessor($this->telegramSender)
+            ->process($this->buildUpdate('Barceloneta 31.12.2099 18:00'));
+
+        $this->assertSame([], $this->dequeueNotifiedUserIds($gameId, NotificationType::KickoffTimeChanged));
     }
 
     private function seedGameOwnedByCreator(): int

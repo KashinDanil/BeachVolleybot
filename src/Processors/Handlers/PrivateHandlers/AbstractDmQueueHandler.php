@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Processors\Handlers\PrivateHandlers;
 
-use BeachVolleybot\Processors\AbstractQueuedProcessorHandler;
+use BeachVolleybot\Common\QueueName;
+use BeachVolleybot\Processors\AbstractSenderQueueHandler;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 
-abstract readonly class AbstractDmQueueHandler extends AbstractQueuedProcessorHandler
+abstract readonly class AbstractDmQueueHandler extends AbstractSenderQueueHandler
 {
     public function routeToQueue(TelegramUpdate $update): string
     {
-        $userId = $update->callbackQuery?->from->id
-            ?? $update->message?->from->id
-            ?? $update->editedMessage?->from->id;
-
-        return 'dm_' . $userId;
+        return QueueName::Dm->forId($update->getFrom()?->id);
     }
 }

@@ -6,11 +6,13 @@ namespace BeachVolleybot\Tests\Integration\Weather;
 
 use BeachVolleybot\Common\GameDateTimeResolver;
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Database\Timestamp;
 use BeachVolleybot\Game\AddOns\WeatherAddOn;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
-use BeachVolleybot\Game\ParsedTitle;
+use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Localization\Translator;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUser;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Weather\Forecast\Cache\WeatherCacheManager;
 use BeachVolleybot\Weather\Forecast\GameWeatherLookup\GameWeatherLookup;
@@ -43,7 +45,7 @@ final class VenueTimezoneTest extends DatabaseTestCase
     private const string TOKYO_ZONE     = 'Asia/Tokyo';
     private const string MUMBAI_ZONE    = 'Asia/Kolkata';
 
-    private GameRepository $repository;
+    private GameManager $gameManager;
 
     protected function setUp(): void
     {
@@ -58,7 +60,7 @@ final class VenueTimezoneTest extends DatabaseTestCase
             $this->venue('Juhu', 19.099, 72.826, self::MUMBAI_ZONE),
         );
 
-        $this->repository = new GameRepository($this->db);
+        $this->gameManager = new GameManager();
     }
 
     protected function tearDown(): void
@@ -73,9 +75,9 @@ final class VenueTimezoneTest extends DatabaseTestCase
         $lisbon = $this->gameFromTitle('Carcavelos 15.07.2099 18:00');
         $tokyo = $this->gameFromTitle('Zushi 15.07.2099 18:00');
 
-        $this->assertSame('2099-07-15 16:00:00', $this->repository->findById($barcelona)['kickoff_at']);
-        $this->assertSame('2099-07-15 17:00:00', $this->repository->findById($lisbon)['kickoff_at']);
-        $this->assertSame('2099-07-15 09:00:00', $this->repository->findById($tokyo)['kickoff_at']);
+        $this->assertSame('2099-07-15 16:00:00', Timestamp::format($this->loadGame($barcelona)->kickoffAt));
+        $this->assertSame('2099-07-15 17:00:00', Timestamp::format($this->loadGame($lisbon)->kickoffAt));
+        $this->assertSame('2099-07-15 09:00:00', Timestamp::format($this->loadGame($tokyo)->kickoffAt));
     }
 
     public function testEachKickoffComesBackOnItsOwnVenuesClock(): void
@@ -159,20 +161,14 @@ final class VenueTimezoneTest extends DatabaseTestCase
         static $sequence = 0;
         $sequence++;
 
-        $parsedTitle = ParsedTitle::parse($title, new DateTimeImmutable());
-
-        return $this->repository->create(
-            $title,
-            100,
-            'query_' . $sequence,
-            $parsedTitle->kickoffAt,
-            $parsedTitle->venueName,
+        return $this->gameManager->createGame(
+            NewGameData::fromUser(new TelegramUser(id: 100, firstName: 'Danil'), $title, 'query_' . $sequence),
         );
     }
 
     private function loadGame(int $gameId): GameRecord
     {
-        return GameRecord::fromRow($this->repository->findById($gameId));
+        return $this->gameManager->findGameRecordById($gameId);
     }
 
     private function wallClockAt(string $zone, string $offset): string

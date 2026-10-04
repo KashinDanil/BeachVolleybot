@@ -6,6 +6,7 @@ namespace BeachVolleybot\Tests\Integration\Game\Roster;
 
 use BeachVolleybot\Game\GameFactory;
 use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameMessageManager;
 use BeachVolleybot\Game\GameSettings;
 use BeachVolleybot\Game\NewGameData;
 use BeachVolleybot\Localization\Translator;
@@ -159,7 +160,7 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
         $this->assertSame(self::DIVIDER, $beforeLines[4]);
         $this->assertStringContainsString('5\-7\. \+3 \(Alice\)', $beforeLines[5]);
 
-        $this->gameManager->addNet($gameId, 200, 'Bob', null, null);
+        $this->gameManager->addNet($gameId, new TelegramUser(id: 200, firstName: 'Bob'));
         $afterAddingNet = $this->cardText($gameId);
 
         $this->assertStringNotContainsString(self::DIVIDER, $afterAddingNet);
@@ -233,12 +234,12 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
             'Beach 18:00, 4 spots per net',
             'query_1',
         ));
-        $this->gameManager->addInlineMessage($gameId, 'msg_1', 'query_1');
+        new GameMessageManager()->addInlineMessage($gameId, 'msg_1', 'query_1');
 
-        $this->gameManager->joinGame($gameId, 201, 'Bob', null, null);
-        $this->gameManager->joinGame($gameId, 202, 'Carol', null, null);
-        $this->gameManager->joinGame($gameId, 203, 'Dave', null, null);
-        $this->gameManager->joinGame($gameId, 204, 'Erin', null, null);
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 201, firstName: 'Bob'));
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 202, firstName: 'Carol'));
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 203, firstName: 'Dave'));
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 204, firstName: 'Erin'));
 
         $lines = $this->cardLines($gameId);
 
@@ -258,12 +259,12 @@ final class PlayersPerNetCardTest extends ProcessorTestCase
             $title,
             'query_wizard',
         ));
-        $this->gameManager->addInlineMessage($gameId, 'msg_wizard', 'query_wizard');
+        new GameMessageManager()->addInlineMessage($gameId, 'msg_wizard', 'query_wizard');
 
-        $this->gameManager->joinGame($gameId, 201, 'Bob', null, null);
-        $this->gameManager->joinGame($gameId, 202, 'Carol', null, null);
-        $this->gameManager->joinGame($gameId, 203, 'Dave', null, null);
-        $this->gameManager->joinGame($gameId, 204, 'Erin', null, null);
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 201, firstName: 'Bob'));
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 202, firstName: 'Carol'));
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 203, firstName: 'Dave'));
+        $this->gameManager->joinGame($gameId, new TelegramUser(id: 204, firstName: 'Erin'));
 
         $lines = $this->cardLines($gameId);
 

@@ -4,63 +4,80 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Admin;
 
-use BeachVolleybot\Game\Models\User;
+use BeachVolleybot\Database\Timestamp;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
+use BeachVolleybot\Telegram\MessageBuilders\Helpers\ProfileNameFormatter;
 use BeachVolleybot\Telegram\MessageBuilders\Keyboard\InlineButtonStyle;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
 use BeachVolleybot\User\Role;
+use BeachVolleybot\User\UserRecord;
 
 final class UserRoleDetailMessageBuilder extends AbstractAdminMessageBuilder
 {
     private const string HEADER_MESSAGE   = 'User';
     private const string PROMOTE_TO_ADMIN = 'Promote to Admin';
     private const string DEMOTE_TO_PLAYER = 'Demote to Player';
+    private const string NOTIFICATIONS = 'Notifications';
+    private const string OPTED_IN         = 'Opted in';
 
-    /**
-     * @param array<string, mixed> $userRow
-     */
-    public function buildUserDetail(array $userRow): TelegramMessage
+    public function buildUserDetail(UserRecord $user): TelegramMessage
     {
-        $telegramUserId = (int)$userRow['telegram_user_id'];
-        $userName = User::buildName($userRow['first_name'], $userRow['last_name'] ?? null);
-        $userLink = User::buildLink($userRow['username'] ?? null);
-        $username = $userRow['username'] ?? null;
-        $role = Role::tryFrom((int)$userRow['role']) ?? Role::Player;
-
         return $this->buildMessage(
-            $this->buildUserDetailText($telegramUserId, $userName, $userLink, $username, $role),
-            $this->buildUserDetailKeyboard($telegramUserId, $role),
+            $this->buildUserDetailText($user),
+            $this->buildUserDetailKeyboard($user),
         );
     }
 
-    private function buildUserDetailText(
-        int $telegramUserId,
-        string $userName,
-        ?string $userLink,
-        ?string $username,
-        Role $role,
-    ): string {
-        $namePart = null !== $userLink
-            ? $this->formatter->link($userName, $userLink)
-            : $this->formatter->escape($userName);
-
+    private function buildUserDetailText(UserRecord $user): string
+    {
         return implode($this->formatter->newLine(), [
             $this->formatHeader(self::HEADER_MESSAGE),
-            $namePart,
-            $this->formatter->escape('Username: ' . (null !== $username ? "@$username" : '—')),
-            $this->formatter->escape("Telegram ID: ") . $this->formatter->code((string)$telegramUserId),
-            $this->formatter->escape("Role: ") . $this->formatter->bold($role->name),
+            new ProfileNameFormatter($this->formatter)->formatUser($user),
+            $this->formatter->escape('Username: ' . $this->formatUsername($user)),
+            $this->formatter->escape("Telegram ID: ") . $this->formatter->code((string)$user->telegramUserId),
+            $this->formatter->escape("Role: ") . $user->role->name,
+            $this->formatter->escape('Language: ' . ($user->languageCode ?? '—')),
+            $this->formatter->escape('Notifications: ' . $this->formatNotificationsOptIn($user)),
+            $this->formatter->escape('Created: ' . Timestamp::format($user->createdAt) . ' UTC'),
+            $this->formatter->escape('Updated: ' . Timestamp::format($user->updatedAt) . ' UTC'),
         ]);
     }
 
-    private function buildUserDetailKeyboard(int $telegramUserId, Role $role): array
+    private function formatUsername(UserRecord $user): string
+    {
+        if (null === $user->username) {
+            return '—';
+        }
+
+        return "@$user->username";
+    }
+
+    private function formatNotificationsOptIn(UserRecord $user): string
+    {
+        if (null === $user->notifications) {
+            return '—';
+        }
+
+        return self::OPTED_IN;
+    }
+
+    private function buildUserDetailKeyboard(UserRecord $user): array
     {
         $keyboard = [];
 
-        $roleActionRow = $this->buildRoleActionRow($telegramUserId, $role);
+        $roleActionRow = $this->buildRoleActionRow($user->telegramUserId, $user->role);
         if (null !== $roleActionRow) {
             $keyboard[] = $roleActionRow;
+        }
+
+        if (null !== $user->notifications) {
+            $keyboard[] = [
+                $this->buildActionButton(
+                    self::NOTIFICATIONS,
+                    AdminCallbackData::create(AdminCallbackAction::UserNotifications)->withUserId($user->telegramUserId),
+                ),
+            ];
         }
 
         $keyboard[] = $this->backButtonRow(

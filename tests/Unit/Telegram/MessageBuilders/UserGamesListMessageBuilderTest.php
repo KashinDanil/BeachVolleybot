@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
+use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Processors\UserProcessors\UserCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\UserCallbackData;
 use BeachVolleybot\Telegram\MessageBuilders\Game\UserGamesListMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\Tests\Fixtures\CreatesGameRecords;
 use DanilKashin\Localization\Language;
 use PHPUnit\Framework\TestCase;
 
 final class UserGamesListMessageBuilderTest extends TestCase
 {
-    /** UTC, like the column: 18:00 in Barcelona in December. */
-    private const string KICKOFF_AT = '2099-12-31 17:00:00';
+    use CreatesGameRecords;
 
     private UserGamesListMessageBuilder $builder;
 
@@ -52,7 +53,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testListShowsPageIndicator(): void
     {
-        $games = $this->buildGameRows(count: 3);
+        $games = $this->buildGameRecords(count: 3);
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(3));
 
@@ -61,7 +62,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testListShowsOneRowPerGame(): void
     {
-        $games = $this->buildGameRows(count: 3);
+        $games = $this->buildGameRecords(count: 3);
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(3));
         $keyboard = $this->extractKeyboard($message);
@@ -72,7 +73,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testGameButtonLabelShowsIdAndKickoff(): void
     {
-        $games = [$this->gameRow(42)];
+        $games = [$this->gameRecord(42)];
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(1));
         $keyboard = $this->extractKeyboard($message);
@@ -82,7 +83,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testGameButtonLabelIsSpelledInTheUsersLanguage(): void
     {
-        $games = [$this->gameRow(42)];
+        $games = [$this->gameRecord(42)];
         $builder = new UserGamesListMessageBuilder(new Translator(Language::RU, tempnam(sys_get_temp_dir(), 'bvb_missing_')));
 
         $message = $builder->buildGamesList($games, $this->paginationFor(1));
@@ -93,7 +94,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testGameButtonCallbackContainsGameIdAndCurrentPage(): void
     {
-        $games = [$this->gameRow(42)];
+        $games = [$this->gameRecord(42)];
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(totalGames: 11, page: 2));
         $keyboard = $this->extractKeyboard($message);
@@ -108,7 +109,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testFirstPageHasOnlyNextButton(): void
     {
-        $games = $this->buildGameRows(count: 5);
+        $games = $this->buildGameRecords(count: 5);
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(totalGames: 11, page: 1));
         $keyboard = $this->extractKeyboard($message);
@@ -120,7 +121,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testLastPageHasOnlyPrevButton(): void
     {
-        $games = $this->buildGameRows(count: 1);
+        $games = $this->buildGameRecords(count: 1);
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(totalGames: 11, page: 3));
         $keyboard = $this->extractKeyboard($message);
@@ -132,7 +133,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testMiddlePageHasBothPrevAndNext(): void
     {
-        $games = $this->buildGameRows(count: 5);
+        $games = $this->buildGameRecords(count: 5);
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(totalGames: 11, page: 2));
         $keyboard = $this->extractKeyboard($message);
@@ -145,7 +146,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testSinglePageHasNoPaginationRow(): void
     {
-        $games = $this->buildGameRows(count: 3);
+        $games = $this->buildGameRecords(count: 3);
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(3));
         $keyboard = $this->extractKeyboard($message);
@@ -158,7 +159,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testPrevButtonCallbackTargetsPreviousPage(): void
     {
-        $games = $this->buildGameRows(count: 5);
+        $games = $this->buildGameRecords(count: 5);
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(totalGames: 15, page: 3));
         $keyboard = $this->extractKeyboard($message);
@@ -171,7 +172,7 @@ final class UserGamesListMessageBuilderTest extends TestCase
 
     public function testNextButtonCallbackTargetsNextPage(): void
     {
-        $games = $this->buildGameRows(count: 5);
+        $games = $this->buildGameRecords(count: 5);
 
         $message = $this->builder->buildGamesList($games, $this->paginationFor(totalGames: 15, page: 1));
         $keyboard = $this->extractKeyboard($message);
@@ -189,31 +190,16 @@ final class UserGamesListMessageBuilderTest extends TestCase
         return new KeyboardPagination($totalGames, perPage: 5, page: $page);
     }
 
-    /** @return list<array<string, mixed>> */
-    private function buildGameRows(int $count): array
+    /** @return list<GameRecord> */
+    private function buildGameRecords(int $count): array
     {
-        $rows = [];
+        $gameRecords = [];
 
-        for ($i = 1; $i <= $count; $i++) {
-            $rows[] = $this->gameRow($i);
+        for ($gameId = 1; $gameId <= $count; $gameId++) {
+            $gameRecords[] = $this->gameRecord($gameId);
         }
 
-        return $rows;
-    }
-
-    /** The columns `select '*'` hands the builder, which reads them as a GameRecord. */
-    private function gameRow(int $gameId, string $kickoffAtUtc = self::KICKOFF_AT): array
-    {
-        return [
-            'game_id' => $gameId,
-            'game_key' => 'query_' . $gameId,
-            'created_by' => 100,
-            'title' => 'Bogatell 31.12.2099 18:00',
-            'created_at' => '2099-12-01 10:00:00',
-            'kickoff_at' => $kickoffAtUtc,
-            'venue_name' => 'Bogatell',
-            'location' => null,
-        ];
+        return $gameRecords;
     }
 
     private function extractKeyboard(TelegramMessage $message): array

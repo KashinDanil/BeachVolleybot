@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\Roster;
 
 use BeachVolleybot\Game\GameSettings;
-use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Validator\Rules\Game\MinimumPlayersPerNetRule;
 
 final readonly class PlayerLimit
@@ -15,14 +15,14 @@ final readonly class PlayerLimit
     ) {
     }
 
-    /** @param UserInterface[] $users */
-    public static function resolveLimit(array $users, GameSettings $settings): self
+    /** @param PlayerInterface[] $players */
+    public static function resolveLimit(array $players, GameSettings $settings): self
     {
         if (null === $settings->playersPerNet) {
             return new self(null);
         }
 
-        $courts = min(self::countNets($users), self::countVolleyballs($users));
+        $courts = min(self::countNets($players), self::countVolleyballs($players));
 
         if (0 === $courts) {
             return new self(null);
@@ -32,42 +32,42 @@ final readonly class PlayerLimit
     }
 
     /** A row plays if it starts inside the limit, so a merged range is judged by its first slot. */
-    public function isReserve(UserInterface $user): bool
+    public function isReserve(PlayerInterface $player): bool
     {
-        return null !== $this->threshold && $this->threshold < $user->getPosition()->first();
+        return null !== $this->threshold && $this->threshold < $player->getPosition()->first();
     }
 
-    /** @param UserInterface[] $users */
-    private static function countNets(array $users): int
+    /** @param PlayerInterface[] $players */
+    private static function countNets(array $players): int
     {
         return array_sum(array_map(
-            static fn(UserInterface $user): int => $user->getNet(),
-            self::firstEntryByUserId($users),
+            static fn(PlayerInterface $player): int => $player->getNet(),
+            self::firstEntryByUserId($players),
         ));
     }
 
-    /** @param UserInterface[] $users */
-    private static function countVolleyballs(array $users): int
+    /** @param PlayerInterface[] $players */
+    private static function countVolleyballs(array $players): int
     {
         return array_sum(array_map(
-            static fn(UserInterface $user): int => $user->getVolleyball(),
-            self::firstEntryByUserId($users),
+            static fn(PlayerInterface $player): int => $player->getVolleyball(),
+            self::firstEntryByUserId($players),
         ));
     }
 
     /**
      * Equipment is repeated on every slot a user holds, so it is counted from one entry per user.
      *
-     * @param UserInterface[] $users
+     * @param PlayerInterface[] $players
      *
-     * @return array<int, UserInterface>
+     * @return array<int, PlayerInterface>
      */
-    private static function firstEntryByUserId(array $users): array
+    private static function firstEntryByUserId(array $players): array
     {
         $firstEntries = [];
 
-        foreach ($users as $user) {
-            $firstEntries[$user->getTelegramUserId()] ??= $user;
+        foreach ($players as $player) {
+            $firstEntries[$player->getTelegramUserId()] ??= $player;
         }
 
         return $firstEntries;

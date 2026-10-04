@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Weather\Forecast;
 
-use BeachVolleybot\Common\Logger;
-use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Game\GameRecord;
 use BeachVolleybot\Weather\Queue\WeatherQueuePayload;
-use Throwable;
 
 /** The games that read a given forecast — the inverse of GameWeatherLookup. */
 final readonly class ForecastGamesLookup
@@ -28,18 +25,12 @@ final readonly class ForecastGamesLookup
     public function findGameRecords(WeatherQueuePayload $forecast): array
     {
         $range = $this->windowResolver->rangeRoundingTo($forecast->forecastTs);
-        $gameRows = new GameRepository(Connection::get())->findByKickoffBetween($range->from, $range->until);
+        $candidates = new GameManager()->findGameRecordsByKickoffBetween($range->from, $range->until);
         $gameRecords = [];
 
-        foreach ($gameRows as $gameRow) {
-            try {
-                $game = GameRecord::fromRow($gameRow);
-
-                if ($forecast->id() === WeatherQueuePayload::forGameRecord($game)->id()) {
-                    $gameRecords[] = $game;
-                }
-            } catch (Throwable $e) {
-                Logger::logApp('Forecast games lookup skipped game id=' . (int)$gameRow['game_id'] . ': ' . $e->getMessage());
+        foreach ($candidates as $game) {
+            if ($forecast->id() === WeatherQueuePayload::forGameRecord($game)->id()) {
+                $gameRecords[] = $game;
             }
         }
 

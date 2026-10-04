@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace BeachVolleybot\Processors\Handlers\GameHandlers;
 
 use BeachVolleybot\Common\BotMention;
-use BeachVolleybot\Processors\AbstractQueuedProcessorHandler;
+use BeachVolleybot\Common\QueueName;
+use BeachVolleybot\Processors\AbstractSenderQueueHandler;
 use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameFromMessageProcessor;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 use BeachVolleybot\Validator\Rules\DateTime\DateTimeInTitleRule;
 use BeachVolleybot\Validator\Validator;
 
@@ -20,7 +22,7 @@ use BeachVolleybot\Validator\Validator;
  * future-kickoff check is deferred to the processor so it stays out of the pure,
  * deterministic match.
  */
-final readonly class CreateGameFromMessageHandler extends AbstractQueuedProcessorHandler
+final readonly class CreateGameFromMessageHandler extends AbstractSenderQueueHandler
 {
     public function matches(TelegramUpdate $update): bool
     {
@@ -39,12 +41,13 @@ final readonly class CreateGameFromMessageHandler extends AbstractQueuedProcesso
 
     public function routeToQueue(TelegramUpdate $update): ?string
     {
-        return 'game_new_' . $update->message->chat->id;
+        return QueueName::NewGame->forId($update->message->chat->id);
     }
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return new CreateGameFromMessageProcessor($telegramSender);
     }

@@ -40,29 +40,24 @@ readonly class GameUserRepository
         ]) ?: null;
     }
 
-    public function findVolleyballCount(int $gameId, int $telegramUserId): ?int
-    {
-        $value = $this->db->get('game_users', 'volleyball', [
-            'game_id' => $gameId,
-            'telegram_user_id' => $telegramUserId,
-        ]);
-
-        return false === $value || null === $value ? null : (int) $value;
-    }
-
-    public function findNetCount(int $gameId, int $telegramUserId): ?int
-    {
-        $value = $this->db->get('game_users', 'net', [
-            'game_id' => $gameId,
-            'telegram_user_id' => $telegramUserId,
-        ]);
-
-        return false === $value || null === $value ? null : (int) $value;
-    }
-
     public function findByGameId(int $gameId): array
     {
         return $this->db->select('game_users', '*', ['game_id' => $gameId]);
+    }
+
+    /** @return list<int> */
+    public function findUserIds(int $gameId): array
+    {
+        return $this->db->select('game_users', 'telegram_user_id', ['game_id' => $gameId]);
+    }
+
+    /** @return list<int> */
+    public function findUserIdsExcept(int $gameId, int $excludedUserId): array
+    {
+        return $this->db->select('game_users', 'telegram_user_id', [
+            'game_id' => $gameId,
+            'telegram_user_id[!]' => $excludedUserId,
+        ]);
     }
 
     public function delete(int $gameId, int $telegramUserId): bool
@@ -87,10 +82,10 @@ readonly class GameUserRepository
 
     public function decrementVolleyball(int $gameId, int $telegramUserId): bool
     {
-        $statement = $this->db->pdo->prepare(
-            'UPDATE game_users SET volleyball = MAX(0, volleyball - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id'
+        $statement = $this->db->query(
+            'UPDATE game_users SET volleyball = MAX(0, volleyball - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id',
+            [':game_id' => $gameId, ':telegram_user_id' => $telegramUserId],
         );
-        $statement->execute([':game_id' => $gameId, ':telegram_user_id' => $telegramUserId]);
 
         return 0 < $statement->rowCount();
     }
@@ -107,32 +102,26 @@ readonly class GameUserRepository
 
     public function decrementNet(int $gameId, int $telegramUserId): bool
     {
-        $statement = $this->db->pdo->prepare(
-            'UPDATE game_users SET net = MAX(0, net - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id'
+        $statement = $this->db->query(
+            'UPDATE game_users SET net = MAX(0, net - 1) WHERE game_id = :game_id AND telegram_user_id = :telegram_user_id',
+            [':game_id' => $gameId, ':telegram_user_id' => $telegramUserId],
         );
-        $statement->execute([':game_id' => $gameId, ':telegram_user_id' => $telegramUserId]);
 
         return 0 < $statement->rowCount();
     }
 
-    public function findEarliestTimeWithNet(int $gameId): ?string
+    public function findEarliestTimeWithEquipment(int $gameId): ?string
     {
-        $statement = $this->db->pdo->prepare(
-            'SELECT MIN(time) FROM game_users WHERE game_id = :game_id AND net > 0 AND time IS NOT NULL'
-        );
-        $statement->execute([':game_id' => $gameId]);
-
-        return $statement->fetchColumn() ?: null;
+        return $this->db->min('game_users', 'time', [
+            'game_id' => $gameId,
+            'time[!]' => null,
+            'OR' => ['net[>]' => 0, 'volleyball[>]' => 0],
+        ]) ?: null;
     }
 
     public function findEarliestTime(int $gameId): ?string
     {
-        $statement = $this->db->pdo->prepare(
-            'SELECT MIN(time) FROM game_users WHERE game_id = :game_id AND time IS NOT NULL'
-        );
-        $statement->execute([':game_id' => $gameId]);
-
-        return $statement->fetchColumn() ?: null;
+        return $this->db->min('game_users', 'time', ['game_id' => $gameId, 'time[!]' => null]) ?: null;
     }
 
     public function updateTime(int $gameId, int $telegramUserId, string $time): bool

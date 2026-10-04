@@ -13,6 +13,7 @@ use BeachVolleybot\Processors\UpdateProcessors\GameAction\RemoveVolleyballProces
 use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 enum GameCallbackAction: string implements CallbackActionInterface
 {
@@ -23,8 +24,11 @@ enum GameCallbackAction: string implements CallbackActionInterface
     case AddNet = 'an';
     case RemoveNet = 'rn';
 
-    public function resolveProcessor(TelegramMessageSender $telegramSender, ?CallbackDataInterface $callbackData = null): AbstractActionProcessor
-    {
+    public function resolveProcessor(
+        TelegramMessageSender $telegramSender,
+        ?CallbackDataInterface $callbackData,
+        UserRecord $sender,
+    ): AbstractActionProcessor {
         return match ($this) {
             self::Join => new JoinProcessor($telegramSender),
             self::Leave => new LeaveProcessor($telegramSender),

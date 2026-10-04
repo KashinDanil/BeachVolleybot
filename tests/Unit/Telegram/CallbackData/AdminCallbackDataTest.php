@@ -8,6 +8,7 @@ use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Processors\UpdateProcessors\GameCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\CallbackData\GameCallbackData;
+use BeachVolleybot\User\NotificationType;
 use PHPUnit\Framework\TestCase;
 
 final class AdminCallbackDataTest extends TestCase
@@ -124,6 +125,48 @@ final class AdminCallbackDataTest extends TestCase
         $this->assertNull($callbackData->getFilename());
     }
 
+    public function testCreateWithUserIdAndNotificationType(): void
+    {
+        $json = AdminCallbackData::create(AdminCallbackAction::UserNotificationDetail)
+            ->withUserId(100)
+            ->withNotificationType(NotificationType::BumpedFromGame)
+            ->toJson();
+
+        $this->assertSame('{"aa":"nd","u":100,"n":4}', $json);
+    }
+
+    public function testGetNotificationTypeReturnsValue(): void
+    {
+        $callbackData = AdminCallbackData::fromJson('{"aa":"nd","u":100,"n":3}');
+
+        $this->assertSame(NotificationType::PromotedIntoGame, $callbackData->getNotificationType());
+    }
+
+    public function testGetNotificationTypeReturnsNullWhenAbsent(): void
+    {
+        $callbackData = AdminCallbackData::fromJson('{"aa":"nl","u":100}');
+
+        $this->assertNull($callbackData->getNotificationType());
+    }
+
+    public function testGetNotificationTypeReturnsNullForAnUnknownType(): void
+    {
+        $this->assertNull(AdminCallbackData::fromJson('{"aa":"nd","u":100,"n":99}')->getNotificationType());
+        $this->assertNull(AdminCallbackData::fromJson('{"aa":"nd","u":100,"n":"3"}')->getNotificationType());
+    }
+
+    public function testOtherWithersKeepTheNotificationType(): void
+    {
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::UserNotificationDetail)
+            ->withNotificationType(NotificationType::KickoffTimeChanged)
+            ->withUserId(100)
+            ->withGameId(42)
+            ->withPage(2)
+            ->withFilename('app.log');
+
+        $this->assertSame(NotificationType::KickoffTimeChanged, $callbackData->getNotificationType());
+    }
+
     // --- withPage ---
 
     public function testWithPageReturnsNewInstance(): void
@@ -194,6 +237,15 @@ final class AdminCallbackDataTest extends TestCase
             AdminCallbackData::create(AdminCallbackAction::UserSettings)->withGameId(99999)->withUserId(12345678)->toJson(),
             AdminCallbackData::create(AdminCallbackAction::RemoveSlot)->withGameId(99999)->withUserId(12345678)->toJson(),
             AdminCallbackData::create(AdminCallbackAction::AddVolleyball)->withGameId(99999)->withUserId(12345678)->toJson(),
+            AdminCallbackData::create(AdminCallbackAction::UserNotifications)->withUserId(9999999999)->toJson(),
+            AdminCallbackData::create(AdminCallbackAction::UserNotificationDetail)
+                ->withUserId(9999999999)
+                ->withNotificationType(NotificationType::KickoffTimeChanged)
+                ->toJson(),
+            AdminCallbackData::create(AdminCallbackAction::DisableUserNotification)
+                ->withUserId(9999999999)
+                ->withNotificationType(NotificationType::KickoffTimeChanged)
+                ->toJson(),
         ];
 
         foreach ($cases as $json) {

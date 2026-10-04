@@ -88,7 +88,7 @@ final class ForecastGamesLookupTest extends DatabaseTestCase
 
         $found = $this->lookup->findGameRecords($this->forecastAt(new LocationCoordinates(41.500, 2.400)));
 
-        $this->assertSame([$pinned], array_map(fn(GameRecord $game) => $game->gameId, $found));
+        $this->assertSame([$pinned], array_column($found, 'gameId'));
     }
 
     /** An unrecognised venue resolves to the default one, so it shares that forecast. */
@@ -98,15 +98,6 @@ final class ForecastGamesLookupTest extends DatabaseTestCase
         $unnamed = $this->seedGame(offsetSeconds: 60, suffix: 'unnamed', title: 'Somewhere 31.12.2099 18:00');
 
         $this->assertSame([$named, $unnamed], $this->foundGameIds());
-    }
-
-    public function testAnUnreadableRowDoesNotStopTheGamesBehindIt(): void
-    {
-        $broken = $this->seedGame(offsetSeconds: -60, suffix: 'broken');
-        $healthy = $this->seedGame(offsetSeconds: 60, suffix: 'healthy');
-        $this->db->update('games', ['kickoff_at' => self::FORECAST_HOUR . ' bogus'], ['game_id' => $broken]);
-
-        $this->assertSame([$healthy], $this->foundGameIds());
     }
 
     public function testRecordsCarryEnoughToRenderWithoutReadingTheGameAgain(): void
@@ -124,10 +115,7 @@ final class ForecastGamesLookupTest extends DatabaseTestCase
     /** @return list<int> */
     private function foundGameIds(): array
     {
-        return array_map(
-            fn(GameRecord $game) => $game->gameId,
-            $this->lookup->findGameRecords($this->forecastAtBogatell()),
-        );
+        return array_column($this->lookup->findGameRecords($this->forecastAtBogatell()), 'gameId');
     }
 
     private function forecastAtBogatell(): WeatherQueuePayload

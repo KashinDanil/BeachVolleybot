@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders\Warnings;
 
 use BeachVolleybot\Game\Models\GameInterface;
-use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Localization\Translator;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\GameWarningCollector;
 use BeachVolleybot\Telegram\MessageBuilders\Warnings\NoEquipmentWarning;
@@ -25,30 +25,30 @@ final class GameWarningCollectorTest extends TestCase
         $this->translator = new Translator();
     }
 
-    public function testReturnsEmptyArrayWhenUsersHaveEquipment(): void
+    public function testReturnsEmptyArrayWhenPlayersHaveEquipment(): void
     {
-        $game = $this->game($this->user(volleyball: 1, net: 1));
+        $game = $this->game($this->player(volleyball: 1, net: 1));
 
         $this->assertSame([], $this->collector->collect($game, $this->translator));
     }
 
     public function testReturnsWarningWhenNetMissing(): void
     {
-        $game = $this->game($this->user(volleyball: 1, net: 0));
+        $game = $this->game($this->player(volleyball: 1, net: 0));
 
         $this->assertSame(['Someone needs to bring a net'], $this->collector->collect($game, $this->translator));
     }
 
     public function testReturnsWarningWhenVolleyballMissing(): void
     {
-        $game = $this->game($this->user(volleyball: 0, net: 1));
+        $game = $this->game($this->player(volleyball: 0, net: 1));
 
         $this->assertSame(['Someone needs to bring a volleyball'], $this->collector->collect($game, $this->translator));
     }
 
     public function testReturnsCombinedWarningWhenBothMissing(): void
     {
-        $game = $this->game($this->user(volleyball: 0, net: 0));
+        $game = $this->game($this->player(volleyball: 0, net: 0));
 
         $this->assertSame(
             ['Someone needs to bring a net and a volleyball'],
@@ -59,25 +59,25 @@ final class GameWarningCollectorTest extends TestCase
     public function testReturnsEmptyArrayWhenNoWarnings(): void
     {
         $collector = new GameWarningCollector();
-        $game = $this->game($this->user(volleyball: 0, net: 0));
+        $game = $this->game($this->player(volleyball: 0, net: 0));
 
         $this->assertSame([], $collector->collect($game, $this->translator));
     }
 
-    private function game(UserInterface ...$users): GameInterface
+    private function game(PlayerInterface ...$players): GameInterface
     {
         $game = $this->createStub(GameInterface::class);
-        $game->method('getUsers')->willReturn($users);
+        $game->method('getPlayers')->willReturn($players);
 
         return $game;
     }
 
-    private function user(int $volleyball, int $net): UserInterface
+    private function player(int $volleyball, int $net): PlayerInterface
     {
-        $user = $this->createStub(UserInterface::class);
-        $user->method('getVolleyball')->willReturn($volleyball);
-        $user->method('getNet')->willReturn($net);
+        $player = $this->createStub(PlayerInterface::class);
+        $player->method('getVolleyball')->willReturn($volleyball);
+        $player->method('getNet')->willReturn($net);
 
-        return $user;
+        return $player;
     }
 }

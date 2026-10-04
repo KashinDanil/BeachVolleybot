@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace BeachVolleybot\Game\AddOns;
 
 use BeachVolleybot\Game\Models\Game;
-use BeachVolleybot\Game\Models\User;
-use BeachVolleybot\Game\Models\UserInterface;
+use BeachVolleybot\Game\Models\Player;
+use BeachVolleybot\Game\Models\PlayerInterface;
 use BeachVolleybot\Game\Roster\Position;
 use BeachVolleybot\Game\Roster\PositionInterface;
 use BeachVolleybot\Game\Roster\PositionRange;
@@ -21,56 +21,56 @@ final class MergeConsecutiveSlotsAddOn implements GameAddOnInterface
 {
     public function applyTo(Game $game): void
     {
-        $game->users = $this->mergeConsecutive($game->users);
+        $game->players = $this->mergeConsecutive($game->players);
         $game->telegramMessageBuilder->override('plusCount', self::plusCount(...));
     }
 
-    private static function plusCount(UserInterface $user, int $appearance): int
+    private static function plusCount(PlayerInterface $player, int $appearance): int
     {
-        return $user->getPosition()->slotCount();
+        return $player->getPosition()->slotCount();
     }
 
     /**
-     * @param UserInterface[] $users
+     * @param PlayerInterface[] $players
      *
-     * @return list<UserInterface>
+     * @return list<PlayerInterface>
      */
-    public function mergeConsecutive(array $users): array
+    public function mergeConsecutive(array $players): array
     {
-        $groups = $this->groupConsecutive($users);
+        $groups = $this->groupConsecutive($players);
 
         return array_map($this->mergeGroup(...), $groups);
     }
 
     /**
-     * @param UserInterface[] $users
+     * @param PlayerInterface[] $players
      *
-     * @return list<UserInterface[]>
+     * @return list<PlayerInterface[]>
      */
-    private function groupConsecutive(array $users): array
+    private function groupConsecutive(array $players): array
     {
         $groups = [];
         $previousUserId = null;
 
-        foreach ($users as $user) {
-            if ($user->getTelegramUserId() === $previousUserId) {
-                $groups[array_key_last($groups)][] = $user;
+        foreach ($players as $player) {
+            if ($player->getTelegramUserId() === $previousUserId) {
+                $groups[array_key_last($groups)][] = $player;
             } else {
-                $groups[] = [$user];
-                $previousUserId = $user->getTelegramUserId();
+                $groups[] = [$player];
+                $previousUserId = $player->getTelegramUserId();
             }
         }
 
         return $groups;
     }
 
-    /** @param UserInterface[] $group */
-    private function mergeGroup(array $group): User
+    /** @param PlayerInterface[] $group */
+    private function mergeGroup(array $group): Player
     {
         $first = $group[0];
         $last = $group[array_key_last($group)];
 
-        return new User(
+        return new Player(
             telegramUserId: $first->getTelegramUserId(),
             position: $this->mergePositions($first->getPosition(), $last->getPosition()),
             name: $first->getName(),

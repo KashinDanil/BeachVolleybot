@@ -21,6 +21,10 @@ use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogFileActionsCallbac
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogGetCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogsListCallbackProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\Log\RootLogTailCallbackProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootDisableUserNotificationProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootEnableUserNotificationProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootUserNotificationDetailProcessor;
+use BeachVolleybot\Processors\AdminProcessors\Root\UserNotifications\RootUserNotificationsListProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootDemoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootPromoteUserProcessor;
 use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleDetailProcessor;
@@ -28,11 +32,14 @@ use BeachVolleybot\Processors\AdminProcessors\Root\UserRole\RootUserRoleListProc
 use BeachVolleybot\Processors\AdminProcessors\SettingsMenuCallbackProcessor;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use BeachVolleybot\User\Role;
 use PHPUnit\Framework\TestCase;
 
 final class AdminCallbackActionTest extends TestCase
 {
+    use CreatesUserRecords;
+
     private TelegramMessageSender $sender;
 
     public function testResolvesAllActions(): void
@@ -52,6 +59,10 @@ final class AdminCallbackActionTest extends TestCase
             [AdminCallbackAction::UserDetail, RootUserRoleDetailProcessor::class],
             [AdminCallbackAction::PromoteUser, RootPromoteUserProcessor::class],
             [AdminCallbackAction::DemoteUser, RootDemoteUserProcessor::class],
+            [AdminCallbackAction::UserNotifications, RootUserNotificationsListProcessor::class],
+            [AdminCallbackAction::UserNotificationDetail, RootUserNotificationDetailProcessor::class],
+            [AdminCallbackAction::EnableUserNotification, RootEnableUserNotificationProcessor::class],
+            [AdminCallbackAction::DisableUserNotification, RootDisableUserNotificationProcessor::class],
             [AdminCallbackAction::RemoveSlot, AdminRemoveSlotProcessor::class],
             [AdminCallbackAction::AddSlot, AdminAddSlotProcessor::class],
             [AdminCallbackAction::RemoveLocation, AdminRemoveLocationCallbackProcessor::class],
@@ -61,9 +72,17 @@ final class AdminCallbackActionTest extends TestCase
             [AdminCallbackAction::RemoveVolleyball, AdminRemoveVolleyballProcessor::class],
         ];
 
+        $userRecord = $this->userRecord(role: Role::Root);
+
         foreach ($mapping as [$action, $expectedClass]) {
-            $processor = $action->resolveProcessor($this->sender, AdminCallbackData::create($action));
-            $this->assertInstanceOf($expectedClass, $processor, "Failed for action '$action->value'");
+            $callbackData = AdminCallbackData::create($action);
+            $processor = $action->resolveProcessor($this->sender, $callbackData, $userRecord);
+
+            $this->assertEquals(
+                new $expectedClass($this->sender, $callbackData, $userRecord),
+                $processor,
+                "Failed for action '$action->value'",
+            );
         }
     }
 
@@ -89,6 +108,10 @@ final class AdminCallbackActionTest extends TestCase
             AdminCallbackAction::UserDetail,
             AdminCallbackAction::PromoteUser,
             AdminCallbackAction::DemoteUser,
+            AdminCallbackAction::UserNotifications,
+            AdminCallbackAction::UserNotificationDetail,
+            AdminCallbackAction::EnableUserNotification,
+            AdminCallbackAction::DisableUserNotification,
         ];
 
         foreach ($userManagementActions as $action) {

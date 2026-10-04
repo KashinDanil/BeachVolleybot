@@ -15,10 +15,7 @@ readonly class NewGameData
     public const int INITIAL_POSITION = 1;
 
     private function __construct(
-        public int $telegramUserId,
-        public string $firstName,
-        public ?string $lastName,
-        public ?string $username,
+        public TelegramUser $creator,
         public string $title,
         public string $gameKey,
         public DateTimeImmutable $createdAt,
@@ -32,10 +29,7 @@ readonly class NewGameData
         ?DateTimeImmutable $createdAt = null,
     ): self {
         return new self(
-            telegramUserId: $creator->id,
-            firstName: $creator->firstName,
-            lastName: $creator->lastName,
-            username: $creator->username,
+            creator: $creator,
             title: TimeExtractor::normalize($title),
             gameKey: $gameKey,
             createdAt: $createdAt ?? new DateTimeImmutable(),

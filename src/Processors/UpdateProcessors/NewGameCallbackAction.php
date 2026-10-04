@@ -16,6 +16,7 @@ use BeachVolleybot\Telegram\CallbackData\CallbackActionInterface;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\CallbackData\NewGameCallbackData;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 enum NewGameCallbackAction: string implements CallbackActionInterface
 {
@@ -35,12 +36,14 @@ enum NewGameCallbackAction: string implements CallbackActionInterface
     /**
      * @param TelegramMessageSender $telegramSender
      * @param NewGameCallbackData $callbackData
+     * @param UserRecord $sender
      *
      * @return AbstractActionProcessor
      */
     public function resolveProcessor(
         TelegramMessageSender $telegramSender,
         ?CallbackDataInterface $callbackData,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         return match ($this) {
             self::ShowDatePage  => new NewGameDatePageProcessor($telegramSender, $callbackData),

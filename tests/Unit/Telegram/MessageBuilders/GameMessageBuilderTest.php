@@ -5,19 +5,22 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Database\GameRepository;
+use BeachVolleybot\Game\GameManager;
 use BeachVolleybot\Telegram\MessageBuilders\Game\GamesListMessageBuilder;
 use BeachVolleybot\Telegram\MessageBuilders\Helpers\KeyboardPagination;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\Tests\Fixtures\CreatesGameRecords;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 
 final class GameMessageBuilderTest extends DatabaseTestCase
 {
+    use CreatesGameRecords;
+
     private const int GAMES_PER_PAGE = 5;
 
     private GamesListMessageBuilder $gamesListViewBuilder;
 
-    private GameRepository $gameRepository;
+    private GameManager $gameManager;
 
     public function testGameButtonShowsIdWeekdayDateAndTime(): void
     {
@@ -31,29 +34,14 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     private function buildGamesList(int $page = 1): TelegramMessage
     {
-        $totalGames = $this->gameRepository->countAll();
+        $totalGames = $this->gameManager->countGames();
         $pagination = new KeyboardPagination($totalGames, self::GAMES_PER_PAGE, $page);
-        $games = $this->gameRepository->findAllDescending(self::GAMES_PER_PAGE, 0);
+        $games = $this->gameManager->findGameRecordsPage(self::GAMES_PER_PAGE, 0);
 
         return $this->gamesListViewBuilder->buildGamesList($games, $pagination);
     }
 
     // --- buildGamesList label format ---
-
-    /** The columns `select '*'` hands the builder, which reads them as a GameRecord. */
-    private function gameRow(int $gameId, string $kickoffAtUtc = '2099-12-31 17:00:00'): array
-    {
-        return [
-            'game_id' => $gameId,
-            'game_key' => 'query_' . $gameId,
-            'created_by' => 100,
-            'title' => 'Bogatell 31.12.2099 18:00',
-            'created_at' => '2099-12-01 10:00:00',
-            'kickoff_at' => $kickoffAtUtc,
-            'venue_name' => 'Bogatell',
-            'location' => null,
-        ];
-    }
 
     private function extractKeyboard($message): array
     {
@@ -87,7 +75,7 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     public function testNoPaginationRowOnSinglePage(): void
     {
-        $games = [$this->gameRow(1)];
+        $games = [$this->gameRecord(1)];
         $pagination = new KeyboardPagination(totalItems: 1, perPage: 5, page: 1);
 
         $message = $this->gamesListViewBuilder->buildGamesList($games, $pagination);
@@ -101,7 +89,7 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     public function testPaginationRowAppearsOnMultiplePages(): void
     {
-        $games = [$this->gameRow(1)];
+        $games = [$this->gameRecord(1)];
         $pagination = new KeyboardPagination(totalItems: 10, perPage: 5, page: 1);
 
         $message = $this->gamesListViewBuilder->buildGamesList($games, $pagination);
@@ -115,7 +103,7 @@ final class GameMessageBuilderTest extends DatabaseTestCase
 
     public function testPaginationRowHasBothButtonsOnMiddlePage(): void
     {
-        $games = [$this->gameRow(1)];
+        $games = [$this->gameRecord(1)];
         $pagination = new KeyboardPagination(totalItems: 15, perPage: 5, page: 2);
 
         $message = $this->gamesListViewBuilder->buildGamesList($games, $pagination);
@@ -134,7 +122,7 @@ final class GameMessageBuilderTest extends DatabaseTestCase
         Connection::set($this->db);
         @mkdir(BASE_LOG_DIR, 0777, true);
         $this->gamesListViewBuilder = new GamesListMessageBuilder();
-        $this->gameRepository = new GameRepository($this->db);
+        $this->gameManager = new GameManager();
     }
 
     protected function tearDown(): void

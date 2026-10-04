@@ -4,28 +4,31 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors\UpdateProcessors;
 
-use BeachVolleybot\Database\GameMessageRepository;
-use BeachVolleybot\Database\GameUserRepository;
-use BeachVolleybot\Database\GameRepository;
-use BeachVolleybot\Database\GameSlotRepository;
-use BeachVolleybot\Database\UserRepository;
+use BeachVolleybot\Game\GameManager;
+use BeachVolleybot\Game\GameMessageManager;
+use BeachVolleybot\Game\GameSlotManager;
+use BeachVolleybot\Game\GameUserManager;
 use BeachVolleybot\Processors\UpdateProcessors\CreateGameProcessor;
-use BeachVolleybot\Telegram\Messages\GameMessage;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
+use BeachVolleybot\Telegram\Messages\MessageAddress;
+use BeachVolleybot\Tests\Fixtures\CreatesGameMessageRecords;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\UserManager;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
 
 final class CreateGameProcessorTest extends ProcessorTestCase
 {
+    use CreatesGameMessageRecords;
+
     public function testCreatesGameInDatabase(): void
     {
         $update = $this->buildUpdate('msg_1', 'query_1', 'Friday Game 18:00');
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $game = new GameRepository($this->db)->findByGameKey('query_1');
+        $game = new GameManager()->findGameRecordByGameKey('query_1');
         $this->assertNotNull($game);
-        $this->assertSame('Friday Game 18:00', $game['title']);
+        $this->assertSame('Friday Game 18:00', $game->title);
     }
 
     public function testAttachesInlineMessageIdToJunctionTable(): void
@@ -34,9 +37,10 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
-        $messages = new GameMessageRepository($this->db)->findByGameId($gameId);
-        $this->assertEquals([new GameMessage(inlineMessageId: 'msg_1', inlineQueryId: 'query_1')], $messages);
+        $gameId = new GameManager()->resolveGameIdByGameKey('query_1');
+        $messages = new GameMessageManager()->findGameMessageRecordsByGameId($gameId);
+        $this->assertEquals([MessageAddress::inline('msg_1')], $this->messageAddresses($messages));
+        $this->assertSame('query_1', $messages[0]->inlineQueryId);
     }
 
     public function testUpsertsUser(): void
@@ -45,10 +49,9 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $users = new UserRepository($this->db)->findAll();
-        $this->assertCount(1, $users);
-        $this->assertSame(300, $users[0]['telegram_user_id']);
-        $this->assertSame('Alice', $users[0]['first_name']);
+        $userManager = new UserManager();
+        $this->assertSame(1, $userManager->countUsers());
+        $this->assertSame('Alice', $userManager->findUserRecordById(300)?->firstName);
     }
 
     public function testCreatesGameUserWithVolleyballAndNet(): void
@@ -57,12 +60,12 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
-        $gameUser = new GameUserRepository($this->db)->findByGameUser($gameId, 200);
+        $gameId = new GameManager()->resolveGameIdByGameKey('query_1');
+        $gameUser = new GameUserManager()->findGameUserRecord($gameId, 200);
 
         $this->assertNotNull($gameUser);
-        $this->assertSame(1, $gameUser['volleyball']);
-        $this->assertSame(1, $gameUser['net']);
+        $this->assertSame(1, $gameUser->volleyball);
+        $this->assertSame(1, $gameUser->net);
     }
 
     public function testCreatesFirstSlotAtPositionOne(): void
@@ -71,12 +74,12 @@ final class CreateGameProcessorTest extends ProcessorTestCase
 
         new CreateGameProcessor($this->telegramSender)->process($update);
 
-        $gameId = new GameRepository($this->db)->findGameIdByGameKey('query_1');
-        $slots = new GameSlotRepository($this->db)->findByGameId($gameId);
+        $gameId = new GameManager()->resolveGameIdByGameKey('query_1');
+        $slots = new GameSlotManager()->findGameSlotRecordsByGameId($gameId);
 
         $this->assertCount(1, $slots);
-        $this->assertSame(1, (int) $slots[0]['position']);
-        $this->assertSame(200, (int) $slots[0]['telegram_user_id']);
+        $this->assertSame(1, $slots[0]->position);
+        $this->assertSame(200, $slots[0]->telegramUserId);
     }
 
     public function testDoesNotEnqueueWeatherJobWhenWeatherAddOnIsNotEnabled(): void

@@ -21,8 +21,7 @@ abstract readonly class AbstractGameReplyQueueHandler extends AbstractGameQueueH
 
     protected function resolveGameId(TelegramUpdate $update): ?int
     {
-        $message = $update->message ?? $update->editedMessage;
-        $gameKey = GameCallbackData::extractGameKey($message->replyToMessage);
+        $gameKey = GameCallbackData::extractGameKey($update->getMessage()->replyToMessage);
 
         if (null === $gameKey) {
             Logger::logVerbose('Meta-button missing game key' . PHP_EOL);

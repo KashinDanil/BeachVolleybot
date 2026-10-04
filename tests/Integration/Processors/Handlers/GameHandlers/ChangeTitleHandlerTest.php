@@ -7,6 +7,7 @@ namespace BeachVolleybot\Tests\Integration\Processors\Handlers\GameHandlers;
 use BeachVolleybot\Processors\Handlers\GameHandlers\ChangeTitleHandler;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Tests\Integration\Processors\ProcessorTestCase;
+use BeachVolleybot\User\UserManager;
 
 /**
  * The handler is the rename gate: a reply it turns down is not rejected, it is routed to
@@ -187,7 +188,7 @@ final class ChangeTitleHandlerTest extends ProcessorTestCase
         $this->assertStringContainsString('games', $queries[0]);
     }
 
-    public function testTitleShapedReplyInPrivateChatReadsTheGameAndTheRole(): void
+    public function testTitleShapedReplyInPrivateChatReadsTheGameAndTheAuthorsRoleWithoutWriting(): void
     {
         $this->seedGameOwnedByCreator();
 
@@ -195,7 +196,9 @@ final class ChangeTitleHandlerTest extends ProcessorTestCase
 
         $this->assertCount(2, $queries);
         $this->assertStringContainsString('games', $queries[0]);
+        $this->assertStringStartsWith('SELECT', $queries[1]);
         $this->assertStringContainsString('users', $queries[1]);
+        $this->assertNull(new UserManager()->findUserRecordById(self::NON_CREATOR_ID));
     }
 
     public function testChatterInPrivateChatCostsNoQuery(): void

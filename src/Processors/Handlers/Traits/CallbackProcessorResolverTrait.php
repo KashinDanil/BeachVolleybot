@@ -8,6 +8,7 @@ use BeachVolleybot\Processors\UpdateProcessors\AbstractActionProcessor;
 use BeachVolleybot\Telegram\CallbackData\CallbackDataInterface;
 use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
+use BeachVolleybot\User\UserRecord;
 
 trait CallbackProcessorResolverTrait
 {
@@ -16,13 +17,14 @@ trait CallbackProcessorResolverTrait
      */
     abstract protected function getCallbackDataClass(): string;
 
-    public function createProcessor(
+    protected function createSenderProcessor(
         TelegramMessageSender $telegramSender,
         TelegramUpdate $update,
+        UserRecord $sender,
     ): AbstractActionProcessor {
         /** @var CallbackDataInterface $callbackData */
         $callbackData = $this->getCallbackDataClass()::fromJson($update->callbackQuery->data);
 
-        return $callbackData->getAction()->resolveProcessor($telegramSender, $callbackData);
+        return $callbackData->getAction()->resolveProcessor($telegramSender, $callbackData, $sender);
     }
 }

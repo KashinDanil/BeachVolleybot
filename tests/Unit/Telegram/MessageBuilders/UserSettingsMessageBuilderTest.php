@@ -6,10 +6,13 @@ namespace BeachVolleybot\Tests\Unit\Telegram\MessageBuilders;
 
 use BeachVolleybot\Telegram\MessageBuilders\Admin\UserSettingsMessageBuilder;
 use BeachVolleybot\Telegram\Messages\Outgoing\TelegramMessage;
+use BeachVolleybot\Tests\Fixtures\CreatesUserRecords;
 use PHPUnit\Framework\TestCase;
 
 final class UserSettingsMessageBuilderTest extends TestCase
 {
+    use CreatesUserRecords;
+
     private UserSettingsMessageBuilder $builder;
 
     public function testShowsGameIdInHeader(): void
@@ -32,16 +35,16 @@ final class UserSettingsMessageBuilderTest extends TestCase
     {
         $message = $this->build(firstName: 'Alice', username: 'alice');
 
-        $text = $message->getText()->getMessageText();
-        $this->assertStringContainsString('Alice', $text);
-        $this->assertStringContainsString('https://t.me/alice', $text);
+        $this->assertStringContainsString('[Alice](https://t.me/alice)', $message->getText()->getMessageText());
     }
 
     public function testOmitsUserLinkWhenNotProvided(): void
     {
         $message = $this->build(firstName: 'Alice', username: null);
 
-        $this->assertStringNotContainsString('https://t.me/', $message->getText()->getMessageText());
+        $text = $message->getText()->getMessageText();
+        $this->assertStringContainsString("\nAlice\n", $text);
+        $this->assertStringNotContainsString('https://t.me/', $text);
     }
 
     public function testShowsFallbackNameWhenUserRowMissing(): void
@@ -217,22 +220,11 @@ final class UserSettingsMessageBuilderTest extends TestCase
         return $this->builder->buildUserSettings(
             $gameId,
             $telegramUserId,
-            $this->userRow($telegramUserId, $firstName, $username),
+            $this->userRecord($telegramUserId, $firstName, username: $username),
             $slotPositions,
             $volleyball,
             $net,
         );
-    }
-
-    /** @return array<string, mixed> */
-    private function userRow(int $telegramUserId, string $firstName, ?string $username): array
-    {
-        return [
-            'telegram_user_id' => $telegramUserId,
-            'first_name' => $firstName,
-            'last_name' => null,
-            'username' => $username,
-        ];
     }
 
     protected function setUp(): void

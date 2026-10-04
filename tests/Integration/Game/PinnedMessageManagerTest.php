@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace BeachVolleybot\Tests\Integration\Game;
 
 use BeachVolleybot\Database\Connection;
-use BeachVolleybot\Game\MessagePinManager;
+use BeachVolleybot\Game\PinnedMessageManager;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use DateTimeImmutable;
 
-final class MessagePinManagerTest extends DatabaseTestCase
+final class PinnedMessageManagerTest extends DatabaseTestCase
 {
-    private MessagePinManager $manager;
+    private PinnedMessageManager $manager;
 
     // --- register: unpin_after computation ---
 
@@ -51,7 +51,7 @@ final class MessagePinManagerTest extends DatabaseTestCase
         $this->db->pdo->exec($schema);
 
         Connection::set($this->db);
-        $this->manager = new MessagePinManager();
+        $this->manager = new PinnedMessageManager();
     }
 
     protected function tearDown(): void

@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Tests\Integration\Processors;
 
+use BeachVolleybot\Common\QueueName;
 use BeachVolleybot\Database\Connection;
+use BeachVolleybot\Notifications\NotificationEnqueuer;
+use BeachVolleybot\Telegram\Messages\Incoming\TelegramUpdate;
 use BeachVolleybot\Telegram\TelegramMessageSender;
 use BeachVolleybot\Tests\Integration\Database\DatabaseTestCase;
 use BeachVolleybot\Tests\Integration\Processors\Stub\BotApiStub;
+use BeachVolleybot\User\NotificationType;
 use BeachVolleybot\User\Role;
+use BeachVolleybot\User\UserManager;
+use BeachVolleybot\User\UserRecord;
 use BeachVolleybot\Weather\Location\KnownVenues;
 use BeachVolleybot\Weather\Queue\WeatherEnqueuer;
+use DanilKashin\FileQueue\Queue\FileQueue;
 use DateTimeImmutable;
 
 abstract class ProcessorTestCase extends DatabaseTestCase
@@ -34,16 +41,41 @@ abstract class ProcessorTestCase extends DatabaseTestCase
         $this->telegramSender = new TelegramMessageSender($this->bot);
 
         // Each test gets a fresh :memory: DB with gameId starting at 1, but the
-        // on-disk weather queue directory persists across tests — drain it so
+        // on-disk queue directories persist across tests — drain them so
         // enqueues from prior tests don't leak into assertions.
-        foreach (glob(WeatherEnqueuer::QUEUE_DIR . '/*') ?: [] as $path) {
-            @unlink($path);
+        foreach ([WeatherEnqueuer::QUEUE_DIR, NotificationEnqueuer::QUEUE_DIR] as $queueDir) {
+            @mkdir($queueDir, 0777, true);
+
+            foreach (glob($queueDir . '/*') ?: [] as $path) {
+                @unlink($path);
+            }
         }
     }
 
     protected function tearDown(): void
     {
         Connection::close();
+    }
+
+    /** The inline keyboard of the last message sent or edited through $method, as rows of buttons. */
+    protected function lastKeyboard(string $method): array
+    {
+        $calls = array_values(array_filter($this->bot->calls, fn(array $call) => $method === $call['method']));
+        $this->assertNotEmpty($calls, "Expected $method to be called");
+
+        return json_decode(end($calls)['args'][5]->toJson(), true)['inline_keyboard'];
+    }
+
+    /** @return list<string> */
+    protected function lastKeyboardLabels(string $method): array
+    {
+        return array_column(array_merge(...$this->lastKeyboard($method)), 'text');
+    }
+
+    /** The record a sender queue handler hands its processor. */
+    protected function ensureSender(TelegramUpdate $update): UserRecord
+    {
+        return new UserManager()->ensureUserRecord($update->getFrom());
     }
 
     protected function seedAdmin(): void
@@ -54,6 +86,25 @@ abstract class ProcessorTestCase extends DatabaseTestCase
     protected function seedRoot(): void
     {
         $this->createUser(self::ADMIN_TELEGRAM_USER_ID, role: Role::Root->value);
+    }
+
+    /**
+     * Drains the game's notification queue.
+     *
+     * @return list<int>
+     */
+    protected function dequeueNotifiedUserIds(int $gameId, NotificationType $type): array
+    {
+        $queue = new FileQueue(QueueName::Notification->forId($gameId), NotificationEnqueuer::QUEUE_DIR);
+        $userIds = [];
+
+        while (null !== $message = $queue->dequeue()) {
+            if ($type->value === $message->payload['type']) {
+                $userIds[] = $message->payload['user_id'];
+            }
+        }
+
+        return $userIds;
     }
 
     /** A game's day is judged at its venue, so a fixture that means "today" has to say whose. */
