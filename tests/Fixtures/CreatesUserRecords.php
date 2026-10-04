@@ -18,17 +18,20 @@ trait CreatesUserRecords
         ?string $username = null,
         Role $role = Role::Player,
         ?NotificationSettings $notifications = new NotificationSettings(),
+        ?string $languageCode = null,
+        DateTimeImmutable $createdAt = new DateTimeImmutable('2026-01-01 10:00:00'),
+        DateTimeImmutable $updatedAt = new DateTimeImmutable('2026-01-01 10:00:00'),
     ): UserRecord {
         return new UserRecord(
             telegramUserId: $telegramUserId,
             firstName: $firstName,
             lastName: $lastName,
             username: $username,
-            languageCode: null,
+            languageCode: $languageCode,
             role: $role,
             notifications: $notifications,
-            createdAt: new DateTimeImmutable('2026-01-01 10:00:00'),
-            updatedAt: new DateTimeImmutable('2026-01-01 10:00:00'),
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
         );
     }
 }

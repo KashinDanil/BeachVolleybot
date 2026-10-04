@@ -46,6 +46,26 @@ final class UserRoleProcessorsTest extends ProcessorTestCase
         $this->assertMessageEdited();
     }
 
+    public function testUserDetailShowsTheStoredLanguageOptInAndTimestamps(): void
+    {
+        $this->createUser(300, 'Alice', languageCode: 'es');
+        $this->db->update(
+            'users',
+            ['created_at' => '2026-03-05 17:30:00', 'updated_at' => '2026-07-20 07:05:00'],
+            ['telegram_user_id' => 300],
+        );
+
+        $callbackData = AdminCallbackData::create(AdminCallbackAction::UserDetail)->withUserId(300);
+        $update = TelegramUpdate::fromArray($this->adminCallbackQueryPayload($callbackData->toJson()));
+
+        new RootUserRoleDetailProcessor($this->telegramSender, $callbackData, $this->ensureSender($update))->process($update);
+
+        $this->assertStringEndsWith(
+            "Language: es\nNotifications: —\nCreated: 2026-03-05 17:30:00 UTC\nUpdated: 2026-07-20 07:05:00 UTC",
+            $this->editedText(),
+        );
+    }
+
     public function testUserDetailShowsUserNotFound(): void
     {
         $callbackData = AdminCallbackData::create(AdminCallbackAction::UserDetail)->withUserId(99999);

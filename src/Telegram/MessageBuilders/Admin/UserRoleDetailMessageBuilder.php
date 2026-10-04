@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BeachVolleybot\Telegram\MessageBuilders\Admin;
 
+use BeachVolleybot\Database\Timestamp;
 use BeachVolleybot\Game\Models\Player;
 use BeachVolleybot\Processors\AdminProcessors\AdminCallbackAction;
 use BeachVolleybot\Telegram\CallbackData\AdminCallbackData;
@@ -17,6 +18,7 @@ final class UserRoleDetailMessageBuilder extends AbstractAdminMessageBuilder
     private const string HEADER_MESSAGE   = 'User';
     private const string PROMOTE_TO_ADMIN = 'Promote to Admin';
     private const string DEMOTE_TO_PLAYER = 'Demote to Player';
+    private const string OPTED_IN         = 'Opted in';
 
     public function buildUserDetail(UserRecord $user): TelegramMessage
     {
@@ -37,10 +39,32 @@ final class UserRoleDetailMessageBuilder extends AbstractAdminMessageBuilder
         return implode($this->formatter->newLine(), [
             $this->formatHeader(self::HEADER_MESSAGE),
             $namePart,
-            $this->formatter->escape('Username: ' . (null !== $user->username ? "@$user->username" : '—')),
+            $this->formatter->escape('Username: ' . $this->formatUsername($user)),
             $this->formatter->escape("Telegram ID: ") . $this->formatter->code((string)$user->telegramUserId),
-            $this->formatter->escape("Role: ") . $this->formatter->bold($user->role->name),
+            $this->formatter->escape("Role: ") . $user->role->name,
+            $this->formatter->escape('Language: ' . ($user->languageCode ?? '—')),
+            $this->formatter->escape('Notifications: ' . $this->formatNotificationsOptIn($user)),
+            $this->formatter->escape('Created: ' . Timestamp::format($user->createdAt) . ' UTC'),
+            $this->formatter->escape('Updated: ' . Timestamp::format($user->updatedAt) . ' UTC'),
         ]);
+    }
+
+    private function formatUsername(UserRecord $user): string
+    {
+        if (null === $user->username) {
+            return '—';
+        }
+
+        return "@$user->username";
+    }
+
+    private function formatNotificationsOptIn(UserRecord $user): string
+    {
+        if (null === $user->notifications) {
+            return '—';
+        }
+
+        return self::OPTED_IN;
     }
 
     private function buildUserDetailKeyboard(UserRecord $user): array
